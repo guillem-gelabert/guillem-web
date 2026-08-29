@@ -80,7 +80,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2)*
 
-- [ ] 02-03-PLAN.md — The `.prose-site` layer with its automated UI-SPEC conformance gate, the MDX components, and SmearTitle / PostMeta / LanguageSwitch
+- [x] 02-03-PLAN.md — The `.prose-site` layer with its automated UI-SPEC conformance gate, the MDX components, and SmearTitle / PostMeta / LanguageSwitch
 
 **Wave 4** *(blocked on Wave 3)*
 
@@ -167,7 +167,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Deploy Foundation & Design System | 4/4 | Complete   | 2026-08-29 |
-| 2. Content Pipeline | 2/7 | In Progress|  |
+| 2. Content Pipeline | 3/7 | In Progress|  |
 | 3. Work List & Landing Skeleton | 0/TBD | Not started | - |
 | 4. The Case Study | 0/TBD | Not started | - |
 | 5. Backlog | 0/TBD | Not started | - |
