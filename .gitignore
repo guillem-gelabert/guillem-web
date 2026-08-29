@@ -3,3 +3,4 @@
 .planning/
 .claude/settings.local.json
 node_modules/
+.next/
