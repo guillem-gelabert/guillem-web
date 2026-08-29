@@ -58,13 +58,13 @@ Exceptions: none. Phase 1 has no touch-target-only UI (no icon buttons, no nav y
 | Role | Size | Weight | Line Height | Face |
 |------|------|--------|-------------|------|
 | Body | 18px (fixed) | 400 (regular) | 1.6 | Newsreader |
-| Label | 14px (fixed) | 600 (semibold) | 1.3 | Newsreader, uppercase, letter-spacing 0.04em |
+| Label | 14px (fixed) | 400 (regular) | 1.3 | Newsreader, uppercase, letter-spacing 0.04em |
 | Heading | `clamp(2rem, 1rem + 4vw, 4.5rem)` → 32–72px | 800 | 0.9 | Humane |
 | Display | `clamp(3.5rem, 1.5rem + 8vw, 11.25rem)` → 56–180px | 800 | 0.82 | Humane |
 
 **Fluid display, fixed body, per D-03.** The two Humane rows are `clamp()` curves so poster-scale type survives to a 375px viewport (verified: at 375px the Display formula bottoms out at its 56px floor, never the demo's fixed 160px `white-space: nowrap` — do not port that literal value or the `nowrap`, D-03 explicitly flags both as incompatible with mobile). Newsreader rows are fixed pixel values so measure and vertical rhythm stay controlled, per D-03.
 
-**Weight discipline — 3 total values, not a violation of "declare exactly 2":** Newsreader (the body/UI face) uses exactly 2 weights, 400/600, as the general rule intends. Humane (the display face) is scoped to a single locked weight, 800 — the value CONTEXT.md's D-01 already validated ("already proven against the trail effect at 160px/0.82 line-height"). Treat Humane's weight as a separate, single, non-negotiable design decision rather than a third entry in the UI-weight budget; do not introduce a second Humane weight (e.g. a lighter 400 for some other Humane usage) without re-running the PITFALLS #11 contrast/legibility check that validated 800.
+**Weight discipline — exactly 2 weights in the system.** Newsreader (Body and Label) uses a single weight, 400 (regular); Label is differentiated from Body through size (14px vs 18px), case (uppercase vs sentence case), and letter-spacing (0.04em vs normal) rather than a second Newsreader weight. Humane (Heading and Display) uses a single weight, 800 — the value CONTEXT.md's D-01 already validated ("already proven against the trail effect at 160px/0.82 line-height"). Total across the system: 400 and 800 — one weight per face, two overall. Do not introduce a second Humane weight (e.g. a lighter weight for some other Humane usage) without re-running the PITFALLS #11 contrast/legibility check that validated 800, and do not introduce a second Newsreader weight without revisiting this budget deliberately.
 
 **Line-height deviates from generic heading guidance (1.2) by design:** Humane is a structural/poster element, not a conventional heading — 0.82/0.9 are tight by intent, ported from the benchmark's validated configuration. This is not an error for the checker to flag; it's the aesthetic (D-01, BRIEF §8 "type as structural element").
 
