@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { humane } from "./fonts/humane";
 import { newsreader } from "./fonts/newsreader";
+import { SmearHeadingProvider } from "@/components/smear-heading/smear-heading-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -12,7 +13,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${humane.variable} ${newsreader.variable}`}>
-      <body>{children}</body>
+      <body>
+        <SmearHeadingProvider>{children}</SmearHeadingProvider>
+      </body>
     </html>
   );
 }

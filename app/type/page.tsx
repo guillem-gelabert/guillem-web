@@ -1,14 +1,25 @@
+"use client";
+
+import { useSmearHeading } from "@/components/smear-heading/use-smear-heading";
+
 export default function TypeSpecimen() {
+  const displayRef = useSmearHeading<HTMLHeadingElement>();
+  const headingRef = useSmearHeading<HTMLHeadingElement>();
+
   return (
     <main className="flex flex-col gap-2xl px-lg py-3xl">
       <section className="flex flex-col gap-sm">
         <p className="text-label">Display</p>
-        <h1 className="text-display">Guillem Gelabert</h1>
+        <h1 ref={displayRef} className="text-display">
+          Guillem Gelabert
+        </h1>
       </section>
 
       <section className="flex flex-col gap-sm">
         <p className="text-label">Heading</p>
-        <h2 className="text-heading">Editorial Judgment</h2>
+        <h2 ref={headingRef} className="text-heading">
+          Editorial Judgment
+        </h2>
       </section>
 
       <section className="flex max-w-prose flex-col gap-sm">
