@@ -1,11 +1,12 @@
 ---
 phase: 2
 slug: content-pipeline
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-08-29
 revised: 2026-08-29
+reviewed_at: 2026-08-30
 ---
 
 # Phase 2 — UI Design Contract
@@ -85,7 +86,7 @@ Inherited verbatim from the shipped `app/globals.css` `@theme` block. No new tok
 
 | Exception | Value | Why it is off-grid |
 |-----------|-------|--------------------|
-| Hairlines and rules | 1px | Table row rules, the `<th>` full-ink rule, `<hr>`, the blockquote's two hairlines, and the link underline. Every one is a stroke width. Phase 1 already carries this class of value (its ornamental rule grid is a 1px rule). |
+| Hairlines, rules, and underline geometry | 1px, plus `text-underline-offset: 0.12em` | Table row rules, the `<th>` full-ink rule, the `h2` section rule, `<hr>`, the blockquote's two hairlines, and the link underline's 1px thickness. The link's `0.12em` underline offset (≈2.2px at Body) belongs in this row too: it is stroke geometry positioning a 1px rule against the glyphs' descenders, not a distance between elements, and it is expressed relative to the type so it stays correct at every role. Every value here is a stroke width or its placement. Phase 1 already carries this class of value (its ornamental rule grid is a 1px rule). |
 | Inline `<code>` vertical padding | 2px | Must not disturb the surrounding line box. At 4px the tint block would push against the leading of the line above and below and visibly break the prose rhythm, which is the exact thing the 1.6 line-height exists to protect. Horizontal padding is on-grid at 4px (`xs`). |
 | `:focus-visible` outline | 2px width, 2px offset | An affordance width, sub-grid by nature and by convention — 2px is the accepted minimum for a visible focus indicator, and the 2px offset is what keeps the ring off the glyphs. Same footing as the 1px hairlines. |
 
@@ -130,8 +131,8 @@ The first draft solved long-form hierarchy by buying a 24px `Deck` role and a 16
 
 Notes on the three choices that carry real weight here:
 
-- **The standfirst is bold body copy, not big body copy.** A semibold deck directly beneath a headline is a completely standard newspaper standfirst, and it reuses weight 530 — a number already in the system. On the index it sits under a Display-scale headline of 56–180px, so it has all the contrast it needs from its neighbour; it never had to be 24px to read as a deck.
-- **`<h2>` is a section head with a rule; `<h3>` is the same mark without one.** The checker's suggested route was a second tracking value, which is **rejected**: Phase 1 caps tracking at `0.04em` on multi-word real text, and any value distinguishable from Label's existing 0.04em would either breach that cap or be invisible. A 1px full-measure ink rule beneath the `h2` is the classic longform section break, is unambiguous at a glance, and is legal. Hierarchy is reinforced by whitespace, which is already scale-legal: `h2` gets 48px above, `h3` gets 32px.
+- **The standfirst is bold body copy, not big body copy.** A semibold deck directly beneath a headline is a completely standard newspaper standfirst, and it reuses weight 530 — a number already in the system. On the index it sits under a Display-scale headline of 56–180px, so it has all the contrast it needs from its neighbour; it never had to be 24px to read as a deck. **Because the standfirst is already at weight 530, `<strong>` inside it is a no-op:** the standfirst is plain text — no bold, no links, no inline markup of any kind. Front-matter `standfirst` values must be written as plain strings, not Markdown.
+- **`<h2>` is a section head with a rule; `<h3>` is the same mark without one.** The checker's suggested route was a second tracking value, which is **rejected** — but not because it is illegal. Tracking *upward* would breach Phase 1's `0.04em` cap; tracking *downward* is distinguishable and breaches nothing. It is rejected on typographic grounds instead: uppercase text at 14px needs its tracking to stay readable, and a de-tracked uppercase variant reads as a rendering fault — a font failing to load, a CSS rule misfiring — rather than as a deliberate hierarchy signal. A 1px full-measure ink rule beneath the `h2` is the classic longform section break, is unambiguous at a glance, and cannot be mistaken for a bug. Hierarchy is reinforced by whitespace, which is already scale-legal: `h2` gets 48px above, `h3` gets 32px.
 - **Code renders at 18px, the Body size, locked — no range.** The first draft asked for 16px "with 15–17px latitude", which the checker correctly called undetermined at hand-off. IBM Plex Mono's larger x-height means 18px mono reads slightly larger than 18px Newsreader. That is accepted as-is: code wanting to be a touch more legible than its surrounding prose is a defensible outcome, not a defect. `<pre>` compensates with line-height 1.5 against Body's 1.6 so code blocks stay compact. **Do not introduce `font-size-adjust`, an `em`-relative code size, or any other mechanism that produces a rendered size other than 18px.**
 
 ### What the withdrawal costs, stated plainly
@@ -316,7 +317,9 @@ py-3xl  px-lg
 
 ### The fixture post (success criterion 5)
 
-`draft: true`, English, slug `fixture`, so it renders at `/writing/fixture` in development and is absent from both the index and (in Phase 6) the sitemap. It must exercise **every** element in the Prose Contract below, in one file, with no exceptions — that is its entire job. Minimum contents: `h2`, `h3`, paragraphs, `<strong>`, `<em>`, an inline `<code>`, an internal link, an external link, an unordered list, an ordered list with a nested level, a blockquote, a table with a numeric column, a `<Figure>` at default width, a `<Figure wide>`, an `<Aside>`, an `<hr>`, and **two fenced code blocks in different languages** (one of which must overflow horizontally so the scroll behaviour is proven, and one of which must contain a `{` so `D-08`'s MDX parsing is exercised rather than assumed).
+`draft: true`, English, slug `fixture`, so it renders at `/writing/fixture` in development and is absent from both the index and (in Phase 6) the sitemap. It must exercise **every** element in the Prose Contract below, in one file, with no exceptions — that is its entire job. Minimum contents: `h2`, `h3`, paragraphs, `<strong>`, `<em>`, **an `<em>` nested inside a blockquote** (proving the italic reset above rather than leaving it to be discovered in Phase 4), an inline `<code>`, an internal link, an external link, an unordered list, an ordered list with a nested level, a blockquote, a table with a numeric column, a `<Figure>` at default width, a `<Figure wide>`, an `<Aside>`, an `<hr>`, and **two fenced code blocks in different languages** (one of which must overflow horizontally so the scroll behaviour is proven, and one of which must contain a `{` so `D-08`'s MDX parsing is exercised rather than assumed).
+
+The fixture must place **an `h2` and an `h3` close enough together to be seen in one glance**, with at least two paragraphs under each. `h2` and `h3` are identical type — 14px, uppercase, 0.04em — separated only by the 1px rule and by 48px versus 32px of space above. That is the thinnest hierarchy signal anywhere in this contract, and the viewport pass is the moment to confirm it actually reads as two levels rather than as one level with an inconsistent rule. If it does not read at 375px, the fix is more space above `h2`, not a fifth type size.
 
 Verified at **375px and 1440px**. The 375px pass is the one that catches real failures: table overflow, code-block overflow, and — now that code renders at the full Body size — whether an 18px mono line forces horizontal scrolling earlier than expected on a narrow viewport. That is acceptable behaviour, not a bug, but it must be seen and confirmed rather than assumed.
 
@@ -337,9 +340,9 @@ The typographic contract for rendered Markdown/MDX. This is success criterion 3 
 | `h4`–`h6` | — | **Unsupported.** Do not style them; the contract stops at `h3`. |
 | `<a>` (in prose) | inherits | Rest: ink text, 1px ink underline at `text-underline-offset: 0.12em`, `text-decoration-thickness: 1px`. Hover/focus: text and underline both `--color-accent`. Focus-visible: 2px accent outline, 2px offset. Transition per the Motion Contract. |
 | `<strong>` | Body → 18px / **530** | Newsreader. Reuses the existing second weight; does not buy a 600. |
-| `<em>` | Body → 18px / 400 / *italic* | Requires the Newsreader loader to add `style: ['normal','italic']`. |
+| `<em>` | Body → 18px / 400 / *italic* | Requires the Newsreader loader to add `style: ['normal','italic']`. Inverts to upright inside a `<blockquote>` — see the reset on that row. |
 | `<ul>` / `<ol>` | Body → 18px / 1.6 | `margin: 24px 0` (`lg`), `padding-left: 24px` (`lg`), `24px` between items at the top level, `8px` when nested. `ul` marker: an en-dash `–`, not a filled disc — quieter and closer to the editorial register. `ol` marker: decimal, ink, not accent. |
-| `<blockquote>` | Body → 18px / 1.6 / 400 / *italic* | The pull-quote treatment. Full measure, **no left bar** (that belongs to `Aside`), no quotation glyph. Italic is what marks it as quoted speech now that it is the same size as body copy — Phase 1 chose Newsreader partly *for* its true italic and named case-study pull quotes as the reason. A 1px `--color-rule` hairline above and below, `24px` (`lg`) inner vertical padding, `32px` (`xl`) outer margin. Deliberately not the default blog left-border. |
+| `<blockquote>` | Body → 18px / 1.6 / 400 / *italic* | The pull-quote treatment. Full measure, **no left bar** (that belongs to `Aside`), no quotation glyph. Italic is what marks it as quoted speech now that it is the same size as body copy — Phase 1 chose Newsreader partly *for* its true italic and named case-study pull quotes as the reason. A 1px `--color-rule` hairline above and below, `24px` (`lg`) inner vertical padding, `32px` (`xl`) outer margin. Deliberately not the default blog left-border. **Required reset: `blockquote em` renders upright (`font-style: normal`).** Without it an `<em>` inside a pull quote is invisible, because the quote is already italic — and Phase 4's case study is exactly where an emphasised phrase inside a pull quote will first appear. |
 | `<code>` (inline) | Body size → 18px, mono | `--color-surface-code` fill, `2px 4px` padding (2px is a declared spacing exception), square corners, full ink, **no syntax colouring**. |
 | `<pre>` | Body size → 18px / **1.5**, mono | `--color-surface-code` fill, square corners, `16px 24px` padding (`md`/`lg`), `32px` (`xl`) outer margin, `overflow-x: auto`, **no wrapping** — code lines must not soft-wrap. May widen to the 52rem wide measure. Shiki `github-light` tokens, theme background stripped to transparent. A horizontally scrolling `<pre>` must be reachable by keyboard: give it `tabindex="0"` and an accessible name, or it fails WCAG 2.1.1. |
 | `<table>` | — | Wrapped in an `overflow-x: auto` container that may widen to the 52rem wide measure. `border-collapse: collapse`. Full width of its container. |
@@ -449,11 +452,17 @@ What Phase 2 changes about the shipped system, in full — anything not listed h
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: **PASS with flags**
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Dimension 4 flags** — cleared to proceed, carried forward as things to watch during execution and during the Phase 2 UI audit:
+
+1. **Four roles is a tight budget for long-form.** The hierarchy leans on variants (weight 530, italic, a section rule) rather than on size. It is disciplined, and it is thin. If Phase 4's case study genuinely cannot be structured within `h2`/`h3`, the answer is to revisit the role table deliberately at that point — not to let a fifth size appear by accident in a post.
+2. **`h2` and `h3` are the thinnest signal in the contract** — identical type, separated only by a 1px rule and 16px of extra top margin. The fixture post's 375px/1440px pass is the designated place this gets confirmed, and the remedy if it fails is more space, not more sizes.
+3. **Mono at 18px will read slightly larger than the prose it sits in**, because IBM Plex Mono's x-height exceeds Newsreader's. Accepted deliberately; `<pre>` line-height 1.5 is the only compensation permitted.
+
+**Approval:** approved 2026-08-30
