@@ -136,8 +136,11 @@ and contact content (Phase 6), the writing pipeline (Phase 2).
 - `https://ib-gdp.guillemgelabert.com/everyone-in-mallorca-agrees-on-one-thing` — EN piece.
 - `https://ib-gdp.guillemgelabert.com/auf-mallorca-weiss-es-jeder` — DE piece.
 - `https://ib-gdp.guillemgelabert.com/everyone-in-mallorca-agrees-on-one-thing/methodology`
-  — EN methodology, HTTP 200. **The DE methodology 404s** — it exists in English only.
-  This is Phase 4's source material, so the case study's methodology basis is EN-only.
+  — EN methodology, HTTP 200 (136KB).
+- `https://ib-gdp.guillemgelabert.com/auf-mallorca-weiss-es-jeder/methodik`
+  — DE methodology, HTTP 200 (140KB). Note the path segment itself is localised
+  (`methodology` / `methodik`). Both languages have a full methodology, so Phase 4's
+  bilingual case study has source material in both.
 - `https://watchpeopledie.live` — Watch People Die, own domain.
 
 </canonical_refs>

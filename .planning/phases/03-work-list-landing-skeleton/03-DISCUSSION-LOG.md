@@ -104,9 +104,11 @@ real count is **two**. Consequences applied:
 - `https://watchpeopledie.live` — HTTP 200, own domain (69.46.46.21), not an apex
   subdomain. This contradicted Phase 2's D-04, which asserted projects live on
   subdomains of the apex; that decision was corrected in `02-CONTEXT.md`.
-- `.../everyone-in-mallorca-agrees-on-one-thing/methodology` — HTTP 200, 136KB.
-- `.../auf-mallorca-weiss-es-jeder/methodology` — **HTTP 404.** The methodology exists in
-  English only, so Phase 4's source material is EN-only despite the piece being bilingual.
+- `.../everyone-in-mallorca-agrees-on-one-thing/methodology` — HTTP 200, 136KB, `en-GB`.
+- `.../auf-mallorca-weiss-es-jeder/methodik` — HTTP 200, 140KB, `de-DE`. An initial probe
+  of `.../methodology` returned 404; that was a guessed URL, not a missing page. The
+  nested segment is localised too (`methodology` / `methodik`), which extends Phase 2's
+  D-06 beyond top-level slugs. Both languages have a full methodology.
 
 The second answer also resolved the open question about whether the work-list entry and
 the featured slot collide: they point at different things (CONTEXT.md D-07).

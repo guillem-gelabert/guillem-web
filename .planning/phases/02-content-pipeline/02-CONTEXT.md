@@ -76,6 +76,12 @@ navigation (Phase 3), the custom domain (deferred), the 2020 archive (v2).
   DE, not `/en/x` and `/de/x`. A piece therefore needs a stable identity in front-matter
   that is independent of its per-locale slug, so the two can be linked as translations
   of each other.
+  - **Nested route segments are localised too, not just the top-level slug.** Verified on
+    the live project: `.../everyone-in-mallorca-agrees-on-one-thing/methodology` and
+    `.../auf-mallorca-weiss-es-jeder/methodik` — both HTTP 200, `lang="en-GB"` and
+    `lang="de-DE"`. If the writing pipeline ever nests a route under a post, the child
+    segment is translated as well. Do not build routing that assumes a shared,
+    untranslated sub-path.
 
 - **D-07: A piece may exist in one locale only.** The pipeline must not assume every
   post has every translation, and must not render a broken language switcher or an
