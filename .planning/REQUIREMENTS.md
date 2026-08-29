@@ -18,7 +18,7 @@ Requirements for milestone v1.0. Each maps to exactly one roadmap phase.
 - [ ] **HOME-02**: Visitor can see one featured piece given clear visual primacy on the landing view.
 - [ ] **HOME-03**: Visitor can reach the work list, backlog, writing index, CV, and contact block from the landing view.
 - [ ] **HOME-04**: Visitor sees a landing layout that stays legible with only two work items — lists and prose, no card grids or three-across rows. *(Corrected from "three" on 2026-08-29: the real count is two — ib-gdp-evolution and Watch People Die.)*
-- [ ] **HOME-05**: Visitor sees a deliberate typographic system that reads as authored rather than framework-default.
+- [x] **HOME-05**: Visitor sees a deliberate typographic system that reads as authored rather than framework-default.
 - [ ] **HOME-06**: Visitor scrolling the page sees headings trail behind the scroll position with a smear effect that settles when scrolling stops.
 
 ### Case Study
@@ -60,7 +60,7 @@ Requirements for milestone v1.0. Each maps to exactly one roadmap phase.
 - [ ] **BUILD-03**: Visitor can use the site on both desktop and mobile browsers.
 - [ ] **BUILD-04**: Visitor loading the site receives real security response headers. *(The "demonstrates what the migrated series describes" rationale was dropped when the 2020 archive moved to v2 — the requirement stands on its own.)*
 - [ ] **BUILD-05**: Visitor with a reduced-motion preference set is not shown motion that ignores it.
-- [ ] **BUILD-06**: Fonts are self-hosted and the page does not shift layout as they load.
+- [x] **BUILD-06**: Fonts are self-hosted and the page does not shift layout as they load.
 
 ### Discoverability
 
@@ -130,8 +130,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BUILD-02 | Phase 1 | Complete |
 | BUILD-03 | Phase 1 | Pending |
 | BUILD-05 | Phase 1 | Pending |
-| BUILD-06 | Phase 1 | Pending |
-| HOME-05 | Phase 1 | Pending |
+| BUILD-06 | Phase 1 | Complete |
+| HOME-05 | Phase 1 | Complete |
 | HOME-06 | Phase 1 | Pending |
 | WRIT-01 | Phase 2 | Pending |
 | I18N-01 | Phase 2 | Pending |

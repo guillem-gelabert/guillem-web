@@ -43,7 +43,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 01-02-PLAN.md — Wire Humane/Newsreader font loaders and Tailwind v4 @theme design tokens + clamp() type scale
+- [x] 01-02-PLAN.md — Wire Humane/Newsreader font loaders and Tailwind v4 @theme design tokens + clamp() type scale
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -137,7 +137,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Deploy Foundation & Design System | 1/4 | In Progress|  |
+| 1. Deploy Foundation & Design System | 2/4 | In Progress|  |
 | 2. Content Pipeline | 0/TBD | Not started | - |
 | 3. Work List & Landing Skeleton | 0/TBD | Not started | - |
 | 4. The Case Study | 0/TBD | Not started | - |
