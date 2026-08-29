@@ -37,7 +37,7 @@ Six phases take the repo from its current state (a leftover static-prototype Doc
 ### Phase 2: Content Pipeline
 **Goal**: The site renders long-form written content from Markdown/MDX through a real pipeline — front-matter, `/writing` routing, an index, prose styled on Phase 1's type system, and syntax-highlighted code. It exists so Phase 4's case study has somewhere to live. The 2020 archive migration is deferred to v2; the `/writing/[slug]` URL shape is still settled here so that migration stays cheap to add later.
 **Depends on**: Phase 1
-**Requirements**: WRIT-01
+**Requirements**: WRIT-01, I18N-01
 **Success Criteria** (what must be TRUE):
   1. A Markdown/MDX file dropped into the content directory is served at its `/writing/[slug]` URL with no per-post wiring — title, date and description are read from front-matter, and the slug comes from the filename.
   2. Visitor can browse `/writing` as a real index. At launch it lists one entry (the Phase 4 case study) and must read as deliberate at n=1 — no empty-shelf layout, no card grid (PROJECT.md Out of Scope).
