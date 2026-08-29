@@ -125,6 +125,12 @@ None - no external service configuration required.
 - `app/(de)/` is intentionally not created here — Plan 05 adds it alongside the German routes it serves, per the plan's own scope boundary.
 - No blockers or concerns for the next plan in this phase.
 
+## Self-Check: PASSED
+
+All created files verified present on disk (`app/fonts/ibm-plex-mono.ts`, `mdx-components.tsx`,
+`app/(en)/layout.tsx`, `app/(en)/page.tsx`, `app/(en)/type/page.tsx`, this SUMMARY.md). All four
+commit hashes (`181b391`, `f59bdfc`, `7fd4145`, `52537f4`) verified present in `git log --oneline --all`.
+
 ---
 *Phase: 02-content-pipeline*
 *Completed: 2026-08-30*
