@@ -1,0 +1,87 @@
+---
+title: "A Working Fixture for the Prose Contract"
+standfirst: "A draft-only page assembled to exercise every rule this pipeline renders, from headings and lists to code and captioned figures."
+date: "2026-08-30"
+lang: en
+translationKey: fixture-post
+draft: true
+type: post
+---
+
+import { Figure } from "@/components/mdx/figure";
+
+This page is a fixture, not a published piece. Its job is to put every rule in the Prose Contract on the page at once, so the pipeline that renders it can be checked against real markup rather than against a description of what it should produce.
+
+Every paragraph below carries the same job: give the surrounding rule something real to apply to. This sentence sits in **plain body copy**, and the next one carries *an italic phrase* instead, so both the bold and the italic variant of the Body role render somewhere on the page.
+
+## Section headings, side by side
+
+This heading is the fourteen-pixel Label role, uppercase, with a full-ink rule underneath it. It marks a section break the way a longform article would, and it is deliberately placed next to the subsection below so the two can be compared in one glance.
+
+A second paragraph under the same heading, so the section reads as a real block of prose rather than a single caption-length line standing alone.
+
+### A subsection at the next level down
+
+The only thing distinguishing this heading from the one above it is the missing rule and a smaller top margin — same face, same size, same case, same tracking. That is deliberately the thinnest signal in the whole contract.
+
+A second paragraph here too, so both headings anchor a comparable amount of body copy above and below the point where the rule does, or does not, appear.
+
+## Quoting a source
+
+An external link like [a public code host](https://github.com) sits in running prose next to an internal one, [the type specimen](/type), so both link states share this paragraph.
+
+> A pull quote renders italic at the same size as the surrounding body copy, and *the emphasis inside it* resets back to upright rather than staying invisible against the quote's own italic.
+
+The reset above is the one property a future case study would otherwise discover for the first time in production, rather than here, where it is cheap to check.
+
+## Lists, ordered and not
+
+- An unordered item, marked with an en dash rather than a filled disc
+- A second unordered item, so the marker repeats and stays consistent
+- A third item with a nested list beneath it
+  - A nested item at the second level
+  - A second nested item, so the tighter nested gap is visible too
+
+1. A numbered step
+2. A second numbered step
+3. A third step with its own nested list
+   1. A nested numbered step
+   2. A second nested numbered step
+
+## A table with a numeric column
+
+| Metric | Value |
+| --- | ---: |
+| Sections in this fixture | 6 |
+| Fenced code blocks | 2 |
+| Figures | 2 |
+
+## Figures at both widths
+
+<Figure src="/fixture/figure-default.svg" alt="A placeholder rectangle at the default reading measure, labelled with its own pixel dimensions." width={800} height={450}>
+  Default width: reserves 800 by 450 pixels of intrinsic space before it loads.
+</Figure>
+
+<Figure src="/fixture/figure-wide.svg" alt="A placeholder rectangle at the wide measure, labelled with its own pixel dimensions." width={1600} height={900} wide>
+  Wide width: breaks the reading measure out to the wide 52rem container.
+</Figure>
+
+<Aside kicker="Methodology">
+  This fixture is generated content, not published writing, and stays excluded from both the index and the sitemap by its own front-matter.
+</Aside>
+
+---
+
+## Code, in two languages
+
+An inline span like `formatPostDate()` sits in running prose next to a fenced block:
+
+```json
+{ "format": "mdx", "renders": true }
+```
+
+The block above is proof that a fenced block stays literal even in an `.mdx` file — the brace inside it is never parsed as an MDX expression. The next block is long enough on one line to force the code block itself to scroll horizontally, rather than the page around it:
+
+```bash
+curl -X POST "https://example.com/api/v1/writing/fixture?draft=true&locale=en" --header "Authorization: Bearer replace-with-a-token-value-long-enough-to-not-wrap-onto-a-second-line"
+```
