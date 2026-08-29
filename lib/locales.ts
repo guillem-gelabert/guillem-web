@@ -1,0 +1,67 @@
+import type { Locale } from "./content";
+
+export const PATH_TOKEN: Record<Locale, string> = {
+  en: "writing",
+  de: "texte",
+};
+
+export function indexPath(locale: Locale): string {
+  return `/${PATH_TOKEN[locale]}`;
+}
+
+export function postPath(locale: Locale, slug: string): string {
+  return `/${PATH_TOKEN[locale]}/${slug}`;
+}
+
+export function otherLocale(locale: Locale): Locale {
+  return locale === "en" ? "de" : "en";
+}
+
+const DATE_LOCALE: Record<Locale, string> = {
+  en: "en-GB",
+  de: "de-DE",
+};
+
+export function formatPostDate(iso: string, locale: Locale): string {
+  const formatter = new Intl.DateTimeFormat(DATE_LOCALE[locale], {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+  return formatter.format(new Date(`${iso}T00:00:00Z`));
+}
+
+type UiCopy = {
+  indexKicker: string;
+  backLink: string;
+  switchLabel: string;
+  emptyHeading: string;
+  emptyBody: string;
+  notFoundHeading: string;
+  notFoundBody: string;
+  draftMarker: string;
+};
+
+export const UI: Record<Locale, UiCopy> = {
+  en: {
+    indexKicker: "Writing",
+    backLink: "← Writing",
+    switchLabel: "Auf Deutsch lesen",
+    emptyHeading: "Nothing published here yet.",
+    emptyBody: "The first piece is being written.",
+    notFoundHeading: "Not found",
+    notFoundBody: "That piece doesn't exist here.",
+    draftMarker: "Draft",
+  },
+  de: {
+    indexKicker: "Texte",
+    backLink: "← Texte",
+    switchLabel: "Read in English",
+    emptyHeading: "Hier ist noch nichts veröffentlicht.",
+    emptyBody: "Der erste Text entsteht gerade.",
+    notFoundHeading: "Nicht gefunden",
+    notFoundBody: "Diesen Text gibt es hier nicht.",
+    draftMarker: "Draft",
+  },
+};
