@@ -72,7 +72,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 02-01-PLAN.md — Install the @next/mdx + Shiki toolchain, add IBM Plex Mono and the Newsreader italic, and move Phase 1's routes into an `(en)` route group
+- [x] 02-01-PLAN.md — Install the @next/mdx + Shiki toolchain, add IBM Plex Mono and the Newsreader italic, and move Phase 1's routes into an `(en)` route group
 
 **Wave 2** *(blocked on Wave 1)*
 
@@ -167,7 +167,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Deploy Foundation & Design System | 4/4 | Complete   | 2026-08-29 |
-| 2. Content Pipeline | 0/7 | Planned | - |
+| 2. Content Pipeline | 1/7 | In Progress|  |
 | 3. Work List & Landing Skeleton | 0/TBD | Not started | - |
 | 4. The Case Study | 0/TBD | Not started | - |
 | 5. Backlog | 0/TBD | Not started | - |
