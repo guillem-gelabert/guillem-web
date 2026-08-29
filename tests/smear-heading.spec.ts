@@ -65,10 +65,14 @@ test("heading grows a multi-layer text-shadow mid-scroll and settles back to 'no
 
   expect(midScrollShadow).not.toBeNull();
   expect(midScrollShadow).not.toBe("none");
-  // A real stacked-shadow value is a comma-separated list of many layers,
-  // e.g. "rgb(0, 0, 0) 0px 12px 0px, rgb(0, 0, 0) 0px 11.9px 0px, ...".
-  const layerCount = (midScrollShadow as string).split(",").length;
-  expect(layerCount).toBeGreaterThan(1);
+  // Count actual shadow layers, not commas. getComputedStyle normalises the
+  // trail hue to `rgb(r, g, b)`, which carries two commas of its own, so a
+  // naive split(",") reports 3 for a single layer and any "> 1" assertion
+  // passes trivially. Count the colour functions instead — one per layer.
+  const layerCount = ((midScrollShadow as string).match(/rgba?\(/g) ?? []).length;
+  // The ported formula is layers = min(240, max(2, ceil(distance * 2))), and a
+  // 1200px jump puts distance at the MAX_TRAIL clamp, so this should be deep.
+  expect(layerCount).toBeGreaterThan(10);
 
   // Wait past SCROLL_STOP_DELAY (120ms) plus enough settle time for the
   // exponential smoothing to converge within the 0.15px stop threshold.

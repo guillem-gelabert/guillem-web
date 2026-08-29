@@ -10,18 +10,28 @@ import {
 } from "react";
 import { usePrefersReducedMotion } from "./use-prefers-reduced-motion";
 
-// Constants ported verbatim from text_trail_demo/index.html:324-327.
-// The source's scroll-speed-driven rainbow hue-cycling helper is intentionally
-// NOT ported — it is a debug feature for comparing the benchmark's three
-// techniques, not a production design decision (01-UI-SPEC.md's required
-// deviation; see this file's monochrome INK constant below).
+// Constants ported verbatim from text_trail_demo/index.html:324-327,362.
 const MAX_TRAIL = 280;
 const MAX_SHADOWS = 240;
 const SCROLL_STOP_DELAY = 120; // ms, debounce before treating scroll as "stopped"
+const HUE_SPEED = 110; // degrees per second of scroll activity (:326)
+const INITIAL_HUE = 345; // (:362)
 
-// Required deviation (01-UI-SPEC.md "Motion & Heading Trail Contract"):
-// every trail layer is solid ink, never the source's shifting hsl() value.
-const INK = "#000000";
+// The heading's own glyphs stay ink (--color-ink, pure black); the hue cycles
+// on the trail *behind* them, so the smear reads as a moving colour field the
+// black letterforms sit on. This restores the source's trailColor() cycling
+// (:368-390, advanced in handleScroll at :902), which the initial Phase 1 port
+// dropped per 01-UI-SPEC.md's monochrome-ink rule — superseded by explicit
+// user direction during Phase 1 validation.
+let trailHue = INITIAL_HUE;
+
+// trailColor(), ported from :368-390. The source also returns red/green/blue
+// components for its WebGL path; the text-shadow technique only consumes the
+// `css` string, so only that is ported.
+function trailColor(): string {
+  const hue = ((trailHue % 360) + 360) % 360;
+  return `hsl(${hue} 100% 50%)`;
+}
 
 interface HeadingState {
   documentTop: number;
@@ -86,11 +96,11 @@ export function SmearHeadingProvider({
     let touchGesture = false;
     let nonTouchScrolling = false;
     let scrollStopTimer: ReturnType<typeof setTimeout> | undefined;
+    let lastScrollSample = performance.now(); // (:363)
 
-    // draw(), ported from createTextShadowEffect.draw (:663-681). Every
-    // `color.css` reference in the source is replaced with the fixed INK
-    // literal — the source's hue-cycling color helper and its scroll-speed
-    // input are not ported at all.
+    // draw(), ported from createTextShadowEffect.draw (:663-681), including
+    // the source's `color.css` reference — every layer takes the current
+    // cycling hue rather than a fixed literal.
     function draw(
       el: HTMLElement,
       targetY: number,
@@ -105,10 +115,11 @@ export function SmearHeadingProvider({
 
       const distance = Math.abs(difference);
       const layers = Math.min(MAX_SHADOWS, Math.max(2, Math.ceil(distance * 2)));
+      const color = trailColor();
       const shadows: string[] = [];
       for (let index = layers; index >= 1; index--) {
         const t = index / layers;
-        shadows.push(`0 ${difference * t}px 0 ${INK}`);
+        shadows.push(`0 ${difference * t}px 0 ${color}`);
       }
       el.style.textShadow = shadows.join(",");
     }
@@ -204,6 +215,13 @@ export function SmearHeadingProvider({
     }
 
     function handleScroll() {
+      // Hue advance, ported from :901-903 — tied to scroll samples, not to a
+      // wall clock, so the colour only moves while the visitor is scrolling.
+      const now = performance.now();
+      const hueElapsed = Math.max(0, Math.min(now - lastScrollSample, 80));
+      trailHue = (trailHue + (HUE_SPEED * hueElapsed) / 1000) % 360;
+      lastScrollSample = now;
+
       scheduleScrollStop();
       if (!touchGesture && !nonTouchScrolling) {
         nonTouchScrolling = true;
