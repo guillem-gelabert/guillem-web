@@ -55,8 +55,8 @@ Requirements for milestone v1.0. Each maps to exactly one roadmap phase.
 
 ### Foundation and Deployment
 
-- [ ] **BUILD-01**: The site runs as a Next.js application.
-- [ ] **BUILD-02**: The site is deployed on Railway and reachable at a stable public URL.
+- [x] **BUILD-01**: The site runs as a Next.js application.
+- [x] **BUILD-02**: The site is deployed on Railway and reachable at a stable public URL.
 - [ ] **BUILD-03**: Visitor can use the site on both desktop and mobile browsers.
 - [ ] **BUILD-04**: Visitor loading the site receives real security response headers. *(The "demonstrates what the migrated series describes" rationale was dropped when the 2020 archive moved to v2 — the requirement stands on its own.)*
 - [ ] **BUILD-05**: Visitor with a reduced-motion preference set is not shown motion that ignores it.
@@ -126,8 +126,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BUILD-01 | Phase 1 | Pending |
-| BUILD-02 | Phase 1 | Pending |
+| BUILD-01 | Phase 1 | Complete |
+| BUILD-02 | Phase 1 | Complete |
 | BUILD-03 | Phase 1 | Pending |
 | BUILD-05 | Phase 1 | Pending |
 | BUILD-06 | Phase 1 | Pending |

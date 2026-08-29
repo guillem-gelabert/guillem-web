@@ -39,7 +39,7 @@ Six phases take the repo from its current state (a leftover static-prototype Doc
 Plans:
 **Wave 1**
 
-- [ ] 01-01-PLAN.md — Delete stale Dockerfile/nginx artifacts, scaffold Next.js 16, install Playwright, push and confirm the live Railway URL serves the new app
+- [x] 01-01-PLAN.md — Delete stale Dockerfile/nginx artifacts, scaffold Next.js 16, install Playwright, push and confirm the live Railway URL serves the new app
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -137,7 +137,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Deploy Foundation & Design System | 0/4 | Planned | - |
+| 1. Deploy Foundation & Design System | 1/4 | In Progress|  |
 | 2. Content Pipeline | 0/TBD | Not started | - |
 | 3. Work List & Landing Skeleton | 0/TBD | Not started | - |
 | 4. The Case Study | 0/TBD | Not started | - |

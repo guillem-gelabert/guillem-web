@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Working Site
 status: executing
-stopped_at: Phase 3 context gathered
-last_updated: "2026-08-29T20:11:40.332Z"
-last_activity: 2026-08-29 -- Phase 1 planning complete
+stopped_at: Completed 01-01-PLAN.md
+last_updated: "2026-08-29T20:23:21.840Z"
+last_activity: 2026-08-29
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 4
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-08-29)
 
 **Core value:** A visitor scanning a shortlist can tell within ninety seconds that Guillem has editorial judgment as well as craft — enough to decide the conversation is worth opening.
-**Current focus:** Phase 1 — Deploy Foundation & Design System (not yet planned)
+**Current focus:** Phase 01 — Deploy Foundation & Design System
 
 ## Current Position
 
-Phase: 1 of 6 (Deploy Foundation & Design System)
-Plan: — of — (not yet planned)
+Phase: 01 (Deploy Foundation & Design System) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
-Last activity: 2026-08-29 -- Phase 1 planning complete
+Last activity: 2026-08-29
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [███░░░░░░░] 25%
 
 ## Performance Metrics
 
@@ -52,6 +52,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 01 P01 | 8min | 3 tasks | 20 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,7 @@ Recent decisions affecting current work:
 - Roadmap: Phase 3 (Work List & Landing Skeleton) builds the featured slot's code and layout only; Phase 4 (The Case Study) finalizes the featured entry's annotation copy and wires the slot to real content, so copy is written once the case study prose exists.
 - Deployment path resolved: plain `next build` + `next start` on Railway's zero-config Node builder — no `output: 'export'`, no `output: 'standalone'`, no custom Dockerfile. The existing root `Dockerfile`/`nginx.conf.template` must be deleted as the first task of Phase 1.
 - Content pipeline: two-renderer dispatch by file extension — plain Markdown for the 13 migrated legacy posts, MDX (`next-mdx-remote-client`) for new writing including the case study — reconciles Phase 2's requirements with the Liquid-syntax migration risk.
+- [Phase 01]: Deploy-smoke spec asserts /_next/static/ script + __next_f string instead of __NEXT_DATA__ — that marker is a Pages Router convention absent from Next.js 16 App Router output
 
 ### Pending Todos
 
@@ -91,6 +93,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-29T18:48:25.591Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-work-list-landing-skeleton/03-CONTEXT.md
+Last session: 2026-08-29T20:23:21.833Z
+Stopped at: Completed 01-01-PLAN.md
+Resume file: None
