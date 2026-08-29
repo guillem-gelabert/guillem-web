@@ -31,7 +31,12 @@ Six phases take the repo from its current state (a leftover static-prototype Doc
   3. Visitor loading any page sees no layout shift as fonts load.
   4. Visitor with `prefers-reduced-motion` set is shown no motion that ignores it, gated from the first component built rather than retrofitted later.
   5. Visitor scrolling sees headings trail behind the scroll position with a smear effect that settles when scrolling stops — built with stacked CSS `text-shadow`, ported from the existing benchmark at `text_trail_demo/index.html` (`createTextShadowEffect` at `:648-688`, shared rAF driver at `:827-882`), not rebuilt from scratch.
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 01-01-PLAN.md — Delete stale Dockerfile/nginx artifacts, scaffold Next.js 16, install Playwright, push and confirm the live Railway URL serves the new app
+- [ ] 01-02-PLAN.md — Wire Humane/Newsreader font loaders and Tailwind v4 @theme design tokens + clamp() type scale
+- [ ] 01-03-PLAN.md — Wire root layout (fonts, robots noindex) and build the holding page + /type specimen route
+- [ ] 01-04-PLAN.md — Port the scroll-driven heading trail (text-shadow smear) and wire prefers-reduced-motion gating
 **UI hint**: yes
 
 ### Phase 2: Content Pipeline
@@ -101,7 +106,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Deploy Foundation & Design System | 0/TBD | Not started | - |
+| 1. Deploy Foundation & Design System | 0/4 | Planned | - |
 | 2. Content Pipeline | 0/TBD | Not started | - |
 | 3. Work List & Landing Skeleton | 0/TBD | Not started | - |
 | 4. The Case Study | 0/TBD | Not started | - |
