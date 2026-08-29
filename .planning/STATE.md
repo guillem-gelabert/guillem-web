@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Working Site
 status: planning
-stopped_at: Phase 1 UI-SPEC approved
-last_updated: "2026-08-29T17:36:27.795Z"
+stopped_at: Phase 2 context gathered (re-scoped to Content Pipeline)
+last_updated: "2026-08-29T18:23:58.337Z"
 last_activity: 2026-08-29 — HOME-06 (heading trail effect) added to Phase 1; 6 phases, 29/29 requirements mapped
 progress:
   total_phases: 6
@@ -91,6 +91,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-29T16:52:41.572Z
-Stopped at: Phase 1 UI-SPEC approved
-Resume file: .planning/phases/01-deploy-foundation-design-system/01-UI-SPEC.md
+Last session: 2026-08-29T18:23:58.329Z
+Stopped at: Phase 2 context gathered (re-scoped to Content Pipeline)
+Resume file: .planning/phases/02-content-pipeline/02-CONTEXT.md
