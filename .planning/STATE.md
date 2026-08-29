@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Working Site
-status: executing
-stopped_at: Completed 01-03-PLAN.md
-last_updated: "2026-08-29T20:40:41.232Z"
+status: verifying
+stopped_at: Completed 01-04-PLAN.md
+last_updated: "2026-08-29T20:56:58.156Z"
 last_activity: 2026-08-29
 progress:
   total_phases: 6
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 4
-  completed_plans: 3
-  percent: 0
+  completed_plans: 4
+  percent: 17
 ---
 
 # Project State
@@ -27,10 +27,10 @@ See: `.planning/PROJECT.md` (updated 2026-08-29)
 
 Phase: 01 (Deploy Foundation & Design System) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-08-29
 
-Progress: [████████░░] 75%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -55,6 +55,7 @@ Progress: [████████░░] 75%
 | Phase 01 P01 | 8min | 3 tasks | 20 files |
 | Phase 01 P02 | 4min | 2 tasks | 6 files |
 | Phase 01 P03 | 4min | 2 tasks | 6 files |
+| Phase 01 P04 | 12min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,8 @@ Recent decisions affecting current work:
 - [Phase 01]: git mv unusable for the Humane asset move -- text_trail_demo/ was never tracked by git; used a plain filesystem mv instead (no impact on D-01's no-modify licence constraint)
 - [Phase 01]: @theme block holds only tokens (font-family/color/spacing custom properties); clamp() type-scale rules, weights, and letter-spacing live as plain CSS classes beneath @theme, per D-04's split
 - [Phase 01]: viewport.spec.ts asserts the Display role's 1440px size against the real clamp() formula (139.2px) instead of the plan's near-ceiling assumption — Empirically verified the Display curve (clamp(3.5rem, 1.5rem + 8vw, 11.25rem)) doesn't reach its 180px ceiling until ~1950px viewport width; app/globals.css's clamp() curves are Plan 02's locked interface and were left untouched
+- [Phase 01]: Playwright's reducedMotion context/test option did not reliably affect matchMedia('(prefers-reduced-motion: reduce)') in this environment (1.62.1/Chromium) — use page.emulateMedia({ reducedMotion: 'reduce' }) called before page.goto() instead, for this and any future reduced-motion Playwright spec
+- [Phase 01]: app/page.tsx and app/type/page.tsx converted from Server Components to Client Components to call useSmearHeading() and attach a ref for the scroll-driven heading trail; no server-only data fetching existed on either route, so this is cost-free
 
 ### Pending Todos
 
@@ -98,6 +101,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-29T20:40:41.224Z
-Stopped at: Completed 01-03-PLAN.md
+Last session: 2026-08-29T20:56:58.148Z
+Stopped at: Completed 01-04-PLAN.md
 Resume file: None
