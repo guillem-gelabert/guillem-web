@@ -19,6 +19,7 @@ Requirements for milestone v1.0. Each maps to exactly one roadmap phase.
 - [ ] **HOME-03**: Visitor can reach the work list, backlog, writing index, CV, and contact block from the landing view.
 - [ ] **HOME-04**: Visitor sees a landing layout that stays legible with only three work items — lists and prose, no card grids or three-across rows.
 - [ ] **HOME-05**: Visitor sees a deliberate typographic system that reads as authored rather than framework-default.
+- [ ] **HOME-06**: Visitor scrolling the page sees headings trail behind the scroll position with a smear effect that settles when scrolling stops.
 
 ### Case Study
 
@@ -82,7 +83,7 @@ Deferred to a future milestone. Tracked but not in this roadmap.
 
 ### Landing
 
-- **HOME-06**: Visitor sees case studies surfaced directly on the landing view once there is more than one.
+- **HOME-07**: Visitor sees case studies surfaced directly on the landing view once there is more than one.
 
 ### Profile
 
@@ -90,7 +91,7 @@ Deferred to a future milestone. Tracked but not in this roadmap.
 
 ### Richer Interaction
 
-- **RICH-01**: Visitor experiences Performative-tier motion — scroll-driven variable-font hero, WebGL or Three.js elements.
+- **RICH-01**: Visitor experiences Performative-tier set pieces — the scroll-driven variable-font hero, WebGL or Three.js elements. *(The heading trail is NOT part of this — it ships in v1 as HOME-06.)*
 - **RICH-02**: Visitor can read the backlog as encoded data or a chart. *(Requires per-item dates or states, which are out of scope for v1.)*
 
 ### Infrastructure
@@ -103,7 +104,7 @@ Explicitly excluded. Documented to prevent scope creep.
 
 | Feature | Reason |
 |---------|--------|
-| Performative-tier motion, incl. the scroll-driven variable-font hero | Deferred to the v3 tier. Fancy is earned when it arrives after the work rather than instead of it |
+| Performative set pieces: the scroll-driven variable-font hero, WebGL/Three.js | Deferred to the v3 tier. The staging orders effort — content before fanciness — rather than banning motion; ordinary animation is in scope (see HOME-06) |
 | Post type and tag taxonomy | Real, but premature at launch volume — v1 ships a flat index grouped by series |
 | "Now playing / recently played" | The most generic element proposed; adds nothing to the subject or judgment claims |
 | Blog-primary reverse-chronological homepage | The target configuration at v3 volume; at 13 posts it reads emptier than a one-pager |
@@ -127,6 +128,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BUILD-05 | Phase 1 | Pending |
 | BUILD-06 | Phase 1 | Pending |
 | HOME-05 | Phase 1 | Pending |
+| HOME-06 | Phase 1 | Pending |
 | WRIT-01 | Phase 2 | Pending |
 | WRIT-02 | Phase 2 | Pending |
 | WRIT-03 | Phase 2 | Pending |
@@ -151,10 +153,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FIND-02 | Phase 6 | Pending |
 
 **Coverage:**
-- v1 requirements: 28 total
-- Mapped to phases: 28
+- v1 requirements: 29 total
+- Mapped to phases: 29
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-08-29*
-*Last updated: 2026-08-29 after roadmap creation (6 phases, full v1 coverage)*
+*Last updated: 2026-08-29 after adding HOME-06 (heading trail effect, CSS text-shadow)*

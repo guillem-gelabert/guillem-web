@@ -27,7 +27,7 @@ See: `.planning/PROJECT.md` (updated 2026-08-29)
 Phase: 1 of 6 (Deploy Foundation & Design System)
 Plan: — of — (not yet planned)
 Status: Ready to plan
-Last activity: 2026-08-29 — Roadmap created for re-scoped milestone v1.0 "Working Site" (6 phases, 28/28 requirements mapped)
+Last activity: 2026-08-29 — HOME-06 (heading trail effect) added to Phase 1; 6 phases, 29/29 requirements mapped
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -57,6 +57,9 @@ Progress: [░░░░░░░░░░] 0%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- Headings carry a scroll-driven trail, built with stacked CSS `text-shadow` — ported from the existing benchmark at `text_trail_demo/index.html` (`createTextShadowEffect` at `:648-688`, shared rAF driver at `:827-882`), not rebuilt. Added as HOME-06 in Phase 1.
+- Axis-2 staging clarified: Typographic → Performative orders *effort* (content before fanciness), it does not ban motion. Animation needed for the page to look beautiful is in scope at every tier; what waits for v3 is performative set pieces (variable-font hero, WebGL/Three.js). PROJECT.md and REQUIREMENTS.md reworded accordingly.
+
 - Roadmap: merged research's suggested "Content Pipeline" and "Writing Archive Migration" phases into one Phase 2 — the pipeline has no requirement of its own, only the migrated content proves it (see ROADMAP.md Overview for full reasoning).
 - Roadmap: Phase 3 (Work List & Landing Skeleton) builds the featured slot's code and layout only; Phase 4 (The Case Study) finalizes the featured entry's annotation copy and wires the slot to real content, so copy is written once the case study prose exists.
 - Deployment path resolved: plain `next build` + `next start` on Railway's zero-config Node builder — no `output: 'export'`, no `output: 'standalone'`, no custom Dockerfile. The existing root `Dockerfile`/`nginx.conf.template` must be deleted as the first task of Phase 1.
@@ -64,9 +67,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-1 pending — see `.planning/todos/pending/`
-
-- **Adopt scroll-driven heading trail effect** (ui, resolves Phase 1) — a working three-way benchmark exists at `text_trail_demo/index.html`. Carries an unresolved scope conflict: the effect is Responsive/Performative tier, but the milestone is locked at Typographic and PROJECT.md lists Performative-tier motion as Out of Scope. Needs a decision before Phase 1 planning.
+None pending.
 
 ### Blockers/Concerns
 

@@ -13,13 +13,13 @@
 - A photograph of Guillem
 - Contact block: obfuscated email, GitHub, LinkedIn
 - Next.js application deployed to Railway on the generated URL
-- Typographic tier throughout — no performative motion
+- Typographic tier throughout, including a scroll-driven trail on headings (stacked CSS `text-shadow`) — performative set pieces wait for v3
 
 ## What This Is
 
 A personal site for Guillem, a developer applying for roles in data journalism, data visualization, and creative development. Its job is to prevent one specific wrong conclusion — "talented front-end dev, no editorial judgment" — which is the default reading a developer CV produces on its own.
 
-The site works by allocation: engineering is demonstrated by the artifact working well rather than stated in copy, which frees the entire copy budget for the three things a developer CV structurally cannot show — subject knowledge, editorial judgment, and design intuition. It is content-led rather than hero-led, and it launches at the Typographic tier with visual sophistication deferred until there is work underneath to justify it.
+The site works by allocation: engineering is demonstrated by the artifact working well rather than stated in copy, which frees the entire copy budget for the three things a developer CV structurally cannot show — subject knowledge, editorial judgment, and design intuition. It is content-led rather than hero-led, and it launches at the Typographic tier — motion that makes the page beautiful belongs there, while whole-page performative set pieces wait until there is work underneath to justify them.
 
 ## Core Value
 
@@ -43,7 +43,7 @@ A visitor scanning a shortlist can tell within ninety seconds that Guillem has e
 
 ### Out of Scope
 
-- Performative-tier motion, including the scroll-driven variable-font hero — deferred to the v3 tier. Fancy is earned when it arrives after the work rather than instead of it.
+- The scroll-driven variable-font hero and WebGL/Three.js set pieces — deferred to the v3 tier. The axis-2 staging is about ordering effort (content before fanciness), not a ban on motion: ordinary animation that makes the page beautiful is in scope at every tier.
 - Post types and tags for the writing (book summary, commentary, learning) — the taxonomy is real but premature at launch volume; v1 ships a flat index.
 - "Now playing / recently played" — the most generic element proposed, and it adds nothing to the subject or judgment claims.
 - Custom domain (guillemgelabert.com vs guillem.ch) — unresolved; v1 ships on the Railway URL.
@@ -65,7 +65,7 @@ A visitor scanning a shortlist can tell within ninety seconds that Guillem has e
 
 - **Tech stack**: Next.js — supersedes the earlier plain-React decision, which was made when v1 was a hero and a single link.
 - **Hosting**: Railway on the generated URL — deployment target already chosen; custom domain deferred.
-- **Visual tier**: Typographic — no performative motion at launch. Motion is earned by the work that justifies it.
+- **Visual tier**: Typographic — the staging exists to keep effort going into content before fanciness, not to forbid motion. Animation that makes the page beautiful is expected; whole-page performative set pieces (the variable-font hero, WebGL) wait for v3.
 - **Layout at low n**: must not look empty with three items. Rules out card grids and three-across rows; favours lists, a single featured piece, and prose.
 - **Copy budget**: engineering is never claimed in copy, only demonstrated by the artifact. The copy belongs to subject, judgment, and design.
 
@@ -76,7 +76,8 @@ A visitor scanning a shortlist can tell within ninety seconds that Guillem has e
 | Re-scope v1.0 rather than start a new milestone | The original v1.0 was planned but never built — no code, no phases executed — so there was nothing to layer a milestone on top of | — Pending |
 | Content-led site instead of hero-plus-GitHub-link | The "no finished data story yet" justification was stale; two pieces exist, and a performative hero over thin work produces "nice art project, can't ship" | — Pending |
 | Engineering demonstrated, not stated | It is the strongest suit and the least in need of advertising — a developer CV already carries it, and the landing surface is scarce | — Pending |
-| Launch at Typographic tier, defer Performative | Fancy is earned when it arrives after the work rather than instead of it. Same adjective, opposite verdicts | — Pending |
+| Launch at Typographic tier, defer Performative set pieces | The staging orders effort — adding content matters more than adding fanciness. It is not a motion ban: some animation is needed for the page to look beautiful, and that is in scope at every tier | — Pending |
+| Headings carry a scroll-driven trail, built with stacked CSS `text-shadow` | A three-way benchmark already exists at `text_trail_demo/index.html` (WebGL sampled mask, CSS text-shadow, alpha-mask extrusion). The text-shadow version is the least performative of the three, needs no WebGL context or canvas, runs on a live DOM heading, and degrades to a plain heading — it reads as a typographic treatment rather than a set piece | — Pending |
 | Next.js over plain React | v1 is content-led — writing, case study, lists, index — which a bare SPA would need hand-rolled routing and content loading to serve | — Pending |
 | Write the ib-gdp-evolution case study inside this milestone | Editorial judgment was the weakest link in the evidence audit, and it is the one gap no design decision can close | — Pending |
 | Migrate legacy writing rather than link out | The archive reads as Guillem's when it lives under one domain and one design | — Pending |

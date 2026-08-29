@@ -70,7 +70,7 @@ after it. Two existing requirements already cover parts of the work:
 - **BUILD-06** (self-hosted fonts, no layout shift) — Humane-VF is already self-hosted; moving
   it to `next/font` covers this
 
-### Open scope question — needs a decision before Phase 1 planning
+### Scope question — RESOLVED 2026-08-29
 
 This conflicts with scope decisions locked during the v1.0 re-scope, and the conflict is
 recorded here rather than resolved:
@@ -86,15 +86,20 @@ recorded here rather than resolved:
 visual sophistication arrives after the work that justifies it, not before." Anti-goal #2
 ("nice art project, can't ship") is what a performative treatment over thin work produces.
 
-Three ways this could resolve, none chosen yet:
+**Decision (Guillem, 2026-08-29): ship the CSS `text-shadow` version in v1.**
 
-1. **Ship the CSS `text-shadow` version in v1** — the least performative of the three, closest
-   to a typographic treatment, no WebGL context, and it degrades to a plain heading trivially.
-   Keeps the WebGL version for v2/v3 when the work underneath justifies it.
-2. **Amend the milestone scope** to admit Responsive-tier motion, and record the axis-2 change
-   as a deliberate decision in `PROJECT.md` rather than a drift.
-3. **Defer the whole effect to v2** under `RICH-01`, and keep Phase 1's typographic system
-   static.
+The axis-2 staging was reinterpreted rather than overridden. It exists to say that *adding
+content matters more than adding fanciness* — it orders effort, it does not ban motion. Some
+animation has to be there for the page to look beautiful. So the heading trail is in scope at
+the Typographic tier; what stays deferred to v3 is the performative *set pieces* — the
+scroll-driven variable-font hero, WebGL and Three.js.
 
-Whichever is chosen, the demo file and its font asset should be preserved (they are currently
-untracked) so the work is not lost.
+Recorded as:
+- `REQUIREMENTS.md` → new **HOME-06** (v1), mapped to Phase 1
+- `REQUIREMENTS.md` → `RICH-01` narrowed to set pieces only, explicitly excluding the trail
+- `PROJECT.md` → Out of Scope, Constraints and Key Decisions all reworded from "no
+  performative motion" to "no performative set pieces"
+- `ROADMAP.md` → Phase 1 gains HOME-06 and a fifth success criterion
+
+The demo file and its font asset are now load-bearing — Phase 1 ports `createTextShadowEffect`
+and the shared rAF driver from them rather than rebuilding. They must not be lost.

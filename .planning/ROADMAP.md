@@ -12,7 +12,7 @@ Six phases take the repo from its current state (a leftover static-prototype Doc
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 1: Deploy Foundation & Design System** - Delete the stale Dockerfile, stand up Next.js on Railway, and lay down the typographic system and accessibility defaults before any content exists.
+- [ ] **Phase 1: Deploy Foundation & Design System** - Delete the stale Dockerfile, stand up Next.js on Railway, and lay down the typographic system, the heading trail effect, and accessibility defaults before any content exists.
 - [ ] **Phase 2: Content Pipeline & Writing Archive Migration** - Build the frontmatter/MDX loader and migrate all 13 legacy posts, grouped into two series, at a deliberately chosen URL scheme.
 - [ ] **Phase 3: Work List & Landing Skeleton** - Assemble the landing view's positioning sentence, navigation, and vertical work list; leave the featured slot pointed at a placeholder.
 - [ ] **Phase 4: The Case Study** - Write and publish the ib-gdp-evolution case study and wire the landing view's featured slot to it.
@@ -24,12 +24,13 @@ Six phases take the repo from its current state (a leftover static-prototype Doc
 ### Phase 1: Deploy Foundation & Design System
 **Goal**: The site exists as a live, deployed Next.js application with its typographic design system and accessibility defaults in place before any content is built. The first task of this phase is deleting the repo's existing `Dockerfile` and `nginx.conf.template` — Railway auto-prioritizes a root Dockerfile over its zero-config builder with no override, so leaving it in place would silently deploy the wrong app behind a green build.
 **Depends on**: Nothing (first phase)
-**Requirements**: BUILD-01, BUILD-02, BUILD-03, BUILD-05, BUILD-06, HOME-05
+**Requirements**: BUILD-01, BUILD-02, BUILD-03, BUILD-05, BUILD-06, HOME-05, HOME-06
 **Success Criteria** (what must be TRUE):
   1. Visitor can load a live Next.js site at a stable Railway URL — not the old static prototype (the pre-existing `Dockerfile`/`nginx.conf.template` are deleted before the first deploy).
   2. Visitor sees a deliberate, authored typographic system (type scale, self-hosted fonts) rather than framework-default styling, correctly on both a mobile-width and a desktop-width viewport.
   3. Visitor loading any page sees no layout shift as fonts load.
   4. Visitor with `prefers-reduced-motion` set is shown no motion that ignores it, gated from the first component built rather than retrofitted later.
+  5. Visitor scrolling sees headings trail behind the scroll position with a smear effect that settles when scrolling stops — built with stacked CSS `text-shadow`, ported from the existing benchmark at `text_trail_demo/index.html` (`createTextShadowEffect` at `:648-688`, shared rAF driver at `:827-882`), not rebuilt from scratch.
 **Plans**: TBD
 **UI hint**: yes
 
@@ -107,3 +108,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 ---
 *Roadmap created: 2026-08-29*
+*Last updated: 2026-08-29 — HOME-06 (heading trail) added to Phase 1*
