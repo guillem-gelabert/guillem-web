@@ -59,18 +59,18 @@ Exceptions: none. Phase 1 has no touch-target-only UI (no icon buttons, no nav y
 |------|------|--------|-------------|------|
 | Body | 18px (fixed) | 400 (regular) | 1.6 | Newsreader |
 | Label | 14px (fixed) | 400 (regular) | 1.3 | Newsreader, uppercase, letter-spacing 0.04em |
-| Heading | `clamp(2rem, 1rem + 4vw, 4.5rem)` → 32–72px | 800 | 0.9 | Humane |
-| Display | `clamp(3.5rem, 1.5rem + 8vw, 11.25rem)` → 56–180px | 800 | 0.82 | Humane |
+| Heading | `clamp(2rem, 1rem + 4vw, 4.5rem)` → 32–72px | 530 | 0.9 | Humane |
+| Display | `clamp(3.5rem, 1.5rem + 8vw, 11.25rem)` → 56–180px | 530 | 0.82 | Humane |
 
 **Fluid display, fixed body, per D-03.** The two Humane rows are `clamp()` curves so poster-scale type survives to a 375px viewport (verified: at 375px the Display formula bottoms out at its 56px floor, never the demo's fixed 160px `white-space: nowrap` — do not port that literal value or the `nowrap`, D-03 explicitly flags both as incompatible with mobile). Newsreader rows are fixed pixel values so measure and vertical rhythm stay controlled, per D-03.
 
-**Weight discipline — exactly 2 weights in the system.** Newsreader (Body and Label) uses a single weight, 400 (regular); Label is differentiated from Body through size (14px vs 18px), case (uppercase vs sentence case), and letter-spacing (0.04em vs normal) rather than a second Newsreader weight. Humane (Heading and Display) uses a single weight, 800 — the value CONTEXT.md's D-01 already validated ("already proven against the trail effect at 160px/0.82 line-height"). Total across the system: 400 and 800 — one weight per face, two overall. Do not introduce a second Humane weight (e.g. a lighter weight for some other Humane usage) without re-running the PITFALLS #11 contrast/legibility check that validated 800, and do not introduce a second Newsreader weight without revisiting this budget deliberately.
+**Weight discipline — exactly 2 weights in the system.** Newsreader (Body and Label) uses a single weight, 400 (regular); Label is differentiated from Body through size (14px vs 18px), case (uppercase vs sentence case), and letter-spacing (0.04em vs normal) rather than a second Newsreader weight. Humane (Heading and Display) uses a single weight, **530** — revised from 800 by the user during Phase 1 validation, after seeing the specimen live. Total across the system: 400 and 530 — one weight per face, two overall. 530 is lighter than the value D-01 validated against the trail, which *relieves* PITFALLS #11's contrast concern rather than aggravating it. Do not introduce a second Humane weight (e.g. a heavier weight for some other Humane usage) without re-running the PITFALLS #11 contrast/legibility check, and do not introduce a second Newsreader weight without revisiting this budget deliberately.
 
 **Line-height deviates from generic heading guidance (1.2) by design:** Humane is a structural/poster element, not a conventional heading — 0.82/0.9 are tight by intent, ported from the benchmark's validated configuration. This is not an error for the checker to flag; it's the aesthetic (D-01, BRIEF §8 "type as structural element").
 
-**Contrast is resolved by the palette, not by weight tuning:** ink `#171714` on paper `#f2eee5` is near-black on near-white — passes WCAG at any weight/size Humane can produce. PITFALLS #11's contrast risk is real in the abstract but already closed here by the two-tone palette choice; don't spend further effort re-verifying per heading level unless the palette changes.
+**Contrast is resolved by the palette, not by weight tuning:** ink `#000000` on paper `#ffffff` is pure black on pure white — passes WCAG at any weight/size Humane can produce. PITFALLS #11's contrast risk is real in the abstract but already closed here by the two-tone palette choice; don't spend further effort re-verifying per heading level unless the palette changes.
 
-**Letter-spacing cap (PITFALLS #11):** Humane headings ship at `0em` tracking (matches the benchmark default `--headline-tracking: 0em`) — Humane is already ultra-condensed and doesn't need spacing tricks. The one tracked element in the system is the Label role's uppercase caption text, capped at `0.04em` — well under the range that causes VoiceOver/NVDA to spell words letter-by-letter (documented risk starts appearing at wider values; the benchmark's own debug slider went up to `0.16em` — that slider and its range are a comparison tool, never ship that range). Never exceed `0.04em` tracking on any multi-word real text.
+**Letter-spacing cap (PITFALLS #11):** Humane headings ship at `0.035em` tracking — revised from `0em` by the user during Phase 1 validation. This sits under the `0.04em` cap below, so the screen-reader risk that cap exists to avoid is unaffected. The one tracked element in the system is the Label role's uppercase caption text, capped at `0.04em` — well under the range that causes VoiceOver/NVDA to spell words letter-by-letter (documented risk starts appearing at wider values; the benchmark's own debug slider went up to `0.16em` — that slider and its range are a comparison tool, never ship that range). Never exceed `0.04em` tracking on any multi-word real text.
 
 ---
 
@@ -89,13 +89,28 @@ This is the phase's one motion feature. It is a **port, not a rebuild** — the 
 
 - The debug/comparison chrome: the `.tabs` switcher, `.type-controls` sliders, the `.status` lag/FPS meter. These exist only to compare the three benchmarked techniques side by side and have no role in production.
 - The WebGL (`createShaderEffect`) and alpha-mask (`createAlphaMaskEffect`) implementations — text-shadow already won the comparison (D-08/CONTEXT specifics); the other two techniques ship nothing.
-- **`trailColor()`'s rainbow hue-cycling** (`:368-390`, driven by `HUE_SPEED = 110` in `handleScroll()`) — see the required deviation below. This is the one place the port must diverge from the source.
+- *(Previously listed here: `trailColor()`'s hue-cycling. It is now **ported** — see "Trail color" below. The port diverges from the source only in its architecture: one shared rAF driver over a registry of headings, instead of the source's single `activeEffect`.)*
 
-### Required deviation: trail color is monochrome ink, not the demo's rainbow cycle
+### Trail color: the hue cycle is ported
 
-The demo's `frame()` calls `trailColor()` on every frame, which cycles hue based on scroll speed and feeds a shifting `hsl()` value into `draw()`. That is a debug feature for telling the three benchmarked techniques apart at a glance — it is not a production design decision, and shipping it verbatim would put a color-cycling rainbow into a restrained constructivist site, directly contradicting BRIEF principle 3 ("earned motion over introduced motion") and the CONTEXT specifics note that text-shadow "reads as a typographic treatment rather than a set piece."
+> **Reversed on 2026-08-29 by the user, after seeing the trail live.** This section
+> previously mandated a monochrome-ink trail and called the source's hue cycling a debug
+> feature. That reasoning is superseded — recorded here rather than deleted, because
+> Phases 2–6 inherit this contract and the reversal is the load-bearing part.
 
-**Decision:** replace every call to `trailColor()` with a fixed color object equal to the heading's own ink color, `#171714`, solid (no alpha channel). The stacked shadow layers' overlapping sub-pixel offsets already produce the smear/blur illusion through density falloff — alpha blending is not needed and was never how the demo's own smear worked; only the *hue* was decorative. Monochrome ink keeps the effect legible as typography lagging behind itself, not as an ornament layered on top of it.
+**Decision:** port `trailColor()` (`:368-390`) and its scroll-driven advance (`:901-903`)
+from the benchmark. The heading's own glyphs stay ink (`#000000`); the cycling `hsl()` is
+the color of the *trail behind them*, so black letterforms sit on a moving color field.
+`HUE_SPEED = 110` and the `345` start hue are the benchmark's own values.
+
+The hue advances on **scroll samples, not a wall clock** — matching the source. The color
+therefore only moves while the visitor is actively scrolling, and is frozen whenever the
+page is still. This is what keeps it inside BRIEF principle 3 ("earned motion over
+introduced motion"): nothing animates unprompted.
+
+Shadow layers stay solid (no alpha channel). The smear illusion comes from the overlapping
+sub-pixel offsets' density falloff, which is how the demo's own smear worked; only the hue
+was ever the decorative part, and it is now deliberately kept.
 
 ### Trail scope — which headings carry it
 
@@ -113,12 +128,12 @@ Any hover/focus transition introduced anywhere in this phase's components (there
 
 | Role | Value | Usage |
 |------|-------|-------|
-| Dominant (60%) | `#f2eee5` | Page background, all surfaces. Warm off-white, from the benchmark palette (`text_trail_demo/index.html:22-23`), carried forward per CONTEXT's discretion note that it's "a usable starting point." |
-| Secondary (30%) | `#171714` | Ink — body text, headings, the heading trail (monochrome, see Motion Contract), the ornamental rule grid if shipped. Near-black, from the same benchmark palette. |
-| Accent (10%) | `#C1272D` | Reserved for: focus-visible outline/ring on any interactive element; link hover/underline color once links exist (Phase 2+ writing index, Phase 3+ nav). **Never** the heading trail itself (explicitly monochrome ink, above) and never a background fill. |
+| Dominant (60%) | `#ffffff` | Page background, all surfaces. Pure white — set by the user during Phase 1 validation, replacing the benchmark's warm off-white `#f2eee5`, which CONTEXT had carried forward only as "a usable starting point." |
+| Secondary (30%) | `#000000` | Ink — body text and heading glyphs, the ornamental rule grid if shipped. Pure black, set by the user during Phase 1 validation. **Note:** the heading *trail* is no longer ink — it carries the cycling hue (see Motion Contract). |
+| Accent (10%) | `#C1272D` | Reserved for: focus-visible outline/ring on any interactive element; link hover/underline color once links exist (Phase 2+ writing index, Phase 3+ nav). **Never** the heading trail itself (which carries the cycling hue, above) and never a background fill. |
 | Destructive | not applicable | No destructive actions exist in this phase's scope (static holding page + non-indexed specimen route; no forms, no delete actions). |
 
-**Accent reserved for:** focus rings and link states only, starting from the phase that first introduces a link or focusable element (Phase 1 may ship zero accent pixels — that's not a violation; the reservation exists so later phases inherit a settled answer rather than picking a color ad hoc). `#C1272D` is a Claude's-discretion pick ("constructivist red," echoing the Lissitzky/Rodchenko red referenced directly in BRIEF §8's "Beat the Whites with the Red Wedge") — the hex is adjustable at implementation time; the load-bearing part of this contract is the reserved-for list, not this exact value. Verify at implementation: minimum 3:1 contrast against `#f2eee5` for non-text UI components (focus rings, underlines) per WCAG 1.4.11 — accent is never used for body text, so the stricter 4.5:1 text threshold doesn't apply.
+**Accent reserved for:** focus rings and link states only, starting from the phase that first introduces a link or focusable element (Phase 1 may ship zero accent pixels — that's not a violation; the reservation exists so later phases inherit a settled answer rather than picking a color ad hoc). `#C1272D` is a Claude's-discretion pick ("constructivist red," echoing the Lissitzky/Rodchenko red referenced directly in BRIEF §8's "Beat the Whites with the Red Wedge") — the hex is adjustable at implementation time; the load-bearing part of this contract is the reserved-for list, not this exact value. Verify at implementation: minimum 3:1 contrast against `#ffffff` for non-text UI components (focus rings, underlines) per WCAG 1.4.11 — accent is never used for body text, so the stricter 4.5:1 text threshold doesn't apply.
 
 **Dark mode: light-only for v1.** CONTEXT.md flagged this as a genuine open question ("weigh that cost before adding") — resolved here as no, for three concrete reasons: (1) it doubles every contrast check against the heavy Humane display type (PITFALLS #11) for a feature no requirement asks for; (2) it adds scope to a phase whose stated job is "deploy first, then design" (D-08) as fast as possible; (3) the project's own working agreement is explicit — "MVP first. No polishing until the core works" (`CLAUDE.md`). Revisit only if a specific future requirement asks for it.
 

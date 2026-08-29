@@ -1,16 +1,17 @@
 ---
 phase: 01-deploy-foundation-design-system
 verified: 2026-08-29T23:30:00Z
-status: human_needed
-score: 5/5 must-haves verified (automated)
+status: passed
+score: 5/5 must-haves verified
 overrides_applied: 0
+human_verification_completed: 2026-08-29
 human_verification:
-  - test: "Open /type at 375px and at 1440px and read it as a whole page (not per-element computed styles)."
-    expected: "The type scale reads as a deliberate, authored system — not framework-default styling. Display/Heading roles in Humane read as a poster-scale structural element; Body/Label read as newspaper-register serif text; nothing looks like an unstyled Tailwind/Next.js scaffold."
-    why_human: "Automated specs (viewport.spec.ts, type-specimen.spec.ts) can only assert computed CSS values (font-size in bounds, uppercase transform present) — they cannot judge whether the composition 'reads as authored,' which is the actual wording of Success Criterion 2 and HOME-05. The project's own 01-VALIDATION.md independently flags this exact check as manual-only."
-  - test: "Scroll the holding page (or /type) and watch the heading trail live; separately open text_trail_demo/index.html (shadow tab) side by side and compare the smear's lag/settle feel."
-    expected: "The heading visibly lags behind scroll position with a stacked-shadow smear, and the smear's speed/settle feel matches the ported benchmark — not just 'some shadow appears and disappears' (which the automated spec already proves)."
-    why_human: "tests/smear-heading.spec.ts asserts a non-'none', multi-layer computed text-shadow mid-scroll and a return to 'none' after settle — it proves the algorithm runs, not that the motion 'feels correct,' which is Success Criterion 5's own qualitative bar and is separately listed as manual-only in 01-VALIDATION.md."
+  - test: "Open /type at 375px and at 1440px and read it as a whole page."
+    expected: "Reads as a deliberate, authored type system rather than framework-default styling."
+    result: "PASS with corrections. User: 'looks editorial' — but directed three changes, all applied and deployed: Humane weight 800 -> 530, letter-spacing 0em -> 0.035em, background #f2eee5 -> #ffffff with ink #171714 -> #000000. 01-UI-SPEC.md reconciled to match."
+  - test: "Scroll and watch the heading trail live; compare against the benchmark's shadow tab."
+    expected: "Heading visibly lags behind scroll with a stacked-shadow smear that settles."
+    result: "FAIL then PASS. Initially not observable at all: neither route overflowed the viewport, so there was nothing to scroll, while both motion specs passed by injecting a 3000px spacer — proving the algorithm ran, not that the criterion was met. /type rebuilt to what CONTEXT D-05 promised so it overflows on its own content (1823px vs 720px viewport); both specs now scroll the real page and a new spec guards the overflow. User then directed the benchmark's hue cycling be restored as the trail colour with the glyphs staying ink; ported from trailColor() (:368-390) and the scroll-driven advance (:901-903)."
 ---
 
 # Phase 1: Deploy Foundation & Design System Verification Report
@@ -18,8 +19,8 @@ human_verification:
 **Phase Goal:** The site exists as a live, deployed Next.js application with its typographic
 design system and accessibility defaults in place before any content is built.
 **Verified:** 2026-08-29T23:30:00Z
-**Status:** human_needed
-**Re-verification:** No — initial verification
+**Status:** passed
+**Re-verification:** Yes — closed 2026-08-29 after user validation and two rounds of corrections
 
 ## Goal Achievement
 
@@ -124,7 +125,7 @@ not a functional stub, and does not affect any success criterion.
 | D-07 (`robots: { index: false }`, flip required in Phase 6) | Live HTML meta tag + `.planning/CONTEXT.md` Deferred section | `<meta name="robots" content="noindex"/>` present on `/` and `/type`; flip is explicitly recorded as a required Phase 6 (FIND-02) action in both CONTEXT.md's Deferred section and ROADMAP.md Phase 6 — VERIFIED |
 | D-08 (delete before scaffold) | `git show --stat 57fb61b` | Deletions and scaffold committed together as the phase's first commit, before any design work — VERIFIED |
 
-## Human Verification Required
+## Human Verification — Completed 2026-08-29
 
 ### 1. `/type` specimen reads as a deliberate, authored typographic system
 
@@ -164,3 +165,68 @@ a phase whose deliverable is partly aesthetic.
 
 *Verified: 2026-08-29T23:30:00Z*
 *Verifier: Claude (gsd-verifier)*
+
+---
+
+## Closeout Record — 2026-08-29
+
+Human validation was performed by the user against the live deployment. Both open items are
+resolved. Two rounds of corrections were required; neither was a false-positive in the
+automated evidence, but the second was a genuine gap the automated suite had masked.
+
+### Round 1 — type corrections
+User verdict on `/type`: *"looks editorial"*, with three specified changes:
+
+| | Was | Now |
+|---|---|---|
+| Humane weight | 800 | **530** |
+| Humane letter-spacing | 0em | **0.035em** |
+| Background / ink | `#f2eee5` / `#171714` | **`#ffffff` / `#000000`** |
+
+Applied in `0fb5499`. Verified live via browser-computed styles: `fontWeight: "530"`,
+`letterSpacing: "4.424px"` (0.035em at 126.4px), `bodyBg: "rgb(255, 255, 255)"`,
+`bodyColor: "rgb(0, 0, 0)"`.
+
+### Round 2 — trail was not observable (real gap)
+User verdict: *"the trail isn't visible because the page doesn't overflow vertically."*
+
+This was a genuine verification miss, not a preference. Neither `/` nor `/type` overflowed
+the viewport, so a visitor could not scroll and never saw the effect — while
+`smear-heading.spec.ts` and `reduced-motion.spec.ts` both passed by **injecting a 3000px
+spacer into the DOM**. The specs proved the ported algorithm ran; they did not prove
+HOME-06 was met for a visitor. The initial verification pass accepted them.
+
+Fixed in `0fb5499`:
+- `/type` rebuilt to what CONTEXT.md D-05 actually promised — every scale level, multiple
+  Display and Heading settings, prose between them — so it overflows on its own content.
+  Live: `scrollHeight` 1823px against a 720px viewport.
+- Both motion specs now scroll the real page with no injected DOM.
+- New spec asserts `/type` exceeds 1.5 viewports — the regression guard against a future
+  version passing on injected content again.
+- `/` stays name-only per D-06 and legitimately does not scroll until Phase 3 gives it
+  content. The motion specs were moved to `/type` for this reason.
+
+Separately tightened a weak assertion found while editing: the layer count split on `,`,
+but `getComputedStyle` renders colours as `rgb(r, g, b)` — two commas per layer — so
+`> 1` passed even for a single layer. It now counts colour functions and asserts a deep
+stack (observed: 240 layers, the `MAX_SHADOWS` cap).
+
+### Round 3 — trail colour
+User direction: the smear takes the hue rotation as its colour, glyphs stay ink. Applied in
+`d48a63c`, porting `trailColor()` (`:368-390`) and the scroll-driven hue advance
+(`:901-903`) from the benchmark at its own `HUE_SPEED = 110` and `345` start hue. The hue
+advances on scroll samples rather than a wall clock, so colour only moves while the visitor
+scrolls. Verified live: 240 layers in `rgb(255, 0, 26)`.
+
+**This reverses `01-UI-SPEC.md`'s "Required deviation: trail color is monochrome ink."**
+That contract has been reconciled rather than left contradicting the shipped code — the
+superseded reasoning is preserved in place, since Phases 2–6 inherit the contract.
+
+### Final state
+- 9/9 Playwright specs pass against the live deployment, not only locally.
+- Live: https://web-production-9cedb.up.railway.app (`/` holding page, `/type` specimen)
+- `01-UI-SPEC.md` reconciled in 11 places: type-scale weights, weight-discipline paragraph,
+  letter-spacing cap, contrast paragraph, what-not-to-port list, the trail-colour section,
+  and the colour table plus its accent contrast reference.
+
+**Status: passed.**
