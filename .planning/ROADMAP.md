@@ -68,7 +68,36 @@ Plans:
   4. Code blocks render with real syntax highlighting in a chosen mono face; tables, headings, lists, blockquotes and links are all deliberately styled.
   5. A fixture post exercising every supported element renders correctly at mobile and desktop widths and is excluded from the public index.
 
-**Plans**: TBD
+**Plans**: 7 plans
+Plans:
+**Wave 1**
+
+- [ ] 02-01-PLAN.md — Install the @next/mdx + Shiki toolchain, add IBM Plex Mono and the Newsreader italic, and move Phase 1's routes into an `(en)` route group
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 02-02-PLAN.md — Filesystem content loader, locale module and their `node --test` suites (front-matter schema, draft visibility, translation pairing, slug allowlist, date formats)
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 02-03-PLAN.md — The `.prose-site` layer with its automated UI-SPEC conformance gate, the MDX components, and SmearTitle / PostMeta / LanguageSwitch
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 02-04-PLAN.md — The English post template and not-found boundary, the three fixture posts, and the SC1 routing specs
+
+**Wave 5** *(blocked on Wave 4)*
+
+- [ ] 02-05-PLAN.md — Measure SC3/SC4/SC5: prose typography, Shiki code blocks, the fixture at 375px and 1440px, and the CLS guard on the post route
+
+**Wave 6** *(blocked on Wave 5)*
+
+- [ ] 02-06-PLAN.md — The German root layout and route tree, both writing indexes, and the I18N-01 / WRIT-01 specs
+
+**Wave 7** *(blocked on Wave 6)*
+
+- [ ] 02-07-PLAN.md — Production build-output gate, deploy confirmation, and the optical sign-off checkpoint
+
 **UI hint**: yes
 
 ### Phase 3: Work List & Landing Skeleton
@@ -138,7 +167,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Deploy Foundation & Design System | 4/4 | Complete   | 2026-08-29 |
-| 2. Content Pipeline | 0/TBD | Not started | - |
+| 2. Content Pipeline | 0/7 | Planned | - |
 | 3. Work List & Landing Skeleton | 0/TBD | Not started | - |
 | 4. The Case Study | 0/TBD | Not started | - |
 | 5. Backlog | 0/TBD | Not started | - |
@@ -146,4 +175,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 ---
 *Roadmap created: 2026-08-29*
-*Last updated: 2026-08-29 — HOME-06 (heading trail) added to Phase 1*
+*Last updated: 2026-08-30 — Phase 2 planned into 7 plans across 7 waves*
