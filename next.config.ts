@@ -1,7 +1,30 @@
 import type { NextConfig } from "next";
+import createMDX from "@next/mdx";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  pageExtensions: ["ts", "tsx", "md", "mdx"],
 };
 
-export default nextConfig;
+const withMDX = createMDX({
+  extension: /\.(md|mdx)$/,
+  options: {
+    remarkPlugins: [
+      "remark-gfm",
+      "remark-frontmatter",
+      ["remark-mdx-frontmatter", { name: "frontmatter" }],
+    ],
+    rehypePlugins: [
+      "rehype-slug",
+      [
+        "@shikijs/rehype",
+        {
+          theme: "github-light-high-contrast",
+          inline: false,
+          fallbackLanguage: "text",
+        },
+      ],
+    ],
+  },
+});
+
+export default withMDX(nextConfig);
