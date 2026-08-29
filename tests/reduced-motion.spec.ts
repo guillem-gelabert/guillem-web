@@ -18,25 +18,18 @@ test("heading text-shadow stays 'none' throughout a full scroll under reduced-mo
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/");
+  // Runs against /type, not /. The holding page is capped at name-only copy by
+  // CONTEXT.md D-06 and does not overflow the viewport, so scrolling it is a
+  // no-op; the specimen route scrolls on its own content. An earlier version
+  // injected a 3000px spacer into / to force a scroll, which made the test
+  // pass without exercising anything a visitor would experience.
+  await page.goto("/type");
 
-  // Let fonts finish loading and the heading register with the shared
-  // driver (use-smear-heading.ts defers registration until
-  // document.fonts.ready resolves) before scrolling.
+  // Let fonts finish loading and the headings register with the shared driver
+  // (use-smear-heading.ts defers registration until document.fonts.ready
+  // resolves) before scrolling.
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(200);
-
-  // The holding page (D-06) is intentionally short — one heading, one line
-  // of body text, centered — and does not overflow the viewport on its own
-  // at common viewport sizes. Append a tall spacer so the scroll performed
-  // below is a genuine scrollY change, not a no-op against a page with
-  // nothing to scroll. This is a test-only DOM addition; it does not touch
-  // any production file.
-  await page.evaluate(() => {
-    const spacer = document.createElement("div");
-    spacer.style.height = "3000px";
-    document.body.appendChild(spacer);
-  });
 
   const readShadow = () =>
     page.evaluate(() => {

@@ -5,8 +5,8 @@
   --font-display: var(--font-humane), Impact, sans-serif;
   --font-body: var(--font-newsreader), serif;
 
-  --color-paper: #f2eee5;
-  --color-ink: #171714;
+  --color-paper: #ffffff;
+  --color-ink: #000000;
   --color-accent: #C1272D;
 
   --spacing-xs: 4px;
@@ -21,17 +21,17 @@
 .text-display {
   font-family: var(--font-display);
   font-size: clamp(3.5rem, 1.5rem + 8vw, 11.25rem);
-  font-weight: 800;
+  font-weight: 530;
   line-height: 0.82;
-  letter-spacing: 0em;
+  letter-spacing: 0.035em;
 }
 
 .text-heading {
   font-family: var(--font-display);
   font-size: clamp(2rem, 1rem + 4vw, 4.5rem);
-  font-weight: 800;
+  font-weight: 530;
   line-height: 0.9;
-  letter-spacing: 0em;
+  letter-spacing: 0.035em;
 }
 
 .text-body {

@@ -21,7 +21,7 @@ const SCROLL_STOP_DELAY = 120; // ms, debounce before treating scroll as "stoppe
 
 // Required deviation (01-UI-SPEC.md "Motion & Heading Trail Contract"):
 // every trail layer is solid ink, never the source's shifting hsl() value.
-const INK = "#171714";
+const INK = "#000000";
 
 interface HeadingState {
   documentTop: number;

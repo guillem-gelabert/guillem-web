@@ -1,31 +1,42 @@
 import { expect, test } from "@playwright/test";
 
 // Covers HOME-06: a visitor scrolling sees headings trail behind the scroll
-// position with a stacked-text-shadow smear that settles when scrolling
-// stops. Verifies the actual ported algorithm's observable behavior — a
-// multi-layer text-shadow mid-scroll, and a return to 'none' once the
-// SCROLL_STOP_DELAY (120ms) debounce plus settle time has elapsed — not
-// just that some flag was read.
+// position with a stacked-text-shadow smear that settles when scrolling stops.
+//
+// This runs against /type rather than /. The holding page is capped at
+// name-only copy by CONTEXT.md D-06, so it does not overflow the viewport and
+// a visitor has nothing to scroll there until Phase 3 gives it content. The
+// specimen route is the page that must demonstrate the effect for real.
+//
+// An earlier version of this spec injected a 3000px spacer to force a scroll.
+// That made the test pass while a visitor still saw nothing — it proved the
+// algorithm ran, not that the criterion was met. The overflow assertion below
+// is the guard against that regression.
+test("type specimen overflows the viewport so a visitor can actually scroll it", async ({
+  page,
+}) => {
+  await page.goto("/type");
+  await page.evaluate(() => document.fonts.ready);
+
+  const { scrollHeight, viewportHeight } = await page.evaluate(() => ({
+    scrollHeight: document.documentElement.scrollHeight,
+    viewportHeight: window.innerHeight,
+  }));
+
+  // Comfortably more than one screen — not merely a pixel over.
+  expect(scrollHeight).toBeGreaterThan(viewportHeight * 1.5);
+});
+
 test("heading grows a multi-layer text-shadow mid-scroll and settles back to 'none' after scrolling stops", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/type");
 
-  // Let fonts finish loading and the heading register with the shared
-  // driver (use-smear-heading.ts defers registration until
-  // document.fonts.ready resolves) before scrolling.
+  // Let fonts finish loading and the headings register with the shared driver
+  // (use-smear-heading.ts defers registration until document.fonts.ready
+  // resolves) before scrolling.
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(200);
-
-  // The holding page (D-06) is intentionally short and does not overflow the
-  // viewport on its own at common viewport sizes. Append a tall spacer so
-  // the scroll below is a genuine scrollY change the trail can react to.
-  // Test-only DOM addition; does not touch any production file.
-  await page.evaluate(() => {
-    const spacer = document.createElement("div");
-    spacer.style.height = "3000px";
-    document.body.appendChild(spacer);
-  });
 
   const readShadow = () =>
     page.evaluate(() => {
@@ -38,12 +49,13 @@ test("heading grows a multi-layer text-shadow mid-scroll and settles back to 'no
 
   // A single large jump maximizes the gap between the heading's lagging
   // position and its target, giving the smoothing loop time to render a
-  // clearly multi-layer shadow before it starts settling.
+  // clearly multi-layer shadow before it starts settling. No spacer is
+  // injected — the page scrolls on its own content.
   await page.evaluate(() => window.scrollBy(0, 1200));
 
-  // Poll for a brief window right after the scroll — the shadow should
-  // become non-'none' with multiple comma-separated layers while the rAF
-  // loop is actively catching the lagging heading up to its target.
+  // Poll for a brief window right after the scroll — the shadow should become
+  // non-'none' with multiple comma-separated layers while the rAF loop is
+  // actively catching the lagging heading up to its target.
   let midScrollShadow: string | null = null;
   for (let attempt = 0; attempt < 10; attempt++) {
     midScrollShadow = await readShadow();
@@ -54,7 +66,7 @@ test("heading grows a multi-layer text-shadow mid-scroll and settles back to 'no
   expect(midScrollShadow).not.toBeNull();
   expect(midScrollShadow).not.toBe("none");
   // A real stacked-shadow value is a comma-separated list of many layers,
-  // e.g. "0 12px 0 #171714, 0 11.9px 0 #171714, ...".
+  // e.g. "rgb(0, 0, 0) 0px 12px 0px, rgb(0, 0, 0) 0px 11.9px 0px, ...".
   const layerCount = (midScrollShadow as string).split(",").length;
   expect(layerCount).toBeGreaterThan(1);
 
