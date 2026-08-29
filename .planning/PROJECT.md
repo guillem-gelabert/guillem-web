@@ -1,76 +1,105 @@
 # Guillem Web
 
+## Current Milestone: v1.0 Working Site
+
+**Goal:** Ship a content-led personal site where the evidence does the talking — one written case study, the existing interactive pieces, a backlog of current work, and the migrated writing archive — with engineering demonstrated by the build rather than claimed in copy.
+
+**Target features:**
+- One positioning sentence and one featured piece: the ib-gdp-evolution case study, written during this milestone
+- Short vertical list of work covering the existing interactive projects
+- Backlog / currently-working-on section: item name plus rich-text description
+- Writing index with the legacy 2020 posts (security headers, Git, TypeScript) migrated into the site
+- CV as an HTML page on the site
+- A photograph of Guillem
+- Contact block: obfuscated email, GitHub, LinkedIn
+- Next.js application deployed to Railway on the generated URL
+- Typographic tier throughout — no performative motion
+
 ## What This Is
 
-A personal brand website for Guillem, a developer targeting roles in data journalism, data visualization, creative development, and adjacent studio work. It is not a generic portfolio site: the site itself needs to communicate visual taste, technical craft, and curiosity before a visitor reads much copy.
+A personal site for Guillem, a developer applying for roles in data journalism, data visualization, and creative development. Its job is to prevent one specific wrong conclusion — "talented front-end dev, no editorial judgment" — which is the default reading a developer CV produces on its own.
 
-The initial release is intentionally ultra-minimal. It will ship as a single-page React site centered on a variable-font hero and a GitHub link, with later expansions for project showcase, point-of-view/about content, contact, and eventually long-form data-story or technical writing.
+The site works by allocation: engineering is demonstrated by the artifact working well rather than stated in copy, which frees the entire copy budget for the three things a developer CV structurally cannot show — subject knowledge, editorial judgment, and design intuition. It is content-led rather than hero-led, and it launches at the Typographic tier with visual sophistication deferred until there is work underneath to justify it.
 
 ## Core Value
 
-The website must immediately signal that Guillem is a highly creative developer with strong technical ability and broad curiosity about the kinds of subjects that power compelling data stories.
+A visitor scanning a shortlist can tell within ninety seconds that Guillem has editorial judgment as well as craft — enough to decide the conversation is worth opening.
 
 ## Requirements
 
 ### Validated
 
+<!-- Shipped and confirmed valuable. -->
+
 (None yet — ship to validate)
 
 ### Active
 
-- [ ] Ship a single-page React site with an expressive hero that feels distinctive and personal rather than portfolio-generic.
-- [ ] Use the visual execution itself to support Guillem's job search in data journalism, data visualization, creative development, and animation or interactive studios.
-- [ ] Keep the initial MVP intentionally minimal: a variable-font hero and a GitHub link only.
+- [ ] Ship a content-led Next.js site at the Typographic tier: one positioning sentence, one featured piece, a short list of work, a backlog, and a writing index.
+- [ ] Publish one written case study covering ib-gdp-evolution that shows what was expected, what the data turned out to be, and how the visual form changed in response.
+- [ ] Migrate the 2020 legacy writing into the site so the archive lives under one domain and one design.
+- [ ] Provide a CV page, a photograph, and a contact block with obfuscated email, GitHub, and LinkedIn.
+- [ ] Deploy to Railway on the generated URL.
 
 ### Out of Scope
 
-- Multi-page portfolio structure — deferred until there is a finished data story or stronger body of work to showcase.
-- Contact, CV, LinkedIn, and broader outbound profile links — excluded from the first release to preserve focus on the minimal concept.
-- Blog or writing archive — deferred until the core site direction is established and there is finished material worth publishing.
+- Performative-tier motion, including the scroll-driven variable-font hero — deferred to the v3 tier. Fancy is earned when it arrives after the work rather than instead of it.
+- Post types and tags for the writing (book summary, commentary, learning) — the taxonomy is real but premature at launch volume; v1 ships a flat index.
+- "Now playing / recently played" — the most generic element proposed, and it adds nothing to the subject or judgment claims.
+- Custom domain (guillemgelabert.com vs guillem.ch) — unresolved; v1 ships on the Railway URL.
+- Contact form — an obfuscated email address does the same job with no backend.
+- Blog-primary reverse-chronological homepage — the target configuration at v3 volume, but at three posts it reads emptier than a one-pager.
+- Card grids and three-across feature rows — they look empty at low item counts, which is the launch condition.
 
 ## Context
 
-- The target audience is a mix of hiring managers, recruiters, editors or newsroom leads, and creative studios or agencies.
-- The desired impression after roughly two minutes is that Guillem is a very creative person with deep knowledge and curiosity across multiple subject areas such as economics and the environment, not just someone who can code.
-- The positioning is explicitly against a generic developer portfolio. The execution is part of the pitch.
-- The design direction is influenced by constructivist geometry, bold typography, and kinetic motion, with inspiration drawn from sites like `itssharl.ee` and `p5aholic.me`.
-- Planned future directions include project showcase, about/POV, contact, blog posts, microinteractions, scrollytelling patterns, and possible Three.js elements.
-- Existing older writing includes security headers, Git topics, and TypeScript notes, which may later inform a blog or writing section.
+- **Audience:** graphics editors, newsroom leads, studio principals, recruiters. Roughly ninety seconds, forty tabs open, scanning a shortlist. Their job-to-be-done is deciding whether this person has judgment as well as craft.
+- **The claim, stated as a mechanism:** a developer who holds the data, the visual form, and the argument in one head — so the form can change in response to what the data turns out to be. A newsroom can hire a designer and a developer, but that pair converges on the design that was drawn; the comp becomes the spec and the data has to fit it. This is a different set of reachable outcomes, not the same work done faster.
+- **Why the case study is load-bearing:** the claim is indistinguishable from a designer's mood board until the moment it happened is shown. Editorial judgment is only visible in published work with a stated point of view — nothing in the visual design substitutes for it.
+- **Content inventory:** two to three interactive projects exist (ib-gdp-evolution, Watch People Die) but are not shipped or distributed. Legacy blog posts are published at guillem-gelabert.github.io from 2020: a security headers series, a Git series, and a TypeScript post.
+- **Aesthetic source:** constructivism is the shared ancestor of the poster and the chart — geometric primitives, flat colour, diagonal axes, type as structural element. The site's visual language and the charts come from the same source.
+- **The one aesthetic trap:** compositions that adopt chart signifiers specifically (axes, ticks, plotted points, anything implying an encoded scale) will be read as charts by this audience. If they encode nothing, the result looks like information and isn't, in front of people trained to notice. Pure geometry does not carry this risk; the dangerous middle is decoration with axes.
+- **Full elicitation:** `BRIEF.md` in the repo root — repertory grid over a 24-site scan, five construct axes, design principles, evidence audit, and anti-goals.
 
 ## Constraints
 
-- **Tech stack**: React — already decided for implementation.
-- **Structure**: Single page for the first release — expand only after there is a finished data story to support broader content.
-- **MVP scope**: Hero plus GitHub link only — the narrowness is intentional to force clarity and strong execution.
-- **Hosting**: Railway — deployment target is already chosen.
-- **Positioning**: Must feel like Guillem before any text is read — this constrains visual and interaction decisions more than conventional portfolio norms.
+- **Tech stack**: Next.js — supersedes the earlier plain-React decision, which was made when v1 was a hero and a single link.
+- **Hosting**: Railway on the generated URL — deployment target already chosen; custom domain deferred.
+- **Visual tier**: Typographic — no performative motion at launch. Motion is earned by the work that justifies it.
+- **Layout at low n**: must not look empty with three items. Rules out card grids and three-across rows; favours lists, a single featured piece, and prose.
+- **Copy budget**: engineering is never claimed in copy, only demonstrated by the artifact. The copy belongs to subject, judgment, and design.
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Start with an ultra-minimal MVP | A minimal surface keeps focus on execution quality and avoids filling the site with weak or premature content | — Pending |
-| Make the site single-page for now | There is no finished data story yet, so a broader information architecture would be premature | — Pending |
-| Include only GitHub as the initial outbound link | Keeps the first version focused and avoids diluting the concept with standard portfolio scaffolding | — Pending |
-| Use React | Stack choice already made | — Pending |
-| Optimize for hiring in data journalism, data visualization, and creative development | The site is a job-search asset, not a general personal homepage | — Pending |
+| Re-scope v1.0 rather than start a new milestone | The original v1.0 was planned but never built — no code, no phases executed — so there was nothing to layer a milestone on top of | — Pending |
+| Content-led site instead of hero-plus-GitHub-link | The "no finished data story yet" justification was stale; two pieces exist, and a performative hero over thin work produces "nice art project, can't ship" | — Pending |
+| Engineering demonstrated, not stated | It is the strongest suit and the least in need of advertising — a developer CV already carries it, and the landing surface is scarce | — Pending |
+| Launch at Typographic tier, defer Performative | Fancy is earned when it arrives after the work rather than instead of it. Same adjective, opposite verdicts | — Pending |
+| Next.js over plain React | v1 is content-led — writing, case study, lists, index — which a bare SPA would need hand-rolled routing and content loading to serve | — Pending |
+| Write the ib-gdp-evolution case study inside this milestone | Editorial judgment was the weakest link in the evidence audit, and it is the one gap no design decision can close | — Pending |
+| Migrate legacy writing rather than link out | The archive reads as Guillem's when it lives under one domain and one design | — Pending |
+| Reinstate CV, contact, and LinkedIn from Out of Scope | Explicit user decision. The allocation principle still holds: the CV exists as a page, it does not get landing-surface copy | — Pending |
+| Backlog items carry name and rich-text description only — no dates, no states | Explicit user decision, taken against the brief's §7 advice. **Accepted risk:** without visible movement the backlog can read as a wishlist rather than a working log, which is anti-goal #4. It also forfeits the argument that the backlog is real data, which was the brief's clean resolution of the ornament problem | ⚠️ Revisit |
+| Drop POSI-03 (infer curiosity from the first screen) | Subject credibility cannot be asserted, only accumulated — it was never satisfiable by a hero | — Pending |
 
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
 
-**After each phase transition** (via `$gsd-transition`):
-1. Requirements invalidated? -> Move to Out of Scope with reason
-2. Requirements validated? -> Move to Validated with phase reference
-3. New requirements emerged? -> Add to Active
-4. Decisions to log? -> Add to Key Decisions
-5. "What This Is" still accurate? -> Update if drifted
+**After each phase transition** (via `/gsd-transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
 
-**After each milestone** (via `$gsd-complete-milestone`):
+**After each milestone** (via `/gsd:complete-milestone`):
 1. Full review of all sections
-2. Core Value check -> still the right priority?
-3. Audit Out of Scope -> reasons still valid?
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-04 after initialization*
+*Last updated: 2026-08-29 after re-scoping milestone v1.0 Working Site*
