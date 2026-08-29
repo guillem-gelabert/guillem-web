@@ -13,7 +13,7 @@ Six phases take the repo from its current state (a leftover static-prototype Doc
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
 - [ ] **Phase 1: Deploy Foundation & Design System** - Delete the stale Dockerfile, stand up Next.js on Railway, and lay down the typographic system, the heading trail effect, and accessibility defaults before any content exists.
-- [ ] **Phase 2: Content Pipeline & Writing Archive Migration** - Build the frontmatter/MDX loader and migrate all 13 legacy posts, grouped into two series, at a deliberately chosen URL scheme.
+- [ ] **Phase 2: Content Pipeline** - Build the front-matter/Markdown+MDX loader, the `/writing` route and index, and the prose layer the case study renders through. The 2020 archive migration is deferred to v2.
 - [ ] **Phase 3: Work List & Landing Skeleton** - Assemble the landing view's positioning sentence, navigation, and vertical work list; leave the featured slot pointed at a placeholder.
 - [ ] **Phase 4: The Case Study** - Write and publish the ib-gdp-evolution case study and wire the landing view's featured slot to it.
 - [ ] **Phase 5: Backlog** - Ship the curated, section-dated backlog of work in progress.
@@ -34,14 +34,16 @@ Six phases take the repo from its current state (a leftover static-prototype Doc
 **Plans**: TBD
 **UI hint**: yes
 
-### Phase 2: Content Pipeline & Writing Archive Migration
-**Goal**: The legacy 2020 writing lives on the site under one domain and one design, proven through a real content pipeline (plain Markdown for migrated posts, MDX available for new writing) rather than a stub. The URL slug scheme and the series-grouping metadata are both one-way-door decisions and must be settled in this phase, while all 13 files are already being touched — not retrofitted later.
+### Phase 2: Content Pipeline
+**Goal**: The site renders long-form written content from Markdown/MDX through a real pipeline — front-matter, `/writing` routing, an index, prose styled on Phase 1's type system, and syntax-highlighted code. It exists so Phase 4's case study has somewhere to live. The 2020 archive migration is deferred to v2; the `/writing/[slug]` URL shape is still settled here so that migration stays cheap to add later.
 **Depends on**: Phase 1
-**Requirements**: WRIT-01, WRIT-02, WRIT-03
+**Requirements**: WRIT-01
 **Success Criteria** (what must be TRUE):
-  1. Visitor can browse a writing index listing all 13 migrated posts, grouped as two completed series (security headers, Git) plus standalone posts — not a flat chronological list.
-  2. Visitor can open any migrated post at its new `/writing/[slug]` URL and read it in full, with every code sample rendered through real syntax highlighting — no literal Liquid tags, no unstyled text.
-  3. A documented old→new slug map exists covering all 13 posts, mapping each original `/posts/[slug]` path to its new URL — decided once, now, so the deferred v2 redirect requirement (WRIT-06) stays cheap to add later instead of requiring every file to be re-touched.
+  1. A Markdown/MDX file dropped into the content directory is served at its `/writing/[slug]` URL with no per-post wiring — title, date and description are read from front-matter, and the slug comes from the filename.
+  2. Visitor can browse `/writing` as a real index. At launch it lists one entry (the Phase 4 case study) and must read as deliberate at n=1 — no empty-shelf layout, no card grid (PROJECT.md Out of Scope).
+  3. Visitor reading a rendered post sees Phase 1's typographic system — body serif, type scale, controlled measure — not unstyled `@tailwindcss/typography` defaults.
+  4. Code blocks render with real syntax highlighting in a chosen mono face; tables, headings, lists, blockquotes and links are all deliberately styled.
+  5. A fixture post exercising every supported element renders correctly at mobile and desktop widths and is excluded from the public index.
 **Plans**: TBD
 **UI hint**: yes
 
@@ -100,7 +102,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Deploy Foundation & Design System | 0/TBD | Not started | - |
-| 2. Content Pipeline & Writing Archive Migration | 0/TBD | Not started | - |
+| 2. Content Pipeline | 0/TBD | Not started | - |
 | 3. Work List & Landing Skeleton | 0/TBD | Not started | - |
 | 4. The Case Study | 0/TBD | Not started | - |
 | 5. Backlog | 0/TBD | Not started | - |

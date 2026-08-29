@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Working Site
 status: planning
-stopped_at: Phase 1 context gathered
-last_updated: "2026-08-29T16:23:43.504Z"
+stopped_at: Phase 1 UI-SPEC approved
+last_updated: "2026-08-29T17:36:27.795Z"
 last_activity: 2026-08-29 — HOME-06 (heading trail effect) added to Phase 1; 6 phases, 29/29 requirements mapped
 progress:
   total_phases: 6
@@ -55,6 +55,10 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Accumulated Context
 
+### Roadmap Evolution
+
+- Phase 2 edited: Re-scoped to Content Pipeline only; legacy 2020 writing migration (WRIT-02, WRIT-03) deferred to v2. WRIT-01 retained — index ships holding the case study. BUILD-04 rationale clause trimmed.
+
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
@@ -87,6 +91,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-29T16:23:43.497Z
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-deploy-foundation-design-system/01-CONTEXT.md
+Last session: 2026-08-29T16:52:41.572Z
+Stopped at: Phase 1 UI-SPEC approved
+Resume file: .planning/phases/01-deploy-foundation-design-system/01-UI-SPEC.md

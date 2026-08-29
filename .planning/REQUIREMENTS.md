@@ -39,9 +39,7 @@ Requirements for milestone v1.0. Each maps to exactly one roadmap phase.
 
 ### Writing Archive
 
-- [ ] **WRIT-01**: Visitor can browse an index of Guillem's writing hosted on the site.
-- [ ] **WRIT-02**: Visitor can see the archive grouped as two completed series — security headers and Git — plus standalone posts, rather than a flat chronological list.
-- [ ] **WRIT-03**: Visitor can read any migrated post in full on the site, with code samples rendering correctly.
+- [ ] **WRIT-01**: Visitor can browse an index of Guillem's writing hosted on the site. *(At v1 launch the index holds the case study; the 2020 archive that would fill it is deferred to v2.)*
 
 ### Profile and Contact
 
@@ -56,7 +54,7 @@ Requirements for milestone v1.0. Each maps to exactly one roadmap phase.
 - [ ] **BUILD-01**: The site runs as a Next.js application.
 - [ ] **BUILD-02**: The site is deployed on Railway and reachable at a stable public URL.
 - [ ] **BUILD-03**: Visitor can use the site on both desktop and mobile browsers.
-- [ ] **BUILD-04**: Visitor loading the site receives real security response headers, demonstrating in practice what the migrated series describes.
+- [ ] **BUILD-04**: Visitor loading the site receives real security response headers. *(The "demonstrates what the migrated series describes" rationale was dropped when the 2020 archive moved to v2 — the requirement stands on its own.)*
 - [ ] **BUILD-05**: Visitor with a reduced-motion preference set is not shown motion that ignores it.
 - [ ] **BUILD-06**: Fonts are self-hosted and the page does not shift layout as they load.
 
@@ -71,6 +69,8 @@ Deferred to a future milestone. Tracked but not in this roadmap.
 
 ### Writing
 
+- **WRIT-02**: Visitor can see the archive grouped as two completed series — security headers and Git — plus standalone posts, rather than a flat chronological list. *(Deferred with the archive migration, 2026-08-29.)*
+- **WRIT-03**: Visitor can read any migrated post in full on the site, with code samples rendering correctly. *(Deferred with the archive migration, 2026-08-29. The 13 posts survive only as rendered Hugo HTML at guillem-gelabert.github.io — the Markdown source is gone, so migration means HTML→Markdown conversion plus a full editorial pass.)*
 - **WRIT-04**: Visitor can filter writing by type or tag (case study, book summary, commentary, learning, how-to).
 - **WRIT-05**: Visitor can read book summaries, commentary and learnings as posts within the writing.
 - **WRIT-06**: Visitor following a 2020 URL from the old GitHub Pages site is redirected to the equivalent post here. *(Deferred deliberately. Research flags URL preservation as a one-way door — retrofitting redirects after migration costs more than deciding the slug scheme up front.)*
@@ -130,8 +130,6 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HOME-05 | Phase 1 | Pending |
 | HOME-06 | Phase 1 | Pending |
 | WRIT-01 | Phase 2 | Pending |
-| WRIT-02 | Phase 2 | Pending |
-| WRIT-03 | Phase 2 | Pending |
 | WORK-01 | Phase 3 | Pending |
 | WORK-02 | Phase 3 | Pending |
 | HOME-01 | Phase 3 | Pending |

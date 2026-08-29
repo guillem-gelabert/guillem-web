@@ -8,7 +8,7 @@
 - One positioning sentence and one featured piece: the ib-gdp-evolution case study, written during this milestone
 - Short vertical list of work covering the existing interactive projects
 - Backlog / currently-working-on section: item name plus rich-text description
-- Writing index with the legacy 2020 posts (security headers, Git, TypeScript) migrated into the site
+- Writing index and content pipeline (Markdown/MDX) — the case study renders through it; the legacy 2020 posts are deferred to v2
 - CV as an HTML page on the site
 - A photograph of Guillem
 - Contact block: obfuscated email, GitHub, LinkedIn
@@ -37,13 +37,13 @@ A visitor scanning a shortlist can tell within ninety seconds that Guillem has e
 
 - [ ] Ship a content-led Next.js site at the Typographic tier: one positioning sentence, one featured piece, a short list of work, a backlog, and a writing index.
 - [ ] Publish one written case study covering ib-gdp-evolution that shows what was expected, what the data turned out to be, and how the visual form changed in response.
-- [ ] Migrate the 2020 legacy writing into the site so the archive lives under one domain and one design.
 - [ ] Provide a CV page, a photograph, and a contact block with obfuscated email, GitHub, and LinkedIn.
 - [ ] Deploy to Railway on the generated URL.
 
 ### Out of Scope
 
 - The scroll-driven variable-font hero and WebGL/Three.js set pieces — deferred to the v3 tier. The axis-2 staging is about ordering effort (content before fanciness), not a ban on motion: ordinary animation that makes the page beautiful is in scope at every tier.
+- Migrating the 2020 legacy writing (13 posts) into the site — deferred to v2 on 2026-08-29. The Markdown source no longer exists; `guillem-gelabert.github.io` holds only rendered Hugo 0.74.3 output, so migration means HTML→Markdown conversion plus a full editorial pass over prose that is technically stale in places. That is writing time competing directly with the case study, which is the milestone's actual long pole. The content pipeline it would have ridden on still ships in Phase 2.
 - Post types and tags for the writing (book summary, commentary, learning) — the taxonomy is real but premature at launch volume; v1 ships a flat index.
 - "Now playing / recently played" — the most generic element proposed, and it adds nothing to the subject or judgment claims.
 - Custom domain (guillemgelabert.com vs guillem.ch) — unresolved; v1 ships on the Railway URL.
@@ -80,7 +80,7 @@ A visitor scanning a shortlist can tell within ninety seconds that Guillem has e
 | Headings carry a scroll-driven trail, built with stacked CSS `text-shadow` | A three-way benchmark already exists at `text_trail_demo/index.html` (WebGL sampled mask, CSS text-shadow, alpha-mask extrusion). The text-shadow version is the least performative of the three, needs no WebGL context or canvas, runs on a live DOM heading, and degrades to a plain heading — it reads as a typographic treatment rather than a set piece | — Pending |
 | Next.js over plain React | v1 is content-led — writing, case study, lists, index — which a bare SPA would need hand-rolled routing and content loading to serve | — Pending |
 | Write the ib-gdp-evolution case study inside this milestone | Editorial judgment was the weakest link in the evidence audit, and it is the one gap no design decision can close | — Pending |
-| Migrate legacy writing rather than link out | The archive reads as Guillem's when it lives under one domain and one design | — Pending |
+| Defer the legacy writing migration to v2; ship the content pipeline without it | The Markdown source is gone — only rendered Hugo HTML survives — so migrating means HTML→Markdown conversion plus a full editorial pass over 13 posts, some technically stale in 2026. That is writing effort competing with the case study, which is the one artifact that closes the editorial-judgment gap. The pipeline is separable and still ships, so the migration stays cheap to add later. | — Pending |
 | Reinstate CV, contact, and LinkedIn from Out of Scope | Explicit user decision. The allocation principle still holds: the CV exists as a page, it does not get landing-surface copy | — Pending |
 | Backlog items carry name and rich-text description only — no dates, no states | Explicit user decision, taken against the brief's §7 advice. **Accepted risk:** without visible movement the backlog can read as a wishlist rather than a working log, which is anti-goal #4. It also forfeits the argument that the backlog is real data, which was the brief's clean resolution of the ornament problem | ⚠️ Revisit |
 | Drop POSI-03 (infer curiosity from the first screen) | Subject credibility cannot be asserted, only accumulated — it was never satisfiable by a hero | — Pending |
@@ -103,4 +103,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-08-29 after re-scoping milestone v1.0 Working Site*
+*Last updated: 2026-08-29 after deferring the legacy writing migration to v2*
