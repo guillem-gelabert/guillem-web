@@ -5,6 +5,7 @@ status: draft
 shadcn_initialized: false
 preset: none
 created: 2026-08-29
+revised: 2026-08-29
 ---
 
 # Phase 2 — UI Design Contract
@@ -22,6 +23,13 @@ Nothing here needed re-asking. Where a decision is a judgment call the planner m
 
 **Phase surface:** `/writing` index, `/writing/[slug]` post template, their German counterparts, the prose layer, and a draft fixture post. No landing view, no navigation, no case-study content. Those are Phases 3 and 4.
 
+> **Revision 1 (2026-08-29).** The first draft was blocked by `gsd-ui-checker` on Dimension 4 (six declared type sizes against a cap of four) and Dimension 5 (the spacing section asserted "Exceptions: none" while the Prose Contract used 2px values). Both are fixed below, and the fixes are recorded rather than silently applied:
+>
+> - **Typography** — the new `Deck` role and the 16px mono size are both **withdrawn**. Phase 2 now adds **no new type role at all**: the table is exactly Phase 1's four shipped roles. The prose hierarchy is rebuilt from role *variants* that reuse the existing two weights and the italic — see "How prose gets a hierarchy out of four roles". This is the checker's route 1, taken because it is the only route that touches neither `app/globals.css` nor the shipped `/` and `/type` routes.
+> - **Spacing** — "Exceptions: none" was false and is replaced with an explicit, justified exceptions list covering stroke widths and focus affordances. The `Aside` rule moves 3px → 4px so it lands on-grid; the remaining exceptions are genuinely sub-grid by nature.
+>
+> Dimensions 1, 2, 3 and 6 passed and are unchanged.
+
 ---
 
 ## Design System
@@ -33,11 +41,11 @@ Nothing here needed re-asking. Where a decision is a judgment call the planner m
 | Component library | none. Hand-rolled semantic HTML + Tailwind v4 utilities. Explicit per `REQUIREMENTS.md` Out of Scope: *"Animation library, state manager, component library — No surface in v1 earns the weight."* The shadcn init gate was not run and must not be run: there is nothing to initialize. |
 | Icon library | **none.** This phase ships zero icons. The back-link arrow is the literal character `←` (U+2190) set in Newsreader, not an SVG or an icon package. Language switching is a text label, never a flag or a globe glyph. Revisit only if Phase 3's navigation earns one. |
 | Font — Display | **Humane** (variable `wght` 100–900), `next/font/local` from `app/fonts/Humane-VF.ttf`, `display: 'optional'`. Shipped, unchanged. |
-| Font — Body/UI | **Newsreader** (variable, `next/font/google`), `display: 'swap'`. Shipped — **but this phase must extend the loader** with `style: ['normal', 'italic']`. Long-form prose needs a true italic for `<em>`, book titles and the case study's pull quotes, and the current call in `app/fonts/newsreader.ts` loads normal only. |
-| Font — Mono/code | **IBM Plex Mono**, weight `400` only, `subsets: ['latin']`, `display: 'swap'`, `variable: '--font-mono'`, via `next/font/google`. `[DISCRETION]` — Phase 1 explicitly deferred the code face to this phase. See rationale below. |
+| Font — Body/UI | **Newsreader** (variable, `next/font/google`), `display: 'swap'`. Shipped — **but this phase must extend the loader** with `style: ['normal', 'italic']`. The prose hierarchy below now depends on the italic structurally, not decoratively, and the current call in `app/fonts/newsreader.ts` loads normal only. |
+| Font — Mono/code | **IBM Plex Mono**, weight `400` only, `subsets: ['latin']`, `display: 'swap'`, `variable: '--font-mono'`, via `next/font/google`. Rendered at **18px — the Body role's size, locked, no range.** `[DISCRETION]` — Phase 1 explicitly deferred the code face to this phase. See rationale below. |
 | Third face budget | Three faces total (Humane / Newsreader / IBM Plex Mono) is the **cap for v1**. Mono is admitted only because success criterion 4 requires real code rendering; it appears *only* inside `<code>` and `<pre>`, never in UI chrome, never in headings, never in the meta row. Do not introduce a fourth face in any later phase without revisiting this line. |
 
-**Why IBM Plex Mono `[DISCRETION]`:** the mono has to sit beside a text serif carrying the reading load and an ultra-condensed poster grotesque. IBM Plex Mono is drawn on a humanist skeleton with slab-like terminals as part of a superfamily that *includes* a serif — it is the candidate least likely to read as a foreign body next to Newsreader, and its register is technical-publishing rather than IDE-chrome (which is what JetBrains Mono and Fira Code read as, and this audience is graphics editors, not a dev-tools crowd). It is verified available in the installed `next/font/google` typed list (`node_modules/next/dist/compiled/@next/font/dist/google/index.d.ts`) as a **static-weight-only** family — which is an advantage here, not a limitation: loading exactly one weight is one small file, smaller than any variable mono, which protects Phase 1's `BUILD-06` no-CLS / low-payload posture. Load `400` and nothing else — code does not need bold, and italic comments are not worth a second file. `display: 'swap'` matches Newsreader's reasoning (code must end up in the correct face; `next/font`'s metric-override fallback covers the CLS).
+**Why IBM Plex Mono `[DISCRETION]`:** the mono has to sit beside a text serif carrying the reading load and an ultra-condensed poster grotesque. IBM Plex Mono is drawn on a humanist skeleton with slab-like terminals as part of a superfamily that *includes* a serif — it is the candidate least likely to read as a foreign body next to Newsreader, and its register is technical-publishing rather than IDE-chrome (which is what JetBrains Mono and Fira Code read as, and this audience is graphics editors, not a dev-tools crowd). It is verified available in the installed `next/font/google` typed list (`node_modules/next/dist/compiled/@next/font/dist/google/index.d.ts`) as a **static-weight-only** family — an advantage here, not a limitation: loading exactly one weight is one small file, smaller than any variable mono, which protects Phase 1's `BUILD-06` no-CLS / low-payload posture. Load `400` and nothing else — code does not need bold, and italic comments are not worth a second file.
 
 ### Component inventory for this phase
 
@@ -45,7 +53,7 @@ Everything this phase builds. Nothing outside this list ships in Phase 2.
 
 | Component | Kind | Notes |
 |-----------|------|-------|
-| `WritingIndex` (`/writing`, `/texte`) | Server Component | Three render modes: `n=0`, `n=1`, `n≥2`. See Routes & Layout. |
+| `WritingIndex` (`/writing`, `/texte`) | Server Component | Two designed modes (`n=0`, `n=1`) plus a no-new-styling fallback at `n≥2`. See Routes & Layout. |
 | `WritingPost` (`/writing/[slug]`, `/texte/[slug]`) | Server Component | Must stay a Server Component so MDX compiles at build. |
 | `SmearTitle` | **Client Component** | `<SmearTitle as="h1" className="text-heading">` — the only client boundary this phase adds. Wraps Phase 1's `useSmearHeading()` so the *page* stays a Server Component while its Humane title still carries the trail. Do not convert `WritingPost` to `"use client"` the way Phase 1 did to `app/page.tsx`; that would drag the whole MDX tree client-side. |
 | `Prose` | Server Component | The single typographic wrapper around rendered Markdown/MDX output. Every element rule in the Prose Contract below lives here and nowhere else. |
@@ -65,15 +73,23 @@ Inherited verbatim from the shipped `app/globals.css` `@theme` block. No new tok
 
 | Token | Value | Usage in this phase |
 |-------|-------|---------------------|
-| xs | 4px | Inline gap between a date and its separator in the meta row |
-| sm | 8px | Figure → caption gap; table cell vertical padding |
-| md | 16px | Paragraph → paragraph in prose; title → meta row; table cell horizontal padding; code block inner padding (vertical) |
-| lg | 24px | List item indent and inter-item gap; blockquote inner vertical padding; code block inner padding (horizontal); page horizontal gutter (`px-lg`, matching the shipped `/` and `/type`) |
+| xs | 4px | Inline `<code>` horizontal padding; `Aside` left rule width; inline gap between meta items |
+| sm | 8px | Figure → caption gap; table cell vertical padding; `h3` bottom margin |
+| md | 16px | Paragraph → paragraph in prose; title → meta row; table cell horizontal padding; `h2` bottom margin; code block vertical padding |
+| lg | 24px | List indent and inter-item gap; blockquote inner vertical padding; code block horizontal padding; `Aside` left padding; page horizontal gutter (`px-lg`, matching the shipped `/` and `/type`) |
 | xl | 32px | `h3` top margin; blockquote and `Aside` outer vertical margin; code block outer vertical margin |
 | 2xl | 48px | `h2` top margin; `<hr>` vertical margin; figure outer vertical margin; index kicker → featured entry |
 | 3xl | 64px | Page top and bottom padding; post header → prose body |
 
-Exceptions: **none.** Every vertical-rhythm value in the Prose Contract is one of the seven tokens above. No `1.5em`-style relative rhythm, no plugin-derived margins — the `@tailwindcss/typography` defaults must be overridden to these tokens (see Prose Contract), which is the whole point of success criterion 3.
+**Exceptions** — three, all stroke widths or focus affordances rather than layout distances. The spacing scale governs the distances *between* things: margins, padding, gaps. A rule's thickness and a focus ring's geometry are neither, and forcing them onto a 4px grid would produce a 4px-thick hairline, which is a different design.
+
+| Exception | Value | Why it is off-grid |
+|-----------|-------|--------------------|
+| Hairlines and rules | 1px | Table row rules, the `<th>` full-ink rule, `<hr>`, the blockquote's two hairlines, and the link underline. Every one is a stroke width. Phase 1 already carries this class of value (its ornamental rule grid is a 1px rule). |
+| Inline `<code>` vertical padding | 2px | Must not disturb the surrounding line box. At 4px the tint block would push against the leading of the line above and below and visibly break the prose rhythm, which is the exact thing the 1.6 line-height exists to protect. Horizontal padding is on-grid at 4px (`xs`). |
+| `:focus-visible` outline | 2px width, 2px offset | An affordance width, sub-grid by nature and by convention — 2px is the accepted minimum for a visible focus indicator, and the 2px offset is what keeps the ring off the glyphs. Same footing as the 1px hairlines. |
+
+The `Aside`'s left rule was 3px in the first draft and is now **4px (`xs`)** — it is thick enough to be a bar rather than a hairline, so it belongs on the grid and there was no reason for it to be off it.
 
 **Two measurements that are container widths, not spacing tokens** (declared here so they are not mistaken for scale violations):
 
@@ -84,30 +100,50 @@ Exceptions: **none.** Every vertical-rhythm value in the Prose Contract is one o
 
 ## Typography
 
-| Role | Size | Weight | Line Height | Face | Status |
-|------|------|--------|-------------|------|--------|
-| Body | 18px (fixed) | 400 | 1.6 | Newsreader | shipped (`.text-body`) |
-| Label | 14px (fixed) | 400 | 1.3 | Newsreader, uppercase, letter-spacing 0.04em | shipped (`.text-label`) |
-| **Deck** | **24px (fixed)** | **400** | **1.35** | **Newsreader** | **new this phase (`.text-deck`)** |
-| Heading | `clamp(2rem, 1rem + 4vw, 4.5rem)` → 32–72px | 530 | 0.9 | Humane, letter-spacing 0.035em | shipped (`.text-heading`) |
-| Display | `clamp(3.5rem, 1.5rem + 8vw, 11.25rem)` → 56–180px | 530 | 0.82 | Humane, letter-spacing 0.035em | shipped (`.text-display`) |
+**Phase 2 adds no new type role.** The table below is exactly the four roles shipped in `app/globals.css`, unchanged — same sizes, same weights, same line-heights, same tracking. No new class is added to the `@theme` layer, no clamp curve is retuned, and neither `/` nor `/type` is touched.
 
-### The one new role, and why the budget still holds
+| Role | Size | Weight | Line Height | Face | CSS class |
+|------|------|--------|-------------|------|-----------|
+| Body | 18px (fixed) | 400 | 1.6 | Newsreader | `.text-body` |
+| Label | 14px (fixed) | 400 | 1.3 | Newsreader, uppercase, letter-spacing 0.04em | `.text-label` |
+| Heading | `clamp(2rem, 1rem + 4vw, 4.5rem)` → 32–72px | 530 | 0.9 | Humane, letter-spacing 0.035em | `.text-heading` |
+| Display | `clamp(3.5rem, 1.5rem + 8vw, 11.25rem)` → 56–180px | 530 | 0.82 | Humane, letter-spacing 0.035em | `.text-display` |
 
-**Weight budget: exactly two numbers — 400 and 530 — unchanged from Phase 1.**
+**Four roles. Two fixed sizes (14px, 18px) plus two fluid Humane curves. Two weights (400, 530).** Every piece of text this phase renders is one of these four. There is no fifth size anywhere in this document.
 
-This includes `<strong>`. Long-form prose genuinely needs bold emphasis, and Phase 1's spec said a second Newsreader weight required a deliberate revisit. Revisited, and resolved *without* spending the budget: **`<strong>` renders as Newsreader at `font-weight: 530`** — the same numeric weight Humane already uses. Newsreader's `wght` axis runs 200–800, so 530 is a clean, visible semibold step up from 400, and it is typographically better for serif emphasis in body copy than 700 would be. The system therefore still contains two weights total, applied across both text faces. Do not introduce 600 or 700 anywhere.
+### How prose gets a hierarchy out of four roles
 
-**Fixed size budget: three (14 / 18 / 24), plus the two fluid Humane curves.** Deck is the only addition and it does triple duty — post standfirst, index standfirst, and in-prose `<h2>` — so the increment buys three needs, not one. Without it there is no legal intermediate step between Body (18px) and Heading (Humane, 32–72px): an in-prose `h2` would either have to jump into a Humane display curve inside body copy (banned by Phase 1's standing rule, restated below) or collapse to Body size (no hierarchy at all in a long case study).
+The first draft solved long-form hierarchy by buying a 24px `Deck` role and a 16px mono size. That was six sizes against a cap of four, and the checker was right to block it. Withdrawn. The hierarchy is rebuilt below out of **variants** — same size, differentiated by weight, style, case, or an adjacent rule. Every device used is already in the system and costs nothing new.
 
-**`<h3>` reuses the Label role** — 14px, uppercase, 0.04em. This is a standard editorial sub-section marker and costs no new size. **The prose contract stops at `h3`.** `h4`–`h6` are unsupported; the fixture post must not contain one, and if content ever needs a fourth level the structure is wrong, not the type scale.
+| Variant | Parent role | Rendered size | What differentiates it |
+|---------|-------------|---------------|------------------------|
+| **Standfirst** | Body | 18px | weight **530**, line-height 1.5 |
+| **`<strong>`** | Body | 18px | weight **530** |
+| **`<em>`** | Body | 18px | *italic*, weight 400 |
+| **Pull-quote / `<blockquote>`** | Body | 18px | *italic*, weight 400, plus hairlines above and below |
+| **Code (`<code>`, `<pre>`)** | Body | 18px | IBM Plex Mono face; `<pre>` line-height 1.5 |
+| **`<h2>`** | Label | 14px | uppercase 0.04em, plus a 1px full-ink rule beneath it |
+| **`<h3>`** | Label | 14px | uppercase 0.04em, no rule |
+| **Table `<th>`** | Label | 14px | uppercase 0.04em, plus a 1px full-ink rule beneath the header row |
+| **Table `<td>`** | Label | 14px | **sentence case, tracking 0** |
+| **Draft marker, date, caption, kicker, back link** | Label | 14px | none — the plain role |
 
-**Code is not a new size.** `<code>` and `<pre>` render at **16px**. This is the Body role optically normalised for a different face, not a fourth step in the hierarchy: IBM Plex Mono's x-height is substantially larger than Newsreader's, so mono at 18px reads visibly bigger than the prose it sits in. 16px mono ≈ 18px Newsreader on the page. Verify optically against the fixture post; adjust within 15–17px if needed, but do not promote it into the role table.
+Notes on the three choices that carry real weight here:
+
+- **The standfirst is bold body copy, not big body copy.** A semibold deck directly beneath a headline is a completely standard newspaper standfirst, and it reuses weight 530 — a number already in the system. On the index it sits under a Display-scale headline of 56–180px, so it has all the contrast it needs from its neighbour; it never had to be 24px to read as a deck.
+- **`<h2>` is a section head with a rule; `<h3>` is the same mark without one.** The checker's suggested route was a second tracking value, which is **rejected**: Phase 1 caps tracking at `0.04em` on multi-word real text, and any value distinguishable from Label's existing 0.04em would either breach that cap or be invisible. A 1px full-measure ink rule beneath the `h2` is the classic longform section break, is unambiguous at a glance, and is legal. Hierarchy is reinforced by whitespace, which is already scale-legal: `h2` gets 48px above, `h3` gets 32px.
+- **Code renders at 18px, the Body size, locked — no range.** The first draft asked for 16px "with 15–17px latitude", which the checker correctly called undetermined at hand-off. IBM Plex Mono's larger x-height means 18px mono reads slightly larger than 18px Newsreader. That is accepted as-is: code wanting to be a touch more legible than its surrounding prose is a defensible outcome, not a defect. `<pre>` compensates with line-height 1.5 against Body's 1.6 so code blocks stay compact. **Do not introduce `font-size-adjust`, an `em`-relative code size, or any other mechanism that produces a rendered size other than 18px.**
+
+### What the withdrawal costs, stated plainly
+
+The post and index standfirsts are less poster-like than a 24px deck would have been, and in-prose `h2` is a small-caps section mark rather than a large subhead. Both are legitimate longform editorial treatments and both are stricter than the alternative, which suits a site whose whole argument is typographic discipline. `D-10`'s "large type, standfirst, date" is still satisfied: the large type is the Display-scale headline, which is untouched.
 
 ### Inherited standing rules (restated, not re-decided)
 
+- **Weight budget: exactly two numbers, 400 and 530.** This includes `<strong>`, which renders as Newsreader 530 rather than buying a 600. Newsreader's `wght` axis runs 200–800, so 530 is a clean, visible semibold step up from 400 and is typographically better for serif emphasis in body copy than 700. Do not introduce 600 or 700 anywhere.
 - **Humane heading line-heights (0.82 / 0.9) are deliberate**, not an error. Humane is a structural/poster element, not a conventional heading. Do not "correct" them toward 1.2.
-- **Letter-spacing cap: `0.04em`** on any multi-word real text. Nothing in this phase exceeds it (Humane titles 0.035em, Label 0.04em, prose 0).
+- **Letter-spacing cap: `0.04em`** on any multi-word real text. Nothing in this phase exceeds it (Humane titles 0.035em, Label 0.04em, prose and table cells 0).
+- **The prose contract stops at `h3`.** `h4`–`h6` are unsupported; the fixture post must not contain one, and if content ever needs a fourth level the structure is wrong, not the type scale.
 - **Contrast is closed by the palette.** Pure `#000000` ink on pure `#ffffff` paper passes WCAG at every size and weight in the table. No per-element contrast re-verification is needed except where a *tint* is introduced — and the only tints are listed under Color, each with its required ratio.
 
 ---
@@ -119,7 +155,7 @@ Inherited palette, unchanged. `app/globals.css` `@theme` already defines `--colo
 | Role | Value | Usage |
 |------|-------|-------|
 | Dominant (60%) | `#ffffff` (`--color-paper`) | Page background, prose background, every surface. No section on any route in this phase has a different background. |
-| Secondary (30%) | `#000000` (`--color-ink`) | All text: body, headings, labels, table content, code default token, the `←` back arrow, the language-switch link at rest. Also the 1px full-strength rule under a table's header row. |
+| Secondary (30%) | `#000000` (`--color-ink`) | All text: body, headings, labels, table content, code default token, the `←` back arrow, the language-switch link at rest. Also the 1px full-strength rules under `h2` and a table's header row. |
 | Accent (10%) | `#C1272D` (`--color-accent`) | **Reserved for exactly two things, unchanged from Phase 1:** (1) the `:focus-visible` outline on any link, (2) link `:hover` / `:focus` text and underline colour. Nothing else. Never a background fill, never a border, never the draft marker, never a heading, never the trail. |
 | Destructive | not applicable | This phase has no destructive actions: no forms, no mutations, no delete, no state a visitor can change. Content is Markdown/MDX committed to the repo (`D-11`). |
 
@@ -155,7 +191,7 @@ Code tokens carry more hues than the 60/30/10 split permits. This is a deliberat
 This phase introduces the first rules and grids on the site, so the trap gets closer. The checkable rule stands: *does this element take a data prop, or is every coordinate hardcoded — and does it read as axis, tick, or plotted point?*
 
 - **Tables are fine and are exempt by construction** — they take real data. On a data-journalism site a well-set table is a credential, not ornament. Style them properly (see Prose Contract).
-- **The rules introduced here are typographic, not cartesian.** A blockquote's two hairlines, a table's row rules, and an `<hr>` are horizontal separators bound to content. They must never gain: tick marks, terminal serifs, vertical companions, regular fixed-interval repetition independent of content, or numeric labels.
+- **The rules introduced here are typographic, not cartesian.** The `h2` section rule, a blockquote's two hairlines, a table's row rules, and an `<hr>` are horizontal separators bound to content. They must never gain: tick marks, terminal serifs, vertical companions, regular fixed-interval repetition independent of content, or numeric labels.
 - **No decorative element of any kind ships in this phase.** No rule grid, no wedge, no diagonal, no generative background. The prose *is* the design. If a later phase wants ornament on a writing page, it re-opens this line.
 - **No rounded corners anywhere in this phase** — code blocks, images, figures, tables and the `Aside` all have square corners. Constructivist geometry does not have a 6px radius, and a rounded fill is the single fastest way to make a code block read as a generic framework card.
 
@@ -173,11 +209,11 @@ Phase 1 set a standing rule for Phase 2+; it is resolved concretely here.
 |---------|------|--------|
 | `/writing` featured entry title (Display role) | Humane | **Yes** |
 | `/writing/[slug]` post title (Heading role) | Humane | **Yes** |
+| `not-found` heading (Heading role) | Humane | **Yes** |
 | `/writing` index kicker (`<h1>`, Label role) | Newsreader | No |
-| In-prose `<h2>` (Deck role) | Newsreader | **No** |
+| In-prose `<h2>` (Label role + rule) | Newsreader | **No** |
 | In-prose `<h3>` (Label role) | Newsreader | **No** |
-| `n≥2` index list-row titles (Label role) | Newsreader | No |
-| `not-found` heading (Heading role) | Humane | Yes |
+| Standfirst (Body role, 530) | Newsreader | No |
 
 The rule is unchanged and unambiguous: **Humane gets the trail; Newsreader never does.** A 240-layer stacked shadow on a small serif subhead inside body copy would be visual noise at reading scale and re-opens the contrast risk for nothing.
 
@@ -210,7 +246,7 @@ CONTEXT delegated "default locale and root URL behaviour" to this stage. Resolve
 
 ### `/writing` — the index (`WRIT-01`, `D-10`)
 
-Three render modes. All three use the same 65ch measure and `px-lg` gutter as the shipped routes.
+Two designed modes, plus a fallback that is explicitly not a third mode.
 
 **`n = 1` — the launch condition, and the one that matters (`D-10`)**
 
@@ -223,7 +259,8 @@ py-3xl  px-lg
       {entry.title}
     </h2>
     gap-lg
-    <p class="text-deck max-w-prose">          ← standfirst from front-matter
+    <p class="text-body max-w-prose"            ← standfirst: Body role at weight 530
+       weight 530 · line-height 1.5>
       {entry.standfirst}
     </p>
     gap-md
@@ -235,14 +272,14 @@ An editorial front page, not a list with one row. Notes that make or break it:
 
 - **The headline is the only link.** No card, no border, no fill, no "Read more" button, no hover elevation. `PROJECT.md` Out of Scope names card grids and three-across rows; a single bordered box under a heading is the same failure at n=1.
 - **`<h1>` is the Label-role kicker, `<h2>` is the headline.** This looks inverted and is deliberate: a screen-reader user landing on `/writing` needs to hear that this is the writing index, and a newspaper front page's own name is set small above its lead headline. Semantics follow the page's structure; visual weight follows the editorial hierarchy.
-- **The entry title is Display, not Heading.** Display's job in this phase is exactly this one poster-scale moment. It is the whole reason the index reads as deliberate at n=1 rather than as an empty shelf.
+- **The entry title is Display, not Heading.** Display's job in this phase is exactly this one poster-scale moment. It is the whole reason the index reads as deliberate at n=1 rather than as an empty shelf — and it is untouched by the typography revision.
 
 **`n = 0` — the interim state between this phase and Phase 4**
 
 Real and unavoidable: the fixture post is `draft: true` (`D-11`) and therefore excluded from the index, so from the moment this phase ships until Phase 4 lands the case study, `/writing` has zero public entries. Kicker, then:
 
 ```
-  <p class="text-deck max-w-prose">Nothing published here yet.</p>
+  <p class="text-body max-w-prose" weight 530>Nothing published here yet.</p>
   gap-md
   <p class="text-body max-w-prose">The first piece is being written.</p>
 ```
@@ -251,9 +288,9 @@ Honest in-progress framing is correct *here* (`BRIEF` §5 principle 5) even thou
 
 **Launch gate — carry this forward to Phase 6:** the site is `robots: { index: false }` until `FIND-02`. If `/writing` still renders `n = 0` when Phase 6 goes to flip that flag, Phase 6 is blocked. This empty state must never be the public launch condition.
 
-**`n ≥ 2` — the guard rail**
+**`n ≥ 2` — a fallback, not a mode. Zero new styling.**
 
-Not expected in v1, specified so the index cannot break if a second piece lands before v2: the most recent entry keeps the full-bleed treatment above, followed by `gap-3xl` and the remainder as a plain dated list — one row per entry, `<a class="text-label">` title at full ink, date to its right, a `--color-rule` hairline between rows, no standfirst, no excerpt, no thumbnail. `D-10`'s own known limit holds: this treatment stops working past roughly five entries, and the v2 archive owns the replacement.
+Not expected in v1. Additional entries repeat **the same `<article>` markup as the featured entry, unchanged**, stacked reverse-chronologically and separated by the existing `<hr>` rule. No list layout, no row treatment, no dated index component, no second set of styles, no new component — the planner must not cost a second render mode for this. `D-10`'s own known limit holds: the treatment stops working past roughly five entries, and per `02-CONTEXT.md` `<deferred>` the v2 archive owns the replacement index. This fallback exists only so a second post landing before v2 renders something coherent rather than nothing.
 
 ### `/writing/[slug]` — the post template
 
@@ -265,7 +302,8 @@ py-3xl  px-lg
     {title}
   </SmearTitle>
   gap-lg
-  <p class="text-deck max-w-prose">{standfirst}</p>
+  <p class="text-body max-w-prose"             ← standfirst: Body role at weight 530
+     weight 530 · line-height 1.5>{standfirst}</p>
   gap-md
   <PostMeta />                                 ← Label: date · language switch · [draft]
   gap-3xl
@@ -280,37 +318,40 @@ py-3xl  px-lg
 
 `draft: true`, English, slug `fixture`, so it renders at `/writing/fixture` in development and is absent from both the index and (in Phase 6) the sitemap. It must exercise **every** element in the Prose Contract below, in one file, with no exceptions — that is its entire job. Minimum contents: `h2`, `h3`, paragraphs, `<strong>`, `<em>`, an inline `<code>`, an internal link, an external link, an unordered list, an ordered list with a nested level, a blockquote, a table with a numeric column, a `<Figure>` at default width, a `<Figure wide>`, an `<Aside>`, an `<hr>`, and **two fenced code blocks in different languages** (one of which must overflow horizontally so the scroll behaviour is proven, and one of which must contain a `{` so `D-08`'s MDX parsing is exercised rather than assumed).
 
-Verified at **375px and 1440px**. The 375px pass is the one that catches real failures: table overflow, code-block overflow, and the Deck role's measure.
+Verified at **375px and 1440px**. The 375px pass is the one that catches real failures: table overflow, code-block overflow, and — now that code renders at the full Body size — whether an 18px mono line forces horizontal scrolling earlier than expected on a narrow viewport. That is acceptable behaviour, not a bug, but it must be seen and confirmed rather than assumed.
 
 ---
 
 ## Prose Contract
 
-The typographic contract for rendered Markdown/MDX. This is success criterion 3 and 4 in table form.
+The typographic contract for rendered Markdown/MDX. This is success criterion 3 and 4 in table form. **Every size below is 14px or 18px** — the two fixed roles — and nothing else.
 
-**On `@tailwindcss/typography`:** it stays (Phase 1 `D-04` installed it for exactly this). Use it as the element-selection engine — `prose prose-neutral max-w-none` plus a `.prose-site` layer that redefines every visible `--tw-prose-*` variable and element rule to the values below. If at implementation the override layer turns into a fight and exceeds roughly eighty lines, **`planner may override`** by dropping the plugin and hand-rolling the ~20 selectors. The *visual* contract below must hold either way; which mechanism produces it is a technical call.
+**On `@tailwindcss/typography`:** it stays (Phase 1 `D-04` installed it for exactly this). Use it as the element-selection engine — `prose prose-neutral max-w-none` plus a `.prose-site` layer that redefines every visible `--tw-prose-*` variable and element rule to the values below. The plugin's own type scale must be fully overridden; that is the entire point of success criterion 3. If at implementation the override layer turns into a fight and exceeds roughly eighty lines, **`planner may override`** by dropping the plugin and hand-rolling the ~20 selectors. The *visual* contract below must hold either way; which mechanism produces it is a technical call.
 
-| Element | Role / size | Treatment |
-|---------|-------------|-----------|
-| `<p>` | Body 18/1.6 | 65ch measure. `margin-top: 16px` (`md`) between paragraphs. No first-line indent, no justification — ragged right. |
-| `<h2>` | **Deck** 24/1.35 | Newsreader, weight 400. `margin-top: 48px` (`2xl`), `margin-bottom: 16px` (`md`). No trail. Gets an `id` (rehype-slug) for deep links. |
-| `<h3>` | Label 14/1.3 | Uppercase, 0.04em. `margin-top: 32px` (`xl`), `margin-bottom: 8px` (`sm`). Gets an `id`. |
+| Element | Role → rendered size | Treatment |
+|---------|----------------------|-----------|
+| `<p>` | Body → 18px / 1.6 / 400 | 65ch measure. `margin-top: 16px` (`md`) between paragraphs. No first-line indent, no justification — ragged right. |
+| Standfirst | Body → 18px / 1.5 / **530** | Not a prose element — emitted by the page template above the `<Prose>` boundary, from front-matter. Listed here so its treatment is in one place. |
+| `<h2>` | Label → 14px / 1.3 / 400 | Uppercase, 0.04em. **1px full-ink rule beneath, spanning the measure**, 8px (`sm`) between text and rule. `margin-top: 48px` (`2xl`), `margin-bottom: 16px` (`md`). No trail. Gets an `id` (rehype-slug) for deep links. |
+| `<h3>` | Label → 14px / 1.3 / 400 | Uppercase, 0.04em. **No rule** — this is the only thing separating it from `h2`, plus its smaller top margin. `margin-top: 32px` (`xl`), `margin-bottom: 8px` (`sm`). Gets an `id`. |
 | `h4`–`h6` | — | **Unsupported.** Do not style them; the contract stops at `h3`. |
 | `<a>` (in prose) | inherits | Rest: ink text, 1px ink underline at `text-underline-offset: 0.12em`, `text-decoration-thickness: 1px`. Hover/focus: text and underline both `--color-accent`. Focus-visible: 2px accent outline, 2px offset. Transition per the Motion Contract. |
-| `<strong>` | Body size, **weight 530** | Newsreader. The deliberate resolution of the weight budget — see Typography. |
-| `<em>` | Body size, 400, italic | Requires the Newsreader loader to add `style: ['normal','italic']`. |
-| `<ul>` / `<ol>` | Body 18/1.6 | `margin: 24px 0` (`lg`), `padding-left: 24px` (`lg`), `24px` between items at the top level, `8px` when nested. `ul` marker: an en-dash `–`, not a filled disc — quieter and closer to the editorial register. `ol` marker: decimal, ink, not accent. |
-| `<blockquote>` | **Deck** 24/1.35 | The pull-quote treatment. Full measure, **no left bar** (that belongs to `Aside`), no quotation glyph, no italic. A 1px `--color-rule` hairline above and below, `24px` (`lg`) inner padding, `32px` (`xl`) outer margin. This is the newspaper pull-quote rule, and it is deliberately not the default blog left-border. |
-| `<code>` (inline) | Mono 16px | `--color-surface-code` fill, `2px 4px` padding, square corners, full ink, **no syntax colouring**. |
-| `<pre>` | Mono 16/1.6 | `--color-surface-code` fill, square corners, `16px 24px` padding (`md`/`lg`), `32px` (`xl`) outer margin, `overflow-x: auto`, **no wrapping** — code lines must not soft-wrap. May widen to the 52rem wide measure. Shiki `github-light` tokens, theme background stripped to transparent. A horizontally scrolling `<pre>` must be reachable by keyboard: give it `tabindex="0"` and an accessible name, or it fails WCAG 2.1.1. |
-| `<table>` | Label size 14px, **sentence case, no tracking** | Wrapped in an `overflow-x: auto` container that may widen to the 52rem wide measure. `border-collapse: collapse`. Full width of its container. |
-| `<th>` | Label 14/1.3 | Uppercase, 0.04em, left-aligned, `8px 16px` padding (`sm`/`md`), **1px full-ink** bottom rule. |
-| `<td>` | 14px, 1.4 | `8px 16px` padding, 1px `--color-rule` bottom rule. **No zebra striping, no vertical rules, no outer border.** Numeric columns: `font-variant-numeric: tabular-nums`, right-aligned. First column no left padding, last column no right padding, so the table's type aligns with the prose measure. |
-| `<img>` / `<Figure>` | — | Square corners, no border, no shadow. Full measure by default; `<Figure wide>` widens to 52rem. Caption directly beneath in Label role, `8px` (`sm`) gap, `48px` (`2xl`) outer margin. **Every image must reserve its space before it loads** — explicit intrinsic `width`/`height` or an `aspect-ratio`. This is not optional: it is `BUILD-06`'s no-layout-shift posture applied to content, and it is the single most likely way a post silently regresses it. Mechanism (`next/image` vs build-time dimension probing for bare Markdown `![]()`) is the planner's call. |
-| `<Aside>` | Body 18/1.6 | The one left-bar element: 3px solid ink left rule, `24px` (`lg`) left padding, `32px` (`xl`) outer margin, no fill. Optional Label-role kicker line at the top (e.g. `Methodology`). Renders as `<aside>`. |
+| `<strong>` | Body → 18px / **530** | Newsreader. Reuses the existing second weight; does not buy a 600. |
+| `<em>` | Body → 18px / 400 / *italic* | Requires the Newsreader loader to add `style: ['normal','italic']`. |
+| `<ul>` / `<ol>` | Body → 18px / 1.6 | `margin: 24px 0` (`lg`), `padding-left: 24px` (`lg`), `24px` between items at the top level, `8px` when nested. `ul` marker: an en-dash `–`, not a filled disc — quieter and closer to the editorial register. `ol` marker: decimal, ink, not accent. |
+| `<blockquote>` | Body → 18px / 1.6 / 400 / *italic* | The pull-quote treatment. Full measure, **no left bar** (that belongs to `Aside`), no quotation glyph. Italic is what marks it as quoted speech now that it is the same size as body copy — Phase 1 chose Newsreader partly *for* its true italic and named case-study pull quotes as the reason. A 1px `--color-rule` hairline above and below, `24px` (`lg`) inner vertical padding, `32px` (`xl`) outer margin. Deliberately not the default blog left-border. |
+| `<code>` (inline) | Body size → 18px, mono | `--color-surface-code` fill, `2px 4px` padding (2px is a declared spacing exception), square corners, full ink, **no syntax colouring**. |
+| `<pre>` | Body size → 18px / **1.5**, mono | `--color-surface-code` fill, square corners, `16px 24px` padding (`md`/`lg`), `32px` (`xl`) outer margin, `overflow-x: auto`, **no wrapping** — code lines must not soft-wrap. May widen to the 52rem wide measure. Shiki `github-light` tokens, theme background stripped to transparent. A horizontally scrolling `<pre>` must be reachable by keyboard: give it `tabindex="0"` and an accessible name, or it fails WCAG 2.1.1. |
+| `<table>` | — | Wrapped in an `overflow-x: auto` container that may widen to the 52rem wide measure. `border-collapse: collapse`. Full width of its container. |
+| `<th>` | Label → 14px / 1.3 | Uppercase, 0.04em, left-aligned, `8px 16px` padding (`sm`/`md`), **1px full-ink** bottom rule. |
+| `<td>` | Label size → 14px / 1.4, **sentence case, tracking 0** | `8px 16px` padding, 1px `--color-rule` bottom rule. **No zebra striping, no vertical rules, no outer border.** Numeric columns: `font-variant-numeric: tabular-nums`, right-aligned. First column no left padding, last column no right padding, so the table's type aligns with the prose measure. |
+| `<img>` / `<Figure>` | caption: Label → 14px | Square corners, no border, no shadow. Full measure by default; `<Figure wide>` widens to 52rem. Caption directly beneath in Label role, `8px` (`sm`) gap, `48px` (`2xl`) outer margin. **Every image must reserve its space before it loads** — explicit intrinsic `width`/`height` or an `aspect-ratio`. This is not optional: it is `BUILD-06`'s no-layout-shift posture applied to content, and the single most likely way a post silently regresses it. Mechanism (`next/image` vs build-time dimension probing for bare Markdown `![]()`) is the planner's call. |
+| `<Aside>` | Body → 18px / 1.6 | The one left-bar element: **4px** (`xs`) solid ink left rule, `24px` (`lg`) left padding, `32px` (`xl`) outer margin, no fill. Optional Label-role kicker line at the top (e.g. `Methodology`). Renders as `<aside>`. |
 | `<hr>` | — | 1px `--color-rule`, full measure, `48px` (`2xl`) margin above and below. Zero-height, no shadow, no ornament. |
 
-**Three distinct block treatments, no collisions:** code block = tinted fill; blockquote = hairlines above and below; `Aside` = left bar. Each is unambiguous at a glance, and none of them is a rounded card.
+**Three distinct block treatments, no collisions:** code block = tinted fill; blockquote = italic between two hairlines; `Aside` = 4px left bar. Each is unambiguous at a glance, and none of them is a rounded card.
+
+**Three distinct rule weights, each with one job:** 1px full ink = structural (under `h2`, under `<th>`); 1px `--color-rule` = separator (table rows, `<hr>`, blockquote); 4px full ink = the `Aside` bar. Do not introduce a fourth.
 
 ---
 
@@ -323,7 +364,7 @@ The full schema is the planner's `[DISCRETION]` item, but these fields are the i
 | Field | Required | UI consumption |
 |-------|----------|----------------|
 | `title` | yes | Post `<h1>` (Heading) and index headline (Display). Both Humane, both trail-carrying. |
-| `standfirst` | yes | The Deck line on both index and post. One or two sentences. Named for the editorial term, not `description` — it is body copy a reader sees, and it doubles as the meta description in Phase 6. |
+| `standfirst` | yes | The Body/530 deck line on both index and post. One or two sentences. Named for the editorial term, not `description` — it is body copy a reader sees, and it doubles as the meta description in Phase 6. |
 | `date` | yes | ISO in the file; rendered per the format table below inside `<time datetime="…">`. |
 | `lang` | yes | `en` \| `de`. Drives `<html lang>`, the date format, and which index the piece appears in. |
 | `translationKey` | yes | `D-06`'s stable cross-locale identity. Two files sharing a key are translations of each other; this is the *only* thing that pairs them, since the slugs deliberately do not match. |
@@ -345,7 +386,7 @@ The full schema is the planner's `[DISCRETION]` item, but these fields are the i
 
 **When a translation is absent (`D-07`):** the switcher **is not rendered at all**. Not greyed out, not `aria-disabled`, not a tooltip. A dead affordance is worse than no affordance — it advertises something that does not exist and is a known screen-reader trap. There is nothing to switch to, so there is no control.
 
-**On the index:** both indexes always exist, so the index switcher is **always** rendered and points at the other locale's index. A German index with zero entries renders the `n = 0` empty state in German — which is correct and honest, not a bug. German empty-state copy: `Hier ist noch nichts veröffentlicht.` / `Der erste Text entsteht gerade.`
+**On the index:** both indexes always exist, so the index switcher is **always** rendered and points at the other locale's index. A German index with zero entries renders the `n = 0` empty state in German — which is correct and honest, not a bug.
 
 ### Date formats
 
@@ -364,8 +405,8 @@ Always inside `<time datetime="2026-08-29">`. Label role, full ink.
 |---------|------|
 | **Primary CTA** | **The headline is the link.** On `/writing` the featured entry's own title is the sole call to action — there is no "Read more", no "Read the case study", no button. A labelled CTA under a single poster-scale headline is what turns an editorial front page back into a card, which `PROJECT.md` Out of Scope rules out and `D-10` exists to prevent. The **only labelled call to action in this phase** is the language switcher: `Auf Deutsch lesen` (EN pages) / `Read in English` (DE pages) — verb plus object, in the target language. |
 | **Secondary navigation** | `← Writing` (EN) / `← Texte` (DE), Label role, top of every post. Deliberately terse and symmetric across locales — not `← Zurück zu den Texten`; a back link is orientation, not a sentence. |
-| **Empty state heading** | `Nothing published here yet.` — DE: `Hier ist noch nichts veröffentlicht.` Deck role. |
-| **Empty state body** | `The first piece is being written.` — DE: `Der erste Text entsteht gerade.` Body role. Present tense, states what is happening, no date promise, no "check back soon", no "coming soon" badge. |
+| **Empty state heading** | `Nothing published here yet.` — DE: `Hier ist noch nichts veröffentlicht.` Body role at weight 530. |
+| **Empty state body** | `The first piece is being written.` — DE: `Der erste Text entsteht gerade.` Body role at 400. Present tense, states what is happening, no date promise, no "check back soon", no "coming soon" badge. |
 | **Error state** | Writing-segment `not-found`, for an unknown or mistyped slug. Heading (Humane, trail): `Not found` / `Nicht gefunden`. Body: `That piece doesn't exist here.` / `Diesen Text gibt es hier nicht.` Followed by the same `← Writing` / `← Texte` link, which is the recovery path. No apology tone, no joke, no illustration, no search box. Localised slugs make mistyped URLs likelier than on a monolingual site, which is why this earns a custom page rather than inheriting Next.js's default. |
 | **Runtime error state** | None exists. The site builds statically; a malformed post or a broken MDX import fails `next build`, not a visitor's request. There is deliberately no error boundary UI in this phase. |
 | **Destructive confirmation** | Not applicable. No destructive action exists anywhere in this phase: no forms, no mutations, no visitor-changeable state. Content is files in the repo (`D-11`). |
@@ -394,14 +435,15 @@ What Phase 2 changes about the shipped system, in full — anything not listed h
 
 | Change | Reason |
 |--------|--------|
-| **Add** `.text-deck` (Newsreader 24/1.35/400) | The only legal intermediate step between Body and the Humane curves; does triple duty as standfirst, `h2`, and pull-quote |
-| **Add** third face: IBM Plex Mono 400 | Success criterion 4 requires real syntax highlighting in a chosen mono; hard cap at three faces |
+| **No new type role, no new size, no new weight** | Revision 1. The four shipped roles and two weights carry the whole prose hierarchy via variants (weight 530, italic, and a section rule). `app/globals.css`'s `@theme` block and clamp curves are untouched; `/` and `/type` are untouched. |
+| **Add** third face: IBM Plex Mono 400 at 18px | Success criterion 4 requires real syntax highlighting in a chosen mono. 18px is the Body role's size, so this adds a face, not a size. Hard cap at three faces. |
 | **Add** `--color-surface-code` and `--color-rule` ink tints | Code surface and hairlines; tints of an existing token, not new hues |
-| **Extend** the Newsreader loader with `style: ['normal','italic']` | `<em>` in long-form prose |
-| **Extend** `<strong>` to Newsreader weight 530 | Deliberate revisit of Phase 1's note; reuses an existing weight number rather than spending the budget |
+| **Extend** the Newsreader loader with `style: ['normal','italic']` | `<em>` and the blockquote treatment now depend on the italic structurally |
+| **Apply** `<strong>` and the standfirst at Newsreader weight 530 | Reuses an existing weight number rather than buying a third |
 | **Make** `<html lang>` dynamic in `app/layout.tsx` | Currently hardcoded `en`; `I18N-01` needs per-route locale |
 | **Scoped exemption** for Shiki token hues inside `<pre>` only | Bounded, on the same footing as a chart's data palette |
-| **Unchanged** | Spacing scale (all seven tokens), weight budget (400 / 530), palette (paper / ink / accent), accent reservation (focus rings + link states only), light-only, no icons, no component library, no rounded corners, the smear-heading system and its constants, and Phase 1's Humane-only trail rule |
+| **Declare** three spacing exceptions (1px rules, 2px inline-code vertical padding, 2px focus outline/offset) | Revision 1. Stroke widths and focus affordances, not layout distances. The `Aside` bar moved 3px → 4px to land on-grid. |
+| **Unchanged** | Spacing scale (all seven tokens), palette (paper / ink / accent), accent reservation (focus rings + link states only), light-only, no icons, no component library, no rounded corners, the smear-heading system and its constants, and Phase 1's Humane-only trail rule |
 
 ---
 
