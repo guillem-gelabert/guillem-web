@@ -64,7 +64,9 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-None yet.
+1 pending — see `.planning/todos/pending/`
+
+- **Adopt scroll-driven heading trail effect** (ui, resolves Phase 1) — a working three-way benchmark exists at `text_trail_demo/index.html`. Carries an unresolved scope conflict: the effect is Responsive/Performative tier, but the milestone is locked at Typographic and PROJECT.md lists Performative-tier motion as Out of Scope. Needs a decision before Phase 1 planning.
 
 ### Blockers/Concerns
 
