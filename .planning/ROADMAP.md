@@ -47,7 +47,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 01-03-PLAN.md — Wire root layout (fonts, robots noindex) and build the holding page + /type specimen route
+- [x] 01-03-PLAN.md — Wire root layout (fonts, robots noindex) and build the holding page + /type specimen route
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -137,7 +137,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Deploy Foundation & Design System | 2/4 | In Progress|  |
+| 1. Deploy Foundation & Design System | 3/4 | In Progress|  |
 | 2. Content Pipeline | 0/TBD | Not started | - |
 | 3. Work List & Landing Skeleton | 0/TBD | Not started | - |
 | 4. The Case Study | 0/TBD | Not started | - |
