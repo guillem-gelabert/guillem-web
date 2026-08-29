@@ -54,8 +54,11 @@ navigation (Phase 3), the custom domain (deferred), the 2020 archive (v2).
   work alongside the `robots` noindex flip (Phase 1 D-07) and social metadata.
   - **Planner note:** do NOT change Phase 1's deploy target. BUILD-02 is unchanged.
 
-- **D-04: Interactive projects live on subdomains of the apex and are linked to
-  absolutely, not proxied or re-hosted.** Confirmed live example:
+- **D-04: Interactive projects are hosted independently and linked to absolutely,
+  never proxied or re-hosted.** Hosting is per-project and NOT uniformly under the apex —
+  `ib-gdp` is a subdomain of `guillemgelabert.com`, but Watch People Die runs on its own
+  domain, `watchpeopledie.live` (verified live, HTTP 200, different edge). Do not assume
+  a subdomain pattern. Confirmed live example:
   `https://ib-gdp.guillemgelabert.com/everyone-in-mallorca-agrees-on-one-thing`
   (`lang="en-GB"`) and `.../auf-mallorca-weiss-es-jeder` (`lang="de-DE"`), both HTTP 200.
   The personal site never hosts project code; the work list (Phase 3) and the case study

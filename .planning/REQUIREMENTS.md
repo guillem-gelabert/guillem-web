@@ -17,7 +17,7 @@ Requirements for milestone v1.0. Each maps to exactly one roadmap phase.
 - [ ] **HOME-01**: Visitor can read a single positioning sentence on the landing view stating what Guillem does.
 - [ ] **HOME-02**: Visitor can see one featured piece given clear visual primacy on the landing view.
 - [ ] **HOME-03**: Visitor can reach the work list, backlog, writing index, CV, and contact block from the landing view.
-- [ ] **HOME-04**: Visitor sees a landing layout that stays legible with only three work items — lists and prose, no card grids or three-across rows.
+- [ ] **HOME-04**: Visitor sees a landing layout that stays legible with only two work items — lists and prose, no card grids or three-across rows. *(Corrected from "three" on 2026-08-29: the real count is two — ib-gdp-evolution and Watch People Die.)*
 - [ ] **HOME-05**: Visitor sees a deliberate typographic system that reads as authored rather than framework-default.
 - [ ] **HOME-06**: Visitor scrolling the page sees headings trail behind the scroll position with a smear effect that settles when scrolling stops.
 

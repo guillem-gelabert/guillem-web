@@ -55,7 +55,7 @@ Six phases take the repo from its current state (a leftover static-prototype Doc
   1. Visitor can read a single positioning sentence on the landing view stating what Guillem does.
   2. Visitor can see a vertical list of Guillem's interactive projects, each with a one-line annotation describing what it's about rather than what it was built with.
   3. Visitor can reach the work list, backlog, writing index, CV, and contact block from the landing view.
-  4. Visitor sees a landing layout that stays legible with only three work items — lists and prose, no card grids or three-across rows.
+  4. Visitor sees a landing layout that stays legible with only two work items — lists and prose, no card grids or three-across rows.
 **Plans**: TBD
 **UI hint**: yes
 
