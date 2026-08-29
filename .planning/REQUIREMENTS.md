@@ -121,13 +121,40 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (pending roadmap creation) | | |
+| BUILD-01 | Phase 1 | Pending |
+| BUILD-02 | Phase 1 | Pending |
+| BUILD-03 | Phase 1 | Pending |
+| BUILD-05 | Phase 1 | Pending |
+| BUILD-06 | Phase 1 | Pending |
+| HOME-05 | Phase 1 | Pending |
+| WRIT-01 | Phase 2 | Pending |
+| WRIT-02 | Phase 2 | Pending |
+| WRIT-03 | Phase 2 | Pending |
+| WORK-01 | Phase 3 | Pending |
+| WORK-02 | Phase 3 | Pending |
+| HOME-01 | Phase 3 | Pending |
+| HOME-03 | Phase 3 | Pending |
+| HOME-04 | Phase 3 | Pending |
+| CASE-01 | Phase 4 | Pending |
+| CASE-02 | Phase 4 | Pending |
+| CASE-03 | Phase 4 | Pending |
+| HOME-02 | Phase 4 | Pending |
+| BACK-01 | Phase 5 | Pending |
+| BACK-02 | Phase 5 | Pending |
+| PROF-01 | Phase 6 | Pending |
+| PROF-02 | Phase 6 | Pending |
+| PROF-03 | Phase 6 | Pending |
+| PROF-04 | Phase 6 | Pending |
+| PROF-05 | Phase 6 | Pending |
+| BUILD-04 | Phase 6 | Pending |
+| FIND-01 | Phase 6 | Pending |
+| FIND-02 | Phase 6 | Pending |
 
 **Coverage:**
 - v1 requirements: 28 total
-- Mapped to phases: 0
-- Unmapped: 28 ⚠️
+- Mapped to phases: 28
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-08-29*
-*Last updated: 2026-08-29 after milestone v1.0 re-scope*
+*Last updated: 2026-08-29 after roadmap creation (6 phases, full v1 coverage)*
