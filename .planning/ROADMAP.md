@@ -84,7 +84,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3)*
 
-- [ ] 02-04-PLAN.md — The English post template and not-found boundary, the three fixture posts, and the SC1 routing specs
+- [x] 02-04-PLAN.md — The English post template and not-found boundary, the three fixture posts, and the SC1 routing specs
 
 **Wave 5** *(blocked on Wave 4)*
 
@@ -167,7 +167,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Deploy Foundation & Design System | 4/4 | Complete   | 2026-08-29 |
-| 2. Content Pipeline | 3/7 | In Progress|  |
+| 2. Content Pipeline | 4/7 | In Progress|  |
 | 3. Work List & Landing Skeleton | 0/TBD | Not started | - |
 | 4. The Case Study | 0/TBD | Not started | - |
 | 5. Backlog | 0/TBD | Not started | - |
