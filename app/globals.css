@@ -29,6 +29,10 @@
 .prose-site {
   color: var(--color-ink);
   max-width: 65ch;
+  font-family: var(--font-body);
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.6;
 }
 
 .prose-site p {
@@ -125,6 +129,9 @@
 }
 
 .prose-site blockquote {
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 1.6;
   font-style: italic;
   font-weight: 400;
   border: 0;
@@ -183,6 +190,7 @@
 }
 
 .prose-site table {
+  font-size: 14px;
   border-collapse: collapse;
   width: 100%;
   margin: 0;
