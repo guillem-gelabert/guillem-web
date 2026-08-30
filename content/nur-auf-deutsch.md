@@ -12,7 +12,7 @@ Dieser Text hat keine Übersetzung und keinen englischen Zwilling, deshalb bleib
 
 Ein Satz mit {geschweifte Klammern}, die in diesem Format wörtlich stehen bleiben, statt als Ausdruck interpretiert zu werden.
 
-<Aside>Dieser Text bleibt.</Aside> Der rohe HTML-Tag oben wird beim Rendern verworfen, aber sein innerer Text bleibt im umgebenden Absatz erhalten — die Sicherheitseigenschaft, die dieses Format für importierte Altbestände geeignet macht.
+Ein roher HTML-Tag mitten im Absatz: <Aside>Dieser Text bleibt.</Aside> Er wird beim Rendern verworfen, aber sein innerer Text bleibt im umgebenden Absatz erhalten — die Sicherheitseigenschaft, die dieses Format für importierte Altbestände geeignet macht.
 
 ```bash
 echo "Shiki hebt auch Code in .md-Dateien hervor."
