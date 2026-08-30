@@ -19,6 +19,13 @@ const LOCALE_CASES = [
     backLinkText: "← Writing",
     backLinkHref: "/writing",
   },
+  {
+    path: "/texte/gibt-es-nicht",
+    heading: "Nicht gefunden",
+    body: "Diesen Text gibt es hier nicht.",
+    backLinkText: "← Texte",
+    backLinkHref: "/texte",
+  },
 ];
 
 for (const locale of LOCALE_CASES) {
