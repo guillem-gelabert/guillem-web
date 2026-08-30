@@ -92,7 +92,7 @@ Plans:
 
 **Wave 6** *(blocked on Wave 5)*
 
-- [ ] 02-06-PLAN.md — The German root layout and route tree, both writing indexes, and the I18N-01 / WRIT-01 specs
+- [x] 02-06-PLAN.md — The German root layout and route tree, both writing indexes, and the I18N-01 / WRIT-01 specs
 
 **Wave 7** *(blocked on Wave 6)*
 
@@ -167,7 +167,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Deploy Foundation & Design System | 4/4 | Complete   | 2026-08-29 |
-| 2. Content Pipeline | 5/7 | In Progress|  |
+| 2. Content Pipeline | 6/7 | In Progress|  |
 | 3. Work List & Landing Skeleton | 0/TBD | Not started | - |
 | 4. The Case Study | 0/TBD | Not started | - |
 | 5. Backlog | 0/TBD | Not started | - |
