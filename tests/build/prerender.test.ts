@@ -75,6 +75,18 @@ function getRoutes(): Promise<Map<string, string>> {
 // The three draft fixtures from Plan 04/06 (content/fixture.mdx,
 // content/musterseite.mdx, content/nur-auf-deutsch.md) — all draft: true,
 // so a production build must contain none of them anywhere.
+//
+// content/die-darstellung-aendert-sich.mdx (the German case study) is
+// deliberately NOT in either array below: Plan 04 shipped it with
+// draft: false (the "DRAFT BRANCH TAKEN" decision recorded in
+// 04-04-SUMMARY.md), so it is a published entry, not a draft — it IS
+// expected to prerender and its title IS expected to appear in build
+// output. That expectation is asserted positively by the
+// "both /writing and /texte render one real published entry" test below
+// and by the I18N-01 test at the end of this file, not by exclusion here.
+// Had Plan 04 instead taken the draft: true escape hatch, this file's own
+// forked history would have required adding "texte/die-darstellung-aendert-sich"
+// and its title to these two arrays instead.
 const DRAFT_ROUTE_KEYS = ["writing/fixture", "texte/musterseite", "texte/nur-auf-deutsch"];
 const DRAFT_TITLES = [
   "A Working Fixture for the Prose Contract",
@@ -100,17 +112,29 @@ test("no draft route was prerendered and no draft title appears anywhere in the 
   }
 });
 
-test("both /writing and /texte render their empty state — all three fixtures are draft: true, so zero public entries is correct here", async () => {
+test("both /writing and /texte render one real published entry, not their empty state", async () => {
   const routes = await getRoutes();
   const writing = routes.get("writing");
   const texte = routes.get("texte");
   assert.ok(writing, "route \"writing\" must exist in the production build");
   assert.ok(texte, "route \"texte\" must exist in the production build");
 
-  assert.ok(writing!.includes("Nothing published here yet."));
-  assert.ok(writing!.includes("The first piece is being written."));
-  assert.ok(texte!.includes("Hier ist noch nichts veröffentlicht."));
-  assert.ok(texte!.includes("Der erste Text entsteht gerade."));
+  // /writing: Plan 03 published content/the-chart-therefore-changes.mdx
+  // with draft: false, so the English index left n=0 first.
+  assert.ok(writing!.includes("The Chart Therefore Changes"));
+  assert.equal(writing!.includes("Nothing published here yet."), false);
+  assert.equal(writing!.includes("The first piece is being written."), false);
+
+  // /texte: Plan 04 shipped content/die-darstellung-aendert-sich.mdx with
+  // draft: false too — see the DRAFT_ROUTE_KEYS/DRAFT_TITLES comment above
+  // for the recorded decision. Had Plan 04 instead taken the draft: true
+  // escape hatch, this half would stay asserting the empty state exactly
+  // as it did before this test was rewritten — an empty German index would
+  // still be the correct and honest production state under that branch,
+  // not a bug.
+  assert.ok(texte!.includes("Die Darstellung ändert sich"));
+  assert.equal(texte!.includes("Hier ist noch nichts veröffentlicht."), false);
+  assert.equal(texte!.includes("Der erste Text entsteht gerade."), false);
 });
 
 test("per-route language: html lang=en on writing, html lang=de on texte, no locale prefix in either route key", async () => {
@@ -247,15 +271,47 @@ test("Phase 1's routes still prerender after the route-group restructure, and Ph
   assert.ok(routes.has("cv"), "route \"/cv\" must exist — Phase 3 adds it");
 });
 
-// --- Phase 3 production-tier assertions -----------------------------------
+// --- Phase 3/4 production-tier assertions ----------------------------------
 //
 // Every *.spec.ts in this repo runs against `npm run dev`, where
-// showDrafts() is always true. The three content/ fixtures are all
-// draft: true, so in a production build publishedFor("en") === [] and
-// findBySlug([], CASE_STUDY_SLUG) === null — the featured slot ships in its
-// INTERIM state. Playwright already proves the slot's structure is
-// state-agnostic (tests/landing.spec.ts test (p)); the tests below prove
-// what actually ships: the interim copy, in real prerendered HTML.
+// showDrafts() is always true, so a Playwright copy assertion cannot prove
+// what a production build actually ships. Phase 4 published
+// content/the-chart-therefore-changes.mdx with draft: false, so in a
+// production build publishedFor("en") now contains it and
+// findBySlug(await publishedFor("en"), CASE_STUDY_SLUG) resolves — the
+// featured slot ships its PUBLISHED state. Playwright already proved the
+// slot's structure is state-agnostic (tests/landing.spec.ts test (p)); the
+// tests below prove what actually ships: the published title and
+// standfirst, the headline as the slot's only link, in real prerendered
+// HTML.
+
+// CASE-01/HOME-02: read once here and pointed at the content file that owns
+// them, rather than retyped inline where they could silently drift —
+// content/the-chart-therefore-changes.mdx front-matter's `title` and
+// `standfirst` fields, verbatim.
+const CASE_STUDY_TITLE = "The Chart Therefore Changes";
+const CASE_STUDY_STANDFIRST =
+  "I began this project expecting to confirm that tourism had stopped paying off for the Balearics. The data forced a different kind of honesty: not a different verdict, but a different chart.";
+
+// CASE-01: the six rehype-slug ids in CASE-02's locked order — the same
+// list tests/case-study.spec.ts's EN_SECTION_IDS asserts in the dev-tier
+// DOM, restated here so the production build is checked independently.
+const CASE_STUDY_SECTION_IDS = [
+  "the-question",
+  "what-i-expected",
+  "what-the-data-showed",
+  "where-the-chart-changed",
+  "what-shipped",
+  "methodology",
+];
+
+// D-07: the three committed figures, in document order — the third is the
+// wide one, but this test only needs to prove all three shipped.
+const CASE_STUDY_FIGURE_SRCS = [
+  "/case-study/f1-constant-dollars.png",
+  "/case-study/f2-eu-average.png",
+  "/case-study/f3-arrivals-diverge.png",
+];
 
 test("/'s production HTML emits a canonical it did not have before this phase", async () => {
   const routes = await getRoutes();
@@ -358,39 +414,65 @@ test("/cv's production HTML carries its own title and its own canonical", async 
   assert.equal(new URL(match![1]).pathname, "/cv");
 });
 
-test("the featured slot ships its interim copy in production", async () => {
+test("the featured slot ships the published case study's own title and standfirst in production (HOME-02)", async () => {
   const routes = await getRoutes();
   const root = routes.get("")!;
 
-  // This assertion belongs HERE and not in Playwright: the moment Phase 4
-  // creates content/the-chart-therefore-changes.mdx with draft: true,
-  // findBySlug starts returning an entry in dev only, so a Playwright copy
-  // assertion would go red during Phase 4 authoring with no Phase 3 file
-  // changed (Pitfall 2).
-  //
-  // Forward note: when Phase 4 publishes the case study, this test is
-  // expected to be updated to assert the published state instead — that is
-  // a real change in what ships, not a flaky test.
-  assert.ok(root.includes("The case study is being written."));
+  // This assertion belongs HERE and not in Playwright: Playwright runs
+  // against `npm run dev`, where showDrafts() is always true, and could not
+  // have distinguished the slot's interim state from its published one
+  // during Phase 4 authoring (Pitfall 2). Now that
+  // content/the-chart-therefore-changes.mdx ships draft: false,
+  // findBySlug(await publishedFor("en"), CASE_STUDY_SLUG) resolves in a
+  // production build too — no code in lib/work.ts or
+  // components/landing/featured-slot.tsx changed to make this happen, the
+  // slot was already written to branch on it.
+  assert.ok(root.includes(CASE_STUDY_TITLE), "the featured slot must render the post's own title");
   assert.ok(
+    root.includes(CASE_STUDY_STANDFIRST),
+    "the featured slot must render the post's own standfirst — the entry's annotation copy IS the standfirst, so it links into the case study instead of duplicating it (Roadmap SC4)",
+  );
+  // Checked via a substring of the retired interim headline rather than the
+  // full sentence verbatim — "case study is being written" is a fragment of
+  // that headline, so absence of the shorter fragment is a STRICTLY
+  // STRONGER guarantee that the full interim sentence is gone (and keeps
+  // this file from re-quoting a sentence that no longer ships, now that
+  // components/landing/featured-slot.tsx's interim branch is dead code in
+  // production).
+  assert.equal(
+    root.includes("case study is being written"),
+    false,
+    "the interim headline must not survive publication",
+  );
+  assert.equal(
     root.includes(
       "On the Mallorca piece: what was expected, what the data showed, and how the visual form changed in response.",
     ),
+    false,
+    "the interim body sentence must not survive publication",
   );
 });
 
-test("the interim featured headline carries no link", async () => {
+test("the featured headline is a link to the case study and the slot's only link (CASE-03)", async () => {
   const routes = await getRoutes();
   const root = routes.get("")!;
 
-  // There is nowhere honest for the interim headline to point — the case
-  // study does not exist and /writing is at n=0 — so a link would be a
-  // circular dead end into an empty index. Extract the h3.text-heading
-  // block specifically, not a whole-document anchor count, which would
-  // fail on the nav.
+  // Extract the h3.text-heading block specifically, not a whole-document
+  // anchor count, which would be defeated by the nav — same technique the
+  // interim version of this test used.
   const match = root.match(/<h3[^>]*class="[^"]*text-heading[^"]*"[^>]*>[\s\S]*?<\/h3>/);
   assert.ok(match, "the featured h3.text-heading block must be present");
-  assert.doesNotMatch(match![0], /<a/, "the interim featured headline must not contain a link");
+
+  const links = match![0].match(/<a\b[^>]*>/g) ?? [];
+  assert.equal(
+    links.length,
+    1,
+    'the featured headline must contain exactly one link — a second would be the "Read the case study" affordance the contract exists to prevent',
+  );
+  assert.ok(
+    links[0].includes('href="/writing/the-chart-therefore-changes"'),
+    'the featured headline\'s href must be postPath("en", CASE_STUDY_SLUG)',
+  );
 });
 
 test("the backlog and contact stubs ship their real, deliberately typeset copy — no marker word leaks into production", async () => {
@@ -432,20 +514,69 @@ test("the private repository stays private in production", async () => {
   assert.doesNotMatch(root, /target="_blank"/);
 });
 
-test("launch gate: the featured slot, the backlog stub and the contact stub are all still interim", async () => {
+test("launch gate: the backlog stub and the contact stub are still interim — the featured slot closed on 2026-08-31", async () => {
   const routes = await getRoutes();
   const root = routes.get("")!;
 
-  // If the featured slot, the backlog stub, the contact stub or /cv is
-  // still in its interim state when Phase 6 goes to flip the robots flag,
-  // Phase 6 is blocked. This test passing today is the record that all
-  // four are interim (the /cv route's own interim body is asserted by
-  // tests/cv.spec.ts); when Phases 4, 5 and 6 fill them, THIS test is the
-  // thing that must be updated, which is where the gate gets noticed
-  // rather than forgotten.
-  assert.ok(root.includes("The case study is being written."));
+  // If the backlog stub, the contact stub or /cv is still in its interim
+  // state when Phase 6 goes to flip the robots flag, Phase 6 is blocked.
+  // This test passing today is the record that these two are interim (the
+  // /cv route's own interim body is asserted by tests/cv.spec.ts); when
+  // Phases 5 and 6 fill them, THIS test is the thing that must be updated,
+  // which is where the gate gets noticed rather than forgotten.
+  //
+  // NARROWED 2026-08-31 (Phase 4, Plan 5): the featured slot closed. It was
+  // the third interim surface this gate covered — content/the-chart-therefore-changes.mdx
+  // published with draft: false, /writing left n=0, and the slot now ships
+  // its real title/standfirst with a real link (asserted by the two tests
+  // above). Removing the interim headline's assertion from this
+  // assertion IS the gate mechanism working: an interim state ended, and
+  // the test that proved it was interim was updated rather than silently
+  // left passing on a state that no longer exists. Two interim surfaces
+  // remain, plus the still-unwritten HOME-01 positioning sentence
+  // (POSITIONING_PLACEHOLDER, asserted elsewhere in this file) — all three
+  // still block Phase 6's FIND-02 robots flip.
   assert.ok(root.includes("Nothing listed here yet."));
   assert.ok(root.includes("No contact details here yet."));
+});
+
+test("CASE-01: /writing/the-chart-therefore-changes prerenders with its six section marks and three figures", async () => {
+  const routes = await getRoutes();
+  const post = routes.get("writing/the-chart-therefore-changes");
+  assert.ok(post, 'route "writing/the-chart-therefore-changes" must be prerendered');
+
+  for (const id of CASE_STUDY_SECTION_IDS) {
+    assert.ok(post!.includes(`id="${id}"`), `the post must render an element with id="${id}"`);
+  }
+
+  for (const src of CASE_STUDY_FIGURE_SRCS) {
+    assert.ok(post!.includes(`src="${src}"`), `the post must render a figure with src="${src}"`);
+  }
+});
+
+test("I18N-01: the German twin also prerendered and the English post carries a matching hreflang alternate", async () => {
+  const routes = await getRoutes();
+  const enPost = routes.get("writing/the-chart-therefore-changes")!;
+
+  // Plan 04 shipped the German case study with draft: false (the "DRAFT
+  // BRANCH TAKEN" decision in 04-04-SUMMARY.md), so this test asserts the
+  // published branch on both sides. Had Plan 04 taken draft: true instead,
+  // the correct assertion would invert entirely: the German route absent
+  // from `routes`, and no "de" alternate on the English post's <head> —
+  // both branches are correct behaviour, this asserts whichever one
+  // shipped.
+  const dePost = routes.get("texte/die-darstellung-aendert-sich");
+  assert.ok(dePost, 'route "texte/die-darstellung-aendert-sich" must be prerendered');
+
+  assert.match(
+    enPost,
+    /hreflang="de"/i,
+    "the English post must declare a German hreflang alternate",
+  );
+  assert.ok(
+    enPost.includes('href="/texte/die-darstellung-aendert-sich"'),
+    "the English post's alternates must include the German twin's href",
+  );
 });
 
 // Forward note for Phase 6 (FIND-02): when sitemap.ts is added, it must call
