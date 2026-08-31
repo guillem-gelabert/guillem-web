@@ -3,7 +3,7 @@
 import { useSmearHeading } from "@/components/smear-heading/use-smear-heading";
 
 type SmearTitleProps = {
-  as?: "h1" | "h2";
+  as?: "h1" | "h2" | "h3";
   className?: string;
   children: React.ReactNode;
 };
