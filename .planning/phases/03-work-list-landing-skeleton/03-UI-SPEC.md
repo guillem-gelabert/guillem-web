@@ -1,10 +1,11 @@
 ---
 phase: 3
 slug: work-list-landing-skeleton
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-08-31
+reviewed_at: 2026-08-31
 ---
 
 # Phase 3 — UI Design Contract
@@ -22,7 +23,7 @@ Where a judgment call may legitimately be overturned on *technical* grounds it i
 
 **Phase surface:** the landing view at `/` (nameplate, positioning line, contents list, featured slot, work list, backlog stub, contact stub), a new `/cv` stub route, and four bounded amendments to shipped Phase 1/2 surfaces (listed in full under *Amendments to shipped surfaces*). No case-study content (Phase 4), no backlog content (Phase 5), no CV/contact content (Phase 6).
 
-**Requirements covered:** `WORK-01`, `WORK-02`, `HOME-03`, `HOME-04`. `HOME-01` ships its layout and typography around a placeholder and is **deferred-by-decision** (`D-08`) — record it as deferred at verification, not as a gap. `HOME-02` is Phase 4's; this phase builds the slot it lands in.
+**Requirements covered:** `WORK-01`, `WORK-02`, `HOME-03`, `HOME-04`. `HOME-01` ships its layout and typography around a placeholder and is **deferred-by-decision** (`D-08`) — record it as deferred at verification, not as a gap, and carry it on the phase-completion checklist below so it cannot go unnoticed. `HOME-02` is Phase 4's; this phase builds the slot it lands in.
 
 ---
 
@@ -65,7 +66,7 @@ Everything this phase builds. Nothing outside this list ships in Phase 3.
 | `SectionStub` | Server Component | The backlog and contact placeholders. One component, two copy sets. |
 | `CvPage` (`/cv`) | Server Component | Stub route (`D-02`). Real page, real metadata, deliberately typeset placeholder. |
 | `lib/work.ts` | Data module | Not a component. The work list's entire content (`D-05`). |
-| `SmearTitle` | reused, unchanged | Phase 2's client leaf. Used by the nameplate and the featured headline. Do not add a second rAF driver, do not re-implement `useSmearHeading`, do not retune `MAX_TRAIL` / `MAX_SHADOWS` / `SCROLL_STOP_DELAY` / `HUE_SPEED`. |
+| `SmearTitle` | reused, **one-line type change** | `components/smear-title.tsx` currently types `as?: "h1" \| "h2"`. This phase specifies the featured headline as a trail-carrying `<h3>` (a section head is the `<h2>`), so **the union must widen to `"h1" \| "h2" \| "h3"`** — a single line in the props type, no behaviour change, no new prop, no runtime branch. That is the entire modification. Everything else about the component and the smear system it wraps is unchanged: do not add a second rAF driver, do not re-implement `useSmearHeading`, do not retune `MAX_TRAIL` / `MAX_SHADOWS` / `SCROLL_STOP_DELAY` / `HUE_SPEED`. |
 | `PostMeta` | reused, unchanged | Used by the featured slot in its published state with `switchHref={null}`. |
 
 **No `<button>` element ships on any Phase 3 surface.** There is no form, no toggle, no disclosure, no menu. Every interactive element is an `<a>`.
@@ -166,6 +167,8 @@ Inherited palette, unchanged. `app/globals.css` `@theme` already defines every v
 
 **Accent reserved for:** focus-visible outlines and link hover/focus states. That is the complete list, and this phase does not widen it. Specifically — the accent is **not** used for: the contents list at rest, the ordinals `01`/`02`, any section head or its rule, the featured slot or its kicker, the work-list host labels, any stub, or the heading trail (which carries its own scroll-driven `hsl()` cycle, Phase 1).
 
+**On the trail's hue cycle, and why it is not a precedent.** The trail is a second chromatic system on this site: `HUE_SPEED = 110`, start hue `345`, advanced on scroll samples and frozen when the page is still. It sits outside the 60/30/10 split and outside the accent reservation. That exclusion is **specific to the inherited trail** — a single, already-shipped, user-validated decorative treatment, bounded to the shadow layers behind Humane glyphs whose own ink never changes (Phase 1, Motion Contract). **It is not permission to introduce a third chromatic system.** Any later phase that wants colour beyond ink, paper, accent and the trail's own layers — a tinted section, a coloured rule, a hue on a stub, a second decorative cycle — is reopening the palette and must say so explicitly rather than citing the trail as precedent. The one bounded exemption already granted elsewhere is Shiki's token palette inside `<pre>`, which Phase 2 justified on chart-data-palette footing; that list is closed at two.
+
 ### Contrast, measured against the actual background
 
 Phase 2 shipped a wrong Shiki theme because a ratio was computed against `#ffffff` while the element sat on a `#F5F5F5` tint. The guard against repeating that is stated as a fact about this phase, not as an intention:
@@ -238,7 +241,7 @@ Read from `components/smear-heading/smear-heading-provider.tsx` and `use-smear-h
 
 ## Routes & Layout for This Phase
 
-### Localisation: the landing view is English-only in v1 `[DISCRETION-adjacent]`
+### Localisation: the landing view is English-only in v1
 
 Not delegated explicitly, but unavoidable and therefore decided here rather than discovered in the plan.
 
@@ -324,7 +327,15 @@ CONTEXT delegated *"navigation form — persistent header, in-page anchors, an i
 - **Not sticky, and this is deliberate.** A fixed element on a page whose entire visual idea is a scroll-driven trail competes with that trail, and it introduces a viewport-anchored element the smear driver has no knowledge of. The page is five sections; scrolling back is the return path.
 - **No skip link.** A skip link exists to bypass repeated chrome. There is no repeated chrome — the nav appears once, holds five links, and sits after a single `<h1>` and one sentence.
 
-### Featured slot contract (`CASE-03`, `D-07`, `D-10`)
+### Featured slot contract (`CASE-03`, `D-07`, `D-10`) `[DISCRETION]`
+
+CONTEXT delegated *"whether the featured slot is visually distinct from the work list or is the work list's first entry given primacy."* **Resolved: a distinct section above the work list, not the work list's first row.** Three reasons:
+
+1. **They point at different things (`D-07`).** The featured slot links inward to the case study at `/writing/{slug}`; work-list entries link outward to independently-hosted live pieces. Making the featured slot row one of the work list would put two different kinds of destination in one list under one heading, with no way for a reader to tell which is which.
+2. **`HOME-02` asks for clear visual primacy, and a two-row list cannot deliver it.** Giving row one a poster treatment and row two an 18px treatment does not read as hierarchy at n=2 (`D-03`) — it reads as a broken list. Primacy needs a second element to be primary *over*, and at two rows there is not enough list left.
+3. **The same project would otherwise appear twice in one list.** The case study is *about* the Mallorca piece, which is also work-list entry `01`. As two separate sections — "Case study" and "Work" — the asymmetry `D-07` describes is legible. As one list it reads as duplication or padding.
+
+Primacy therefore comes from **scale** (Heading, the only Humane element in its neighbourhood), **isolation** (its own section head and rule, 64px of air either side), **position** (first content section), and **the trail** (which the work list does not carry). It does not come from a card, a border or a fill — none of which ships.
 
 The slot's state is **derived from the content pipeline, not from a flag someone has to remember to flip.** The module holds the case study's intended slug; the slot resolves it through `findBySlug(await publishedFor("en"), CASE_STUDY_SLUG)`.
 
@@ -356,7 +367,7 @@ gap-md
 - **Phase 4 changes copy and adds an `<a>`. It changes no layout, no role, no gap, and no order.** That is the entire point of building the slot here.
 - **`D-10` is satisfied structurally:** the featured entry's final annotation copy *is* the post's front-matter `standfirst`. It arrives with the case study, in one place, written once.
 - **The headline is the only link.** No "Read the case study", no button, no card, no border, no fill, no hover elevation. `PROJECT.md` Out of Scope names card grids; a single bordered box under a heading is the same failure at n=1, and Phase 2 settled this idiom on `/writing`.
-- **`<h2>` is the section head and `<h3>` is the headline, and the headline is far larger.** This looks inverted and is deliberate — the same reasoning Phase 2 wrote down for `/writing`'s Label-role `<h1>` above a Display-scale `<h2>`. Semantics follow structure; visual weight follows editorial hierarchy.
+- **`<h2>` is the section head and `<h3>` is the headline, and the headline is far larger.** This looks inverted and is deliberate — the same reasoning Phase 2 wrote down for `/writing`'s Label-role `<h1>` above a Display-scale `<h2>`. Semantics follow structure; visual weight follows editorial hierarchy. It is also why `SmearTitle`'s `as` union has to widen to `"h3"` (see the component inventory).
 - **The interim headline is not a link and must not be one.** There is nowhere honest for it to point: the case study does not exist and `/writing` is at `n = 0`. A link to an empty index is a circular dead end.
 - **Launch gate, extended from Phase 2 and carried to Phase 6:** the site is `robots: { index: false }` until `FIND-02`. Phase 2 recorded that `/writing` at `n = 0` must never be the public launch condition. The same now applies to the featured slot's interim state, the backlog stub and the contact stub. **If any of the four is still in its interim state when Phase 6 goes to flip the robots flag, Phase 6 is blocked.**
 
@@ -442,7 +453,7 @@ main  flex flex-col gap-3xl  px-lg py-3xl
 
 ### Amendments to shipped surfaces
 
-Four, bounded, each justified. Nothing else in `app/` or `components/` is touched.
+Four, bounded, each justified. Nothing else in `app/` or `components/` is touched, beyond `SmearTitle`'s one-line `as` union widening recorded in the component inventory.
 
 **A1 — `app/(en)/page.tsx` is replaced.** It is Phase 1's holding page, which Phase 1 `D-05` designated for replacement here and whose copy `D-06` deliberately kept to a name only so nothing would need unwinding. It must also **stop being a Client Component**: it currently carries `"use client"` to reach `useSmearHeading` directly. Phase 2 shipped `SmearTitle` precisely so a page can keep its trail without a client boundary. The landing reads `lib/work.ts` and calls `publishedFor("en")` for the featured slot — both server-only.
 
@@ -534,7 +545,7 @@ Stated explicitly because this is the first phase with real navigation and multi
 | **Primary CTA** | **The headline is the link — there is no labelled call to action anywhere in this phase.** In the featured slot's published state (Phase 4) the case-study title is the sole call to action into `/writing/{slug}`; in the work list each entry's own title is the call to action into the live piece. No "Read more", no "View project", no "Read the case study", no button, no `<button>` element. A labelled CTA under a poster-scale headline is what turns an editorial page back into a card, which `PROJECT.md` Out of Scope rules out. |
 | **Navigation labels** | Exactly five, Label role, rendered uppercase by the role: `Work`, `Writing`, `Backlog`, `CV`, `Contact`. One word each. They name destinations, they do not describe them. |
 | **Section heads** | `Case study`, `Work`, `Backlog`, `Contact`. Label role plus a 1px full-ink rule. |
-| **Positioning sentence (`HOME-01`)** | **Placeholder: `Developer.`** — Phase 1's shipped line, kept verbatim, promoted from `.text-body` to `.text-standfirst`. `D-08` calls for a "clearly-marked placeholder" and `D-02` requires placeholder content to be deliberately typeset on a live URL during a job hunt. Those resolve together: **the placeholder is marked in the source, not on the screen.** It ships as a named exported constant (`POSITIONING_PLACEHOLDER`) carrying a comment that it is `HOME-01`, awaiting the user's sentence — so it is unmissable to anyone editing the file and invisible as a defect to anyone reading the page. A rendered `[positioning sentence goes here]` is exactly the failure `D-02` exists to prevent. `Developer.` is neutral, factual, adjective-free, and already user-approved from Phase 1. |
+| **Positioning sentence (`HOME-01`)** | **Placeholder: `Developer.`** — Phase 1's shipped line, kept verbatim, promoted from `.text-body` to `.text-standfirst`. `D-08` calls for a "clearly-marked placeholder" and `D-02` requires placeholder content to be deliberately typeset on a live URL during a job hunt. Those resolve together: **the placeholder is marked in the source, not on the screen.** It ships as a named exported constant (`POSITIONING_PLACEHOLDER`) carrying a comment that it is `HOME-01`, awaiting the user's sentence — so it is unmissable to anyone editing the file and invisible as a defect to anyone reading the page. A rendered `[positioning sentence goes here]` is exactly the failure `D-02` exists to prevent. `Developer.` is neutral, factual, adjective-free, and already user-approved from Phase 1. **Because it is invisible on screen, it carries a tripwire — see the phase-completion checklist.** |
 | **Featured slot — interim heading** | `The case study is being written.` Heading role, Humane, trail, **not a link.** Present tense, states what is happening, promises no date. |
 | **Featured slot — interim body** | `On the Mallorca piece: what was expected, what the data showed, and how the visual form changed in response.` Body role. Every clause is `CASE-02`'s already-settled scope restated — this is not Phase 4's copy written early, and it must be replaced wholesale by the post's front-matter `standfirst` when Phase 4 lands. |
 | **Featured slot — published (Phase 4)** | Headline = the post's `title`. Standfirst = the post's `standfirst`. Both come from front-matter; neither is authored on the landing view. |
@@ -542,13 +553,24 @@ Stated explicitly because this is the first phase with real navigation and multi
 | **Work-list empty state** | **None, by construction.** The list is a fixed two-entry data module (`D-03`, `D-05`). An empty array is a build error, not a rendered state. Do not build an empty-shelf layout for it. |
 | **Backlog stub — state line** | `Nothing listed here yet.` Standfirst role. |
 | **Backlog stub — body** | `The current work is being written up.` Body role. Present tense. It must not read as a wishlist (`BRIEF` §9 anti-goal #4) — hence "the current work", not "plans" or "ideas". |
-| **Contact stub — state line** | `Nothing here yet.` Standfirst role. |
+| **Contact stub — state line** | `No contact details here yet.` Standfirst role. Names the shape of what is missing, the way the backlog line and the shipped `Nothing published here yet.` both do — and deliberately does not open with the same word as the backlog stub two sections above it, on a page with only four sections. |
 | **Contact stub — body** | `Email, GitHub and LinkedIn are being added.` Body role. Names exactly what will appear (`PROF-03`, `PROF-04`, `PROF-05`) and promises no date. |
 | **`/cv` heading** | `CV`. Heading role, Humane, trail. |
 | **`/cv` body** | `The CV is being written up as a page.` Body role. |
 | **Site-root back link** | `← Guillem Gelabert`. Label role, on `/cv`, `/writing` and `/texte`. Identical in both locales — it is a proper noun, and a translated variant would be a different affordance for no gain. `←` is the literal character U+2190 set in Newsreader, the precedent Phase 2 established for `← Writing`; it is not an icon. |
 | **Error state** | **No runtime error state exists.** The site builds statically; `/`, `/cv` and the work-list data are resolved at build time and a malformed entry fails `next build` rather than a visitor's request. There is deliberately no error boundary UI. For an unknown URL, Next.js's default 404 remains acceptable through Phase 5, unchanged from Phase 1's ruling. **Forward note for Phase 6:** adding a styled root `not-found` is not free — with two root layouts (`(en)` and `(de)`) each owning its own `<html>`, there is no global not-found boundary, so a root one requires a third root layout. Phase 6 (`FIND-02`) should plan for that rather than discover it. |
 | **Destructive confirmation** | **Not applicable.** No destructive action exists on any Phase 3 surface: no forms, no mutations, no delete, no visitor-changeable state. All content is files in the repo. |
+
+---
+
+## Phase-completion checklist
+
+Four items that no optical pass will surface on its own, because each is either invisible on screen or correct-looking while still outstanding. **These are phase-completion gates, not notes to verification** — the phase is not done until each is ticked or explicitly carried forward with a named owner.
+
+- [ ] **`HOME-01` is still outstanding and must be recorded as deferred-by-decision (`D-08`), by name, in the phase verification record.** The positioning sentence ships as `Developer.` behind `POSITIONING_PLACEHOLDER`. Because that placeholder is marked in source rather than on screen, the landing view *looks finished* while the site's single most important sentence is unwritten — so nothing in a 375px/1440px visual pass will catch it. **This item is the tripwire.** It must be re-asserted at the top of every subsequent phase's carried-forward state until the user supplies the sentence, and it must appear in Phase 6's pre-launch check alongside the robots flag. `HOME-01` must never reach the `FIND-02` flag flip still holding `Developer.`
+- [ ] **The two `WORK-02` annotations are drafts awaiting the user's edit (`D-09`).** They satisfy the requirement as written; they are not final copy. Surface them to the user as editable rather than shipping them silently.
+- [ ] **The featured slot is in its interim state** and the launch gate above applies to it, to the backlog stub and to the contact stub. Carry all four into Phase 4/5/6 state as blocking for `FIND-02`.
+- [ ] **`SmearTitle`'s `as` union has been widened to include `"h3"`** and the featured headline renders as an `<h3>`, not as an `<h2>` that happens to look right. An `<h2>` there would silently break the heading outline (two `<h2>`s per section, one of them the section head).
 
 ---
 
@@ -585,10 +607,11 @@ What Phase 3 changes about the shipped system, in full — anything not listed h
 |--------|--------|
 | **No new type role, size, weight or face** | The four shipped roles and two weights carry every surface. The one candidate for a fifth size (work-list titles) is resolved by face contrast instead — see *The type budget*. `app/globals.css`'s `@theme` block and both clamp curves are untouched. |
 | **No new spacing token and no new spacing exception** | The seven tokens cover every distance. The three inherited exceptions (1px hairlines + `0.12em` underline offset, 2px inline-code padding, 2px focus outline) are restated and unchanged; two of the three are in use here. |
-| **No new colour token, no tint, no fill** | Palette unchanged. Accent reservation unchanged and not widened — focus-visible outlines and link hover/focus only. Every element on these routes sits on `#ffffff`, so every contrast ratio is measured against the real background. |
+| **No new colour token, no tint, no fill** | Palette unchanged. Accent reservation unchanged and not widened — focus-visible outlines and link hover/focus only. Every element on these routes sits on `#ffffff`, so every contrast ratio is measured against the real background. The trail's hue cycle stays outside the split as inherited decorative motion, and is explicitly not a precedent for a third chromatic system. |
 | **Add** three CSS classes: `.section-head`, `.link`, `.link-quiet` | Every declaration inside them is copied from a value already shipped in `app/globals.css`. `.section-head` is `.prose-site h2` without the prose margins; `.link` is `.prose-site a` verbatim; `.link-quiet` is `.link` with the rest underline removed and restored on hover. |
 | **Add** `lib/work.ts` | `D-05`: work entries are data, not markup. |
 | **Add** route `/cv` (`(en)` group) | `D-02`: `HOME-03` targets ship as real stubs, never disabled and never 404. |
+| **Widen** `SmearTitle`'s `as` prop union from `"h1" \| "h2"` to `"h1" \| "h2" \| "h3"` | The featured headline is a trail-carrying `<h3>` beneath a `<h2>` section head. One line in the props type; no behaviour change. |
 | **Replace** `app/(en)/page.tsx`, and convert it from Client to Server Component | Phase 1 `D-05` designated the holding page for replacement here. `SmearTitle` removes the need for a page-level client boundary. |
 | **Amend** `/writing` and `/texte`: add a `← Guillem Gelabert` site-root back link and a `homeLink` entry in `lib/locales.ts` | Phase 3 sends visitors to `/writing` and the shipped index has no route back. Closing a dead end this phase creates. |
 | **Amend** shipped non-prose links to carry `.link-quiet` | They currently have no accent hover and no accent focus ring. Phase 2's Color section already reserves the accent for link hover/focus on any link — this is conformance with the shipped contract, not a change to it. |
@@ -602,11 +625,17 @@ What Phase 3 changes about the shipped system, in full — anything not listed h
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: **PASS with flags**
+- [x] Dimension 2 Visuals: **PASS with flags**
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Flags carried forward into execution and the Phase 3 UI audit:**
+
+1. **The work list is the quietest section on the page** (Dimension 2). 18px Newsreader titles at n=2, by deliberate trade against the featured slot's primacy inside a four-size budget. The 1440px optical pass is the designated place this gets confirmed; the remedy if it fails is more space and the existing rules, **not** a fifth type size.
+2. **`HOME-01` ships unwritten and invisible** (Dimension 1). The placeholder is marked in source, not on screen, so the landing looks finished while the site's central sentence is outstanding. Carried as the first item on the phase-completion checklist and as a blocking pre-condition on Phase 6's `FIND-02` flag flip.
+3. **Four surfaces ship in an interim state** (Dimension 1) — the featured slot, the backlog stub, the contact stub, and `/cv`. Each is deliberately typeset per `D-02` and each is covered by the launch gate. None may be the public launch condition.
+
+**Approval:** approved 2026-08-31
