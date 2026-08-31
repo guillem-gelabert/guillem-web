@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: Working Site
 status: executing
 stopped_at: Phase 2 UI-SPEC approved
-last_updated: "2026-08-31T11:23:23.704Z"
-last_activity: 2026-08-31 -- Phase 03 execution started
+last_updated: "2026-08-31T15:51:06.622Z"
+last_activity: 2026-08-31 -- Phase 04 execution started
 progress:
   total_phases: 6
-  completed_phases: 2
-  total_plans: 20
-  completed_plans: 11
-  percent: 33
+  completed_phases: 3
+  total_plans: 26
+  completed_plans: 20
+  percent: 50
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-08-29)
 
 **Core value:** A visitor scanning a shortlist can tell within ninety seconds that Guillem has editorial judgment as well as craft — enough to decide the conversation is worth opening.
-**Current focus:** Phase 03 — Work List & Landing Skeleton
+**Current focus:** Phase 04 — The Case Study
 
 ## Current Position
 
-Phase: 03 (Work List & Landing Skeleton) — EXECUTING
-Plan: 1 of 9
-Status: Executing Phase 03
-Last activity: 2026-08-31 -- Phase 03 execution started
+Phase: 04 (The Case Study) — EXECUTING
+Plan: 1 of 6
+Status: Executing Phase 04
+Last activity: 2026-08-31 -- Phase 04 execution started
 
 Progress: [██████████] 100%
 
