@@ -25,3 +25,10 @@ executor's SCOPE BOUNDARY rule) and are logged here rather than fixed.
   mdx-components.tsx` — 0 errors, pre-existing warnings only).
 - **Recommendation:** a future phase (or a dedicated lint-debt task) should fix
   `use-prefers-reduced-motion.ts` directly, independent of Phase 2's content-pipeline scope.
+
+- **Update (code-review fix, WR-12):** the *volume* problem is fixed — `eslint.config.mjs`
+  now ignores `.claude/**` (the agent worktree, a full second copy of the tree) plus
+  Playwright's generated output, and prefix-ignores the intentional `_`-prefixed discards.
+  `npm run lint` went from **589 errors + 8,609 warnings** to **1 error, 0 warnings**, and
+  that one error is this item. The hand-written file list workaround described above is no
+  longer needed. This item itself remains deferred and unfixed, as scoped.
