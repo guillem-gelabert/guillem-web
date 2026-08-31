@@ -117,3 +117,12 @@ None - no external service configuration required.
 ---
 *Phase: 03-work-list-landing-skeleton*
 *Completed: 2026-08-31*
+
+## Self-Check: PASSED
+
+- FOUND: lib/work.ts
+- FOUND: tests/unit/work.test.ts
+- FOUND: .planning/phases/03-work-list-landing-skeleton/03-01-SUMMARY.md
+- FOUND: 5f12d8b (feat: lib/work.ts)
+- FOUND: 1c7f538 (test: tests/unit/work.test.ts)
+- FOUND: f300bb6 (feat: SmearTitle h3 + homeLink)
