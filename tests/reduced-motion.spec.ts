@@ -18,11 +18,14 @@ test("heading text-shadow stays 'none' throughout a full scroll under reduced-mo
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  // Runs against /type, not /. The holding page is capped at name-only copy by
-  // CONTEXT.md D-06 and does not overflow the viewport, so scrolling it is a
-  // no-op; the specimen route scrolls on its own content. An earlier version
-  // injected a 3000px spacer into / to force a scroll, which made the test
-  // pass without exercising anything a visitor would experience.
+  // Runs against /type, not /. / now carries real content and genuinely
+  // overflows the viewport — tests/landing-trail.spec.ts covers the
+  // reduced-motion case there. This spec deliberately stays on /type
+  // because that route registers five trail headings, the project's
+  // calibration reference for the effect at a higher registered-heading
+  // count than any real page carries. An earlier version injected a 3000px
+  // spacer into / to force a scroll, which made the test pass without
+  // exercising anything a visitor would experience.
   await page.goto("/type");
 
   // Let fonts finish loading and the headings register with the shared driver
