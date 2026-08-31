@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { PostEntry } from "@/lib/content";
 import { postPath } from "@/lib/locales";
 import { SmearTitle } from "@/components/smear-title";
@@ -38,9 +39,24 @@ export function FeaturedSlot({ entry }: FeaturedSlotProps) {
   return (
     <>
       <SmearTitle as="h3" className="text-heading">
-        <a className="link-quiet" href={postPath("en", entry.slug)}>
+        {/* next/link, not a bare <a>: this is internal navigation to
+            /writing/<slug>. Every other internal link in the repo uses
+            Link — both indexes, both [slug] templates, all three not-found
+            boundaries, /cv, /type, LanguageSwitch and ContentsNav's
+            kind: "route" branch. The only raw <a> elements left are
+            work-list.tsx (external absolute URLs) and contents-nav.tsx
+            (hash fragments), both correct and both documented.
+
+            ESLint's @next/next/no-html-link-for-pages caught exactly this
+            bug in /type during Wave 2 (03-04-SUMMARY.md:89-95) but cannot
+            see it here: the href is a computed expression the rule cannot
+            statically resolve. A bare <a> costs the route prefetch and
+            does a full document navigation, tearing down and rebuilding
+            the trail provider — on the slot's only interactive affordance
+            and the whole reason it was built ahead of the content. */}
+        <Link className="link-quiet" href={postPath("en", entry.slug)}>
           {entry.frontmatter.title}
-        </a>
+        </Link>
       </SmearTitle>
       {/* This nested gap-md wrapper is the same shape app/(en)/writing/page.tsx
           already uses for standfirst + PostMeta, and it is what keeps the
