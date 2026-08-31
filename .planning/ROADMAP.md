@@ -190,7 +190,21 @@ Plans:
   1. Visitor can see a backlog of work in progress, each item carrying a name and a rich-text description.
   2. Visitor can see a single "last touched" date for the backlog section as a whole, not per item.
 
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+**Wave 1**
+
+- [ ] 05-01-PLAN.md — `lib/backlog.tsx` (three grounded items, the `COPY_REVIEWED` tripwire, the fail-loud validator), `BacklogList`, the date line, the stub's deletion from `app/(en)/page.tsx`, and the measured proof that a malformed module fails `next build`
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 05-02-PLAN.md — The repo-tier guards: `backlog-source.ts` (the `.tsx` source reader that throws rather than skipping), `backlog.test.ts`, the five-branch git/mtime freshness guard, and three red-proofs that all of them fire
+- [ ] 05-03-PLAN.md — `tests/landing.spec.ts`: the two located breakages (`(r)` h3 3→6, `(u)` narrowed to contact) plus the rendered proof of D-11's three subtractions, the measured hairline and gaps, and the on-screen two-weight/four-size budget
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 05-04-PLAN.md — Production truth in `tests/build/prerender.test.ts` (stub strings absent, date bound to source by equality), the re-pointed launch gate naming three unreviewed copy items, the deploy confirmation, and the backlog-leg closure record
+
 **UI hint**: yes
 
 ### Phase 6: CV, Contact, Photo & Discoverability
@@ -220,9 +234,9 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Content Pipeline | 7/7 | Complete   | 2026-08-31 |
 | 3. Work List & Landing Skeleton | 9/9 | Complete   | 2026-08-31 |
 | 4. The Case Study | 6/6 | Complete   | 2026-08-31 |
-| 5. Backlog | 0/TBD | Not started | - |
+| 5. Backlog | 0/4 | Not started | - |
 | 6. CV, Contact, Photo & Discoverability | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-08-29*
-*Last updated: 2026-08-31 — Phase 4 planned into 6 plans across 6 waves*
+*Last updated: 2026-08-31 — Phase 5 planned into 4 plans across 3 waves*
