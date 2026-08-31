@@ -164,7 +164,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2)*
 
-- [ ] 04-03-PLAN.md — The English case study: six beats in CASE-02's order, three figures, one aside, the pivot as a pull quote, one inline link to the live piece
+- [x] 04-03-PLAN.md — The English case study: six beats in CASE-02's order, three figures, one aside, the pivot as a pull quote, one inline link to the live piece
 
 **Wave 4** *(blocked on Wave 3)*
 
@@ -219,7 +219,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Deploy Foundation & Design System | 4/4 | Complete   | 2026-08-29 |
 | 2. Content Pipeline | 7/7 | Complete   | 2026-08-31 |
 | 3. Work List & Landing Skeleton | 9/9 | Complete   | 2026-08-31 |
-| 4. The Case Study | 2/6 | In Progress|  |
+| 4. The Case Study | 3/6 | In Progress|  |
 | 5. Backlog | 0/TBD | Not started | - |
 | 6. CV, Contact, Photo & Discoverability | 0/TBD | Not started | - |
 
