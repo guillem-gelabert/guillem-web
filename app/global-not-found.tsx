@@ -5,7 +5,7 @@ import { newsreader } from "./fonts/newsreader";
 import { ibmPlexMono } from "./fonts/ibm-plex-mono";
 import { SmearHeadingProvider } from "@/components/smear-heading/smear-heading-provider";
 import { SmearTitle } from "@/components/smear-title";
-import { indexPath, UI } from "@/lib/locales";
+import { UI } from "@/lib/locales";
 import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
@@ -74,8 +74,27 @@ export default function GlobalNotFound() {
               {UI.en.notFoundHeading}
             </SmearTitle>
             <p className="text-body">{UI.en.notFoundBody}</p>
-            <Link href={indexPath("en")} className="text-label link-quiet inline-block py-xs">
-              {UI.en.backLink}
+            {/* The site root, not the writing index. This is the GLOBAL
+                boundary: it is reached by /nope, /blog, /de/texte, every
+                typo and every stale inbound link — by definition, visitors
+                who were not looking for /writing. It is also the one
+                surface with no nav, no header and no other context.
+
+                Amendment A2 added `← Guillem Gelabert` → / to /cv,
+                /writing, /texte and /type precisely to close dead ends
+                created by one-way navigation, and this surface was the one
+                the sweep missed. With all three content fixtures
+                draft: true, /writing ships "Nothing published here yet."
+                in production, so the shipped journey was: mistyped URL →
+                Not found → the only link → an empty page → still no route
+                to the site root.
+
+                The two SEGMENT boundaries (app/(en)/writing/not-found.tsx,
+                app/(de)/texte/not-found.tsx) keep their segment-scoped
+                back link and are correct as they stand — a visitor there
+                WAS reading that index. */}
+            <Link href="/" className="text-label link-quiet inline-block py-xs">
+              {UI.en.homeLink}
             </Link>
           </main>
         </SmearHeadingProvider>

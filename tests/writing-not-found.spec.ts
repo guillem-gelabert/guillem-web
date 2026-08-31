@@ -12,11 +12,14 @@ import { expect, test } from "@playwright/test";
 // A one-entry table today, looped over rather than hand-written once, so
 // Plan 06 can add the German /texte case without restructuring this file.
 //
-// Amendment A3 grows this to three entries: /nope reaches the root
-// app/not-found.tsx boundary (that boundary renders UI.en, matching the
-// English-locale writing case) rather than a localised not-found.tsx, but
-// its rendered copy and back link are identical to the /writing case, so it
-// slots into the same table without a fourth field.
+// Two entries, both real localised SEGMENT boundaries reached by an unknown
+// slug. /nope used to be a third row here — it is not a slug, has no locale
+// and reaches no localised boundary, and two of the three assertions it ran
+// duplicated the UNMATCHED_PATHS loop below. Once code review WR-05 pointed
+// the global boundary at the site root, the row became actively wrong: it
+// asserted href="/writing". Its one unique assertion (the back link's
+// link-quiet class and 24px target height) moved into the UNMATCHED_PATHS
+// loop, where the surface it describes actually lives (IN-07).
 const LOCALE_CASES = [
   {
     path: "/writing/does-not-exist",
@@ -32,19 +35,12 @@ const LOCALE_CASES = [
     backLinkText: "← Texte",
     backLinkHref: "/texte",
   },
-  {
-    path: "/nope",
-    heading: "Not found",
-    body: "That piece doesn't exist here.",
-    backLinkText: "← Writing",
-    backLinkHref: "/writing",
-  },
 ];
 
-// The global boundary (app/not-found.tsx): every URL that matches no route at
-// all. Asserted with JavaScript disabled, because the whole point of the file
-// is that the 404 exists in the SERVER HTML — a Playwright context with JS on
-// waits for hydration and would pass against a blank shell.
+// The global boundary (app/global-not-found.tsx): every URL that matches no
+// route at all. Asserted with JavaScript disabled, because the whole point of
+// the file is that the 404 exists in the SERVER HTML — a Playwright context
+// with JS on waits for hydration and would pass against a blank shell.
 const UNMATCHED_PATHS = ["/nope", "/blog", "/de/texte"];
 
 for (const path of UNMATCHED_PATHS) {
@@ -69,10 +65,25 @@ for (const path of UNMATCHED_PATHS) {
 
       await expect(page.locator("h1")).toHaveText("Not found");
       await expect(page.getByText("That piece doesn't exist here.")).toBeVisible();
-      await expect(page.getByRole("link", { name: "← Writing" })).toHaveAttribute(
-        "href",
-        "/writing",
-      );
+
+      // WR-05: the site root, not the writing index. This boundary is
+      // reached by visitors who were not looking for /writing, and in
+      // production /writing ships "Nothing published here yet." — so the
+      // segment-scoped back link sent them from a mistyped URL to an empty
+      // page with still no route to the site root.
+      const backLink = page.getByRole("link", { name: "← Guillem Gelabert" });
+      await expect(backLink).toHaveAttribute("href", "/");
+
+      // The global boundary must offer no route into the writing segment:
+      // a second link here would be the dead end WR-05 removed.
+      await expect(page.locator('a[href="/writing"]')).toHaveCount(0);
+
+      // Amendment A3 / WCAG 2.5.8, moved here from the LOCALE_CASES /nope
+      // row (IN-07) so the assertion sits on the surface it describes.
+      await expect(backLink).toHaveClass(/link-quiet/);
+      await page.evaluate(() => document.fonts.ready);
+      const height = await backLink.evaluate((el) => el.getBoundingClientRect().height);
+      expect(height).toBeGreaterThanOrEqual(24);
     } finally {
       await context.close();
     }
