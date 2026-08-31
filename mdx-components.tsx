@@ -1,6 +1,23 @@
+import { isValidElement } from "react";
 import type { MDXComponents } from "mdx/types";
 import { Aside } from "@/components/mdx/aside";
 import { Figure } from "@/components/mdx/figure";
+
+/**
+ * Landmarks sharing a role must have distinct accessible names, or a screen
+ * reader's landmark list shows N indistinguishable "Code sample region"
+ * entries (WCAG technique ARIA13, axe-core landmark-unique). The fixture
+ * alone renders two. Shiki keeps the fence's language nowhere in the DOM by
+ * default, so next.config.ts turns on addLanguageClass, which puts
+ * `language-{lang}` on the <code> child this <pre> wraps.
+ */
+function codeSampleLabel(children: React.ReactNode): string {
+  const className = isValidElement<{ className?: string }>(children)
+    ? children.props.className
+    : undefined;
+  const language = /language-([\w-]+)/.exec(className ?? "")?.[1];
+  return language ? `Code sample: ${language}` : "Code sample";
+}
 
 // Figure and Aside are the entire shipped MDX component map (D-08's "MDX
 // may import arbitrary React components" stays true, but the default prose
@@ -12,8 +29,10 @@ import { Figure } from "@/components/mdx/figure";
 const components: MDXComponents = {
   Figure,
   Aside,
-  pre: ({ style: _shikiBackground, ...props }: React.ComponentPropsWithoutRef<"pre">) => (
-    <pre {...props} role="region" aria-label="Code sample" />
+  pre: ({ style: _shikiBackground, children, ...props }: React.ComponentPropsWithoutRef<"pre">) => (
+    <pre {...props} role="region" aria-label={codeSampleLabel(children)}>
+      {children}
+    </pre>
   ),
   // Wrap the incoming <table> so it can scroll horizontally without the
   // page doing so — .prose-site .prose-table is the scroll wrapper.

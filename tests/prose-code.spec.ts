@@ -92,6 +92,31 @@ test("every pre is keyboard-reachable and named — tabindex once, role=region, 
   }
 });
 
+test("no two code-sample landmarks share an accessible name, and each names its language", async ({
+  page,
+}) => {
+  const { pres } = await readCodeBlocks(page);
+  expect(pres.length).toBeGreaterThan(1);
+
+  // Landmarks of the same role must be distinguishable in a screen reader's
+  // landmark list (WCAG technique ARIA13, axe-core landmark-unique). A bare
+  // truthiness check on aria-label cannot see two identical names, which is
+  // how "Code sample" twice on one page survived the whole of Plan 04.
+  const labels = pres.map((pre) => pre.ariaLabel);
+  expect(new Set(labels).size, `duplicate landmark names: ${labels.join(" | ")}`).toBe(
+    labels.length,
+  );
+
+  // The name is derived from the fence's language, which reaches the DOM only
+  // because next.config.ts sets Shiki's addLanguageClass. If that option is
+  // dropped, every label silently collapses back to "Code sample".
+  for (const pre of pres) {
+    expect(pre.ariaLabel).toMatch(/^Code sample: [\w-]+$/);
+  }
+  expect(labels).toContain("Code sample: json");
+  expect(labels).toContain("Code sample: bash");
+});
+
 test("pre renders IBM Plex Mono at 18px with the real 1.5 line-height in pixels, square corners, no soft-wrap", async ({
   page,
 }) => {
