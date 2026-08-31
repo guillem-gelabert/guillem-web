@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useSmearHeading } from "@/components/smear-heading/use-smear-heading";
 
 export default function TypeSpecimen() {
@@ -96,6 +97,31 @@ export default function TypeSpecimen() {
           The label role is Newsreader at fourteen pixels, uppercase, tracked at
           0.04em. Every grey caption on this page is one — it marks what is
           being shown without competing with it.
+        </p>
+      </section>
+
+      <section className="flex flex-col gap-sm">
+        <p className="text-label">Section head and links</p>
+        <h2 className="section-head">Section head</h2>
+        <p className="max-w-prose text-body">
+          A link set inside a block of running copy, like this{" "}
+          <Link className="link" href="/">
+            reference to the site root
+          </Link>
+          , takes the rest-state underline the link-quiet specimen below
+          deliberately omits.
+        </p>
+        <Link className="text-label link-quiet inline-block py-xs" href="/">
+          Guillem Gelabert
+        </Link>
+        <p className="max-w-prose text-body">
+          Neither is coloured at rest. Both classes move to the accent colour
+          on hover and on focus; .link-quiet adds its underline back on
+          hover so the affordance is never colour-only; both show a 2px
+          accent focus ring on :focus-visible; and under prefers-reduced-motion:
+          reduce the colour and underline change still happens — only the
+          120ms transition is removed, because the state change is not
+          motion.
         </p>
       </section>
     </main>
