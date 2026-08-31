@@ -9,3 +9,13 @@ node_modules/
 /blob-report/
 /playwright/.cache/
 *.tsbuildinfo
+
+# Throwaway probe and scratch scripts. Verifying a gate means mutating the
+# source it reads and watching the suite go red — the .probe-tmp.mjs class
+# of file. Those are written next to the code they probe, run once, and are
+# meant to be deleted; without these lines they sit in `git status` as
+# untracked noise until someone commits one by accident. Anything worth
+# keeping gets a real name and a real home under tests/.
+*.tmp.mjs
+*.tmp.ts
+.probe-*
