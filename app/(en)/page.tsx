@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import { findBySlug, publishedFor } from "@/lib/content";
 import { CASE_STUDY_SLUG, POSITIONING_PLACEHOLDER } from "@/lib/work";
+import { LAST_TOUCHED } from "@/lib/backlog";
+import { formatPostDate } from "@/lib/locales";
 import { SmearTitle } from "@/components/smear-title";
 import { ContentsNav } from "@/components/landing/contents-nav";
 import { FeaturedSlot } from "@/components/landing/featured-slot";
 import { WorkList } from "@/components/landing/work-list";
+import { BacklogList } from "@/components/landing/backlog-list";
 import { SectionStub } from "@/components/landing/section-stub";
 
 // This route carries no client directive. Phase 1 marked whole pages as
@@ -80,7 +83,17 @@ export default async function Landing() {
         <h2 id="backlog-head" className="section-head">
           Backlog
         </h2>
-        <SectionStub state="Nothing listed here yet." body="The current work is being written up." />
+        {/* D-12: the section keeps its own gap-lg, and this one div carries
+            the date line and the list, so head→date and date→list are both
+            lg. Above the items, not below — BACK-02 is the mitigation the
+            user accepted in place of per-item dates, and a freshness signal
+            only mitigates the wishlist read if it is read before the list. */}
+        <div className="flex flex-col gap-lg">
+          <p className="text-label">
+            Last touched <time dateTime={LAST_TOUCHED}>{formatPostDate(LAST_TOUCHED, "en")}</time>
+          </p>
+          <BacklogList />
+        </div>
       </section>
 
       <section
