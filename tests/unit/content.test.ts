@@ -223,3 +223,29 @@ test("9. loadPostModule refuses an unsafe slug structurally, before any dynamic 
     );
   }
 });
+
+test("10. findTranslation over a visibility-filtered list is not shadowed by a newer draft twin", () => {
+  // WR-08: allPosts() includes drafts and is sorted date-descending, so a
+  // find-then-veto order returns the newest candidate and throws away the
+  // published one behind it. Filtering first is what makes the published twin
+  // reachable — assert the ordering property that translationOf depends on.
+  const draftTwin: PostEntry = {
+    slug: "neuerer-entwurf",
+    frontmatter: {
+      title: "Neuerer Entwurf",
+      standfirst: "Ein neuerer, noch unveröffentlichter Zwilling.",
+      date: "2026-09-01", // newer than deTwin's 2026-06-01
+      lang: "de",
+      translationKey: "mallorca-agrees",
+      draft: true,
+    },
+  };
+  const all = [draftTwin, enPost, deTwin, deLone];
+
+  withNodeEnv("production", () => {
+    // Unfiltered: the draft shadows the published twin.
+    assert.deepEqual(findTranslation(enPost, all), draftTwin);
+    // Filtered first, as translationOf now does: the published twin wins.
+    assert.deepEqual(findTranslation(enPost, all.filter(isVisible)), deTwin);
+  });
+});

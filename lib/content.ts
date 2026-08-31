@@ -222,7 +222,16 @@ export async function publishedFor(lang: Locale): Promise<PostEntry[]> {
   return selectForLocale(await allPosts(), lang);
 }
 
+/**
+ * Visibility is part of the selection, not a veto applied after it. Finding
+ * first and filtering second returned the NEWEST candidate sharing the
+ * translationKey (allPosts includes drafts and is sorted date-descending)
+ * and then discarded it if it was a draft — so a locale with two posts on
+ * one translationKey, the newer of them a draft, silently lost its language
+ * switch in production even though a published twin existed. The only
+ * symptom would have been a missing link.
+ */
 export async function translationOf(entry: PostEntry): Promise<PostEntry | null> {
-  const candidate = findTranslation(entry, await allPosts());
-  return candidate && isVisible(candidate) ? candidate : null;
+  const visible = (await allPosts()).filter(isVisible);
+  return findTranslation(entry, visible);
 }
