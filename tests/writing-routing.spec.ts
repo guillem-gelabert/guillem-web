@@ -73,3 +73,30 @@ test.describe("filesystem-driven routing", () => {
 // and the raw <Aside> tag being dropped rather than rendered — run in Plan
 // 06 once /texte/[slug] exists to serve content/nur-auf-deutsch.md. This
 // file only proves the English route's allowlist rejects that slug.
+
+// Amendment A3, extended to the post templates: 03-PATTERNS.md's
+// modified-file table omitted these two back links, but the UI-SPEC's A3
+// text names "both ← Writing / ← Texte back links" explicitly
+// (03-05-PLAN.md <scope_note>).
+const POST_BACK_LINK_CASES = [
+  { path: "/writing/fixture", text: "← Writing", href: "/writing" },
+  { path: "/texte/musterseite", text: "← Texte", href: "/texte" },
+];
+
+test.describe("post template back links (A3)", () => {
+  for (const { path, text, href } of POST_BACK_LINK_CASES) {
+    test(`${path}'s back link carries link-quiet and clears the 24px target floor`, async ({
+      page,
+    }) => {
+      await page.goto(path);
+      await page.evaluate(() => document.fonts.ready);
+
+      const backLink = page.getByRole("link", { name: text });
+      await expect(backLink).toHaveAttribute("href", href);
+      await expect(backLink).toHaveClass(/link-quiet/);
+
+      const height = await backLink.evaluate((el) => el.getBoundingClientRect().height);
+      expect(height).toBeGreaterThanOrEqual(24);
+    });
+  }
+});

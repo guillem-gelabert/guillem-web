@@ -116,3 +116,55 @@ test("/texte renders two articles separated by hr, reverse-chronological, both h
   );
   expect(classLists[0]).toBe(classLists[1]);
 });
+
+// Amendment A2: the dead end Phase 3's contents-nav Writing entry creates
+// is closed by a site-root back link on both indexes.
+test("A2: both /writing and /texte carry exactly one site-root back link to /", async ({
+  page,
+}) => {
+  const enBackLink = page.getByRole("link", { name: "← Guillem Gelabert" });
+  await expect(enBackLink).toHaveCount(1);
+  await expect(enBackLink).toHaveAttribute("href", "/");
+
+  await page.goto("/texte");
+  await page.evaluate(() => document.fonts.ready);
+
+  const deBackLink = page.getByRole("link", { name: "← Guillem Gelabert" });
+  await expect(deBackLink).toHaveCount(1);
+  await expect(deBackLink).toHaveAttribute("href", "/");
+
+  // React SSR emits the DOM property spelling hrefLang, not the lowercase
+  // HTML attribute — tests/build/prerender.test.ts:184-187 already records
+  // this trap. Compare case-insensitively.
+  const hreflang = await deBackLink.getAttribute("hreflang");
+  expect(hreflang?.toLowerCase()).toBe("en");
+});
+
+// Amendment A3: the site-root back link and the entry headline link both
+// take link-quiet, giving them the accent hover/focus contract every other
+// non-prose link on the shipped site now carries. The back link's measured
+// height (not the arithmetic) proves it clears WCAG 2.5.8's 24px floor —
+// 03-VALIDATION.md measures the Label-role line box at 18.2px and the
+// inline-block py-xs box at 26.2px.
+test("A3: the back link and headline link carry link-quiet, and the back link clears the 24px target floor", async ({
+  page,
+}) => {
+  const backLink = page.getByRole("link", { name: "← Guillem Gelabert" });
+  await expect(backLink).toHaveClass(/link-quiet/);
+  const headlineLink = page.locator("article h2 a").first();
+  await expect(headlineLink).toHaveClass(/link-quiet/);
+
+  const height = await backLink.evaluate((el) => el.getBoundingClientRect().height);
+  expect(height).toBeGreaterThanOrEqual(24);
+
+  await page.goto("/texte");
+  await page.evaluate(() => document.fonts.ready);
+
+  const deBackLink = page.getByRole("link", { name: "← Guillem Gelabert" });
+  await expect(deBackLink).toHaveClass(/link-quiet/);
+  const deHeadlineLink = page.locator("article h2 a").first();
+  await expect(deHeadlineLink).toHaveClass(/link-quiet/);
+
+  const deHeight = await deBackLink.evaluate((el) => el.getBoundingClientRect().height);
+  expect(deHeight).toBeGreaterThanOrEqual(24);
+});
