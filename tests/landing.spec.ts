@@ -601,3 +601,125 @@ test("(w) BACK-02: the section date is one Label line carrying a <time>, above t
   const textTransform = await dateLine.evaluate((el) => getComputedStyle(el).textTransform);
   expect(textTransform).toBe("uppercase");
 });
+
+test("(x) the measured separator, the measured geometry, and the type budget on screen", async ({
+  page,
+}) => {
+  const backlog = page.locator("section#backlog");
+  const items = backlog.locator("ul[role='list'] > li");
+  await expect(items).toHaveCount(3);
+
+  // The separator (Pitfall 7 / WR-06 recurring), mirroring (n) at :277-305
+  // exactly. Tailwind v4's preflight emits `border: 0 solid` with no
+  // colour, so border-t without border-rule falls through to currentColor
+  // — full-ink black, 8x darker than --color-rule, and a fourth rule
+  // weight the Prose Contract forbids. toHaveCount() cannot see this; only
+  // the computed colour can.
+  const rowBorders = await items.evaluateAll((els) =>
+    els.map((el) => {
+      const s = getComputedStyle(el);
+      return {
+        borderTopWidth: s.borderTopWidth,
+        borderTopStyle: s.borderTopStyle,
+        borderTopColor: s.borderTopColor,
+        borderRightWidth: s.borderRightWidth,
+        borderBottomWidth: s.borderBottomWidth,
+        borderLeftWidth: s.borderLeftWidth,
+      };
+    }),
+  );
+  expect(rowBorders[0].borderTopWidth).toBe("0px");
+  for (const row of [rowBorders[1], rowBorders[2]]) {
+    expect(row.borderTopWidth).toBe("1px");
+    expect(row.borderTopStyle).toBe("solid");
+    expect(row.borderTopColor).toBe("rgba(0, 0, 0, 0.12)");
+    expect(row.borderRightWidth).toBe("0px");
+    expect(row.borderBottomWidth).toBe("0px");
+    expect(row.borderLeftWidth).toBe("0px");
+  }
+
+  // The not-a-card property, mirroring (m) at :250-275: the <ul> itself
+  // carries no border, no shadow, no radius.
+  const list = backlog.locator("ul[role='list']");
+  const listBox = await list.evaluate((el) => {
+    const s = getComputedStyle(el);
+    return {
+      borderTopWidth: s.borderTopWidth,
+      borderRightWidth: s.borderRightWidth,
+      borderBottomWidth: s.borderBottomWidth,
+      borderLeftWidth: s.borderLeftWidth,
+      boxShadow: s.boxShadow,
+      borderRadius: s.borderRadius,
+    };
+  });
+  expect(listBox.borderTopWidth).toBe("0px");
+  expect(listBox.borderRightWidth).toBe("0px");
+  expect(listBox.borderBottomWidth).toBe("0px");
+  expect(listBox.borderLeftWidth).toBe("0px");
+  expect(listBox.boxShadow).toBe("none");
+  expect(listBox.borderRadius).toBe("0px");
+
+  // The geometry (D-10, D-12). Measured this session: ul rowGap 32px
+  // (gap-xl), li rowGap 8px (gap-sm), the date/list <div> and the
+  // <section> both 24px (gap-lg) — head->date and date->list are both lg,
+  // per D-12, with no new token.
+  const ulRowGap = await list.evaluate((el) => getComputedStyle(el).rowGap);
+  expect(ulRowGap).toBe("32px");
+
+  const liRowGaps = await items.evaluateAll((els) =>
+    els.map((el) => getComputedStyle(el).rowGap),
+  );
+  for (const gap of liRowGaps) {
+    expect(gap).toBe("8px");
+  }
+
+  const dateListDiv = backlog.locator("div.flex.flex-col.gap-lg");
+  const dateListDivRowGap = await dateListDiv.evaluate((el) => getComputedStyle(el).rowGap);
+  expect(dateListDivRowGap).toBe("24px");
+
+  const sectionRowGap = await backlog.evaluate((el) => getComputedStyle(el).rowGap);
+  expect(sectionRowGap).toBe("24px");
+
+  // Each description's max-width equals the measured resolution of 65ch —
+  // read from the render and compared against a work-list p.max-w-prose
+  // measured in the SAME run, proving the backlog reuses the shipped
+  // measure rather than a new one, without hardcoding a font-dependent
+  // px number.
+  const backlogMaxWidths = await backlog
+    .locator("p.max-w-prose.text-body")
+    .evaluateAll((els) => els.map((el) => getComputedStyle(el).maxWidth));
+  const workMaxWidth = await page
+    .locator("section#work p.max-w-prose")
+    .first()
+    .evaluate((el) => getComputedStyle(el).maxWidth);
+  for (const maxWidth of backlogMaxWidths) {
+    expect(maxWidth).toBe(workMaxWidth);
+  }
+
+  // The type budget on screen (Pitfall 1) — the assertion no source gate
+  // can make. tests/unit/prose-contract.test.ts reads app/globals.css from
+  // disk, and Tailwind v4's preflight ships b,strong{font-weight:bolder}
+  // in the COMPILED CSS, not in that file. A <strong> in a backlog
+  // description therefore renders at 700 — a third weight on screen —
+  // with the entire source budget green. This is the only place that
+  // catches it. If a future description genuinely needs <strong>, the fix
+  // is one budget-legal line (.text-body strong { font-weight: 530 }) —
+  // not weakening this assertion.
+  const typeBudget = await backlog.evaluate((el) => {
+    const withDirectText = Array.from(el.querySelectorAll("*")).filter((node) =>
+      Array.from(node.childNodes).some(
+        (child) =>
+          child.nodeType === Node.TEXT_NODE && (child.textContent ?? "").trim().length > 0,
+      ),
+    );
+    return withDirectText.map((node) => {
+      const s = getComputedStyle(node);
+      return { fontWeight: s.fontWeight, fontSize: s.fontSize };
+    });
+  });
+  expect(typeBudget.length).toBeGreaterThan(0);
+  for (const { fontWeight, fontSize } of typeBudget) {
+    expect(["400", "530"]).toContain(fontWeight);
+    expect(["14px", "18px"]).toContain(fontSize);
+  }
+});
