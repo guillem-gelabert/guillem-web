@@ -188,6 +188,57 @@ test("locale metadata is emitted from Phase 2, not deferred — canonical plus a
   assert.match(texte, /hreflang="x-default"/i);
 });
 
+test("the global 404 is one valid document with a non-empty title (CR-01/WR-01)", async () => {
+  const routes = await getRoutes();
+  const notFound = routes.get("_not-found");
+  assert.ok(notFound, 'route "_not-found" must be prerendered');
+
+  // WCAG 2.1 SC 2.4.2 Page Titled (Level A). Before app/global-not-found.tsx
+  // + experimental.globalNotFound, /_not-found was the ONLY one of the seven
+  // prerendered routes with zero <title>: app/not-found.tsx could not export
+  // metadata, and Next's injected default root layout declared none either.
+  // document.title was "" on every unmatched URL.
+  assert.match(
+    notFound!,
+    /<title>[^<]+<\/title>/,
+    "/_not-found must carry a non-empty page title",
+  );
+
+  // The same fix's second half (WR-01): with the default layout injected,
+  // this file's own <html>/<body> rendered INSIDE the stub's, so the served
+  // bytes carried two of each. Browsers recover, which is why the Playwright
+  // lang assertion passed over the top of it — validators, link-preview
+  // fetchers and sanitisers do not.
+  assert.equal(notFound!.match(/<html/g)?.length, 1, "/_not-found must have exactly one <html>");
+  assert.equal(notFound!.match(/<body/g)?.length, 1, "/_not-found must have exactly one <body>");
+
+  // The premise the file's header comment now states, asserted rather than
+  // claimed: global-not-found owns the document, so lang and the three font
+  // variables are its own, not a browser's error-recovery repair.
+  assert.match(notFound!, /<html lang="en"/, "/_not-found must declare its language (SC 3.1.1)");
+
+  // Exactly one — Next injects noindex for any status above 400, so
+  // global-not-found.tsx deliberately declares no robots of its own. Two
+  // tags here means that decision was reverted; zero means Next stopped
+  // injecting it and the 404 needs its own declaration back.
+  assert.equal(
+    (notFound!.match(/name="robots"\s+content="[^"]*noindex[^"]*"/gi) ?? []).length,
+    1,
+    "/_not-found must carry exactly one noindex robots meta",
+  );
+});
+
+test("every prerendered route carries a title — /_not-found was the one that did not", async () => {
+  const routes = await getRoutes();
+  for (const [routeKey, html] of routes) {
+    assert.match(
+      html,
+      /<title>[^<]+<\/title>/,
+      `route "${routeKey || "/"}" must carry a non-empty <title>`,
+    );
+  }
+});
+
 test("Phase 1's routes still prerender after the route-group restructure, and Phase 3's landing/cv change class survives a clean build", async () => {
   const routes = await getRoutes();
   assert.ok(routes.has(""), "root route \"/\" must still exist");

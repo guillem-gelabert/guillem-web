@@ -61,6 +61,12 @@ for (const path of UNMATCHED_PATHS) {
       // in the server HTML, before any script runs.
       expect(await page.evaluate(() => document.documentElement.lang)).toBe("en");
 
+      // WCAG 2.1 SC 2.4.2 Page Titled (Level A), same conformance level.
+      // Measured empty here before app/global-not-found.tsx existed: the tab,
+      // the history entry, the bookmark and every assistive-technology page
+      // announcement fell back to the raw URL (code review CR-01).
+      expect(await page.title()).not.toBe("");
+
       await expect(page.locator("h1")).toHaveText("Not found");
       await expect(page.getByText("That piece doesn't exist here.")).toBeVisible();
       await expect(page.getByRole("link", { name: "← Writing" })).toHaveAttribute(
