@@ -156,7 +156,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 04-01-PLAN.md — The capture script and the live-text snapshot: three settled Act 2 states at 2400×1640 under `public/case-study/`, plus verbatim snapshots of all four live source pages
+- [x] 04-01-PLAN.md — The capture script and the live-text snapshot: three settled Act 2 states at 2400×1640 under `public/case-study/`, plus verbatim snapshots of all four live source pages
 
 **Wave 2** *(blocked on Wave 1)*
 
@@ -219,7 +219,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Deploy Foundation & Design System | 4/4 | Complete   | 2026-08-29 |
 | 2. Content Pipeline | 7/7 | Complete   | 2026-08-31 |
 | 3. Work List & Landing Skeleton | 9/9 | Complete   | 2026-08-31 |
-| 4. The Case Study | 0/6 | Not started | - |
+| 4. The Case Study | 1/6 | In Progress|  |
 | 5. Backlog | 0/TBD | Not started | - |
 | 6. CV, Contact, Photo & Discoverability | 0/TBD | Not started | - |
 
