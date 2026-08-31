@@ -112,7 +112,32 @@ Plans:
   3. Visitor can reach the work list, backlog, writing index, CV, and contact block from the landing view.
   4. Visitor sees a landing layout that stays legible with only two work items — lists and prose, no card grids or three-across rows.
 
-**Plans**: TBD
+**Plans**: 9 plans
+Plans:
+**Wave 1**
+
+- [ ] 03-01-PLAN.md — lib/work.ts (entries, CASE_STUDY_SLUG, POSITIONING_PLACEHOLDER) + its unit gate; SmearTitle `as` widened to h3; `homeLink` in lib/locales.ts
+- [ ] 03-02-PLAN.md — Extract the globals.css parser to a shared helper; add `.section-head` / `.link` / `.link-quiet`; the link-contract source gate
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 03-03-PLAN.md — The four landing components and the de-cliented `app/(en)/page.tsx` (A1: Client → async Server Component, own metadata, rel=canonical)
+- [ ] 03-04-PLAN.md — The `/cv` stub route and its spec, plus the A4 `/type` specimen for the three new classes
+- [ ] 03-05-PLAN.md — A2 site-root back links on both indexes and A3 `.link-quiet` across every shipped non-prose link, with spec extensions
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 03-06-PLAN.md — tests/landing.spec.ts: HOME-01/03/04, WORK-01/02 and the state-agnostic featured-slot structure
+- [ ] 03-07-PLAN.md — tests/landing-viewport.spec.ts (375/1440) and tests/landing-trail.spec.ts (HOME-06 + BUILD-05), plus two stale-comment corrections
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 03-08-PLAN.md — Production-tier prerender assertions, the clean-`.next` phase gate, the deploy confirmation, and the HOME-01 tripwire record
+
+**Wave 5** *(blocked on Wave 4)*
+
+- [ ] 03-09-PLAN.md — The designated optical sign-off at 375px and 1440px, the two WORK-02 draft annotations, and naming HOME-01 outstanding
+
 **UI hint**: yes
 
 ### Phase 4: The Case Study
@@ -168,11 +193,11 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Deploy Foundation & Design System | 4/4 | Complete   | 2026-08-29 |
 | 2. Content Pipeline | 7/7 | Complete   | 2026-08-31 |
-| 3. Work List & Landing Skeleton | 0/TBD | Not started | - |
+| 3. Work List & Landing Skeleton | 0/9 | Planned | - |
 | 4. The Case Study | 0/TBD | Not started | - |
 | 5. Backlog | 0/TBD | Not started | - |
 | 6. CV, Contact, Photo & Discoverability | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-08-29*
-*Last updated: 2026-08-30 — Phase 2 planned into 7 plans across 7 waves*
+*Last updated: 2026-08-31 — Phase 3 planned into 9 plans across 5 waves*
