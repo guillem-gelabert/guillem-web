@@ -45,6 +45,19 @@ export function assertFrontmatter(fm: unknown, file: string): asserts fm is Post
     }
     if (typeof f.date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(f.date)) {
       problems.push("date must be an ISO date (YYYY-MM-DD)");
+    } else {
+      // Shape is not validity. Round-tripping through Date catches both
+      // halves of that gap: an unparseable date (2026-13-01, 0000-00-00)
+      // would otherwise reach Intl.DateTimeFormat in formatPostDate and
+      // throw a bare "RangeError: Invalid time value" with no filename and
+      // no field, three modules from the file that caused it; and a calendar
+      // rollover (2026-02-31 -> 2026-03-03) would pass silently and publish
+      // under a date the author never wrote, with an invalid datetime
+      // attribute and a sort key that orders the index by the typo.
+      const parsed = new Date(`${f.date}T00:00:00Z`);
+      if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== f.date) {
+        problems.push(`date "${f.date}" is not a real calendar date`);
+      }
     }
     if (!LOCALES.includes(f.lang as Locale)) {
       problems.push(`lang must be one of ${LOCALES.join(", ")}`);

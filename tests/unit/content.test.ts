@@ -103,6 +103,13 @@ test("2. assertFrontmatter throws for each malformed shape, naming the offending
     { file: "no-standfirst.mdx", fm: missingStandfirst, expectField: /standfirst/ },
     { file: "no-translationkey.mdx", fm: missingTranslationKey, expectField: /translationKey/ },
     { file: "bad-date.mdx", fm: { ...validFrontmatter, date: "2026-8-9" }, expectField: /date/ },
+    // Shape-valid but not real dates. 2026-02-31 is the dangerous one: it
+    // parses, rolls over to 2026-03-03 and would publish silently under a
+    // date the author never wrote. The other two reach Intl and throw a bare
+    // RangeError with no filename unless caught here.
+    { file: "rollover-date.mdx", fm: { ...validFrontmatter, date: "2026-02-31" }, expectField: /date/ },
+    { file: "impossible-month.mdx", fm: { ...validFrontmatter, date: "2026-13-01" }, expectField: /date/ },
+    { file: "zero-date.mdx", fm: { ...validFrontmatter, date: "0000-00-00" }, expectField: /date/ },
     { file: "bad-lang.mdx", fm: { ...validFrontmatter, lang: "fr" }, expectField: /lang/ },
     { file: "bad-draft.mdx", fm: { ...validFrontmatter, draft: "yes" }, expectField: /draft/ },
     { file: "bad-type.mdx", fm: { ...validFrontmatter, type: "essay" }, expectField: /type/ },
@@ -177,5 +184,13 @@ test("7. findBySlug resolves a known slug and allowlists away unknown or travers
   // shapes — including traversal attempts — may resolve to an entry.
   for (const slug of ["unknown", "", "../secret", "../../package.json", "..%2Fsecret"]) {
     assert.equal(findBySlug(entries, slug), null);
+  }
+});
+
+test("8. assertFrontmatter accepts real edge-case calendar dates rather than over-rejecting", () => {
+  // The round-trip check must not reject leap days, month ends or year
+  // boundaries — the failure mode of a stricter regex-plus-Date guard.
+  for (const date of ["2024-02-29", "2026-01-31", "2026-12-31", "2026-01-01"]) {
+    assertFrontmatter({ ...validFrontmatter, date }, "edge-date.mdx");
   }
 });
