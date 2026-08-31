@@ -40,9 +40,10 @@ test("otherLocale returns the opposite locale", () => {
   assert.equal(otherLocale("de"), "en");
 });
 
-test("UI defines all eight copy keys with non-empty strings for both locales", () => {
+test("UI defines all nine copy keys with non-empty strings for both locales", () => {
   const keys = [
     "indexKicker",
+    "indexDescription",
     "backLink",
     "switchLabel",
     "emptyHeading",

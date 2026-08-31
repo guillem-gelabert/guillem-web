@@ -34,6 +34,14 @@ export function formatPostDate(iso: string, locale: Locale): string {
 
 type UiCopy = {
   indexKicker: string;
+  /**
+   * The index's <meta name="description">. Deliberately NOT emptyBody: that
+   * string is the n = 0 state's on-page copy, and reusing it told every
+   * crawler and link-preview card that nothing is published regardless of how
+   * many posts exist. Phase 6 flips robots to indexable, which is when a
+   * stale description starts appearing in search results.
+   */
+  indexDescription: string;
   backLink: string;
   switchLabel: string;
   emptyHeading: string;
@@ -46,6 +54,7 @@ type UiCopy = {
 export const UI: Record<Locale, UiCopy> = {
   en: {
     indexKicker: "Writing",
+    indexDescription: "Essays and case studies on data journalism and visualisation.",
     backLink: "← Writing",
     switchLabel: "Auf Deutsch lesen",
     emptyHeading: "Nothing published here yet.",
@@ -56,6 +65,7 @@ export const UI: Record<Locale, UiCopy> = {
   },
   de: {
     indexKicker: "Texte",
+    indexDescription: "Essays und Fallstudien zu Datenjournalismus und Visualisierung.",
     backLink: "← Texte",
     switchLabel: "Read in English",
     emptyHeading: "Hier ist noch nichts veröffentlicht.",

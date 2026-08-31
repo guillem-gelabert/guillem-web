@@ -10,7 +10,7 @@ import { PostMeta } from "@/components/post-meta";
 export function generateMetadata(): Metadata {
   return {
     title: `${UI.de.indexKicker} — Guillem Gelabert`,
-    description: UI.de.emptyBody,
+    description: UI.de.indexDescription,
     alternates: {
       canonical: indexPath("de"),
       languages: {
