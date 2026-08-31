@@ -18,20 +18,50 @@ test.beforeEach(async ({ page }) => {
   await page.evaluate(() => document.fonts.ready);
 });
 
-test("/writing renders exactly one article whose h2 is the sole link", async ({ page }) => {
+test("/writing renders two articles, the case study first, each h2 the sole link in its article", async ({
+  page,
+}) => {
   const articles = page.locator("article");
-  await expect(articles).toHaveCount(1);
+  await expect(articles).toHaveCount(2);
+  // A second entry brings the separator with it — the n>=2 index shape
+  // this file exists to prove costs no second render mode.
+  await expect(page.locator("hr")).toHaveCount(1);
 
-  const article = articles.first();
-  const h2 = article.locator("h2");
-  await expect(h2).toHaveClass(/text-display/);
-  await expect(h2).toHaveText("A Working Fixture for the Prose Contract");
+  // FIRST: content/the-chart-therefore-changes.mdx, dated 2026-08-31 —
+  // newer than content/fixture.mdx's 2026-08-30, so byDateThenSlug sorts it
+  // ahead in dev (where showDrafts() makes the still-draft fixture visible
+  // too; production visibility of the case study is proven independently
+  // in tests/build/prerender.test.ts).
+  const first = articles.nth(0);
+  const firstH2 = first.locator("h2");
+  await expect(firstH2).toHaveClass(/text-display/);
+  await expect(firstH2).toHaveText("The Chart Therefore Changes");
+  const firstLinks = first.locator("a");
+  await expect(firstLinks).toHaveCount(1);
+  await expect(firstLinks.first()).toHaveAttribute(
+    "href",
+    "/writing/the-chart-therefore-changes",
+  );
 
-  const links = article.locator("a");
-  await expect(links).toHaveCount(1);
-  await expect(links.first()).toHaveAttribute("href", "/writing/fixture");
+  // SECOND: the still-draft fixture.mdx — visible here only because
+  // Playwright runs against `npm run dev`.
+  const second = articles.nth(1);
+  const secondH2 = second.locator("h2");
+  await expect(secondH2).toHaveClass(/text-display/);
+  await expect(secondH2).toHaveText("A Working Fixture for the Prose Contract");
+  const secondLinks = second.locator("a");
+  await expect(secondLinks).toHaveCount(1);
+  await expect(secondLinks.first()).toHaveAttribute("href", "/writing/fixture");
 });
 
+// The tests below use article.first() — deliberately, and unchanged from
+// before this plan: with the case study now sorting first (see above), they
+// measure the case study's rendered markup rather than the fixture's. That
+// is a deliberate change of subject, not an accident: the "not a card" and
+// "standfirst weight 530" properties apply to every article the same way,
+// through the one shared markup path app/(en)/writing/page.tsx renders both
+// through, so which entry happens to be first does not change what is
+// proven.
 test("the article is not a card: no border, no shadow, transparent or paper background", async ({
   page,
 }) => {
@@ -82,31 +112,48 @@ test("the standfirst under the headline computes to weight 530", async ({ page }
   expect(fontWeight).toBe("530");
 });
 
-test("/texte renders two articles separated by hr, reverse-chronological, both h2s sharing one class list", async ({
+// Passes whichever way Plan 04 set the German draft flag: Playwright runs
+// against `npm run dev`, where showDrafts() is always true, so
+// content/die-darstellung-aendert-sich.mdx is visible here either way. Its
+// PRODUCTION visibility (the branch actually shipped, draft: false) is
+// proven independently in tests/build/prerender.test.ts instead.
+test("/texte renders three articles separated by two hrs, reverse-chronological, all three h2s sharing one class list", async ({
   page,
 }) => {
   await page.goto("/texte");
   await page.evaluate(() => document.fonts.ready);
 
   const articles = page.locator("article");
-  await expect(articles).toHaveCount(2);
-  await expect(page.locator("hr")).toHaveCount(1);
+  await expect(articles).toHaveCount(3);
+  await expect(page.locator("hr")).toHaveCount(2);
 
   // "the existing <hr> rule" means the Prose Contract's hairline, not a
   // second, heavier one. Scoping the stroke to .prose-site left the index's
   // separator on Tailwind preflight's currentColor — full-ink black, 8x
-  // darker than --color-rule. toHaveCount(1) could not see that; the
-  // computed colour can.
-  const hrStyle = await page.locator("main > hr").evaluate((el) => {
-    const s = getComputedStyle(el);
-    return { color: s.borderTopColor, width: s.borderTopWidth, style: s.borderTopStyle };
-  });
+  // darker than --color-rule. toHaveCount(2) could not see that; the
+  // computed colour can. Scoped to .first(): with two <hr> elements now
+  // present, the unscoped locator throws a Playwright strict-mode
+  // violation. Both hrs render through the same index.tsx code path, so
+  // checking the first one's computed style is sufficient — there is no
+  // second style to diverge.
+  const hrStyle = await page
+    .locator("main > hr")
+    .first()
+    .evaluate((el) => {
+      const s = getComputedStyle(el);
+      return { color: s.borderTopColor, width: s.borderTopWidth, style: s.borderTopStyle };
+    });
   expect(hrStyle.color).toBe("rgba(0, 0, 0, 0.12)");
   expect(hrStyle.width).toBe("1px");
   expect(hrStyle.style).toBe("solid");
 
+  // Order: content/die-darstellung-aendert-sich.mdx (2026-08-31, the
+  // published case study) sorts first, then the two still-draft fixtures
+  // by date descending — content/musterseite.mdx (2026-08-30), then
+  // content/nur-auf-deutsch.md (2026-08-29).
   const titles = await articles.locator("h2").allTextContents();
   expect(titles).toEqual([
+    "Die Darstellung ändert sich",
     "Eine Musterseite für die Textvorlage",
     "Nur auf Deutsch: ein Text ohne Übersetzung",
   ]);
@@ -115,6 +162,7 @@ test("/texte renders two articles separated by hr, reverse-chronological, both h
     els.map((el) => el.className),
   );
   expect(classLists[0]).toBe(classLists[1]);
+  expect(classLists[1]).toBe(classLists[2]);
 });
 
 // Amendment A2: the dead end Phase 3's contents-nav Writing entry creates
