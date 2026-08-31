@@ -34,8 +34,8 @@ Requirements for milestone v1.0. Each maps to exactly one roadmap phase.
 
 ### Backlog
 
-- [ ] **BACK-01**: Visitor can see a backlog of work in progress, each item carrying a name and a rich-text description.
-- [ ] **BACK-02**: Visitor can see a single "last touched" date for the backlog section as a whole.
+- [x] **BACK-01**: Visitor can see a backlog of work in progress, each item carrying a name and a rich-text description.
+- [x] **BACK-02**: Visitor can see a single "last touched" date for the backlog section as a whole.
 
 ### Writing Archive
 
@@ -144,8 +144,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CASE-02 | Phase 4 | Complete |
 | CASE-03 | Phase 4 | Complete |
 | HOME-02 | Phase 4 | Complete |
-| BACK-01 | Phase 5 | Pending |
-| BACK-02 | Phase 5 | Pending |
+| BACK-01 | Phase 5 | Complete |
+| BACK-02 | Phase 5 | Complete |
 | PROF-01 | Phase 6 | Pending |
 | PROF-02 | Phase 6 | Pending |
 | PROF-03 | Phase 6 | Pending |

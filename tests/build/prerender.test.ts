@@ -3,7 +3,13 @@ import { test } from "node:test";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { POSITIONING_PLACEHOLDER } from "../../lib/work.ts";
-import { UI } from "../../lib/locales.ts";
+import { formatPostDate, UI } from "../../lib/locales.ts";
+// BACK-02 (Phase 5, Plan 04): the source-binding technique HOME-01's gate
+// uses for POSITIONING_PLACEHOLDER, applied to lib/backlog.tsx. That
+// module is .tsx, and node --test cannot import a .tsx file
+// (ERR_UNKNOWN_FILE_EXTENSION — 05-RESEARCH.md Q1 §A), so this imports the
+// shared source-reader instead of the module itself.
+import { LAST_TOUCHED as BACKLOG_LAST_TOUCHED, backlogSource } from "../unit/backlog-source.ts";
 
 // Covers WRIT-01 (SC5) / D-11: the production half of "a draft prerenders
 // nowhere and appears in no index". tests/draft-visibility.spec.ts (Playwright)
@@ -475,20 +481,28 @@ test("the featured headline is a link to the case study and the slot's only link
   );
 });
 
-test("the backlog and contact stubs ship their real, deliberately typeset copy — no marker word leaks into production", async () => {
+test("the contact stub ships its real, deliberately typeset copy — no marker word leaks into production", async () => {
   const routes = await getRoutes();
   const root = routes.get("")!;
 
   // D-02 requires placeholder content to be deliberately typeset because
   // the site is on a live URL during a job hunt. Pitfall 7's warning sign
   // is exactly one of the banned words below reaching rendered output.
-  for (const stub of [
-    "Nothing listed here yet.",
-    "The current work is being written up.",
-    "No contact details here yet.",
-    "Email, GitHub and LinkedIn are being added.",
-  ]) {
+  for (const stub of ["No contact details here yet.", "Email, GitHub and LinkedIn are being added."]) {
     assert.ok(root.includes(stub), `/ must render the stub copy "${stub}"`);
+  }
+
+  // D-13 (Phase 5, Plan 04): the backlog stub's copy was DELETED from
+  // #backlog, not kept as an unreachable fallback branch. The difference
+  // between "not rendered" and "not present" is exactly the dead-code
+  // branch a later reader would otherwise mistake for a supported state —
+  // this inversion proves absence, not merely that dev never showed it.
+  for (const removedStub of ["Nothing listed here yet.", "The current work is being written up."]) {
+    assert.equal(
+      root.includes(removedStub),
+      false,
+      `/ must NOT render the deleted backlog stub copy "${removedStub}" (D-13)`,
+    );
   }
 
   for (const banned of ["TODO", "Coming soon", "Under construction", "Lorem"]) {
@@ -499,6 +513,20 @@ test("the backlog and contact stubs ship their real, deliberately typeset copy �
     );
   }
 });
+
+/**
+ * D-10: the prerendered markup is clean and sliceable — slice from the
+ * opening <section id="backlog"> tag to the next </section>, asserting
+ * both indices are found so a shifted section boundary fails loud rather
+ * than silently scoping to the wrong (or zero-length) substring.
+ */
+function backlogSectionOf(root: string): string {
+  const start = root.indexOf('<section id="backlog"');
+  assert.notEqual(start, -1, 'root HTML must contain <section id="backlog">');
+  const end = root.indexOf("</section>", start);
+  assert.notEqual(end, -1, "the backlog <section> must close with </section>");
+  return root.slice(start, end);
+}
 
 test("the private repository stays private in production", async () => {
   const routes = await getRoutes();
@@ -514,16 +542,17 @@ test("the private repository stays private in production", async () => {
   assert.doesNotMatch(root, /target="_blank"/);
 });
 
-test("launch gate: the backlog stub and the contact stub are still interim — the featured slot closed on 2026-08-31", async () => {
+test("launch gate: the contact stub is still interim and three copy items are still unreviewed — the backlog stub closed on 2026-08-31", async () => {
   const routes = await getRoutes();
   const root = routes.get("")!;
 
-  // If the backlog stub, the contact stub or /cv is still in its interim
-  // state when Phase 6 goes to flip the robots flag, Phase 6 is blocked.
-  // This test passing today is the record that these two are interim (the
-  // /cv route's own interim body is asserted by tests/cv.spec.ts); when
-  // Phases 5 and 6 fill them, THIS test is the thing that must be updated,
-  // which is where the gate gets noticed rather than forgotten.
+  // If the contact stub, /cv, or any of the three unreviewed copy items
+  // below is still open when Phase 6 goes to flip the robots flag, Phase 6
+  // is blocked. This test passing today is the record that the contact
+  // stub is interim (the /cv route's own interim body is asserted by
+  // tests/cv.spec.ts); when Phase 6 fills it, THIS test is the thing that
+  // must be updated, which is where the gate gets noticed rather than
+  // forgotten.
   //
   // NARROWED 2026-08-31 (Phase 4, Plan 5): the featured slot closed. It was
   // the third interim surface this gate covered — content/the-chart-therefore-changes.mdx
@@ -532,12 +561,112 @@ test("launch gate: the backlog stub and the contact stub are still interim — t
   // above). Removing the interim headline's assertion from this
   // assertion IS the gate mechanism working: an interim state ended, and
   // the test that proved it was interim was updated rather than silently
-  // left passing on a state that no longer exists. Two interim surfaces
-  // remain, plus the still-unwritten HOME-01 positioning sentence
-  // (POSITIONING_PLACEHOLDER, asserted elsewhere in this file) — all three
-  // still block Phase 6's FIND-02 robots flip.
-  assert.ok(root.includes("Nothing listed here yet."));
+  // left passing on a state that no longer exists.
+  //
+  // NARROWED 2026-08-31 (Phase 5, Plan 04): the backlog leg closed too.
+  // lib/backlog.tsx ships three real items and a section date;
+  // app/(en)/page.tsx no longer mounts SectionStub at #backlog; the two
+  // backlog stub strings are asserted ABSENT from production HTML by "the
+  // contact stub ships its real copy" test above, not merely unrendered in
+  // dev. Removing the interim assertion from THIS test IS the gate
+  // mechanism working, same as Phase 4's narrowing above.
+  //
+  // One interim surface remains — the contact stub, asserted directly
+  // below — plus /cv (tests/cv.spec.ts). THREE copy items remain
+  // unreviewed and all three still block Phase 6's FIND-02 robots flip:
+  //   1. HOME-01 — the positioning sentence still ships as
+  //      POSITIONING_PLACEHOLDER in lib/work.ts (asserted elsewhere in
+  //      this file).
+  //   2. The user's editorial pass over both case studies has not
+  //      happened (carried from Phase 4) — no automated test can assert
+  //      "a human read this"; the record lives in
+  //      .planning/phases/05-backlog/launch-gate.md.
+  //   3. The backlog item copy is drafted from repository evidence and
+  //      unreviewed by the author — asserted directly below via the
+  //      COPY_REVIEWED source-scrape, D-14's second tripwire channel (the
+  //      first is the same constant, independently re-asserted at the
+  //      repo tier by tests/unit/backlog.test.ts). WHEN THE ASSERTION
+  //      BELOW FAILS: the author's editorial pass has happened — narrow
+  //      this gate again, do not delete it.
   assert.ok(root.includes("No contact details here yet."));
+  assert.match(
+    backlogSource,
+    /export const COPY_REVIEWED = false/,
+    "lib/backlog.tsx's COPY_REVIEWED must still read false — if this fails, the author's " +
+      "editorial pass over the backlog copy has happened; narrow this gate, do not delete it",
+  );
+});
+
+test("BACK-01/BACK-02: the backlog section renders three real items and a source-bound date in production", async () => {
+  const routes = await getRoutes();
+  const root = routes.get("")!;
+  const section = backlogSectionOf(root);
+
+  // BACK-01: exactly three rows, each with its own heading, all three item
+  // names as shipped in lib/backlog.tsx (D-04's editorial order is proven
+  // by Playwright's (v); this tier only needs presence).
+  assert.equal((section.match(/<li\b/g) ?? []).length, 3, "the backlog must render exactly three <li>");
+  assert.equal((section.match(/<h3\b/g) ?? []).length, 3, "the backlog must render exactly three <h3>");
+  for (const name of [
+    "A data portrait of the Swiss commodity trade",
+    "The house names of Zürich",
+    "The Pudding, read as a corpus",
+  ]) {
+    assert.ok(section.includes(name), `the backlog must render the item name "${name}"`);
+  }
+
+  // BACK-02, the date by equality against source (the POSITIONING_PLACEHOLDER
+  // technique applied to a .tsx module via the shared source-reader) —
+  // never a retyped literal, so this test cannot drift from lib/backlog.tsx.
+  //
+  // Pitfall 2, measured in this repo's shipped build: React 19.2.8 emits
+  // the JSX prop name verbatim in the raw prerendered file — dateTime,
+  // camelCase — not the lowercase "datetime" a browser produces after HTML
+  // parsing. An `includes('datetime="...")` check here would silently
+  // never match; match dateTime (camelCase) instead.
+  const dateMatch = section.match(/dateTime="(\d{4}-\d{2}-\d{2})"/);
+  assert.ok(
+    dateMatch,
+    'the backlog section must carry a <time dateTime="YYYY-MM-DD"> (camelCase — Pitfall 2)',
+  );
+  assert.equal(
+    dateMatch![1],
+    BACKLOG_LAST_TOUCHED,
+    "the rendered date must equal lib/backlog.tsx's own LAST_TOUCHED by equality, not a retyped copy",
+  );
+
+  // The rendered date TEXT proves formatPostDate is the one and only
+  // formatter — no second one was written for this section.
+  assert.ok(
+    section.includes(formatPostDate(BACKLOG_LAST_TOUCHED, "en")),
+    'the backlog date line must render formatPostDate(LAST_TOUCHED, "en")\'s output',
+  );
+
+  // The copy rule: work.test.ts:56-58's banned-tool-token list, mirrored
+  // here (not imported — this file does not reach into lib/work.ts) and
+  // applied to the section's TEXT ONLY, tags stripped first, so a class
+  // name or attribute cannot satisfy or defeat the check.
+  const sectionText = section.replace(/<[^>]+>/g, " ");
+  const bannedTokens = ["React", "Next", "D3", "TypeScript", "JavaScript", "Svelte", "WebGL", "Python"];
+  const bannedPhrases = ["built with", "powered by"];
+  for (const token of bannedTokens) {
+    assert.doesNotMatch(
+      sectionText,
+      new RegExp(`\\b${token}\\b`, "iu"),
+      `the backlog must not name the tool "${token}"`,
+    );
+  }
+  for (const phrase of bannedPhrases) {
+    assert.equal(
+      sectionText.toLowerCase().includes(phrase),
+      false,
+      `the backlog must not contain the phrase "${phrase}"`,
+    );
+  }
+
+  // D-07: none of the three items has a public artifact in v1 — zero
+  // links in the backlog is a decision, not an oversight.
+  assert.doesNotMatch(section, /<a\b/, "the backlog section must contain zero <a> elements in v1");
 });
 
 test("CASE-01: /writing/the-chart-therefore-changes prerenders with its six section marks and three figures", async () => {

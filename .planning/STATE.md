@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Working Site
 status: executing
-stopped_at: "Phase 04 complete (04-06): fact check, deploy confirmation, closure records"
-last_updated: "2026-08-31T18:28:46.213Z"
-last_activity: 2026-08-31 -- Phase 05 execution started
+stopped_at: Completed 05-04-PLAN.md
+last_updated: "2026-08-31T19:29:13.959Z"
+last_activity: 2026-08-31
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 30
-  completed_plans: 26
-  percent: 67
+  completed_plans: 30
+  percent: 83
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: `.planning/PROJECT.md` (updated 2026-08-29)
 ## Current Position
 
 Phase: 05 (Backlog) — EXECUTING
-Plan: 1 of 4
-Status: Executing Phase 05
-Last activity: 2026-08-31 -- Phase 05 execution started
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-08-31
 
 Progress: [██████████] 100%
 
@@ -57,6 +57,7 @@ Progress: [██████████] 100%
 | Phase 01 P03 | 4min | 2 tasks | 6 files |
 | Phase 01 P04 | 12min | 2 tasks | 8 files |
 | Phase 04 P06 | 55min | 3 tasks | 3 files |
+| Phase 05 P04 | 11min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -88,6 +89,9 @@ Recent decisions affecting current work:
 - [Phase 04]: The D-19 accuracy gate (fact-check.md) audited every quotation and numeral in both case-study languages against the live-text snapshots and ARTICLE_PLAN.md; 83 claims audited, 0 with no traceable source, all twelve named traps passed in both languages, no prose fix required
 - [Phase 04]: Phase 4's launch-gate closure was structural, not code: the featured slot was already wired to findBySlug(publishedFor(en), CASE_STUDY_SLUG) since Phase 3; publishing content/the-chart-therefore-changes.mdx with draft:false was the entire mechanism, net production code change was zero
 - [Phase 04]: New carried item alongside HOME-01: the user's editorial pass over both case studies has not happened; CONTEXT D-18 recommends it before Phase 6 flips robots, and it is carried at equal weight to HOME-01 as a blocking pre-condition on FIND-02
+- [Phase 05]: The launch gate was re-pointed, not shrunk -- the deleted backlog-stub assertion was replaced by a COPY_REVIEWED = false source-scrape (D-14's second tripwire channel), naming all three outstanding copy items in the comment rather than leaving a one-line check nobody reads
+- [Phase 05]: The new production test matches dateTime (camelCase), not datetime -- React 19.2.8 emits the JSX prop name verbatim in the raw prerendered file; re-confirmed this session against the real build
+- [Phase 05]: The live deploy check used the already-live origin/master tip (e76b6d8, from Plan 01) rather than requiring a push of this plan's own test-tier/documentation-only commits, since they carry zero production-code delta
 
 ### Pending Todos
 
@@ -95,11 +99,12 @@ None pending.
 
 ### Blockers/Concerns
 
-- Backlog (Phase 5): PROJECT.md logs the dateless/stateless-per-item backlog as an accepted risk (⚠️ Revisit) — mitigated only by BACK-02's section-level "last touched" date, curation, and progress-report copy voice. Not a blocker, but should be revisited if the backlog reads as stale post-launch.
+- Backlog (Phase 5) — RESOLVED, not closed: PROJECT.md logged the dateless/stateless-per-item backlog as an accepted risk (⚠️ Revisit). The mitigation shipped as designed in Phase 05: curation to three items (D-02), the section-level `LAST_TOUCHED` date above the list rather than per-item dates (BACK-02), and progress-report copy voice (D-08's copy rule). The risk itself stays **Revisit post-launch**, not Closed — it should be re-examined if the backlog reads as stale after the site has been live for a while. Full record: `.planning/phases/05-backlog/launch-gate.md`.
 - Legacy source repo (Phase 2): all Jekyll/permalink/pagination findings in research come from crawling the *live rendered* `guillem-gelabert.github.io` site, not yet verified against the source GitHub repo. Confirm the authoritative 13-post list and check for Liquid-syntax (`{% highlight %}`, `{% raw %}`) code fences against the repo before finalizing the migration plan.
 - **`HOME-01` tripwire (Phase 3, THE TRIPWIRE):** the positioning sentence still ships as `Developer.` behind `POSITIONING_PLACEHOLDER` in `lib/work.ts`. It is marked in source only, never on screen, so the landing view looks finished at every optical pass while the site's single most important sentence is unwritten. Must be re-asserted at the top of every subsequent phase's carried-forward state until the user supplies the sentence, and must never reach Phase 6's `FIND-02` robots flag flip still holding the placeholder. Full record: `.planning/phases/03-work-list-landing-skeleton/deferred-items.md`.
-- HOME-01 tripwire, re-asserted after Phase 4 (per deferred-items.md's carry-forward rule): the positioning sentence still ships as Developer. behind POSITIONING_PLACEHOLDER in lib/work.ts. Marked in source only, never on screen, so the landing view looks finished at every optical pass while the site's single most important sentence is unwritten. Must be re-asserted at the top of every subsequent phase's carried-forward state until the user supplies the sentence, and must never reach Phase 6's FIND-02 robots flip still holding the placeholder. Full record: .planning/phases/04-the-case-study/launch-gate.md.
-- NEW carried item from Phase 4, same weight as HOME-01: the user's editorial pass over both case studies has not happened. Both content/the-chart-therefore-changes.mdx and content/die-darstellung-aendert-sich.mdx shipped draft:false without a human proofread, in two languages, by directive. CONTEXT D-18 recommends this pass occur before Phase 6 flips robots to indexable. The D-19 accuracy gate (fact-check.md) reduces factual risk only; it does not substitute for the author's ear. A live, indexable, bylined piece that no human has read is the risk this phase creates. Must be re-asserted alongside HOME-01 until the user completes the pass. Full record: .planning/phases/04-the-case-study/launch-gate.md.
+- HOME-01 tripwire, re-asserted after Phase 4 and again after Phase 5 (per deferred-items.md's carry-forward rule): the positioning sentence still ships as Developer. behind POSITIONING_PLACEHOLDER in lib/work.ts. Marked in source only, never on screen, so the landing view looks finished at every optical pass while the site's single most important sentence is unwritten. Must be re-asserted at the top of every subsequent phase's carried-forward state until the user supplies the sentence, and must never reach Phase 6's FIND-02 robots flip still holding the placeholder. Full record: .planning/phases/04-the-case-study/launch-gate.md.
+- The user's editorial pass over both case studies has not happened, re-asserted after Phase 5 at the same weight as HOME-01: Both content/the-chart-therefore-changes.mdx and content/die-darstellung-aendert-sich.mdx shipped draft:false without a human proofread, in two languages, by directive. CONTEXT D-18 recommends this pass occur before Phase 6 flips robots to indexable. The D-19 accuracy gate (fact-check.md) reduces factual risk only; it does not substitute for the author's ear. A live, indexable, bylined piece that no human has read is the risk this phase creates. Must be re-asserted alongside HOME-01 until the user completes the pass. Full record: .planning/phases/04-the-case-study/launch-gate.md.
+- NEW carried item from Phase 5, same weight as HOME-01 and the case-study editorial pass: the backlog item copy is drafted from repository evidence and has NOT been reviewed by the author (`COPY_REVIEWED = false` in `lib/backlog.tsx`). The backlog section looks finished at every optical pass — three real items, a real date, real prose, no visible marker — so no visual review will catch that the copy is unreviewed, the same failure mode as HOME-01. Item 3 ("The Pudding, read as a corpus") carries an additional one-edit veto flag: it is described strictly as a corpus study and never as a pitch, because it may be a live pitch elsewhere in the user's own planning, and getting that wrong publicly could cost it. D-14's tripwire has three independent channels (source constant, build-tier test, this record) so the risk stays visible until the author's editorial pass. Must not reach Phase 6's FIND-02 robots flip while COPY_REVIEWED is false. Full record: .planning/phases/05-backlog/launch-gate.md.
 
 ## Deferred Items
 
@@ -110,11 +115,12 @@ Items acknowledged and carried forward from previous milestone close:
 | Content | CR-01 — localised `[slug]` 404s do not server-render without JS | Open, deferred to Phase 6 (middleware layer) | Phase 02 |
 | Copy | `HOME-01` — the positioning sentence is unwritten (`Developer.` placeholder); **blocks `FIND-02`** | Deferred by decision (`D-08`) — the tripwire | Phase 03 |
 | Copy | `WORK-02` — the two work-list annotations are drafts awaiting the user's edit (`D-09`) | Deferred by decision — requirement is met, copy is not final | Phase 03 |
-| Content | Four interim surfaces (featured slot, backlog stub, contact stub, `/cv`) — none may be the public launch condition; **blocks `FIND-02`** | Deliberately typeset (`D-02`), safe under `noindex` | Phase 03 |
+| Content | Two interim surfaces remain (contact stub, `/cv`) — none may be the public launch condition; **blocks `FIND-02`** | Deliberately typeset (`D-02`), safe under `noindex`. Narrowed from four: the featured slot closed Phase 04, the backlog stub closed Phase 05 | Phase 03 |
 | Copy | The user's editorial pass over both case studies has not happened (English and German, both `draft: false`); **blocks `FIND-02`** | Carried at equal weight to `HOME-01`; D-19's accuracy gate reduces factual risk only, not voice/register | Phase 04 |
+| Copy | `BACK-01` item copy is drafted from repository evidence and unreviewed by the author (`COPY_REVIEWED = false`) | Deferred by decision (D-14) — the third tripwire | Phase 05 |
 
 ## Session Continuity
 
-Last session: 2026-08-31T17:36:15.378Z
-Stopped at: Phase 04 complete (04-06): fact check, deploy confirmation, closure records
-Resume file: None — plan Phase 05 next
+Last session: 2026-08-31T19:29:13.952Z
+Stopped at: Completed 05-04-PLAN.md
+Resume file: None

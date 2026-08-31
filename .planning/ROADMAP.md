@@ -17,7 +17,7 @@ Six phases take the repo from its current state (a leftover static-prototype Doc
 - [x] **Phase 2: Content Pipeline** - Build the front-matter/Markdown+MDX loader, the `/writing` route and index, and the prose layer the case study renders through. The 2020 archive migration is deferred to v2. (completed 2026-08-31)
 - [x] **Phase 3: Work List & Landing Skeleton** - Assemble the landing view's positioning sentence, navigation, and vertical work list; leave the featured slot pointed at a placeholder. (completed 2026-08-31)
 - [x] **Phase 4: The Case Study** - Write and publish the ib-gdp-evolution case study and wire the landing view's featured slot to it. (completed 2026-08-31)
-- [ ] **Phase 5: Backlog** - Ship the curated, section-dated backlog of work in progress.
+- [x] **Phase 5: Backlog** - Ship the curated, section-dated backlog of work in progress. (completed 2026-08-31)
 - [ ] **Phase 6: CV, Contact, Photo & Discoverability** - Complete the CV page, photograph, contact block, real security headers, and search/social metadata.
 
 ## Phase Details
@@ -203,7 +203,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2)*
 
-- [ ] 05-04-PLAN.md — Production truth in `tests/build/prerender.test.ts` (stub strings absent, date bound to source by equality), the re-pointed launch gate naming three unreviewed copy items, the deploy confirmation, and the backlog-leg closure record
+- [x] 05-04-PLAN.md — Production truth in `tests/build/prerender.test.ts` (stub strings absent, date bound to source by equality), the re-pointed launch gate naming three unreviewed copy items, the deploy confirmation, and the backlog-leg closure record
 
 **UI hint**: yes
 
@@ -234,7 +234,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Content Pipeline | 7/7 | Complete   | 2026-08-31 |
 | 3. Work List & Landing Skeleton | 9/9 | Complete   | 2026-08-31 |
 | 4. The Case Study | 6/6 | Complete   | 2026-08-31 |
-| 5. Backlog | 3/4 | In Progress|  |
+| 5. Backlog | 4/4 | Complete   | 2026-08-31 |
 | 6. CV, Contact, Photo & Discoverability | 0/TBD | Not started | - |
 
 ---
