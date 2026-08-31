@@ -198,8 +198,8 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 05-02-PLAN.md — The repo-tier guards: `backlog-source.ts` (the `.tsx` source reader that throws rather than skipping), `backlog.test.ts`, the five-branch git/mtime freshness guard, and three red-proofs that all of them fire
-- [ ] 05-03-PLAN.md — `tests/landing.spec.ts`: the two located breakages (`(r)` h3 3→6, `(u)` narrowed to contact) plus the rendered proof of D-11's three subtractions, the measured hairline and gaps, and the on-screen two-weight/four-size budget
+- [x] 05-02-PLAN.md — The repo-tier guards: `backlog-source.ts` (the `.tsx` source reader that throws rather than skipping), `backlog.test.ts`, the five-branch git/mtime freshness guard, and three red-proofs that all of them fire
+- [x] 05-03-PLAN.md — `tests/landing.spec.ts`: the two located breakages (`(r)` h3 3→6, `(u)` narrowed to contact) plus the rendered proof of D-11's three subtractions, the measured hairline and gaps, and the on-screen two-weight/four-size budget
 
 **Wave 3** *(blocked on Wave 2)*
 
@@ -234,7 +234,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Content Pipeline | 7/7 | Complete   | 2026-08-31 |
 | 3. Work List & Landing Skeleton | 9/9 | Complete   | 2026-08-31 |
 | 4. The Case Study | 6/6 | Complete   | 2026-08-31 |
-| 5. Backlog | 1/4 | In Progress|  |
+| 5. Backlog | 3/4 | In Progress|  |
 | 6. CV, Contact, Photo & Discoverability | 0/TBD | Not started | - |
 
 ---
