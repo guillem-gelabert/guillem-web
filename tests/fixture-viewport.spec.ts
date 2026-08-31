@@ -112,6 +112,12 @@ for (const viewport of VIEWPORTS) {
       const { pageScrollWidth, innerWidth, internallyScrolling } = await readFixture(page);
 
       // The page itself must not scroll sideways (1px rounding tolerance).
+      // NOTE: this check is one-sided. scrollWidth only ever grows to the
+      // RIGHT — content hanging off x < 0 is clipped and unreachable but
+      // contributes nothing to scrollWidth, so this assertion passed for the
+      // whole of Plan 04 while <Figure wide> sat 61px off the left edge. The
+      // two-sided check lives in the bounding-box test below; do not delete it
+      // on the grounds that this one already covers overflow.
       expect(pageScrollWidth).toBeLessThanOrEqual(innerWidth + 1);
 
       // At least one element (the long bash fenced block) is expected to
@@ -141,3 +147,41 @@ for (const viewport of VIEWPORTS) {
     });
   });
 }
+
+// The breakout check the overflow test above structurally cannot make.
+// Measured at the three desktop widths the code review used, plus 375px:
+// getBoundingClientRect() sees both edges, so a figure centred on a
+// left-pinned column (margin-left: 50% + translateX(-50%)) fails here at
+// x = -61 even though documentElement.scrollWidth reads exactly innerWidth.
+const WIDE_FIGURE_WIDTHS = [375, 1280, 1440, 1920];
+
+test("<Figure wide> stays inside the viewport at every width and still breaks the reading measure on desktop", async ({
+  page,
+}) => {
+  await page.goto("/writing/fixture");
+  await page.evaluate(() => document.fonts.ready);
+
+  const figure = page.locator(".prose-site figure[data-wide]");
+  const prose = page.locator(".prose-site");
+
+  for (const width of WIDE_FIGURE_WIDTHS) {
+    await page.setViewportSize({ width, height: 900 });
+
+    const box = await figure.boundingBox();
+    expect(box, `figure[data-wide] must be laid out at ${width}px`).not.toBeNull();
+
+    // Neither edge may leave the viewport (1px rounding tolerance).
+    expect(box!.x, `left edge at ${width}px`).toBeGreaterThanOrEqual(0);
+    expect(box!.x + box!.width, `right edge at ${width}px`).toBeLessThanOrEqual(width + 1);
+
+    // ...and it must still be a breakout: at desktop widths the wide measure
+    // has to be wider than the 65ch reading measure, or the fix degenerated
+    // into clamping the figure down to the column.
+    if (width >= 1280) {
+      const proseBox = await prose.boundingBox();
+      expect(box!.width, `wide measure vs reading measure at ${width}px`).toBeGreaterThan(
+        proseBox!.width,
+      );
+    }
+  }
+});

@@ -257,11 +257,21 @@
   margin-top: 8px;
 }
 
+/* The wide measure (52rem), anchored to the reading column's left edge and
+   grown rightward into the page's right-hand whitespace.
+
+   It used to be a symmetric breakout — margin-left: 50% + translateX(-50%) —
+   which silently assumes the reading column is centred in the viewport. It is
+   not: every <main> in this project is flush left behind a px-lg gutter (the
+   shipped /, /type and both post templates), so the figure centred on the
+   *column* and hung 61px off the left edge of the viewport at 1280, 1440 and
+   1920 alike. In LTR, negative overflow is not scrollable, so that content was
+   clipped and unreachable. Any symmetric breakout has the same defect here;
+   the fix is to drop the centring, not to narrow the figure. */
 .prose-site figure[data-wide] {
   width: min(52rem, calc(100vw - 48px));
   max-width: none;
-  margin-left: 50%;
-  transform: translateX(-50%);
+  margin-left: 0;
 }
 
 .prose-site aside {
