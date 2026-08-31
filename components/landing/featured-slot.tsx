@@ -47,7 +47,20 @@ export function FeaturedSlot({ entry }: FeaturedSlotProps) {
           parent section's single gap-lg correct in both states. */}
       <div className="flex flex-col gap-md">
         <p className="max-w-prose text-standfirst">{entry.frontmatter.standfirst}</p>
-        <PostMeta locale="en" date={entry.frontmatter.date} switchHref={null} />
+        {/* draft is NOT optional here. Omitting it made PostMeta see
+            `undefined`, so `draft === true && showDrafts()` was always
+            false and the marker never printed — while /writing, which does
+            pass it, printed "Draft" beside the identical entry. In dev
+            showDrafts() is always true, so the moment Phase 4 authors
+            content/the-chart-therefore-changes.mdx with draft: true the
+            author would have read two contradictory answers for one file
+            on two pages, on the surface where it matters most. */}
+        <PostMeta
+          locale="en"
+          date={entry.frontmatter.date}
+          switchHref={null}
+          draft={entry.frontmatter.draft}
+        />
       </div>
     </>
   );
