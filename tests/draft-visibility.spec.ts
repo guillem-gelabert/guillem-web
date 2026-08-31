@@ -56,3 +56,21 @@ test("the fixture's meta line shows the Draft marker exactly once, in the Label 
   expect(color).toBe("rgb(0, 0, 0)");
   expect(color).not.toBe("rgb(193, 39, 45)");
 });
+
+test("the German draft marker is translated — /texte/musterseite reads Entwurf, not Draft", async ({
+  page,
+}) => {
+  // IN-02: every other key in the German block is translated; draftMarker read
+  // the English "Draft". It is dev-only chrome, but it sits in the locale copy
+  // table of an i18n phase and the unit test asserts only non-emptiness, so
+  // nothing else in the suite would notice.
+  await page.goto("/texte/musterseite");
+  await page.evaluate(() => document.fonts.ready);
+
+  const metaLine = page.locator("p.text-label", { hasText: "Entwurf" });
+  await expect(metaLine).toHaveCount(1);
+
+  const lineText = await metaLine.first().evaluate((el) => el.textContent ?? "");
+  expect(lineText.split("Entwurf").length - 1).toBe(1);
+  expect(lineText).not.toContain("Draft");
+});

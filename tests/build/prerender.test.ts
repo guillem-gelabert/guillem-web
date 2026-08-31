@@ -134,15 +134,44 @@ test("robots noindex survived the two-root-layout split — present on both writ
   assert.match(texte, /name="robots"\s+content="[^"]*noindex[^"]*"/);
 });
 
+/**
+ * The draft marker as PostMeta actually renders it: the last item on the
+ * Label-role meta line, separated by a middle dot from the <time> (or from
+ * the language-switch link), with React 19's text-node separator comment
+ * optionally between them.
+ *
+ * A bare `html.includes("Draft")` substring check was the earlier form, and
+ * it would fail on any legitimately published post whose title or standfirst
+ * contained "Draft", "Drafting" or "Draftsman" — plausible words for a data
+ * journalism site — for a reason entirely unrelated to what it claims to
+ * prove. Matching the rendered shape cannot be triggered by prose.
+ */
+function draftMarkerLine(marker: string): RegExp {
+  return new RegExp(`(?:</time>|</a>)\\s*·\\s*(?:<!--\\s*-->\\s*)?${marker}`, "u");
+}
+
 test("no dev-only chrome leaked into either index's meta line", async () => {
   const routes = await getRoutes();
   const writing = routes.get("writing")!;
   const texte = routes.get("texte")!;
 
   // Production has zero visible entries on either index (all fixtures are
-  // draft), so the Draft marker string must not appear at all.
-  assert.equal(writing.includes("Draft"), false);
-  assert.equal(texte.includes("Draft"), false);
+  // draft), so neither locale's marker may appear on a meta line at all.
+  // Both markers are checked against both routes: "Draft" appearing on
+  // /texte would mean UI.de.draftMarker had regressed to the untranslated
+  // English string, which no other test would notice.
+  for (const [routeKey, html] of [
+    ["writing", writing],
+    ["texte", texte],
+  ] as const) {
+    for (const marker of ["Draft", "Entwurf"]) {
+      assert.doesNotMatch(
+        html,
+        draftMarkerLine(marker),
+        `route "${routeKey}" must not render a "${marker}" draft marker`,
+      );
+    }
+  }
 });
 
 test("locale metadata is emitted from Phase 2, not deferred — canonical plus an x-default alternate on both indexes", async () => {

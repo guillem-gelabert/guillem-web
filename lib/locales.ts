@@ -72,6 +72,6 @@ export const UI: Record<Locale, UiCopy> = {
     emptyBody: "Der erste Text entsteht gerade.",
     notFoundHeading: "Nicht gefunden",
     notFoundBody: "Diesen Text gibt es hier nicht.",
-    draftMarker: "Draft",
+    draftMarker: "Entwurf",
   },
 };
