@@ -1,0 +1,829 @@
+// Source: https://ib-gdp.guillemgelabert.com/auf-mallorca-weiss-es-jeder/methodik
+// Fetched: 2026-08-31T15:59:26.671Z
+←
+ZURÜCK ZUR GESCHICHTE
+METHODIK
+
+Am Anfang dieses Projekts stand ein Verdacht, den viele teilen: Die Besucher:innenzahlen brechen einen Rekord nach dem anderen, doch das Leben der Einheimischen verbessert sich seit Langem nicht mehr – womöglich wird es sogar schlechter. Ich wollte wissen, ob dieser Eindruck einer Prüfung durch die Daten standhält.
+
+Welche Daten ich gesucht habe
+Eine langfristige Zeitreihe zum balearischen BIP pro Kopf vor und nach dem Beginn des Massentourismus, vergleichbar mit anderen spanischen Regionen und europäischen Ländern.
+Eine langfristige Zeitreihe der Besucher:innenankünfte auf den Balearen, die bereits vor dem Massentourismus einsetzt.
+Die beste verfügbare Datengrundlage
+
+Keine der beiden Reihen liegt vollständig und nach einheitlichen Kriterien vor. Ihre Rekonstruktion stützt sich auf Quellen, die verschiedene Zeiträume und Gebiete abdecken, unterschiedliche Einheiten verwenden und verwandte, aber nicht identische Grössen messen. Je weiter die Daten zurückreichen, desto unsicherer werden sie.
+
+Auf diese Quellen stützt sich die Rekonstruktion.
+
+BIP pro Kopf
+
+BIP PRO KOPF
+
+Rosés-Wolf-Datenbank zum regionalen BIP — BIP
+BLATT
+A1b Regional GDP (2011PPP)
+GEBIET
+europäische NUTS-2-Regionen mit rückwirkend angewandten heutigen Grenzen
+MESSGRÖSSE
+regionales BIP
+EINHEITEN
+Millionen internationale Dollar von 2011, KKP-bereinigt
+ZEITRAUM
+1900-2022
+HÄUFIGKEIT
+unregelmässige Punkte
+
+Die Rosés-Wolf-Datenbank enthält BIP- und Bevölkerungsdaten für 173 Regionen in 16 europäischen Ländern. Sie kommt den Anforderungen dieses Projekts am nächsten. Das Tabellenblatt liefert die BIP-Werte, aus denen sich das regionale BIP pro Kopf in internationalen Dollar von 2011 berechnen lässt. Für die spanischen Regionen bleiben alle beobachteten Werte als Ankerpunkte erhalten.
+
+BIP PRO KOPF
+
+Rosés-Wolf-Datenbank zum regionalen BIP — Bevölkerung
+BLATT
+A3 Population
+GEBIET
+europäische NUTS-2-Regionen mit rückwirkend angewandten heutigen Grenzen
+MESSGRÖSSE
+Wohnbevölkerung
+EINHEITEN
+Tausende Personen
+ZEITRAUM
+1900-2022
+HÄUFIGKEIT
+unregelmässige Punkte
+
+Diese Tabelle liefert die Bevölkerungszahlen für die Rosés-Wolf-Berechnung. Das BIP wird in Millionen, die Bevölkerung in Tausenden angegeben. Nach Anpassung dieses Grössenunterschieds ergibt die Division Dollar pro Einwohner:in.
+
+Regionales BIP pro Kopf — Rosés-Wolf
+
+Schätzungen für ausgewählte Jahre und 173 europäische NUTS-2-Regionen. Zur Auswahl stehen einzelne Regionen wie die Balearen oder Korsika sowie alle Regionen eines Landes.
+
+Balearen
+×
+Korsika
+×
+REIHE HINZUFÜGEN
+▾
+1900
+1920
+1940
+1960
+1980
+2000
+2020
+0
+5,000
+10,000
+15,000
+20,000
+25,000
+30,000
+35,000
+40,000
+KKP-Dollar 2011 pro Kopf
+
+BIP PRO KOPF
+
+Maddison-Projekt für historische Statistik — BIP pro Kopf
+BLATT
+GDPpc
+GEBIET
+Länder und makroregionale Aggregate
+MESSGRÖSSE
+BIP pro Kopf
+EINHEITEN
+internationale Dollar von 2011, KKP-bereinigt
+ZEITRAUM
+1-2022, je nach Land verschieden
+HÄUFIGKEIT
+jährlich, mit Lücken je nach Land und Periode
+
+Das Maddison-Projekt bündelt langfristige Wachstums- und Einkommensdaten für 169 Länder. Rosés-Wolf nutzt es für nationale Werte. Hier bildet es bis 2022 die Grundlage für die heutigen 27 EU-Staaten und liefert zudem den spanischen Landeswert, mit dem die regionalen Eurostat-Daten skaliert werden.
+
+BIP PRO KOPF
+
+Maddison-Projekt für historische Statistik — Bevölkerung
+BLATT
+Population
+GEBIET
+Länder und makroregionale Aggregate
+MESSGRÖSSE
+Wohnbevölkerung
+EINHEITEN
+Tausende Personen
+ZEITRAUM
+1-2022, je nach Land verschieden
+HÄUFIGKEIT
+jährlich, mit Lücken je nach Land und Periode
+
+Diese Tabelle dient ausschliesslich dazu, einen nach Bevölkerung gewichteten Durchschnitt für die heutigen 27 EU-Staaten zu berechnen. Maddison stellt diesen Wert nicht als fertige Zeitreihe bereit. Erst ab 1985 liegen Daten für alle Länder vor; für frühere Jahre hängt die Zusammensetzung von der Datenlage ab und wird in den erzeugten Dateien ausgewiesen.
+
+BIP pro Kopf nach Land — Maddison
+
+Jährliches BIP pro Kopf der EU-27-Länder und der bevölkerungsgewichtete EU-27-Durchschnitt, 1900–2022.
+
+Spanien
+×
+Frankreich
+×
+EU-27-Durchschnitt
+×
+REIHE HINZUFÜGEN
+▾
+1900
+1920
+1940
+1960
+1980
+2000
+2020
+0
+5,000
+10,000
+15,000
+20,000
+25,000
+30,000
+35,000
+40,000
+KKP-Dollar 2011 pro Kopf
+
+BIP PRO KOPF
+
+Eurostat: BIP und Hauptkomponenten — reales Wachstum pro Kopf
+DATENSATZ
+Eurostat-Datenbank ⓘ
+GEBIET
+europäische Länder und Aggregate, einschliesslich des Durchschnitts EU27_2020
+MESSGRÖSSE
+jährliches Wachstum des realen BIP pro Kopf
+EINHEITEN
+prozentuale Veränderung gegenüber der Vorperiode
+ZEITRAUM
+1975-2025
+HÄUFIGKEIT
+jährlich
+
+Eurostat veröffentlicht diese Reihe im Datensatz „BIP und Hauptkomponenten“. Verwendet werden nicht die absoluten Werte, sondern die realen Wachstumsraten pro Kopf. Die Jahre 2015 bis 2022 dienen dazu, die jüngste Abweichung von Maddison zu kalibrieren. Mit den Werten für 2023 bis 2025 werden die Länderreihen, der europäische Durchschnitt und die spanische Reihe fortgeschrieben, an der wiederum die regionalen Schätzungen hängen.
+
+Reales Wachstum pro Kopf — Eurostat nama_10_pc
+
+Jährliches reales BIP-Wachstum pro Kopf (%). Mit diesen Raten werden die Länderreihen und der europäische Durchschnitt über das Ende der Maddison-Daten im Jahr 2022 hinaus fortgeschrieben.
+
+Spanien
+×
+EU-27-Durchschnitt
+×
+REIHE HINZUFÜGEN
+▾
+2000
+2005
+2010
+2015
+2020
+2025
+−10
+−5
+0
+5
+Reales Wachstum, % pro Jahr
+
+BIP PRO KOPF
+
+Eurostat: BIP zu laufenden Preisen nach NUTS-2-Region
+TABELLE/BLATT
+nama_10r_2gdp, PPS_EU27_2020_HAB
+GEBIET
+Spanien und spanische NUTS-Regionen, einschliesslich der autonomen Gemeinschaften
+MESSGRÖSSE
+BIP zu laufenden Preisen je Einwohner:in, ausgedrückt in KKS
+EINHEITEN
+laufendes KKS je Einwohner:in
+ZEITRAUM
+2000-2024
+HÄUFIGKEIT
+jährlich
+
+Die Eurostat-Tabelle nama_10r_2gdp weist das regionale BIP zu laufenden Preisen aus. Die spanischen Zahlen stammen vom nationalen Statistikamt INE; beide Quellen sind daher im Wesentlichen identisch. Die KKS-Werte zeigen, wie sich die autonomen Gemeinschaften im Verhältnis zu Spanien entwickeln, und dienen zur Fortschreibung der Regionalreihen für 2023 und 2024. Als endgültige BIP-Reihe werden sie nicht verwendet.
+
+Regionales KKS pro Kopf — Eurostat nama_10r_2gdp
+
+Laufende KKS pro Einwohner:in für Spanien und seine autonomen Gemeinschaften, 2000–2024. Die Werte bilden den regionalen Verlauf ab, dienen aber nicht als endgültige BIP-Reihe.
+
+Balearen
+×
+Spanien
+×
+Madrid
+×
+REIHE HINZUFÜGEN
+▾
+2000
+2002
+2004
+2006
+2008
+2010
+2012
+2014
+2016
+2018
+2020
+2022
+2024
+0
+10,000
+20,000
+30,000
+40,000
+50,000
+Laufendes KKS pro Kopf
+
+BIP PRO KOPF
+
+Funcas: regionaler BIP-pro-Kopf-Index 2025
+VERWENDETE TABELLE
+Cuadro 1, Zeile „PIB per cápita nominal (España=100)“, Spalte 2025
+DARSTELLUNG IM NOTEBOOK
+Konstante FUNCAS_2025
+GEBIET
+spanische autonome Gemeinschaften
+MESSGRÖSSE
+nominales BIP pro Kopf relativ zu Spanien
+EINHEITEN
+Index, Spanien = 100
+ZEITRAUM
+2025
+HÄUFIGKEIT
+jährlich
+
+Funcas veröffentlicht Prognosen zum BIP pro Kopf für alle autonomen Gemeinschaften Spaniens. Da die regionale Eurostat-Reihe 2024 endet, wird Funcas ausschliesslich für 2025 herangezogen. Der Index jeder Gemeinschaft wird auf den projizierten Wert für Spanien angewendet.
+
+Nominaler Index für 2025, verwendet, weil Eurostats regionale Reihe 2024 endet.
+
+Spanien = 100
+
+BIP PRO KOPF
+
+INE: regionaler Verbraucherpreisindex (VPI)
+GEBIET
+Spanien und die autonomen Gemeinschaften
+MESSGRÖSSE
+Verbraucherpreisniveau (Gesamtindex)
+EINHEITEN
+Index, 2025 = 100
+ZEITRAUM
+2002-2025 (Jahresmittel)
+HÄUFIGKEIT
+monatlich, auf jährlich aggregiert
+
+Um zu prüfen, ob eigene Preisbereinigungen für jede Region nötig sind, habe ich deren Verbraucherpreisindizes mit dem spanischen Index verglichen. Zwischen 2002 und 2024 wich der balearische Wert um weniger als ein Prozent vom Landeswert ab. Angesichts dieser geringen Differenz unterstellt die Methode innerhalb Spaniens eine einheitliche Kaufkraft.
+
+Regionaler VPI relativ zum nationalen Niveau
+
+Der Verbraucherpreisindex jeder autonomen Gemeinschaft in Prozent des spanischen Werts. Der balearische Index bleibt innerhalb von etwa einem Prozent des Landeswerts; deshalb verwendet die Methode keine eigenen regionalen Deflatoren.
+
+Y-ACHSE
+% des nationalen
+Index (2025 = 100)
+Balearen
+×
+Spanien
+×
+Kanarische Inseln
+×
+Madrid
+×
+REIHE HINZUFÜGEN
+▾
+2002
+2004
+2006
+2008
+2010
+2012
+2014
+2016
+2018
+2020
+2022
+2024
+98
+99
+100
+101
+102
+103
+104
+105
+106
+% des nationalen
+Tourist:innenankünfte
+
+Eine durchgehende Statistik der Besucher:innenankünfte bis in die Zeit vor dem Massentourismus gibt es nicht. Deshalb verbindet die Rekonstruktion vier Quellen für aufeinanderfolgende Zeiträume – von frühen wissenschaftlichen Schätzungen bis zur heutigen amtlichen Grenzstatistik.
+
+Nicht nur die Quellen, auch ihre Definitionen unterscheiden sich. Manche Werte sind Beobachtungen, andere Schätzungen; manche erfassen inländische Gäste, andere nicht; einige gelten nur für Mallorca, andere für die gesamten Balearen.
+
+Eine einheitliche Reihe für 1900 bis 2025 liess sich nicht finden. AETIB/FRONTUR bildet die moderne statistische Grundlage, obwohl sich auch dort die Methodik im Laufe der Zeit ändert. Frühere Werte stammen aus wissenschaftlichen Veröffentlichungen und Fachbüchern.
+
+TOURIST:INNENANKÜNFTE
+
+Cirer-Costa: Schätzungen des vortouristischen Tourismus
+GEBIET
+Balearen
+MESSGRÖSSE
+geschätztes vortouristisches Tourismusvolumen
+EINHEITEN
+Tourist:innen pro Jahr
+ZEITRAUM
+1900-1936
+HÄUFIGKEIT
+vereinzelte Punkte
+
+Dabei handelt es sich um wissenschaftliche Schätzungen, nicht um amtliche Zählungen. Sie betreffen die Zeit vor Beginn einer systematischen Tourismusstatistik. Verwendet werden nur die Werte für 1900 und 1920 als frühe Ankerpunkte.
+
+TOURIST:INNENANKÜNFTE
+
+Barceló Pons (1966)
+GEBIET
+Mallorca
+MESSGRÖSSE
+rekonstruierte Tourist:innenankünfte
+EINHEITEN
+Tourist:innen pro Jahr
+ZEITRAUM
+1925-1965
+HÄUFIGKEIT
+vereinzelte Punkte
+
+Die Mitte der Sechzigerjahre erstellten Schätzungen stützen sich auf zeitgenössische Hotelregister, Hafenaufzeichnungen und regionale Statistiken. Sie decken die Jahre 1930 bis 1965 ab. Manche Angaben beziehen sich nur auf Mallorca statt auf die gesamten Balearen – ein wichtiger Unterschied für den Vergleich.
+
+TOURIST:INNENANKÜNFTE
+
+Valdivielso und Moranta (2020)
+GEBIET
+Balearen
+MESSGRÖSSE
+Tourist:innenankünfte
+EINHEITEN
+Millionen Tourist:innen, in Personen umgerechnet
+ZEITRAUM
+1959-2019
+HÄUFIGKEIT
+ausgewählte Jahre
+
+Valdivielso und Moranta führen Ankunftszahlen aus früheren Studien und regionalen Statistiken zusammen und ergänzen sie um AETIB-Daten. Überschneiden sich ihre Werte mit AETIB/FRONTUR, erhält AETIB/FRONTUR Vorrang. Die Studie liefert damit vor allem die zentralen Beobachtungen vom Beginn des Tourismusbooms bis 1993; spätere Überschneidungen dienen als Plausibilitätskontrolle.
+
+TOURIST:INNENANKÜNFTE
+
+AETIB/FRONTUR: Jahrbücher und Tourismusbewegungen an der Grenze
+GEBIET
+Balearen
+MESSGRÖSSE
+Einreisen/Ankünfte von Tourist:innen; seit 2016 Tourist:innen nach Hauptziel
+EINHEITEN
+Tourist:innen pro Jahr
+ZEITRAUM
+1998-2025
+HÄUFIGKEIT
+jährlich
+
+Dies ist die einzige moderne Primärquelle der Ankunftsreihe, allerdings ändert sich ihre Methodik. Die Jahre 1998 bis 2000 erfassen Flugreisende, von 2001 bis 2009 kommen Schiffsreisende hinzu. 2010 beginnt die jährliche FRONTUR-Reihe; 2016 wird sie unter INE/IBESTAT neu konzipiert. Ab 1998 hat AETIB/FRONTUR Vorrang, wenn ein Jahr auch in einer anderen Quelle vorkommt.
+
+Probleme und Lösungen
+Problem: ungleiche Qualität der Quellen
+LÖSUNG: UNSICHERHEIT OFFENLEGEN UND IHRE FOLGEN PRÜFEN
+
+Dieser Beitrag erklärt langfristige Entwicklungen; er ist keine wissenschaftliche Studie. Die frühen Daten sind lückenhaft und von unterschiedlicher Qualität. Gerade für die Zeiträume, in denen kleine Abweichungen die Aussage verändern könnten, werden die Quellen jedoch verlässlicher.
+
+Zu Beginn des 20. Jahrhunderts waren die Besucher:innenzahlen im Vergleich zu später verschwindend gering. Selbst wenn Cirer-Costas Schätzung für 1920 um den Faktor zehn falsch wäre – also 2.000 oder 200.000 statt 20.000 Ankünfte –, sähe der steile Anstieg nach 1960 nahezu gleich aus. An der Schlussfolgerung änderte sich nichts.
+
+Sobald ein Fehler dieser Grössenordnung die Form der Kurve wesentlich verändern könnte, liegen bereits verlässlichere Beobachtungen nach stabilen Methoden vor.
+
+Dasselbe gilt für die Wirtschaftsdaten. Die grundlegende Aussage hält auch Fehlerspannen stand, die für eine wissenschaftliche Schätzung inakzeptabel wären.
+
+Die Pandemiejahre 2020 und 2021 sind ausgeschlossen, soweit die Quellen Werte dafür liefern. Die Pandemie war ein starker, aber vorübergehender äusserer Schock; ihre Darstellung würde die langfristige Entwicklung über 125 Jahre eher verdecken als erklären.
+
+Problem: unterschiedliche Einheiten für das moderne BIP pro Kopf
+LÖSUNG: VERANKERN, VERKETTEN UND DEFLATIONIEREN
+
+Rosés-Wolf liefert preisbereinigte Werte für die spanischen Regionen, Maddison entsprechende Zahlen für Länder und den europäischen Durchschnitt. Beide Reihen enden 2022. Eurostats nationale Daten schreiben die Länder und den europäischen Durchschnitt bis 2025 fort. Die Regionaldaten zeigen das Muster der spanischen Regionen für 2023 und 2024; die Schätzung für 2025 stammt von Funcas.
+
+Die Quellen verwenden unterschiedliche Kaufkraftmasse. Rosés-Wolf und Maddison rechnen mit kaufkraftbereinigten internationalen Dollar zu Preisen von 2011; Eurostat weist laufende Kaufkraftstandards (KKS) pro Einwohner:in aus. Für spanische Regionen bilden KKS nominale Unterschiede in einem gemeinsamen spanischen und europäischen Rahmen ab. Sie korrigieren nicht die Lebenshaltungskosten jeder einzelnen autonomen Gemeinschaft. Eurostat kann deshalb den jährlichen regionalen Verlauf zeigen, muss für eine langfristig vergleichbare Reihe aber neu verankert und preisbereinigt werden.
+
+Die einfachste Verknüpfung wäre, ein gemeinsames Jahr zu wählen – etwa 2000 – und die folgenden Eurostat-Wachstumsraten auf den Rosés-Wolf-Wert dieses Jahres anzuwenden.
+
+Der Umrechnungsfaktor k entspricht dem Rosés-Wolf-Wert im gewählten Basisjahr, geteilt durch den Eurostat-Wert desselben Jahres.
+
+kombiniertesEinkommen(Jahr)=
+⎩
+⎨
+⎧
+	​
+
+RW[Jahr],
+Eurostat(Jahr)⋅
+Eurostat[2000]
+RW[2000]
+	​
+
+,
+	​
+
+Jahr≤2000
+Jahr>2000
+	​
+
+Balearisches BIP pro Kopf: Rosés-Wolf und Eurostat, verankert im Jahr 2000
+
+Vergleich mit einem einzigen Ankerjahr.
+
+Rosés-Wolf beobachtet
+×
+Einzelanker (2000)
+×
+REIHE HINZUFÜGEN
+▾
+1900
+1950
+2000
+2005
+2010
+2015
+2020
+0
+10,000
+20,000
+30,000
+40,000
+50,000
+KKP-Dollar 2011 pro Kopf
+
+Dieses Verfahren unterstellt, dass das Verhältnis zwischen KKP-Dollar und KKS unverändert bleibt. Da KKS nicht inflationsbereinigt sind, entspräche das einer Inflationsrate von null – eine offensichtlich unrealistische Annahme.
+
+Das Ergebnis hängt ausserdem stark vom Basisjahr ab. Wird 2000 statt 2022 gewählt, weichen die Schätzungen um mehr als 20 Prozent voneinander ab.
+
+Eine zweite Möglichkeit nutzt zwei gemeinsame Jahre, etwa das erste und letzte Jahr der Überschneidung. Eine Gerade zwischen den beiden Umrechnungsfaktoren, berechnet auf einer logarithmischen Skala, verteilt die Abweichung über den gemeinsamen Zeitraum und liefert eine Fortschreibung für spätere Jahre. Das funktioniert nur, wenn sich das Verhältnis zwischen KKP-Dollar und KKS gleichmässig verändert – etwa bei konstanter Inflation.
+
+Die folgende Grafik zeigt das Ergebnis.
+
+Verankerungsmethoden im Vergleich — Balearen
+
+Einzelne Ankerjahre 2000 und 2022 sowie ein log-lineares Zweipunktverfahren im Vergleich mit den beobachteten Rosés-Wolf-Werten.
+
+Rosés-Wolf beobachtet
+×
+Einzelanker (2000)
+×
+Einzelanker (2022)
+×
+Zweipunkt log-linear
+×
+REIHE HINZUFÜGEN
+▾
+1900
+1950
+2000
+2005
+2010
+2015
+2020
+0
+10,000
+20,000
+30,000
+40,000
+50,000
+KKP-Dollar 2011 pro Kopf
+
+Bis 2020 liegt das einfachere Einjahresverfahren sogar näher an den realen BIP-Werten von Rosés-Wolf, weil beide Quellen bis dahin ähnlich verlaufen. Bei der Erholung nach der Pandemie weichen sie jedoch voneinander ab: Der Aufschwung setzt bei Eurostat früher ein und drückt dadurch die rekonstruierten Werte der Vorjahre nach unten. Ein zweiter Anker beseitigt die Abhängigkeit von den gewählten Jahren nicht. Zudem gehen die dazwischenliegenden Rosés-Wolf-Beobachtungen weiterhin verloren.
+
+Die endgültige Methode besteht aus drei Schritten.
+
+Für die EU-Länder und den europäischen Durchschnitt verwende ich Maddison bis 2022. Ab 2023 wird die Reihe mit Eurostats realem Wachstum pro Kopf (nama_10_pc, CLV_PCH_PRE_HAB) fortgeschrieben. Eine Korrektur berücksichtigt die durchschnittliche Abweichung beider Quellen in den Jahren 2015 bis 2022. Da die Fortschreibung nur wenige Jahre umfasst, ist die jüngste Überschneidung aussagekräftiger als ein langfristiger Durchschnitt.
+
+k
+Land
+	​
+
+BIP
+Land
+	​
+
+(Jahr)
+	​
+
+=Mittelwert
+Jahr=2015,…,2022
+	​
+
+(Wachstum
+Maddison, Land
+	​
+
+(Jahr)−Wachstum
+Eurostat, Land
+	​
+
+(Jahr))
+=
+⎩
+⎨
+⎧
+	​
+
+Maddison
+Land
+	​
+
+(Jahr),
+BIP
+Land
+	​
+
+(Jahr−1)(1+
+100
+Wachstum
+Eurostat, Land
+	​
+
+(Jahr)+k
+Land
+	​
+
+	​
+
+),
+	​
+
+Jahr≤2022
+Jahr≥2023
+	​
+
+	​
+
+
+Bei den spanischen Regionen bleiben alle beobachteten Rosés-Wolf-Werte erhalten. Liegen zwischen zwei solchen Werten Eurostat-Regionaldaten vor, wird der KKS-Wert jeder Gemeinschaft ins Verhältnis zu Spanien gesetzt und auf Spaniens BIP pro Kopf in internationalen Dollar von 2011 angewendet. Der so entstehende Jahresverlauf wird an beiden Enden exakt auf die Rosés-Wolf-Werte skaliert. Fehlen Eurostat-Daten, wird die Lücke log-linear interpoliert.
+
+Profil
+Region
+	​
+
+(Jahr)
+Gewicht(Jahr)
+k
+Region
+	​
+
+(Jahr)
+BIP
+Region
+	​
+
+(Jahr)
+	​
+
+=BIP
+Spanien
+	​
+
+(Jahr)⋅
+KKS
+Spanien
+	​
+
+(Jahr)
+KKS
+Region
+	​
+
+(Jahr)
+	​
+
+=
+n
+a
+¨
+chstes Jahr−vorheriges Jahr
+Jahr−vorheriges Jahr
+	​
+
+=(
+Profil
+Region
+	​
+
+(vorheriges Jahr)
+RW
+Region
+	​
+
+(vorheriges Jahr)
+	​
+
+)
+1−Gewicht(Jahr)
+(
+Profil
+Region
+	​
+
+(n
+a
+¨
+chstes Jahr)
+RW
+Region
+	​
+
+(n
+a
+¨
+chstes Jahr)
+	​
+
+)
+Gewicht(Jahr)
+={
+k
+Region
+	​
+
+(Jahr)Profil
+Region
+	​
+
+(Jahr),
+RW
+Region
+	​
+
+(vorheriges Jahr)
+1−Gewicht(Jahr)
+RW
+Region
+	​
+
+(n
+a
+¨
+chstes Jahr)
+Gewicht(Jahr)
+,
+	​
+
+Profil verf
+u
+¨
+gbar
+sonst
+	​
+
+	​
+
+
+Für 2015 bis 2022 übernimmt die Regionalreihe die jährlichen Rosés-Wolf-Beobachtungen. Die Jahre 2023 und 2024 schreiben den Wert von 2022 anhand des regionalen Eurostat-Verlaufs fort, skaliert mit der nationalen Reihe für Spanien.
+
+Profil
+Region
+	​
+
+(Jahr)
+k
+Region
+	​
+
+BIP
+Region
+	​
+
+(Jahr)
+	​
+
+=BIP
+Spanien
+	​
+
+(Jahr)⋅
+KKS
+Spanien
+	​
+
+(Jahr)
+KKS
+Region
+	​
+
+(Jahr)
+	​
+
+=
+Profil
+Region
+	​
+
+(2022)
+RW
+Region
+	​
+
+(2022)
+	​
+
+={
+RW
+Region
+	​
+
+(Jahr),
+k
+Region
+	​
+
+Profil
+Region
+	​
+
+(Jahr),
+	​
+
+2015≤Jahr≤2022
+Jahr∈{2023,2024}
+	​
+
+	​
+
+
+Die Methode behandelt die Kaufkraft innerhalb Spaniens als einheitlich. Das ist eine Näherung: Das Leben auf den Balearen ist teurer als in Kastilien oder Extremadura. Nach den Verbraucherpreisdaten des INE blieb der balearische Index zwischen 2002 und 2024 jedoch innerhalb eines Prozents des Landeswerts. Eigene regionale Korrekturen würden das Ergebnis daher kaum verändern.
+
+Für 2025 wird nicht eine regionale Wachstumsrate auf den rekonstruierten Wert von 2024 angewendet. Stattdessen dient der nominale BIP-pro-Kopf-Index von Funcas, bei dem Spanien 100 entspricht. Für die Balearen lautet die Rechnung zum Beispiel: 111,3 / 100 × Spanien_2025.
+
+k
+Funcas, Region
+	​
+
+BIP
+Region
+	​
+
+(2025)
+	​
+
+=
+100
+FuncasIndex
+Region
+	​
+
+(2025)
+	​
+
+=k
+Funcas, Region
+	​
+
+⋅BIP
+Spanien
+	​
+
+(2025)
+	​
+
+Die im Beitrag verwendete kombinierte Reihe
+
+Die endgültige Reihe verbindet Funcas, Maddison, Rosés-Wolf und Eurostat. Verglichen werden können Regionen, Länder und der EU-Durchschnitt; die Y-Achse lässt sich auf relative Werte umstellen.
+
+Y-ACHSE
+Absolut (KKP-Dollar 2011)
+% des EU-27-Durchschnitts
+% Spaniens
+Balearen
+×
+Spanien
+×
+Frankreich
+×
+EU-27-Durchschnitt
+×
+REIHE HINZUFÜGEN
+▾
+1900
+1920
+1940
+1960
+1980
+2000
+2020
+0
+10,000
+20,000
+30,000
+40,000
+KKP-Dollar 2011 pro Kopf
+Bibliografie
+Barceló Pons, B. (1966). El turismo en Mallorca en la época de 1925–1936. Boletín de la Cámara Oficial de Comercio, Industria y Navegación de Palma de Mallorca, 651–652, 47–61.
+Cirer Costa, J. C. (2020). El turismo en las Islas Baleares antes del ‘boom turístico’. Investigaciones Turísticas, 19. https://doi.org/10.14198/INTURI2020.19.08
+Funcas. (2025, December). Previsiones económicas para las comunidades autónomas 2025–2026.
+Picornell, C. (2025, March 9). Más de cien años de turismo en las Islas Baleares. Última Hora.
+Valdivielso, J., & Moranta, J. (2019). The social construction of the tourism degrowth discourse in the Balearic Islands. Journal of Sustainable Tourism, 27(12), 1876–1892. https://doi.org/10.1080/09669582.2019.1660670
+Alle AETIB/FRONTUR-Jahresberichte (1998–2024)
+CA · EN · DE
