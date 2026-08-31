@@ -127,8 +127,8 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2)*
 
-- [ ] 03-06-PLAN.md — tests/landing.spec.ts: HOME-01/03/04, WORK-01/02 and the state-agnostic featured-slot structure
-- [ ] 03-07-PLAN.md — tests/landing-viewport.spec.ts (375/1440) and tests/landing-trail.spec.ts (HOME-06 + BUILD-05), plus two stale-comment corrections
+- [x] 03-06-PLAN.md — tests/landing.spec.ts: HOME-01/03/04, WORK-01/02 and the state-agnostic featured-slot structure
+- [x] 03-07-PLAN.md — tests/landing-viewport.spec.ts (375/1440) and tests/landing-trail.spec.ts (HOME-06 + BUILD-05), plus two stale-comment corrections
 
 **Wave 4** *(blocked on Wave 3)*
 
@@ -193,7 +193,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Deploy Foundation & Design System | 4/4 | Complete   | 2026-08-29 |
 | 2. Content Pipeline | 7/7 | Complete   | 2026-08-31 |
-| 3. Work List & Landing Skeleton | 5/9 | In Progress|  |
+| 3. Work List & Landing Skeleton | 7/9 | In Progress|  |
 | 4. The Case Study | 0/TBD | Not started | - |
 | 5. Backlog | 0/TBD | Not started | - |
 | 6. CV, Contact, Photo & Discoverability | 0/TBD | Not started | - |
