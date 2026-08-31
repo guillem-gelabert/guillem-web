@@ -32,3 +32,53 @@ executor's SCOPE BOUNDARY rule) and are logged here rather than fixed.
   `npm run lint` went from **589 errors + 8,609 warnings** to **1 error, 0 warnings**, and
   that one error is this item. The hand-written file list workaround described above is no
   longer needed. This item itself remains deferred and unfixed, as scoped.
+
+---
+
+## CR-01 — localised `[slug]` 404s do not server-render (deferred to Phase 6)
+
+**Status:** open, deferred by coordinator decision 2026-08-31.
+**Severity:** Critical (WCAG 3.1.1 Level A) but narrowly scoped — affects only
+`/writing/<unknown>` and `/texte/<unbekannt>` with JavaScript disabled. The root
+404 and all non-`[slug]` paths were fixed under WR-14 (`39d35aa`) and do
+server-render correctly.
+
+**Measured behaviour** (`next start`, JS disabled, after WR-14 landed):
+
+| path | status | lang | h1 |
+|---|---|---|---|
+| `/nope` | 404 | `en` | `Not found` | ← fixed |
+| `/writing/does-not-exist` | 404 | (none) | (none) | ← open |
+| `/texte/gibt-es-nicht` | 404 | (none) | (none) | ← open |
+
+**Root cause is framework-level, not a repo bug.** Next 16.3.3's
+`next/dist/server/app-render/app-render.js` seeds every HTTP-access-fallback
+error response with a hardcoded `createElement('html', { id: '__next_error__' })`;
+the boundary's content reaches the client only via the flight payload. Isolated
+four ways: with and without a root `app/not-found.tsx`; with `dynamic =
+"force-dynamic"`; with the client component removed from the boundary; and
+decisively, a throwaway *static* route calling `notFound()` unconditionally
+prerendered to `__next_error__` at build time.
+
+**Why not the two obvious fixes.**
+`dynamicParams = false` does move the 404 to the routing layer, which server-renders
+correctly — but the routing-layer 404 always serves the global `/_not-found`, so
+`/texte/unbekannt` would render **English**, and both `not-found.tsx` files become
+dead code. That contradicts `02-UI-SPEC.md`'s Error State row, which mandates
+`Nicht gefunden` / `Diesen Text gibt es hier nicht.` Localising it is not possible:
+`headers()` in `app/not-found.tsx` turns every page dynamic (`Page changed from
+static to dynamic at runtime`, 500s), and `usePathname()` reports `/_not-found`
+rather than the URL typed.
+
+**Chosen disposition: fix in Phase 6 via the middleware layer that phase already
+requires.** `06-CONTEXT.md` commits to a security-headers implementation; a
+Node-runtime `middleware.ts` that rewrites unmatched localised slugs to a
+per-locale 404 page with a 404 status is a small addition to infrastructure that
+is arriving anyway, and it is the only option that keeps the German error copy
+*and* fixes the accessibility defect. Deferring costs nothing in the meantime —
+the site ships `noindex` until Phase 6 flips it.
+
+**Do not** add a no-JS assertion for the two localised paths before this lands;
+it would fail today. `tests/writing-not-found.spec.ts` already asserts server HTML
+with `javaScriptEnabled: false` for the three paths that *are* fixed, and carries
+a comment recording this trade so it is not re-derived.
