@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { test } from "node:test";
 import { allBlocks, allSelectors, css, declarationsOf, valuesOf } from "./css-source.ts";
 
@@ -238,4 +240,37 @@ test("(h) the existing invariants still hold, restated so this suite fails indep
   const countOccurrences = (needle: string) => css.split(needle).length - 1;
   assert.equal(countOccurrences(display), 1, "Display clamp() curve must appear exactly once");
   assert.equal(countOccurrences(heading), 1, "Heading clamp() curve must appear exactly once");
+});
+
+// Amendment A1's second remit for this file: a source-fact gate over
+// app/(en)/page.tsx's client boundary. A Playwright assertion cannot replace
+// this — measured today, "/" already inherits a <title> and a <meta
+// name="description"> from app/(en)/layout.tsx, so "a title appears on /"
+// passes before this plan's change and proves nothing (03-RESEARCH.md
+// C-2). The client boundary is a source fact — no "use client", no
+// useSmearHeading import — and must be asserted as one.
+const LANDING_PAGE_PATH = path.join(process.cwd(), "app/(en)/page.tsx");
+const landingPageSource = readFileSync(LANDING_PAGE_PATH, "utf8");
+
+test("(i) app/(en)/page.tsx is a Server Component exporting route metadata with a canonical, and declares no robots of its own", () => {
+  assert.ok(
+    !landingPageSource.includes('"use client"'),
+    'app/(en)/page.tsx must not contain "use client" — Amendment A1 de-clients the landing view',
+  );
+  assert.ok(
+    !landingPageSource.includes("useSmearHeading"),
+    "app/(en)/page.tsx must not import useSmearHeading directly — SmearTitle is the sanctioned client leaf",
+  );
+  assert.ok(
+    landingPageSource.includes("export const metadata"),
+    "app/(en)/page.tsx must export const metadata",
+  );
+  assert.ok(
+    landingPageSource.includes("canonical"),
+    "app/(en)/page.tsx's metadata must declare a canonical",
+  );
+  assert.ok(
+    !landingPageSource.includes("robots"),
+    'the string "robots" must not appear in app/(en)/page.tsx — it stays confined to the two root layouts until Phase 6\'s FIND-02',
+  );
 });
