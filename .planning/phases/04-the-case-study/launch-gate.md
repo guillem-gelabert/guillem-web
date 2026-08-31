@@ -174,3 +174,31 @@ link) and `HOME-02` (the featured slot carries visual primacy with the post's ow
 standfirst) are all confirmed against the actual production build and the actual live URL in this
 file's "Live deployment confirmation" section above — not against `next dev`, and not asserted from
 the source alone.
+
+---
+
+## Coordinator resolution of verification findings (2026-08-31)
+
+**F-002 — CASE-02 closed.** `REQUIREMENTS.md` had CASE-02 still `- [ ]` / "Pending" while its evidence
+was verified; closure commit `08f79d9` flipped the other three and skipped it without explanation.
+Corrected.
+
+**F-001 — SC-4, accepted with the structural discharge, recorded rather than waved through.**
+The verifier declined to substitute the implementer's reading for the criterion's literal words, which
+was the right call — so the decision is recorded here explicitly rather than left implicit.
+
+ROADMAP SC-4's literal wording is read as forbidding the work-list annotation from restating the case
+study's own finding. The shipped annotation — *"The Balearics stopped gaining on Europe in 1993 —
+while tourist arrivals went on tripling."* — does restate it.
+
+**Accepted, because the structural intent is discharged elsewhere and the alternative is worse.**
+`03-UI-SPEC.md:368/426` establishes that the annotation says what a piece is *about*, which for this
+piece is that finding; the featured slot, not the work-list row, is what carries the case study, and
+`tests/build/prerender.test.ts:431` asserts that separation. Rewriting the annotation to avoid the
+finding would make it vaguer about its own subject purely to satisfy a literal reading — worse copy
+in service of a criterion whose purpose is already met.
+
+`lib/work.ts` was not touched by any Phase 4 plan, so this is a Phase 3 artifact judged under a
+Phase 4 criterion. **Carried to the user's editorial pass**: if the annotation reads as redundant
+beside the featured slot, it is one line in `lib/work.ts` and the banned-tool-word gate is the only
+constraint on rewording it.

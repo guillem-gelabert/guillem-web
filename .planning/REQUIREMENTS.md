@@ -24,7 +24,7 @@ Requirements for milestone v1.0. Each maps to exactly one roadmap phase.
 ### Case Study
 
 - [x] **CASE-01**: Visitor can read a published case study covering ib-gdp-evolution.
-- [ ] **CASE-02**: Visitor can follow the case study through six parts: the question, Guillem's stated prior expectation, what the data actually showed, how the visual form changed in response, the shipped result, and a methodology note.
+- [x] **CASE-02**: Visitor can follow the case study through six parts: the question, Guillem's stated prior expectation, what the data actually showed, how the visual form changed in response, the shipped result, and a methodology note.
 - [x] **CASE-03**: Visitor can reach the case study from the landing view's featured slot.
 
 ### Work List
@@ -141,7 +141,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HOME-03 | Phase 3 | Complete |
 | HOME-04 | Phase 3 | Complete |
 | CASE-01 | Phase 4 | Complete |
-| CASE-02 | Phase 4 | Pending |
+| CASE-02 | Phase 4 | Complete |
 | CASE-03 | Phase 4 | Complete |
 | HOME-02 | Phase 4 | Complete |
 | BACK-01 | Phase 5 | Pending |
