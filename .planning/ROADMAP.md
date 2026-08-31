@@ -152,7 +152,32 @@ Plans:
   3. Visitor can reach the case study from the landing view's featured slot, which now carries clear visual primacy over a real piece rather than a placeholder.
   4. Visitor reading the work list sees the featured entry's annotation copy link into the case study rather than duplicate its content — the loop left open at the end of Phase 3 is closed here.
 
-**Plans**: TBD
+**Plans**: 6 plans
+Plans:
+**Wave 1**
+
+- [ ] 04-01-PLAN.md — The capture script and the live-text snapshot: three settled Act 2 states at 2400×1640 under `public/case-study/`, plus verbatim snapshots of all four live source pages
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 04-02-PLAN.md — The three content gates (`tests/unit/case-study-content.test.ts`, `tests/unit/case-study-figures.test.ts`, `tests/case-study.spec.ts`), which lock the six section marks, the front-matter, the banned-token list and the word bands. Ends RED by design
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 04-03-PLAN.md — The English case study: six beats in CASE-02's order, three figures, one aside, the pivot as a pull quote, one inline link to the live piece
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 04-04-PLAN.md — The German translation at `/texte/die-darstellung-aendert-sich`, paired by `translationKey`, with the D-17 draft branch recorded
+
+**Wave 5** *(blocked on Wave 4)*
+
+- [ ] 04-05-PLAN.md — Close the six assertions publishing broke (four in `tests/build/prerender.test.ts`, two in `tests/writing-index.spec.ts`); prove CASE-03 and HOME-02 in real prerendered HTML; full suite green
+
+**Wave 6** *(blocked on Wave 5)*
+
+- [ ] 04-06-PLAN.md — The D-19 fact check as a committed per-claim record, the live deploy confirmation, and the launch-gate closure with the HOME-01 tripwire carried forward
+
 **UI hint**: yes
 
 ### Phase 5: Backlog
@@ -194,10 +219,10 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Deploy Foundation & Design System | 4/4 | Complete   | 2026-08-29 |
 | 2. Content Pipeline | 7/7 | Complete   | 2026-08-31 |
 | 3. Work List & Landing Skeleton | 9/9 | Complete   | 2026-08-31 |
-| 4. The Case Study | 0/TBD | Not started | - |
+| 4. The Case Study | 0/6 | Not started | - |
 | 5. Backlog | 0/TBD | Not started | - |
 | 6. CV, Contact, Photo & Discoverability | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-08-29*
-*Last updated: 2026-08-31 — Phase 3 planned into 9 plans across 5 waves*
+*Last updated: 2026-08-31 — Phase 4 planned into 6 plans across 6 waves*
