@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Working Site
 status: executing
-stopped_at: "Phase 04 complete (04-06): fact check, deploy confirmation, closure records"
-last_updated: "2026-08-31T18:28:46.213Z"
-last_activity: 2026-08-31 -- Phase 05 execution started
+stopped_at: Completed 05-04-PLAN.md
+last_updated: "2026-08-31T19:29:13.959Z"
+last_activity: 2026-08-31
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 30
-  completed_plans: 26
-  percent: 67
+  completed_plans: 30
+  percent: 83
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: `.planning/PROJECT.md` (updated 2026-08-29)
 ## Current Position
 
 Phase: 05 (Backlog) — EXECUTING
-Plan: 1 of 4
-Status: Executing Phase 05
-Last activity: 2026-08-31 -- Phase 05 execution started
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-08-31
 
 Progress: [██████████] 100%
 
@@ -57,6 +57,7 @@ Progress: [██████████] 100%
 | Phase 01 P03 | 4min | 2 tasks | 6 files |
 | Phase 01 P04 | 12min | 2 tasks | 8 files |
 | Phase 04 P06 | 55min | 3 tasks | 3 files |
+| Phase 05 P04 | 11min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -88,6 +89,9 @@ Recent decisions affecting current work:
 - [Phase 04]: The D-19 accuracy gate (fact-check.md) audited every quotation and numeral in both case-study languages against the live-text snapshots and ARTICLE_PLAN.md; 83 claims audited, 0 with no traceable source, all twelve named traps passed in both languages, no prose fix required
 - [Phase 04]: Phase 4's launch-gate closure was structural, not code: the featured slot was already wired to findBySlug(publishedFor(en), CASE_STUDY_SLUG) since Phase 3; publishing content/the-chart-therefore-changes.mdx with draft:false was the entire mechanism, net production code change was zero
 - [Phase 04]: New carried item alongside HOME-01: the user's editorial pass over both case studies has not happened; CONTEXT D-18 recommends it before Phase 6 flips robots, and it is carried at equal weight to HOME-01 as a blocking pre-condition on FIND-02
+- [Phase 05]: The launch gate was re-pointed, not shrunk -- the deleted backlog-stub assertion was replaced by a COPY_REVIEWED = false source-scrape (D-14's second tripwire channel), naming all three outstanding copy items in the comment rather than leaving a one-line check nobody reads
+- [Phase 05]: The new production test matches dateTime (camelCase), not datetime -- React 19.2.8 emits the JSX prop name verbatim in the raw prerendered file; re-confirmed this session against the real build
+- [Phase 05]: The live deploy check used the already-live origin/master tip (e76b6d8, from Plan 01) rather than requiring a push of this plan's own test-tier/documentation-only commits, since they carry zero production-code delta
 
 ### Pending Todos
 
@@ -117,6 +121,6 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-31T17:36:15.378Z
-Stopped at: Phase 04 complete (04-06): fact check, deploy confirmation, closure records
-Resume file: None — plan Phase 05 next
+Last session: 2026-08-31T19:29:13.952Z
+Stopped at: Completed 05-04-PLAN.md
+Resume file: None
