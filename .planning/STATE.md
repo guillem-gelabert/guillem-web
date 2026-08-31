@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Working Site
-status: executing
-stopped_at: Phase 2 UI-SPEC approved
-last_updated: "2026-08-31T15:51:06.622Z"
-last_activity: 2026-08-31 -- Phase 04 execution started
+status: completed
+stopped_at: "Phase 04 complete (04-06): fact check, deploy confirmation, closure records"
+last_updated: "2026-08-31T17:36:48.504Z"
+last_activity: 2026-08-31
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 26
-  completed_plans: 20
-  percent: 50
+  completed_plans: 26
+  percent: 67
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: `.planning/PROJECT.md` (updated 2026-08-29)
 
 ## Current Position
 
-Phase: 04 (The Case Study) — EXECUTING
-Plan: 1 of 6
-Status: Executing Phase 04
-Last activity: 2026-08-31 -- Phase 04 execution started
+Phase: 04 (The Case Study) — COMPLETE
+Plan: 6 of 6 (04-06: fact check, deploy confirmation, closure records)
+Status: Phase 04 complete — ready for Phase 05 (Backlog)
+Last activity: 2026-08-31
 
 Progress: [██████████] 100%
 
@@ -56,6 +56,7 @@ Progress: [██████████] 100%
 | Phase 01 P02 | 4min | 2 tasks | 6 files |
 | Phase 01 P03 | 4min | 2 tasks | 6 files |
 | Phase 01 P04 | 12min | 2 tasks | 8 files |
+| Phase 04 P06 | 55min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,9 @@ Recent decisions affecting current work:
 - [Phase 03]: The landing view (`/`) is English-only for v1 — `I18N-01` is scoped to writing and is complete without it. `/startseite` is the recorded future shape for a German landing (no locale prefix, fully localised segments, matching Phase 2's shipped pattern) but is not built now.
 - [Phase 03]: The featured slot's state is derived, not flagged — `findBySlug(await publishedFor("en"), CASE_STUDY_SLUG)` resolves to `PostEntry | null`, and the component branches on that value. There is no boolean anywhere to flip when Phase 4 publishes the case study; the slot changes automatically once the MDX file exists and is not `draft: true`.
 - [Phase 03]: Amendment A3 (`.link-quiet` conformance) was extended beyond the UI-SPEC's written list to `app/not-found.tsx` (the global not-found boundary) and both `[slug]` post-template back links, recorded here rather than made silently.
+- [Phase 04]: The D-19 accuracy gate (fact-check.md) audited every quotation and numeral in both case-study languages against the live-text snapshots and ARTICLE_PLAN.md; 83 claims audited, 0 with no traceable source, all twelve named traps passed in both languages, no prose fix required
+- [Phase 04]: Phase 4's launch-gate closure was structural, not code: the featured slot was already wired to findBySlug(publishedFor(en), CASE_STUDY_SLUG) since Phase 3; publishing content/the-chart-therefore-changes.mdx with draft:false was the entire mechanism, net production code change was zero
+- [Phase 04]: New carried item alongside HOME-01: the user's editorial pass over both case studies has not happened; CONTEXT D-18 recommends it before Phase 6 flips robots, and it is carried at equal weight to HOME-01 as a blocking pre-condition on FIND-02
 
 ### Pending Todos
 
@@ -94,6 +98,8 @@ None pending.
 - Backlog (Phase 5): PROJECT.md logs the dateless/stateless-per-item backlog as an accepted risk (⚠️ Revisit) — mitigated only by BACK-02's section-level "last touched" date, curation, and progress-report copy voice. Not a blocker, but should be revisited if the backlog reads as stale post-launch.
 - Legacy source repo (Phase 2): all Jekyll/permalink/pagination findings in research come from crawling the *live rendered* `guillem-gelabert.github.io` site, not yet verified against the source GitHub repo. Confirm the authoritative 13-post list and check for Liquid-syntax (`{% highlight %}`, `{% raw %}`) code fences against the repo before finalizing the migration plan.
 - **`HOME-01` tripwire (Phase 3, THE TRIPWIRE):** the positioning sentence still ships as `Developer.` behind `POSITIONING_PLACEHOLDER` in `lib/work.ts`. It is marked in source only, never on screen, so the landing view looks finished at every optical pass while the site's single most important sentence is unwritten. Must be re-asserted at the top of every subsequent phase's carried-forward state until the user supplies the sentence, and must never reach Phase 6's `FIND-02` robots flag flip still holding the placeholder. Full record: `.planning/phases/03-work-list-landing-skeleton/deferred-items.md`.
+- HOME-01 tripwire, re-asserted after Phase 4 (per deferred-items.md's carry-forward rule): the positioning sentence still ships as Developer. behind POSITIONING_PLACEHOLDER in lib/work.ts. Marked in source only, never on screen, so the landing view looks finished at every optical pass while the site's single most important sentence is unwritten. Must be re-asserted at the top of every subsequent phase's carried-forward state until the user supplies the sentence, and must never reach Phase 6's FIND-02 robots flip still holding the placeholder. Full record: .planning/phases/04-the-case-study/launch-gate.md.
+- NEW carried item from Phase 4, same weight as HOME-01: the user's editorial pass over both case studies has not happened. Both content/the-chart-therefore-changes.mdx and content/die-darstellung-aendert-sich.mdx shipped draft:false without a human proofread, in two languages, by directive. CONTEXT D-18 recommends this pass occur before Phase 6 flips robots to indexable. The D-19 accuracy gate (fact-check.md) reduces factual risk only; it does not substitute for the author's ear. A live, indexable, bylined piece that no human has read is the risk this phase creates. Must be re-asserted alongside HOME-01 until the user completes the pass. Full record: .planning/phases/04-the-case-study/launch-gate.md.
 
 ## Deferred Items
 
@@ -105,9 +111,10 @@ Items acknowledged and carried forward from previous milestone close:
 | Copy | `HOME-01` — the positioning sentence is unwritten (`Developer.` placeholder); **blocks `FIND-02`** | Deferred by decision (`D-08`) — the tripwire | Phase 03 |
 | Copy | `WORK-02` — the two work-list annotations are drafts awaiting the user's edit (`D-09`) | Deferred by decision — requirement is met, copy is not final | Phase 03 |
 | Content | Four interim surfaces (featured slot, backlog stub, contact stub, `/cv`) — none may be the public launch condition; **blocks `FIND-02`** | Deliberately typeset (`D-02`), safe under `noindex` | Phase 03 |
+| Copy | The user's editorial pass over both case studies has not happened (English and German, both `draft: false`); **blocks `FIND-02`** | Carried at equal weight to `HOME-01`; D-19's accuracy gate reduces factual risk only, not voice/register | Phase 04 |
 
 ## Session Continuity
 
-Last session: 2026-08-29T22:09:24.520Z
-Stopped at: Phase 2 UI-SPEC approved
-Resume file: .planning/phases/02-content-pipeline/02-UI-SPEC.md
+Last session: 2026-08-31T17:36:15.378Z
+Stopped at: Phase 04 complete (04-06): fact check, deploy confirmation, closure records
+Resume file: None — plan Phase 05 next
