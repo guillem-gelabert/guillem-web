@@ -86,9 +86,27 @@ async function slugsOnDisk(): Promise<string[]> {
  * derives .md vs .mdx format from the file suffix, so this six-line
  * try/catch is the entirety of the two-format dispatch.
  */
+/**
+ * ASVS V4: the allowlist ordering documented at findBySlug is enforced by
+ * convention — a comment — and the routes honour it today. This regex is the
+ * same property expressed as code, so it survives a refactor that inlines a
+ * "convenience" loader and loses the ordering silently. loadPostModule feeds
+ * a caller-supplied string into a bundler context module whose generated
+ * request pattern (^\./.*\.mdx$ rooted at content/) also matches ./../…
+ * shapes; this is what makes that structurally unreachable.
+ */
+const SAFE_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
 export async function loadPostModule(
   slug: string,
 ): Promise<{ default: ComponentType; frontmatter: unknown }> {
+  if (!SAFE_SLUG.test(slug)) {
+    throw new Error(
+      `Refusing to import unsafe slug: ${JSON.stringify(slug)}. ` +
+        `Post filenames must be lowercase a-z, 0-9 and single hyphens ` +
+        `(German slugs transliterate umlauts: "ue", "ae", "oe", "ss").`,
+    );
+  }
   try {
     return await import(`@/content/${slug}.mdx`);
   } catch (error) {

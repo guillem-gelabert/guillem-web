@@ -5,6 +5,7 @@ import {
   findBySlug,
   findTranslation,
   isVisible,
+  loadPostModule,
   selectForLocale,
 } from "../../lib/content.ts";
 import type { PostEntry, PostFrontmatter } from "../../lib/content.ts";
@@ -22,12 +23,13 @@ import type { PostEntry, PostFrontmatter } from "../../lib/content.ts";
 //   4. D-11 (draft visibility): isVisible hides drafts in production and
 //      shows them in development.
 //
-// allPosts, publishedFor, translationOf and loadPostModule are deliberately
-// NOT exercised here — they depend on the bundler's @/ alias and on
-// content/ existing on disk, and are covered end-to-end by the Playwright
-// specs in Plans 04/05 instead. This file only touches the pure,
-// synchronous helpers and inline fixtures; it never touches the filesystem
-// or imports a .mdx file.
+// allPosts, publishedFor and translationOf are deliberately NOT exercised
+// here — they depend on the bundler's @/ alias and on content/ existing on
+// disk, and are covered end-to-end by the Playwright specs in Plans 04/05
+// instead. loadPostModule appears only in the slug-guard test below, which
+// asserts the rejection that happens BEFORE any import() is reached, so it
+// never touches the alias either. Everything else in this file is pure,
+// synchronous helpers over inline fixtures.
 
 function withNodeEnv(value: string, fn: () => void) {
   // process.env.NODE_ENV is typed readonly (Next.js's NodeJS.ProcessEnv
@@ -192,5 +194,32 @@ test("8. assertFrontmatter accepts real edge-case calendar dates rather than ove
   // boundaries — the failure mode of a stricter regex-plus-Date guard.
   for (const date of ["2024-02-29", "2026-01-31", "2026-12-31", "2026-01-01"]) {
     assertFrontmatter({ ...validFrontmatter, date }, "edge-date.mdx");
+  }
+});
+
+test("9. loadPostModule refuses an unsafe slug structurally, before any dynamic import runs", async () => {
+  // WR-02: findBySlug's allowlist ordering is the route's control, but it is
+  // enforced by a comment. This is the same property expressed as code, so a
+  // refactor that inlines a "convenience" loader cannot lose it silently.
+  for (const slug of [
+    "../secret",
+    "../../package.json",
+    "..%2Fsecret",
+    "",
+    "Fixture",
+    "with space",
+    "trailing-",
+    "double--hyphen",
+    "nur_auf_deutsch",
+  ]) {
+    await assert.rejects(
+      () => loadPostModule(slug),
+      (err: unknown) => {
+        assert.ok(err instanceof Error);
+        assert.match((err as Error).message, /Refusing to import unsafe slug/);
+        return true;
+      },
+      `loadPostModule must refuse ${JSON.stringify(slug)}`,
+    );
   }
 });
