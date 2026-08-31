@@ -177,10 +177,25 @@ export function isVisible(entry: PostEntry): boolean {
   return showDrafts() || entry.frontmatter.draft !== true;
 }
 
+/**
+ * Reverse-chronological, then alphabetical by slug. The slug tiebreak is not
+ * cosmetic: comparing dates alone returns 0 for two posts sharing a date, and
+ * a stable sort then preserves readdir order, which is filesystem- and
+ * platform-dependent. The rendered index order and the order of
+ * generateStaticParams() could differ between a developer's machine and the
+ * deploy build with no error and no test failure. content/fixture.mdx and
+ * content/musterseite.mdx already share 2026-08-30.
+ */
+function byDateThenSlug(a: PostEntry, b: PostEntry): number {
+  return (
+    b.frontmatter.date.localeCompare(a.frontmatter.date) || a.slug.localeCompare(b.slug)
+  );
+}
+
 export function selectForLocale(entries: PostEntry[], lang: Locale): PostEntry[] {
   return entries
     .filter((entry) => entry.frontmatter.lang === lang && isVisible(entry))
-    .sort((a, b) => b.frontmatter.date.localeCompare(a.frontmatter.date));
+    .sort(byDateThenSlug);
 }
 
 /**
@@ -215,7 +230,7 @@ export async function allPosts(): Promise<PostEntry[]> {
       return { slug, frontmatter };
     }),
   );
-  return entries.sort((a, b) => b.frontmatter.date.localeCompare(a.frontmatter.date));
+  return entries.sort(byDateThenSlug);
 }
 
 export async function publishedFor(lang: Locale): Promise<PostEntry[]> {

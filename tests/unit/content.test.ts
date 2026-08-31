@@ -249,3 +249,28 @@ test("10. findTranslation over a visibility-filtered list is not shadowed by a n
     assert.deepEqual(findTranslation(enPost, all.filter(isVisible)), deTwin);
   });
 });
+
+test("11. same-date posts order deterministically by slug, whatever order readdir returned them in", () => {
+  // WR-09: comparing dates alone returns 0 for a tie, and a stable sort then
+  // preserves readdir order — filesystem- and platform-dependent. Feed the
+  // same two entries in both input orders and require one output order.
+  const sameDateA: PostEntry = {
+    slug: "alpha",
+    frontmatter: { ...validFrontmatter, translationKey: "alpha", date: "2026-08-30" },
+  };
+  const sameDateB: PostEntry = {
+    slug: "beta",
+    frontmatter: { ...validFrontmatter, translationKey: "beta", date: "2026-08-30" },
+  };
+  const older: PostEntry = {
+    slug: "zulu",
+    frontmatter: { ...validFrontmatter, translationKey: "zulu", date: "2026-01-01" },
+  };
+
+  withNodeEnv("production", () => {
+    const forwards = selectForLocale([sameDateA, sameDateB, older], "en").map((e) => e.slug);
+    const backwards = selectForLocale([older, sameDateB, sameDateA], "en").map((e) => e.slug);
+    assert.deepEqual(forwards, ["alpha", "beta", "zulu"]);
+    assert.deepEqual(backwards, forwards);
+  });
+});
