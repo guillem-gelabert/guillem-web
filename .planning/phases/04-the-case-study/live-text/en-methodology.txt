@@ -1,0 +1,814 @@
+// Source: https://ib-gdp.guillemgelabert.com/everyone-in-mallorca-agrees-on-one-thing/methodology
+// Fetched: 2026-08-31T15:59:22.387Z
+←
+BACK TO THE STORY
+METHODOLOGY
+
+This project began with a widely shared suspicion: tourist arrivals keep breaking records, but life for local people stopped improving long ago and may be getting worse. I wanted to know whether that impression would survive contact with the data.
+
+The data I was looking for
+A long-run series showing Balearic GDP per head before and after the arrival of mass tourism, comparable with other Spanish regions and European countries.
+A long-run series of tourist arrivals in the Balearic Islands, beginning before mass tourism.
+The best available evidence
+
+Neither series exists in a complete, consistent form. Reconstructing them requires sources that cover different periods and places, use different units and measure related—but not identical—things. The further back the record goes, the less reliable it becomes.
+
+These are the sources used in the reconstruction.
+
+GDP per capita
+
+GDP PER CAPITA
+
+Rosés-Wolf regional GDP database — GDP
+SHEET
+A1b Regional GDP (2011PPP)
+AREA COVERED
+European NUTS-2 regions with current borders applied retroactively
+MEASURE
+regional GDP
+UNITS
+millions of 2011 international dollars, PPP-adjusted
+COVERAGE
+1900-2022
+FREQUENCY
+irregular points
+
+The Rosés-Wolf database provides GDP and population data for 173 regions in 16 European countries. It is the closest available match for this project. This sheet supplies the GDP figures used to calculate regional GDP per head in 2011 international dollars. I use the Spanish regions and retain each observed value as an anchor point.
+
+GDP PER CAPITA
+
+Rosés-Wolf regional GDP database — population
+SHEET
+A3 Population
+AREA COVERED
+European NUTS-2 regions with current borders applied retroactively
+MEASURE
+resident population
+UNITS
+thousands of people
+COVERAGE
+1900-2022
+FREQUENCY
+irregular points
+
+This table supplies the population figures for the Rosés-Wolf calculation. GDP is reported in millions and population in thousands; after adjusting for that difference in scale, dividing one by the other gives dollars per person.
+
+Regional GDP per capita — Rosés-Wolf
+
+Benchmark estimates for 173 European NUTS-2 regions. Add individual regions, such as the Balearic Islands or Corsica, or all regions in a country.
+
+Balearic Islands
+×
+Corsica
+×
+ADD SERIES
+▾
+1900
+1920
+1940
+1960
+1980
+2000
+2020
+0
+5,000
+10,000
+15,000
+20,000
+25,000
+30,000
+35,000
+40,000
+2011 PPP $ per capita
+
+GDP PER CAPITA
+
+Maddison Project Database — GDP per capita
+SHEET
+GDPpc
+AREA COVERED
+countries and macro-regional aggregates
+MEASURE
+GDP per capita
+UNITS
+2011 international dollars, PPP-adjusted
+COVERAGE
+1-2022, varying by country
+FREQUENCY
+annual, with gaps by country and period
+
+The Maddison Project compiles long-run growth and income data for 169 countries. Rosés-Wolf uses it for national figures. Here it provides the baseline for EU member states through 2022, as well as Spain’s national figure, which is used to scale Eurostat’s regional data.
+
+GDP PER CAPITA
+
+Maddison Project Database — population
+SHEET
+Population
+AREA COVERED
+countries and macro-regional aggregates
+MEASURE
+resident population
+UNITS
+thousands of people
+COVERAGE
+1-2022, varying by country
+FREQUENCY
+annual, with gaps by country and period
+
+I use this table only to calculate a population-weighted average for today’s 27 EU member states. Maddison does not provide that average as a ready-made series. Coverage becomes complete in 1985; before then, the countries included vary with data availability and are identified in the generated output.
+
+GDP per capita by country — Maddison
+
+Annual GDP per capita for the EU-27 countries and the population-weighted EU-27 average, 1900–2022.
+
+Spain
+×
+France
+×
+EU-27 average
+×
+ADD SERIES
+▾
+1900
+1920
+1940
+1960
+1980
+2000
+2020
+0
+5,000
+10,000
+15,000
+20,000
+25,000
+30,000
+35,000
+40,000
+2011 PPP $ per capita
+
+GDP PER CAPITA
+
+Eurostat: GDP and main components — real growth per capita
+DATASET
+Eurostat database ⓘ
+AREA COVERED
+European countries and aggregates, including the EU27_2020 average
+MEASURE
+annual growth of real GDP per capita
+UNITS
+percentage change on the previous period
+COVERAGE
+1975-2025
+FREQUENCY
+annual
+
+Eurostat publishes this series as part of its GDP and main components dataset. I use its real growth rates per head, not its absolute levels. Data for 2015–22 are used to calibrate the recent difference between Eurostat and Maddison; figures for 2023–25 extend the country series, the European average and Spain’s national series, which anchors the regional estimates.
+
+Real growth per capita — Eurostat nama_10_pc
+
+Annual real GDP growth per head (%). These rates extend the country series and the European average beyond the end of the Maddison data in 2022.
+
+Spain
+×
+EU-27 average
+×
+ADD SERIES
+▾
+2000
+2005
+2010
+2015
+2020
+2025
+−10
+−5
+0
+5
+Real growth, % per year
+
+GDP PER CAPITA
+
+Eurostat: GDP at current prices by NUTS-2 region
+TABLE/SHEET
+nama_10r_2gdp, PPS_EU27_2020_HAB
+AREA COVERED
+Spain and Spanish NUTS regions, including the autonomous communities
+MEASURE
+GDP at current prices per inhabitant, expressed in PPS
+UNITS
+current PPS per inhabitant
+COVERAGE
+2000-2024
+FREQUENCY
+annual
+
+Eurostat’s nama_10r_2gdp table reports regional GDP at current prices. Its Spanish figures come from the national statistics office, INE, so the two sources are effectively the same. I use the PPS figures to track each autonomous community relative to Spain and to extend the regional series through 2023–24, rather than treating them as the final GDP series.
+
+Regional PPS per capita — Eurostat nama_10r_2gdp
+
+Current PPS per person for Spain and its autonomous communities, 2000–2024. Used to trace regional patterns rather than as the final GDP series.
+
+Balearic Islands
+×
+Spain
+×
+Madrid
+×
+ADD SERIES
+▾
+2000
+2002
+2004
+2006
+2008
+2010
+2012
+2014
+2016
+2018
+2020
+2022
+2024
+0
+10,000
+20,000
+30,000
+40,000
+50,000
+Current PPS per capita
+
+GDP PER CAPITA
+
+Funcas: regional GDP-per-capita index 2025
+TABLE USED
+Cuadro 1, row “PIB per cápita nominal (España=100)”, column 2025
+NOTEBOOK REPRESENTATION
+constant FUNCAS_2025
+AREA COVERED
+Spanish autonomous communities
+MEASURE
+nominal GDP per capita relative to Spain
+UNITS
+index, Spain = 100
+COVERAGE
+2025
+FREQUENCY
+annual
+
+Funcas publishes GDP-per-head forecasts for every Spanish autonomous community. I use it only for 2025, because Eurostat’s regional series ends in 2024. Each community’s index is applied to the projected figure for Spain.
+
+Nominal index for 2025, used because Eurostat’s regional series ends in 2024.
+
+Spain = 100
+
+GDP PER CAPITA
+
+INE: regional Consumer Price Index (CPI)
+AREA COVERED
+Spain and the autonomous communities
+MEASURE
+consumer price level (general index)
+UNITS
+index, 2025 = 100
+COVERAGE
+2002-2025 (annual mean)
+FREQUENCY
+monthly, aggregated to annual
+
+I compared each region’s consumer price index with the national index to see whether separate regional deflators were justified. Between 2002 and 2024, the Balearic index remained within 1% of Spain’s. Given that small difference, the method assumes uniform purchasing power across Spain.
+
+Regional CPI relative to the national level
+
+Each autonomous community’s consumer price index as a percentage of Spain’s. The Balearic index remains within about 1% of the national figure, so the method does not use separate regional deflators.
+
+Y-AXIS
+% of national
+Index (2025 = 100)
+Balearic Islands
+×
+Spain
+×
+Canary Islands
+×
+Madrid
+×
+ADD SERIES
+▾
+2002
+2004
+2006
+2008
+2010
+2012
+2014
+2016
+2018
+2020
+2022
+2024
+98
+99
+100
+101
+102
+103
+104
+105
+106
+% of national
+Tourist arrivals
+
+There is no continuous record of tourist arrivals stretching back to the years before mass tourism. I therefore combine four sources covering successive periods, from early academic estimates to today’s official border statistics.
+
+The definitions vary as much as the sources. Some figures are observations and others estimates; some include domestic tourists and others do not; some cover Mallorca alone and others the Balearic Islands as a whole.
+
+I found no single, consistent series covering 1900–2025. AETIB/FRONTUR provides the modern statistical foundation, although its own methodology changes over time. Earlier observations come from academic studies and specialist books.
+
+TOURIST ARRIVALS
+
+Cirer-Costa: estimates of pre-tourism tourism
+AREA COVERED
+Balearic Islands
+MEASURE
+estimated pre-tourism tourist volume
+UNITS
+tourists per year
+COVERAGE
+1900-1936
+FREQUENCY
+sparse points
+
+These are estimates by an academic author, not official counts. They cover the period before systematic tourism statistics existed. I use only the estimates for 1900 and 1920 as early anchor points.
+
+TOURIST ARRIVALS
+
+Barceló Pons (1966)
+AREA COVERED
+Mallorca
+MEASURE
+reconstructed tourist arrivals
+UNITS
+tourists per year
+COVERAGE
+1925-1965
+FREQUENCY
+sparse points
+
+These estimates were reconstructed in the mid-1960s from contemporary hotel registers, port records and regional statistics. They cover 1930–65. Some refer to Mallorca alone rather than the Balearic Islands as a whole, an important difference when comparing the figures.
+
+TOURIST ARRIVALS
+
+Valdivielso and Moranta (2020)
+AREA COVERED
+Balearic Islands
+MEASURE
+tourist arrivals
+UNITS
+millions of tourists, converted to persons
+COVERAGE
+1959-2019
+FREQUENCY
+selected years
+
+Valdivielso and Moranta combine arrival estimates from earlier research and regional statistics, updated with AETIB data. Where their figures overlap with AETIB/FRONTUR, the reconstruction gives priority to AETIB/FRONTUR. Their study therefore supplies most of the key observations from the start of the tourism boom to 1993, while later overlaps provide a useful cross-check.
+
+TOURIST ARRIVALS
+
+AETIB/FRONTUR: yearbooks and border tourism movements
+AREA COVERED
+Balearic Islands
+MEASURE
+tourist entries/arrivals; since 2016, tourists by main destination
+UNITS
+tourists per year
+COVERAGE
+1998-2025
+FREQUENCY
+annual
+
+This is the only modern primary statistical source in the arrivals series, but its methodology is not consistent throughout. Figures for 1998–2000 cover air arrivals; 2001–09 combines air and sea; 2010 marks the move to annual FRONTUR data; and INE/IBESTAT redesigned FRONTUR in 2016. AETIB/FRONTUR is the preferred source from 1998 onwards whenever another source also covers the same year.
+
+Problems and solutions
+Problem: uneven quality of the sources
+SOLUTION: DISCLOSE THE UNCERTAINTY AND TEST WHETHER IT MATTERS
+
+This is an explanatory article about long-run trends, not a scientific paper. The early data are patchy and vary in quality, but the observations become more reliable precisely where small differences would matter most to the argument.
+
+Tourist numbers in the early 20th century were tiny by later standards. Even if Cirer-Costa’s estimate for 1920 were wrong by a factor of ten—2,000 or 200,000 arrivals rather than 20,000—the steep rise after 1960 would look essentially the same. The article’s conclusion would not change.
+
+By the time an error of that size could materially alter the chart, the sources are more reliable and use stable methods.
+
+The same applies to the economic data. The broad argument survives margins of error that would be unacceptable for a scientific estimate.
+
+I exclude 2020 and 2021 where sources report them. The pandemic was a large but temporary external shock, and plotting those years would obscure rather than clarify the 125-year trend.
+
+Problem: different units for modern GDP per capita
+SOLUTION: ANCHOR, CHAIN AND DEFLATE
+
+Rosés-Wolf provides constant-price figures for the Spanish regions and Maddison does the same for countries and the European average. Both series end in 2022. Eurostat’s national data extend the countries and the European average to 2025, while its regional data provide the Spanish regional pattern for 2023 and 2024. Funcas supplies the regional estimate for 2025.
+
+The sources use different measures of purchasing power. Rosés-Wolf and Maddison report constant 2011 international dollars adjusted for purchasing power; Eurostat reports current purchasing power standards (PPS) per person. For Spanish regions, PPS expresses nominal regional differences within a common Spanish and European framework. It does not provide a separate cost-of-living adjustment for each autonomous community. Eurostat can therefore show annual regional patterns, but its figures must be re-anchored and adjusted before they can form a consistent long-run series.
+
+The simplest way to join the series would be to choose a year they share—2000, for example—and apply Eurostat’s subsequent annual growth to the Rosés-Wolf value for that year.
+
+The conversion factor k is the Rosés-Wolf value in the chosen base year divided by the Eurostat value for the same year.
+
+combinedIncome(year)=
+⎩
+⎨
+⎧
+	​
+
+RW[year],
+Eurostat(year)⋅
+Eurostat[2000]
+RW[2000]
+	​
+
+,
+	​
+
+year≤2000
+year>2000
+	​
+
+Balearic GDP per head: Rosés-Wolf and Eurostat anchored in 2000
+
+Comparison using a single anchor year.
+
+Rosés-Wolf observed
+×
+Single anchor (2000)
+×
+ADD SERIES
+▾
+1900
+1950
+2000
+2005
+2010
+2015
+2020
+0
+10,000
+20,000
+30,000
+40,000
+50,000
+2011 PPP $ per capita
+
+This approach assumes that the relationship between PPP dollars and PPS never changes. Because PPS is not adjusted for inflation, that would amount to assuming zero inflation—clearly unrealistic.
+
+The result also depends heavily on the base year. Using 2000 rather than 2022 changes the estimate by more than 20%.
+
+A second option uses two common years, such as the first and last years shared by both series. A line between the two conversion factors, calculated on a logarithmic scale, spreads the discrepancy across the overlap and provides a projected adjustment for later years. This works only if the relationship between PPP dollars and PPS changes steadily—for example, if inflation is constant.
+
+The next chart shows the result.
+
+Anchoring methods compared — Balearic Islands
+
+Single-year anchors in 2000 and 2022, and a two-point log-linear method, compared with the observed Rosés-Wolf values.
+
+Rosés-Wolf observed
+×
+Single anchor (2000)
+×
+Single anchor (2022)
+×
+Two-point log-linear
+×
+ADD SERIES
+▾
+1900
+1950
+2000
+2005
+2010
+2015
+2020
+0
+10,000
+20,000
+30,000
+40,000
+50,000
+2011 PPP $ per capita
+
+Up to 2020, the simpler single-year method is actually closer to Rosés-Wolf’s real GDP figures, because Rosés-Wolf and Eurostat follow similar paths. Their treatment of the post-pandemic recovery then diverges: Eurostat’s rebound begins earlier, which pushes the reconstructed values for previous years down. Adding a second anchor does not remove the sensitivity to the chosen years, and it still discards Rosés-Wolf’s observations between them.
+
+The final method combines three steps.
+
+For EU countries and the European average, I use Maddison through 2022. From 2023 onwards, Eurostat’s real growth per head (nama_10_pc, CLV_PCH_PRE_HAB) extends the Maddison series. A correction reflects the average difference between the two sources in 2015–22. The recent overlap matters more than a long historical average because the projection covers only a few years.
+
+k
+country
+	​
+
+GDP
+country
+	​
+
+(year)
+	​
+
+=mean
+year=2015,…,2022
+	​
+
+(growth
+Maddison, country
+	​
+
+(year)−growth
+Eurostat, country
+	​
+
+(year))
+=
+⎩
+⎨
+⎧
+	​
+
+Maddison
+country
+	​
+
+(year),
+GDP
+country
+	​
+
+(year−1)(1+
+100
+growth
+Eurostat, country
+	​
+
+(year)+k
+country
+	​
+
+	​
+
+),
+	​
+
+year≤2022
+year≥2023
+	​
+
+	​
+
+
+For Spanish regions, every observed Rosés-Wolf value is retained. Where Eurostat regional data are available between two Rosés-Wolf observations, each community’s PPS per person is expressed relative to Spain and applied to Spain’s GDP per head in 2011 international dollars. The resulting annual pattern is rescaled to meet the Rosés-Wolf values at both ends. Where Eurostat has no regional data, the gap is filled by log-linear interpolation.
+
+profile
+region
+	​
+
+(year)
+weight(year)
+k
+region
+	​
+
+(year)
+GDP
+region
+	​
+
+(year)
+	​
+
+=GDP
+Spain
+	​
+
+(year)⋅
+PPS
+Spain
+	​
+
+(year)
+PPS
+region
+	​
+
+(year)
+	​
+
+=
+next year−previous year
+year−previous year
+	​
+
+=(
+profile
+region
+	​
+
+(previous year)
+RW
+region
+	​
+
+(previous year)
+	​
+
+)
+1−weight(year)
+(
+profile
+region
+	​
+
+(next year)
+RW
+region
+	​
+
+(next year)
+	​
+
+)
+weight(year)
+={
+k
+region
+	​
+
+(year)profile
+region
+	​
+
+(year),
+RW
+region
+	​
+
+(previous year)
+1−weight(year)
+RW
+region
+	​
+
+(next year)
+weight(year)
+,
+	​
+
+profile available
+otherwise
+	​
+
+	​
+
+
+For 2015–22, the regional series uses Rosés-Wolf’s annual observations. Figures for 2023 and 2024 extend the 2022 Rosés-Wolf value using the regional Eurostat pattern, scaled to the national series for Spain.
+
+profile
+region
+	​
+
+(year)
+k
+region
+	​
+
+GDP
+region
+	​
+
+(year)
+	​
+
+=GDP
+Spain
+	​
+
+(year)⋅
+PPS
+Spain
+	​
+
+(year)
+PPS
+region
+	​
+
+(year)
+	​
+
+=
+profile
+region
+	​
+
+(2022)
+RW
+region
+	​
+
+(2022)
+	​
+
+={
+RW
+region
+	​
+
+(year),
+k
+region
+	​
+
+profile
+region
+	​
+
+(year),
+	​
+
+2015≤year≤2022
+year∈{2023,2024}
+	​
+
+	​
+
+
+This method treats purchasing power as uniform across Spain. That is an approximation: living costs are higher in the Balearics than in Castile or Extremadura. But INE consumer price data show the Balearic index remaining within 1% of the national index between 2002 and 2024, so separate regional adjustments would make little difference to the result.
+
+For 2025, the calculation uses Funcas’s nominal GDP-per-head index, in which Spain equals 100, rather than applying a regional growth rate to the reconstructed 2024 value. The Balearic calculation, for example, is 111.3 / 100 × Spain_2025.
+
+k
+Funcas, region
+	​
+
+GDP
+region
+	​
+
+(2025)
+	​
+
+=
+100
+FuncasIndex
+region
+	​
+
+(2025)
+	​
+
+=k
+Funcas, region
+	​
+
+⋅GDP
+Spain
+	​
+
+(2025)
+	​
+
+The combined series used in the article
+
+The final series combines Funcas, Maddison, Rosés-Wolf and Eurostat. Compare regions, countries and the EU average, or switch the y-axis to relative values.
+
+Y-AXIS
+Absolute (2011 PPP $)
+% of EU-27 average
+% of Spain
+Balearic Islands
+×
+Spain
+×
+France
+×
+EU-27 average
+×
+ADD SERIES
+▾
+1900
+1920
+1940
+1960
+1980
+2000
+2020
+0
+10,000
+20,000
+30,000
+40,000
+2011 PPP $ per capita
+Bibliography
+Barceló Pons, B. (1966). El turismo en Mallorca en la época de 1925–1936. Boletín de la Cámara Oficial de Comercio, Industria y Navegación de Palma de Mallorca, 651–652, 47–61.
+Cirer Costa, J. C. (2020). El turismo en las Islas Baleares antes del ‘boom turístico’. Investigaciones Turísticas, 19. https://doi.org/10.14198/INTURI2020.19.08
+Funcas. (2025, December). Previsiones económicas para las comunidades autónomas 2025–2026.
+Picornell, C. (2025, March 9). Más de cien años de turismo en las Islas Baleares. Última Hora.
+Valdivielso, J., & Moranta, J. (2019). The social construction of the tourism degrowth discourse in the Balearic Islands. Journal of Sustainable Tourism, 27(12), 1876–1892. https://doi.org/10.1080/09669582.2019.1660670
+All AETIB/FRONTUR annual reports (1998–2024)
+CA · EN · DE
