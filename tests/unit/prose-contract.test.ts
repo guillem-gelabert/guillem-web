@@ -58,7 +58,17 @@ test("(d) every border-radius in .prose-site is 0", () => {
 });
 
 test("(e) !important does not appear anywhere in globals.css", () => {
-  assert.ok(!css.includes("!important"), "unlayered CSS should never need !important");
+  // Matched as a pattern, not a substring. `font-weight: 700 ! important`
+  // is valid CSS — the grammar permits whitespace between the delimiter and
+  // the keyword, and browsers honour it — so the old
+  // `css.includes("!important")` accepted it. Confirmed in the WR-04 probe:
+  // the whole suite passed 21/21 with that exact declaration shipped on
+  // .text-label. Comments are already stripped from `css`, so this cannot
+  // be tripped by prose.
+  assert.ok(
+    !/!\s*important/i.test(css),
+    "unlayered CSS should never need !important (in any spacing, including `! important`)",
+  );
 });
 
 test("(f) every required Prose Contract selector is present", () => {

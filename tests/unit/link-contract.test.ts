@@ -233,7 +233,13 @@ test("(g) both transitions sit inside @media (prefers-reduced-motion: no-prefere
 });
 
 test("(h) the existing invariants still hold, restated so this suite fails independently of prose-contract", () => {
-  assert.ok(!css.includes("!important"), "!important must not appear anywhere in globals.css");
+  // Pattern, not substring: `! important` (whitespace between the delimiter
+  // and the keyword) is valid CSS that browsers honour, and the old
+  // includes() check accepted it — see prose-contract test (e).
+  assert.ok(
+    !/!\s*important/i.test(css),
+    "!important must not appear anywhere in globals.css (in any spacing, including `! important`)",
+  );
 
   const display = "clamp(3.5rem, 1.5rem + 8vw, 11.25rem)";
   const heading = "clamp(2rem, 1rem + 4vw, 4.5rem)";
