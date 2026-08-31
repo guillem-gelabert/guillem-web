@@ -346,6 +346,79 @@ hr {
   line-height: 1.5;
 }
 
+/* Link and section-head contract (03-UI-SPEC.md) — Tailwind v4's preflight
+   resets `a { color: inherit; text-decoration: inherit }`, so every
+   non-prose link on the shipped site has no accent hover and only the
+   browser-default focus ring. These three classes close that. Every
+   declaration below is a value already shipped in this file: .section-head
+   is .prose-site h2 minus its two prose margins (the surrounding flex gap
+   owns spacing on the landing); .link is .prose-site a verbatim; .link-quiet
+   is .link with the rest underline removed and restored on hover/focus. */
+
+.section-head {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.3;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-ink);
+}
+
+.link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.12em;
+  text-decoration-color: currentColor;
+}
+
+.link:hover,
+.link:focus-visible {
+  color: var(--color-accent);
+  text-decoration-color: var(--color-accent);
+}
+
+/* No rest underline here is deliberate, not an oversight. WCAG 1.4.1
+   requires a non-colour distinction for links WITHIN a block of text; none
+   of .link-quiet's uses sit inside a block of text (a poster-scale
+   headline, a list-entry title, a nav item, a standalone back link), so
+   position and role already identify them. The hover state below adds the
+   underline back, so the affordance is never colour-only. */
+.link-quiet {
+  color: inherit;
+  text-decoration: none;
+}
+
+.link-quiet:hover,
+.link-quiet:focus-visible {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.12em;
+  text-decoration-color: var(--color-accent);
+}
+
+.link:focus-visible,
+.link-quiet:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* The state change itself (colour, underline) is not motion and must
+     survive prefers-reduced-motion: reduce — only the transition is
+     gated here. */
+  .link {
+    transition: color 120ms ease-out, text-decoration-color 120ms ease-out;
+  }
+
+  .link-quiet {
+    transition: color 120ms ease-out;
+  }
+}
+
 body {
   background: var(--color-paper);
   color: var(--color-ink);
