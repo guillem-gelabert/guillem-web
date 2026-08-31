@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
+import { POSITIONING_PLACEHOLDER } from "../../lib/work.ts";
 
 // Covers WRIT-01 (SC5) / D-11: the production half of "a draft prerenders
 // nowhere and appears in no index". tests/draft-visibility.spec.ts (Playwright)
@@ -187,10 +188,171 @@ test("locale metadata is emitted from Phase 2, not deferred — canonical plus a
   assert.match(texte, /hreflang="x-default"/i);
 });
 
-test("Phase 1's routes still prerender after the route-group restructure", async () => {
+test("Phase 1's routes still prerender after the route-group restructure, and Phase 3's landing/cv change class survives a clean build", async () => {
   const routes = await getRoutes();
   assert.ok(routes.has(""), "root route \"/\" must still exist");
   assert.ok(routes.has("type"), "route \"/type\" must still exist");
+  assert.ok(routes.has("cv"), "route \"/cv\" must exist — Phase 3 adds it");
+});
+
+// --- Phase 3 production-tier assertions -----------------------------------
+//
+// Every *.spec.ts in this repo runs against `npm run dev`, where
+// showDrafts() is always true. The three content/ fixtures are all
+// draft: true, so in a production build publishedFor("en") === [] and
+// findBySlug([], CASE_STUDY_SLUG) === null — the featured slot ships in its
+// INTERIM state. Playwright already proves the slot's structure is
+// state-agnostic (tests/landing.spec.ts test (p)); the tests below prove
+// what actually ships: the interim copy, in real prerendered HTML.
+
+test("/'s production HTML emits a canonical it did not have before this phase", async () => {
+  const routes = await getRoutes();
+  const root = routes.get("")!;
+
+  // The measured gap (03-RESEARCH.md C-2): before this phase / inherited a
+  // title and description from the root layout but emitted no canonical and
+  // could not declare one, because "use client" makes the metadata export
+  // illegal. Asserting "a title appears on /" would have passed before this
+  // phase too and would prove nothing — the canonical is the actual delta.
+  assert.ok(root.includes('rel="canonical"'), '/ must emit a rel="canonical" link');
+  const match = root.match(/<link rel="canonical" href="([^"]+)"/);
+  assert.ok(match, "the canonical link tag must carry an href");
+  assert.equal(new URL(match![1]).pathname, "/", '/\'s canonical must resolve to pathname "/"');
+});
+
+test("/'s meta description is bound to POSITIONING_PLACEHOLDER by equality, not a hardcoded literal", async () => {
+  const routes = await getRoutes();
+  const root = routes.get("")!;
+
+  // Pitfall 6: the failure this prevents is the user writing the real
+  // positioning sentence into the rendered <p> while the meta description
+  // still holds the old placeholder value — which is what Slack, LinkedIn
+  // and eventually Google quote once Phase 6 flips FIND-02. Comparing
+  // against the imported constant rather than a literal means this keeps
+  // passing when the real sentence lands and fails the moment the two drift.
+  const match = root.match(/<meta name="description" content="([^"]*)"/);
+  assert.ok(match, "/ must carry a meta description");
+  assert.equal(match![1], POSITIONING_PLACEHOLDER);
+});
+
+test("the inherited noindex reaches both new surfaces — neither route restates robots", async () => {
+  const routes = await getRoutes();
+
+  // Neither route declares `robots` in its own source: Next merges metadata
+  // parent -> child, the two root layouts are the only declarations
+  // site-wide, and Phase 6's FIND-02 flips it in exactly those two places
+  // (Pitfall 5).
+  for (const key of ["", "cv"]) {
+    const html = routes.get(key)!;
+    assert.match(
+      html,
+      /name="robots"\s+content="[^"]*noindex[^"]*"/i,
+      `route "${key || "/"}" must carry an inherited noindex`,
+    );
+  }
+});
+
+test("/cv's production HTML carries its own title and its own canonical", async () => {
+  const routes = await getRoutes();
+  const cv = routes.get("cv")!;
+
+  // Tolerate the literal em dash and both entity forms rather than assuming
+  // which React emits.
+  assert.match(cv, /<title>CV\s*(?:—|&#x2014;|&mdash;)\s*Guillem Gelabert<\/title>/);
+  assert.ok(cv.includes('rel="canonical"'), "/cv must emit a rel=\"canonical\" link");
+  const match = cv.match(/<link rel="canonical" href="([^"]+)"/);
+  assert.ok(match, "the canonical link tag must carry an href");
+  assert.equal(new URL(match![1]).pathname, "/cv");
+});
+
+test("the featured slot ships its interim copy in production", async () => {
+  const routes = await getRoutes();
+  const root = routes.get("")!;
+
+  // This assertion belongs HERE and not in Playwright: the moment Phase 4
+  // creates content/the-chart-therefore-changes.mdx with draft: true,
+  // findBySlug starts returning an entry in dev only, so a Playwright copy
+  // assertion would go red during Phase 4 authoring with no Phase 3 file
+  // changed (Pitfall 2).
+  //
+  // Forward note: when Phase 4 publishes the case study, this test is
+  // expected to be updated to assert the published state instead — that is
+  // a real change in what ships, not a flaky test.
+  assert.ok(root.includes("The case study is being written."));
+  assert.ok(
+    root.includes(
+      "On the Mallorca piece: what was expected, what the data showed, and how the visual form changed in response.",
+    ),
+  );
+});
+
+test("the interim featured headline carries no link", async () => {
+  const routes = await getRoutes();
+  const root = routes.get("")!;
+
+  // There is nowhere honest for the interim headline to point — the case
+  // study does not exist and /writing is at n=0 — so a link would be a
+  // circular dead end into an empty index. Extract the h3.text-heading
+  // block specifically, not a whole-document anchor count, which would
+  // fail on the nav.
+  const match = root.match(/<h3[^>]*class="[^"]*text-heading[^"]*"[^>]*>[\s\S]*?<\/h3>/);
+  assert.ok(match, "the featured h3.text-heading block must be present");
+  assert.doesNotMatch(match![0], /<a/, "the interim featured headline must not contain a link");
+});
+
+test("the backlog and contact stubs ship their real, deliberately typeset copy — no marker word leaks into production", async () => {
+  const routes = await getRoutes();
+  const root = routes.get("")!;
+
+  // D-02 requires placeholder content to be deliberately typeset because
+  // the site is on a live URL during a job hunt. Pitfall 7's warning sign
+  // is exactly one of the banned words below reaching rendered output.
+  for (const stub of [
+    "Nothing listed here yet.",
+    "The current work is being written up.",
+    "No contact details here yet.",
+    "Email, GitHub and LinkedIn are being added.",
+  ]) {
+    assert.ok(root.includes(stub), `/ must render the stub copy "${stub}"`);
+  }
+
+  for (const banned of ["TODO", "Coming soon", "Under construction", "Lorem"]) {
+    assert.doesNotMatch(
+      root,
+      new RegExp(banned, "i"),
+      `/ must not render the marker word "${banned}"`,
+    );
+  }
+});
+
+test("the private repository stays private in production", async () => {
+  const routes = await getRoutes();
+  const root = routes.get("")!;
+
+  // D-06: the ib-gdp-evolution GitHub repository is private and must never
+  // be linked to as source. Both work-list entries link to their own
+  // independently-hosted domain, same tab, no target="_blank".
+  assert.ok(root.includes("https://ib-gdp.guillemgelabert.com/everyone-in-mallorca-agrees-on-one-thing"));
+  assert.ok(root.includes("https://watchpeopledie.live"));
+  assert.doesNotMatch(root, /href="[^"]*github\.com[^"]*"/i);
+  assert.equal(root.includes("ib-gdp-evolution"), false);
+  assert.doesNotMatch(root, /target="_blank"/);
+});
+
+test("launch gate: the featured slot, the backlog stub and the contact stub are all still interim", async () => {
+  const routes = await getRoutes();
+  const root = routes.get("")!;
+
+  // If the featured slot, the backlog stub, the contact stub or /cv is
+  // still in its interim state when Phase 6 goes to flip the robots flag,
+  // Phase 6 is blocked. This test passing today is the record that all
+  // four are interim (the /cv route's own interim body is asserted by
+  // tests/cv.spec.ts); when Phases 4, 5 and 6 fill them, THIS test is the
+  // thing that must be updated, which is where the gate gets noticed
+  // rather than forgotten.
+  assert.ok(root.includes("The case study is being written."));
+  assert.ok(root.includes("Nothing listed here yet."));
+  assert.ok(root.includes("No contact details here yet."));
 });
 
 // Forward note for Phase 6 (FIND-02): when sitemap.ts is added, it must call
