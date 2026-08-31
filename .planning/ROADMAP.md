@@ -168,7 +168,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3)*
 
-- [ ] 04-04-PLAN.md — The German translation at `/texte/die-darstellung-aendert-sich`, paired by `translationKey`, with the D-17 draft branch recorded
+- [x] 04-04-PLAN.md — The German translation at `/texte/die-darstellung-aendert-sich`, paired by `translationKey`, with the D-17 draft branch recorded
 
 **Wave 5** *(blocked on Wave 4)*
 
@@ -219,7 +219,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Deploy Foundation & Design System | 4/4 | Complete   | 2026-08-29 |
 | 2. Content Pipeline | 7/7 | Complete   | 2026-08-31 |
 | 3. Work List & Landing Skeleton | 9/9 | Complete   | 2026-08-31 |
-| 4. The Case Study | 3/6 | In Progress|  |
+| 4. The Case Study | 4/6 | In Progress|  |
 | 5. Backlog | 0/TBD | Not started | - |
 | 6. CV, Contact, Photo & Discoverability | 0/TBD | Not started | - |
 
