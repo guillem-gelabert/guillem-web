@@ -28,6 +28,38 @@ const LOCALE_CASES = [
   },
 ];
 
+// The global boundary (app/not-found.tsx): every URL that matches no route at
+// all. Asserted with JavaScript disabled, because the whole point of the file
+// is that the 404 exists in the SERVER HTML — a Playwright context with JS on
+// waits for hydration and would pass against a blank shell.
+const UNMATCHED_PATHS = ["/nope", "/blog", "/de/texte"];
+
+for (const path of UNMATCHED_PATHS) {
+  test(`${path} matches no route and renders the global not-found copy without JavaScript`, async ({
+    browser,
+  }) => {
+    const context = await browser.newContext({ javaScriptEnabled: false });
+    const page = await context.newPage();
+    try {
+      const response = await page.goto(path);
+      expect(response?.status()).toBe(404);
+
+      // WCAG 2.1 SC 3.1.1 (Level A): the document must declare its language,
+      // in the server HTML, before any script runs.
+      expect(await page.evaluate(() => document.documentElement.lang)).toBe("en");
+
+      await expect(page.locator("h1")).toHaveText("Not found");
+      await expect(page.getByText("That piece doesn't exist here.")).toBeVisible();
+      await expect(page.getByRole("link", { name: "← Writing" })).toHaveAttribute(
+        "href",
+        "/writing",
+      );
+    } finally {
+      await context.close();
+    }
+  });
+}
+
 for (const locale of LOCALE_CASES) {
   test(`an unknown slug at ${locale.path} renders the localised not-found copy`, async ({ page }) => {
     const response = await page.goto(locale.path);
@@ -42,3 +74,15 @@ for (const locale of LOCALE_CASES) {
     await expect(backLink).toHaveAttribute("href", locale.backLinkHref);
   });
 }
+
+// KNOWN GAP (code review CR-01), deliberately not asserted here: the two
+// localised boundaries above are reached by an explicit notFound() throw, and
+// Next 16.3.3 never server-renders a thrown notFound()'s boundary — it emits
+// `<html id="__next_error__">` with an empty hidden body and paints the copy
+// on hydration. Measured in this repo against `next start` for a static
+// prerender, an ISR render and `dynamic = "force-dynamic"` alike, with and
+// without app/not-found.tsx present. A no-JS assertion on these two paths
+// would therefore fail today, and the only fix that makes them server-render
+// (dynamicParams = false, which routes them to the English global boundary
+// above) drops the German copy 02-UI-SPEC's Error State row requires. That is
+// a design trade, not a code fix; see 02-REVIEW-FIX notes.
