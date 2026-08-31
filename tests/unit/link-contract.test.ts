@@ -48,12 +48,19 @@ test("(a) all seven .section-head/.link/.link-quiet selectors are present", () =
   }
 });
 
-test("(b) type budget: four sizes and two weights, Phase 3 adds none", () => {
+// Retitled by code review WR-04. It used to read "type budget: four sizes
+// and two weights, Phase 3 adds none", and its failure message claimed "the
+// budget is four sizes total" — both far broader than the three selectors
+// this test actually inspects. The whole-file four-size/two-weight budget is
+// now enforced by prose-contract tests (m)-(o), which derive their block set
+// by exclusion instead of by selector prefix; this one stays scoped, and now
+// says so.
+test("(b) .section-head/.link/.link-quiet are Label-role only and add no size, weight or tracking", () => {
   const sizes = new Set(valuesOf("font-size", linkBlocks));
   for (const size of sizes) {
     assert.ok(
       size === "14px" || size === "inherit",
-      `unexpected font-size "${size}" — the budget is four sizes total and .section-head/.link/.link-quiet are Label-role only`,
+      `unexpected font-size "${size}" — .section-head/.link/.link-quiet are Label-role only (14px). The whole-file size budget is prose-contract (m)/(n).`,
     );
   }
   const weights = new Set(valuesOf("font-weight", linkBlocks));

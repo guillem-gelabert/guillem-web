@@ -12,6 +12,21 @@ import { allBlocks, allSelectors, css, declarationsOf, extractBlocks, valuesOf }
 // lives in ./css-source.ts, because tests/unit/link-contract.test.ts
 // enforces the same budget over a different selector set and the parser is
 // stated once, not copied.
+//
+// Tests (a)-(l) are SELECTOR-SCOPED to `.prose-site`. Tests (m)-(o) below
+// are not, and that distinction is the whole point of code review WR-04.
+// Both this suite and link-contract derived their block set by selector
+// prefix — `.prose-site*` here, `.section-head`/`.link*` there — so nothing
+// in either inspected .text-display, .text-heading, .text-body or
+// .text-label: the four role classes that ARE the four-size/two-weight
+// budget. Proven in a sandbox copy of both suites: a new `.text-caption`
+// carrying a fifth size (12px), a third weight (700), a literal hex, a
+// third tracking value, a 6px border-radius and a colourless
+// `border-top: 3px solid` passed 21/21; and mutating the shipped
+// `.text-body` to 20px and `.text-label` to `font-weight: 700 ! important`
+// also passed 21/21. 03-09-SUMMARY.md names these two suites as "the proof
+// no budget widened" when specifying the remedy for three open optical
+// items. That proof did not exist. (m)-(o) are it.
 
 // Every rule block whose selector starts with `.prose-site`.
 const proseBlocks = allBlocks.filter((b) => b.selector.startsWith(".prose-site"));
@@ -192,4 +207,203 @@ test("(l) a declaration whose value contains a semicolon is not split into two",
     ["content", '"a;b"'],
     ["font-size", "14px"],
   ]);
+});
+
+// --- WR-04: the whole-file budget, derived by EXCLUSION not inclusion -----
+//
+// (m)-(o) start from every block in the file. There is no selector
+// allowlist to fall out of, which is the defect they exist to close: a
+// class invented tomorrow is inside this budget the moment it is written,
+// and so are the four role classes that were never inside the old one.
+//
+// The only exclusion is @theme, and only for the literal-colour ban —
+// @theme is where literal values are supposed to live, which is exactly
+// why nothing outside it may restate one. Note that `!important` is NOT
+// restated here: prose-contract (e) and link-contract (h) already assert
+// /!\s*important/i over the whole file, and a third copy would be one more
+// place to forget to update.
+
+/**
+ * 03-UI-SPEC.md § Typography, verbatim. Four roles, two fixed sizes plus
+ * two fluid Humane curves, two weights. `inherit` is a pass-through, not a
+ * fifth size: it declares that the element takes whatever role wraps it.
+ */
+const TYPE_SIZES = new Set([
+  "14px", // Label
+  "18px", // Body
+  "clamp(2rem, 1rem + 4vw, 4.5rem)", // Heading
+  "clamp(3.5rem, 1.5rem + 8vw, 11.25rem)", // Display
+]);
+const TYPE_WEIGHTS = new Set(["400", "530"]);
+const TRACKING = new Set([
+  "0.04em", // Label role — the UI-SPEC's stated cap for multi-word real text
+  "0.035em", // both Humane curves
+  "0",
+]);
+const PASSTHROUGH = new Set(["inherit", "normal"]);
+
+/**
+ * Rule weights. 1px is the structural/separator stroke, 4px is Phase 2's
+ * `.prose-site aside` marker, and 2px is the focus-outline exception the
+ * spacing scale declares as an affordance width rather than a distance.
+ * `0` (as in `border: 0`) resets rather than draws.
+ */
+const RULE_WIDTHS = new Set(["1px", "2px", "4px"]);
+const RULE_COLORS = new Set([
+  "var(--color-ink)",
+  "var(--color-rule)",
+  "var(--color-accent)",
+]);
+
+// Anchored to properties that actually carry a width. The looser
+// /^border(-[a-z]+)?(-width)?$/ used by link-contract (d) also matches
+// `border-radius` and `border-collapse`, which produces a wrong message the
+// first time it fires.
+const WIDTH_PROPERTY = /^(?:border(?:-(?:top|right|bottom|left))?(?:-width)?|outline(?:-width)?)$/;
+
+const isThemeBlock = (selector: string) =>
+  selector === "@theme" || selector.startsWith("@theme ");
+
+test("(m) every declaration in the whole stylesheet sits inside the shipped budget", () => {
+  let checkedSizes = 0;
+  let checkedWeights = 0;
+
+  for (const block of allBlocks) {
+    for (const [prop, value] of declarationsOf(block)) {
+      const where = `"${prop}: ${value}" in "${block.selector}"`;
+
+      if (prop === "font-size") {
+        checkedSizes++;
+        assert.ok(
+          TYPE_SIZES.has(value) || PASSTHROUGH.has(value),
+          `fifth type size — ${where}. The budget is 14px, 18px and the two Humane clamp() curves. If a section reads thin, the remedy is more space and the existing seven spacing tokens, NOT a fifth size (03-UI-SPEC.md § The type budget).`,
+        );
+      }
+
+      if (prop === "font-weight") {
+        checkedWeights++;
+        assert.ok(
+          TYPE_WEIGHTS.has(value) || PASSTHROUGH.has(value),
+          `third weight — ${where}. The weight budget is exactly 400 and 530; do not introduce 600 or 700.`,
+        );
+      }
+
+      if (prop === "letter-spacing") {
+        assert.ok(
+          TRACKING.has(value) || PASSTHROUGH.has(value),
+          `new tracking value — ${where}. The cap on multi-word real text is 0.04em.`,
+        );
+      }
+
+      if (prop === "border-radius") {
+        assert.equal(value, "0", `rounded corner — ${where}. No rounded corners anywhere.`);
+      }
+
+      // Literal colour outside @theme. Every colour on the site is one of
+      // five tokens; a hex or rgb() anywhere else is a sixth, un-named and
+      // un-contrast-checked.
+      if (!isThemeBlock(block.selector)) {
+        assert.ok(
+          !/#[0-9a-fA-F]{3,8}\b/.test(value),
+          `literal hex colour outside the @theme token block — ${where}.`,
+        );
+        assert.ok(
+          !/\brgba?\(/.test(value),
+          `literal rgb()/rgba() colour outside the @theme token block — ${where}.`,
+        );
+      }
+
+      if (WIDTH_PROPERTY.test(prop)) {
+        const pxValues = value.match(/\d+(?:\.\d+)?px/g) ?? [];
+        if (pxValues.length === 0) {
+          // `border: 0` / `border: none` resets; anything else that declares
+          // no length is a keyword width (`thin`, `medium`) sneaking past.
+          assert.ok(
+            value === "0" || value === "none",
+            `rule with no length component — ${where}. Use 0/none to reset, or an explicit px width.`,
+          );
+          continue;
+        }
+        for (const px of pxValues) {
+          assert.ok(
+            RULE_WIDTHS.has(px),
+            `unexpected rule weight "${px}" — ${where}. The budget is 1px (structural/separator), 4px (the aside marker) and 2px (the focus-outline exception).`,
+          );
+        }
+        // Pitfall 1 / Phase 2 WR-06: a bare width falls through to Tailwind
+        // v4 preflight's currentColor and silently renders full ink — which
+        // is how the indexes' <hr> shipped 8x too dark.
+        const colorMatches = value.match(/var\(--color-[a-z-]+\)/g) ?? [];
+        assert.ok(
+          colorMatches.length > 0,
+          `rule with a width but no colour — ${where}. A bare border/outline width falls through to currentColor.`,
+        );
+        for (const colorValue of colorMatches) {
+          assert.ok(
+            RULE_COLORS.has(colorValue),
+            `unexpected rule colour "${colorValue}" — ${where}.`,
+          );
+        }
+      }
+    }
+  }
+
+  // A budget test over an empty declaration set passes vacuously, which is
+  // the failure mode that let the original gates look green.
+  assert.ok(checkedSizes >= 15, `expected at least 15 font-size declarations, saw ${checkedSizes}`);
+  assert.ok(
+    checkedWeights >= 15,
+    `expected at least 15 font-weight declarations, saw ${checkedWeights}`,
+  );
+});
+
+test("(n) the whole stylesheet declares exactly four type sizes and exactly two weights", () => {
+  // Membership in (m) catches an addition. Set EQUALITY catches the other
+  // direction too — a role silently losing its size, or the Display curve
+  // being retuned so the file no longer holds the four the UI-SPEC names.
+  const sizes = new Set(
+    valuesOf("font-size", allBlocks).filter((value) => !PASSTHROUGH.has(value)),
+  );
+  assert.deepEqual(
+    [...sizes].sort(),
+    [...TYPE_SIZES].sort(),
+    "app/globals.css must declare exactly the four shipped type sizes — no more, and none missing",
+  );
+
+  const weights = new Set(
+    valuesOf("font-weight", allBlocks).filter((value) => !PASSTHROUGH.has(value)),
+  );
+  assert.deepEqual(
+    [...weights].sort(),
+    [...TYPE_WEIGHTS].sort(),
+    "app/globals.css must declare exactly the two shipped weights, 400 and 530",
+  );
+});
+
+test("(o) each of the four role classes pins its own size and weight", () => {
+  // (m) and (n) prove the file holds four sizes and two weights. They do not
+  // prove each role still carries the RIGHT one: swapping .text-body to 14px
+  // and .text-label to 18px keeps both sets intact. This is the assertion
+  // that fails by name when a role drifts.
+  const ROLES: Array<[string, string, string]> = [
+    [".text-display", "clamp(3.5rem, 1.5rem + 8vw, 11.25rem)", "530"],
+    [".text-heading", "clamp(2rem, 1rem + 4vw, 4.5rem)", "530"],
+    [".text-body", "18px", "400"],
+    [".text-label", "14px", "400"],
+  ];
+
+  for (const [selector, size, weight] of ROLES) {
+    const blocks = allBlocks.filter((b) => b.selector === selector);
+    assert.equal(blocks.length, 1, `expected exactly one ${selector} block in app/globals.css`);
+    assert.deepEqual(
+      valuesOf("font-size", blocks),
+      [size],
+      `${selector} must declare exactly one font-size, ${size}`,
+    );
+    assert.deepEqual(
+      valuesOf("font-weight", blocks),
+      [weight],
+      `${selector} must declare exactly one font-weight, ${weight}`,
+    );
+  }
 });
