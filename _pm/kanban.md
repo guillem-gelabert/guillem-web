@@ -16,6 +16,15 @@ duplicate `.planning/`'s detail. Update the three lists below when a phase or pl
   confirmation is **pending** a push of the merged phase to `origin/master` — this plan's
   executor ran in an isolated worktree and did not push directly; see `02-07-SUMMARY.md`
   "Checkpoint decisions taken autonomously" for why.
+- **Phase 3: Work List & Landing Skeleton** (2026-08-31) — landing view navigation and vertical
+  work list, the featured slot's interim state, the backlog and contact stubs, `/cv` stub route.
+- **Phase 4: The Case Study** (2026-08-31) — the ib-gdp-evolution case study shipped in both
+  locales (`draft: false`), three committed figures, the featured slot now resolves to the real
+  post with zero production code change, `/writing`'s `n = 0` launch gate closed. D-19 accuracy
+  gate run on both languages (`fact-check.md`: 83 claims audited, 0 unsourced, all twelve named
+  traps checked and passed). Live deployment confirmed directly against the Railway URL
+  (`launch-gate.md`). Carried forward, unresolved: `HOME-01`'s positioning sentence and the
+  user's editorial pass over both case studies — both block Phase 6's `FIND-02`.
 
 ## In Progress
 
@@ -23,9 +32,6 @@ duplicate `.planning/`'s detail. Update the three lists below when a phase or pl
 
 ## Next
 
-- **Phase 3: Work List & Landing Skeleton** — landing view navigation and vertical work list.
-- **Phase 4: The Case Study** — the ib-gdp-evolution case study, wired to the landing view's
-  featured slot.
 - **Phase 5: Backlog** — curated backlog of work in progress.
 - **Phase 6: CV, Contact, Photo & Discoverability** — CV, photo, contact block, security
   headers, search/social metadata.
