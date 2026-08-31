@@ -370,7 +370,7 @@ test("(q) all four section heads render in order with the structural 1px full-in
   }
 });
 
-test("(r) the heading outline is h1=1, h2=4, h3=3, h4/h5/h6=0, and every aria-labelledby resolves", async ({
+test("(r) the heading outline is h1=1, h2=4, h3=6, h4/h5/h6=0, and every aria-labelledby resolves", async ({
   page,
 }) => {
   const counts = await page.evaluate(() => ({
@@ -386,7 +386,16 @@ test("(r) the heading outline is h1=1, h2=4, h3=3, h4/h5/h6=0, and every aria-la
   // editorial hierarchy. An <h2> in the featured slot would put two <h2>s
   // inside section#case-study and silently break the outline
   // aria-labelledby depends on.
-  expect(counts).toEqual({ h1: 1, h2: 4, h3: 3, h4: 0, h5: 0, h6: 0 });
+  //
+  // 2026-08-31: h3 moved from 3 to 6 because Phase 5 replaced the backlog
+  // stub's single p.text-standfirst with three h3.text-standfirst item
+  // names (lib/backlog.tsx / components/landing/backlog-list.tsx). <h3>
+  // was chosen deliberately over <p>: D-11 names exactly three
+  // subtractions from the work list's grammar (ordinal, host line, link)
+  // and element type is not a fourth one — downgrading to <p> would cost
+  // screen-reader users a navigable outline in a section that is
+  // otherwise pure prose.
+  expect(counts).toEqual({ h1: 1, h2: 4, h3: 6, h4: 0, h5: 0, h6: 0 });
 
   const labelledBy = await page.evaluate(() =>
     Array.from(document.querySelectorAll("section[id]")).map((section) => {
@@ -441,10 +450,19 @@ test("(t) no card idiom anywhere on the page: no button, no img, no svg, no roun
   }
 });
 
-test("(u) both stubs render one standfirst and one body line, standfirst at weight 530", async ({
+test("(u) the contact stub renders one standfirst and one body line, standfirst at weight 530", async ({
   page,
 }) => {
-  for (const id of ["backlog", "contact"]) {
+  // 2026-08-31: narrowed from a two-section loop (backlog plus contact) to
+  // contact alone. Phase 5 filled #backlog's stub with three real items
+  // (lib/backlog.tsx, rendered by components/landing/backlog-list.tsx) — it
+  // no longer renders one p.text-standfirst / one p.text-body pair, so this
+  // assertion no longer describes it. SectionStub still serves #contact
+  // until Phase 6, so this loop keeps proving that stub's shape unchanged.
+  // The backlog's own structure — three h3.text-standfirst names, three
+  // p.text-body descriptions, zero ordinals/host lines/links — is asserted
+  // by (v), (w) and (x) below instead.
+  for (const id of ["contact"]) {
     const section = page.locator(`section#${id}`);
     const standfirst = section.locator("p.text-standfirst");
     const body = section.locator("p.text-body");
@@ -457,4 +475,251 @@ test("(u) both stubs render one standfirst and one body line, standfirst at weig
   // Production truth for the stub copy strings belongs to Plan 03-08's
   // build-tier test; the absence assertion in (s) already covers the
   // failure mode that matters here.
+});
+
+// ---------------------------------------------------------------------------
+// Plan 05-03: BACK-01's structure and D-11's three subtractions (v);
+// BACK-02's placement (w) — real-render proof that a source-level gate
+// structurally cannot make (see (x) below for the type-budget and
+// separator half of that same point).
+// ---------------------------------------------------------------------------
+
+test("(v) BACK-01: the backlog is three rows of name and description, with the work list's affordances subtracted", async ({
+  page,
+}) => {
+  const backlog = page.locator("section#backlog");
+  const list = backlog.locator("ul[role='list']");
+  await expect(list).toHaveCount(1);
+  // A <ul>, not an <ol>: the backlog is unranked (D-11.1).
+  await expect(backlog.locator("ol")).toHaveCount(0);
+
+  const items = list.locator("> li");
+  await expect(items).toHaveCount(3);
+
+  // Each row is exactly one h3.text-standfirst (the name) then one
+  // p.max-w-prose.text-body (the description), in that order and with no
+  // third child — the work list's row grammar (D-10) minus its ordinal and
+  // host-line rows.
+  const rowShapes = await items.evaluateAll((els) =>
+    els.map((el) => ({
+      childTags: Array.from(el.children).map((child) => child.tagName.toLowerCase()),
+      standfirstCount: el.querySelectorAll("h3.text-standfirst").length,
+      bodyCount: el.querySelectorAll("p.max-w-prose.text-body").length,
+    })),
+  );
+  for (const row of rowShapes) {
+    expect(row.childTags).toEqual(["h3", "p"]);
+    expect(row.standfirstCount).toBe(1);
+    expect(row.bodyCount).toBe(1);
+  }
+
+  // D-11.1, no ordinals: the work list's aria-hidden "01"/"02" p.text-label
+  // row is absent, and no rendered line in the list is a bare two-digit
+  // ordinal.
+  await expect(list.locator("p.text-label")).toHaveCount(0);
+  const ulWholeText = await list.evaluate((el) => el.textContent ?? "");
+  expect(ulWholeText).not.toMatch(/^\s*0\d\s*$/);
+
+  // D-11.2, no host line: the same p.text-label count of 0 above already
+  // covers it structurally. Additionally, no standalone rendered line
+  // inside the list reads like a bare hostname (e.g. "example.com") — the
+  // backlog items go nowhere, so there is no destination to name.
+  const standaloneLines = await list.evaluate((el) =>
+    (el.textContent ?? "")
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0),
+  );
+  for (const line of standaloneLines) {
+    expect(line).not.toMatch(/\.[a-z]{2,}\b/);
+  }
+
+  // D-11.3, the name is not a link: zero anchors anywhere in the section —
+  // not merely "the h3 has no <a>". v1 ships no inline .link either, and a
+  // stray one would be a decision, not a detail.
+  await expect(backlog.locator("a")).toHaveCount(0);
+
+  // The three item names, in order. Sourced from lib/backlog.tsx's BACKLOG
+  // array (D-04: array order is editorial order); stated here as a literal
+  // rather than imported, since Playwright must not import the .tsx
+  // content module.
+  const names = await items.locator("h3.text-standfirst").allTextContents();
+  expect(names).toEqual([
+    "A data portrait of the Swiss commodity trade",
+    "The house names of Zürich",
+    "The Pudding, read as a corpus",
+  ]);
+});
+
+test("(w) BACK-02: the section date is one Label line carrying a <time>, above the first item", async ({
+  page,
+}) => {
+  const backlog = page.locator("section#backlog");
+  const dateLine = backlog.locator("p.text-label");
+  await expect(dateLine).toHaveCount(1);
+
+  // Not a descendant of the <ul> — it sits above the list, in the shared
+  // date/list <div> (D-12).
+  const isInsideList = await dateLine.evaluate((el) => el.closest("ul") !== null);
+  expect(isInsideList).toBe(false);
+
+  const time = dateLine.locator("time");
+  await expect(time).toHaveCount(1);
+
+  // Browsers ASCII-lowercase attribute names while parsing HTML, so
+  // getAttribute("datetime") resolves even though React emits the JSX prop
+  // as dateTime (camelCase) in the raw source — 05-RESEARCH.md Pitfall 2.
+  const datetimeAttr = await time.getAttribute("datetime");
+  expect(datetimeAttr).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+
+  // textContent, not innerText: .text-label computes text-transform:
+  // uppercase, and innerText returns the RENDERED text (post-transform) —
+  // "LAST TOUCHED 31 AUGUST 2026" — which would make a literal-casing
+  // startsWith assertion fail even though the source and DOM text are
+  // correct. Measured this session. textContent reads the un-transformed
+  // string, which is what "Last touched " actually names.
+  const lineText = await dateLine.evaluate((el) => el.textContent ?? "");
+  expect(lineText.startsWith("Last touched ")).toBe(true);
+
+  const timeText = await time.evaluate((el) => el.textContent ?? "");
+  expect(timeText.trim().length).toBeGreaterThan(0);
+  // An absolute date: a four-digit year and a month name, not a relative
+  // string.
+  expect(timeText).toMatch(/\d{4}/);
+  expect(timeText).toMatch(/[A-Za-z]{3,}/);
+  expect(timeText).not.toMatch(/\bago\b|\byesterday\b|\btoday\b/i);
+
+  // Placement, geometrically, not by DOM order. BACK-02 is the mitigation
+  // the user accepted in place of per-item dates, and a freshness signal
+  // read only AFTER the list has mitigated nothing — the requirement is
+  // "above", and only the rendered box proves it.
+  const firstItem = backlog.locator("ul[role='list'] > li").first();
+  const dateY = await dateLine.evaluate((el) => el.getBoundingClientRect().y);
+  const firstItemY = await firstItem.evaluate((el) => el.getBoundingClientRect().y);
+  expect(dateY).toBeLessThan(firstItemY);
+
+  const textTransform = await dateLine.evaluate((el) => getComputedStyle(el).textTransform);
+  expect(textTransform).toBe("uppercase");
+});
+
+test("(x) the measured separator, the measured geometry, and the type budget on screen", async ({
+  page,
+}) => {
+  const backlog = page.locator("section#backlog");
+  const items = backlog.locator("ul[role='list'] > li");
+  await expect(items).toHaveCount(3);
+
+  // The separator (Pitfall 7 / WR-06 recurring), mirroring (n) at :277-305
+  // exactly. Tailwind v4's preflight emits `border: 0 solid` with no
+  // colour, so border-t without border-rule falls through to currentColor
+  // — full-ink black, 8x darker than --color-rule, and a fourth rule
+  // weight the Prose Contract forbids. toHaveCount() cannot see this; only
+  // the computed colour can.
+  const rowBorders = await items.evaluateAll((els) =>
+    els.map((el) => {
+      const s = getComputedStyle(el);
+      return {
+        borderTopWidth: s.borderTopWidth,
+        borderTopStyle: s.borderTopStyle,
+        borderTopColor: s.borderTopColor,
+        borderRightWidth: s.borderRightWidth,
+        borderBottomWidth: s.borderBottomWidth,
+        borderLeftWidth: s.borderLeftWidth,
+      };
+    }),
+  );
+  expect(rowBorders[0].borderTopWidth).toBe("0px");
+  for (const row of [rowBorders[1], rowBorders[2]]) {
+    expect(row.borderTopWidth).toBe("1px");
+    expect(row.borderTopStyle).toBe("solid");
+    expect(row.borderTopColor).toBe("rgba(0, 0, 0, 0.12)");
+    expect(row.borderRightWidth).toBe("0px");
+    expect(row.borderBottomWidth).toBe("0px");
+    expect(row.borderLeftWidth).toBe("0px");
+  }
+
+  // The not-a-card property, mirroring (m) at :250-275: the <ul> itself
+  // carries no border, no shadow, no radius.
+  const list = backlog.locator("ul[role='list']");
+  const listBox = await list.evaluate((el) => {
+    const s = getComputedStyle(el);
+    return {
+      borderTopWidth: s.borderTopWidth,
+      borderRightWidth: s.borderRightWidth,
+      borderBottomWidth: s.borderBottomWidth,
+      borderLeftWidth: s.borderLeftWidth,
+      boxShadow: s.boxShadow,
+      borderRadius: s.borderRadius,
+    };
+  });
+  expect(listBox.borderTopWidth).toBe("0px");
+  expect(listBox.borderRightWidth).toBe("0px");
+  expect(listBox.borderBottomWidth).toBe("0px");
+  expect(listBox.borderLeftWidth).toBe("0px");
+  expect(listBox.boxShadow).toBe("none");
+  expect(listBox.borderRadius).toBe("0px");
+
+  // The geometry (D-10, D-12). Measured this session: ul rowGap 32px
+  // (gap-xl), li rowGap 8px (gap-sm), the date/list <div> and the
+  // <section> both 24px (gap-lg) — head->date and date->list are both lg,
+  // per D-12, with no new token.
+  const ulRowGap = await list.evaluate((el) => getComputedStyle(el).rowGap);
+  expect(ulRowGap).toBe("32px");
+
+  const liRowGaps = await items.evaluateAll((els) =>
+    els.map((el) => getComputedStyle(el).rowGap),
+  );
+  for (const gap of liRowGaps) {
+    expect(gap).toBe("8px");
+  }
+
+  const dateListDiv = backlog.locator("div.flex.flex-col.gap-lg");
+  const dateListDivRowGap = await dateListDiv.evaluate((el) => getComputedStyle(el).rowGap);
+  expect(dateListDivRowGap).toBe("24px");
+
+  const sectionRowGap = await backlog.evaluate((el) => getComputedStyle(el).rowGap);
+  expect(sectionRowGap).toBe("24px");
+
+  // Each description's max-width equals the measured resolution of 65ch —
+  // read from the render and compared against a work-list p.max-w-prose
+  // measured in the SAME run, proving the backlog reuses the shipped
+  // measure rather than a new one, without hardcoding a font-dependent
+  // px number.
+  const backlogMaxWidths = await backlog
+    .locator("p.max-w-prose.text-body")
+    .evaluateAll((els) => els.map((el) => getComputedStyle(el).maxWidth));
+  const workMaxWidth = await page
+    .locator("section#work p.max-w-prose")
+    .first()
+    .evaluate((el) => getComputedStyle(el).maxWidth);
+  for (const maxWidth of backlogMaxWidths) {
+    expect(maxWidth).toBe(workMaxWidth);
+  }
+
+  // The type budget on screen (Pitfall 1) — the assertion no source gate
+  // can make. tests/unit/prose-contract.test.ts reads app/globals.css from
+  // disk, and Tailwind v4's preflight ships b,strong{font-weight:bolder}
+  // in the COMPILED CSS, not in that file. A <strong> in a backlog
+  // description therefore renders at 700 — a third weight on screen —
+  // with the entire source budget green. This is the only place that
+  // catches it. If a future description genuinely needs <strong>, the fix
+  // is one budget-legal line (.text-body strong { font-weight: 530 }) —
+  // not weakening this assertion.
+  const typeBudget = await backlog.evaluate((el) => {
+    const withDirectText = Array.from(el.querySelectorAll("*")).filter((node) =>
+      Array.from(node.childNodes).some(
+        (child) =>
+          child.nodeType === Node.TEXT_NODE && (child.textContent ?? "").trim().length > 0,
+      ),
+    );
+    return withDirectText.map((node) => {
+      const s = getComputedStyle(node);
+      return { fontWeight: s.fontWeight, fontSize: s.fontSize };
+    });
+  });
+  expect(typeBudget.length).toBeGreaterThan(0);
+  for (const { fontWeight, fontSize } of typeBudget) {
+    expect(["400", "530"]).toContain(fontWeight);
+    expect(["14px", "18px"]).toContain(fontSize);
+  }
 });
