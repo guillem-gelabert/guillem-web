@@ -189,3 +189,9 @@ None — no external service configuration required.
 ---
 *Phase: 05-backlog*
 *Completed: 2026-08-31*
+
+## Self-Check: PASSED
+
+All claimed files verified present (`lib/backlog.tsx`, `components/landing/backlog-list.tsx`,
+`app/(en)/page.tsx`, this SUMMARY.md) and all claimed commit hashes verified present in
+`git log --oneline --all` (`8683c38`, `3c4aa9a`, `cf4da4d`). No missing items.
