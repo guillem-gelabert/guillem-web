@@ -92,6 +92,19 @@ test("/texte renders two articles separated by hr, reverse-chronological, both h
   await expect(articles).toHaveCount(2);
   await expect(page.locator("hr")).toHaveCount(1);
 
+  // "the existing <hr> rule" means the Prose Contract's hairline, not a
+  // second, heavier one. Scoping the stroke to .prose-site left the index's
+  // separator on Tailwind preflight's currentColor — full-ink black, 8x
+  // darker than --color-rule. toHaveCount(1) could not see that; the
+  // computed colour can.
+  const hrStyle = await page.locator("main > hr").evaluate((el) => {
+    const s = getComputedStyle(el);
+    return { color: s.borderTopColor, width: s.borderTopWidth, style: s.borderTopStyle };
+  });
+  expect(hrStyle.color).toBe("rgba(0, 0, 0, 0.12)");
+  expect(hrStyle.width).toBe("1px");
+  expect(hrStyle.style).toBe("solid");
+
   const titles = await articles.locator("h2").allTextContents();
   expect(titles).toEqual([
     "Eine Musterseite für die Textvorlage",

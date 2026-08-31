@@ -291,9 +291,19 @@
   margin: 0;
 }
 
-.prose-site hr {
+/* The separator stroke, hoisted out of the prose scope. It used to live only
+   under .prose-site, so the <hr> both indexes emit between entries fell
+   through to Tailwind preflight's currentColor and rendered full-ink black —
+   an 8x darker line than --color-rule, at the most visually prominent moment
+   on the page, and a fourth rule weight the Prose Contract does not allow.
+   Stroke only: the 48px margins are the prose scope's below, and on the
+   indexes they come from the container's gap-2xl. */
+hr {
   border: 0;
   border-top: 1px solid var(--color-rule);
+}
+
+.prose-site hr {
   margin: 48px 0;
 }
 
