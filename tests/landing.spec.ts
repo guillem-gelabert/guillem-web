@@ -314,3 +314,147 @@ test("(o) the work list is a single column at the default viewport", async ({ pa
   expect(boxes[0].x).toBe(boxes[1].x);
   expect(boxes[1].y).toBeGreaterThan(boxes[0].y);
 });
+
+// ---------------------------------------------------------------------------
+// Task 3: the CASE-03 slot structure (state-agnostic), the heading outline,
+// and the no-placeholder-words rule
+// ---------------------------------------------------------------------------
+
+test("(p) the featured slot renders exactly one section head and one heading, state-agnostically", async ({
+  page,
+}) => {
+  // Deliberately NOT asserting either the interim heading sentence or the
+  // interim body paragraph's wording here, and NOT asserting whether the
+  // <h3> contains an <a>. Every Playwright spec in this repo
+  // runs against `npm run dev`, where showDrafts() returns true, so the
+  // moment a future phase creates the case-study MDX file with draft: true
+  // — the normal way to author — findBySlug starts returning an entry in
+  // dev only, and the slot renders its PUBLISHED state in dev while
+  // production still renders INTERIM. A copy assertion here would turn red
+  // during that authoring with no Phase 3 file changed. The interim copy is
+  // asserted against real production HTML in tests/build/prerender.test.ts
+  // instead. What is asserted here is true in BOTH states: one section head,
+  // one Heading-role <h3>, same roles, same order.
+  const caseStudy = page.locator("section#case-study");
+  await expect(caseStudy).toHaveCount(1);
+  await expect(caseStudy.locator("h2.section-head")).toHaveCount(1);
+  await expect(caseStudy.locator("h3.text-heading")).toHaveCount(1);
+});
+
+test("(q) all four section heads render in order with the structural 1px full-ink rule", async ({
+  page,
+}) => {
+  const heads = page.locator("section[id] > h2.section-head");
+  await expect(heads).toHaveCount(4);
+
+  const texts = await heads.allTextContents();
+  expect(texts.map((t) => t.trim())).toEqual(["Case study", "Work", "Backlog", "Contact"]);
+
+  const styles = await heads.evaluateAll((els) =>
+    els.map((el) => {
+      const s = getComputedStyle(el);
+      return {
+        borderBottomWidth: s.borderBottomWidth,
+        borderBottomStyle: s.borderBottomStyle,
+        borderBottomColor: s.borderBottomColor,
+      };
+    }),
+  );
+  // The "1px full ink = structural" weight, distinct from the work-list
+  // separator's rgba(0, 0, 0, 0.12). Two rule weights on this page, no
+  // third.
+  for (const style of styles) {
+    expect(style.borderBottomWidth).toBe("1px");
+    expect(style.borderBottomStyle).toBe("solid");
+    expect(style.borderBottomColor).toBe("rgb(0, 0, 0)");
+  }
+});
+
+test("(r) the heading outline is h1=1, h2=4, h3=3, h4/h5/h6=0, and every aria-labelledby resolves", async ({
+  page,
+}) => {
+  const counts = await page.evaluate(() => ({
+    h1: document.querySelectorAll("h1").length,
+    h2: document.querySelectorAll("h2").length,
+    h3: document.querySelectorAll("h3").length,
+    h4: document.querySelectorAll("h4").length,
+    h5: document.querySelectorAll("h5").length,
+    h6: document.querySelectorAll("h6").length,
+  }));
+  // The <h3> rendering far larger than its <h2> is deliberate, not an
+  // inversion to fix: semantics follow structure, visual weight follows
+  // editorial hierarchy. An <h2> in the featured slot would put two <h2>s
+  // inside section#case-study and silently break the outline
+  // aria-labelledby depends on.
+  expect(counts).toEqual({ h1: 1, h2: 4, h3: 3, h4: 0, h5: 0, h6: 0 });
+
+  const labelledBy = await page.evaluate(() =>
+    Array.from(document.querySelectorAll("section[id]")).map((section) => {
+      const labelId = section.getAttribute("aria-labelledby");
+      const h2 = section.querySelector("h2");
+      return { labelId, h2Id: h2?.id ?? null };
+    }),
+  );
+  for (const { labelId, h2Id } of labelledBy) {
+    expect(labelId).toBe(h2Id);
+  }
+});
+
+test("(s) D-02: nothing on / reads as unfinished", async ({ page }) => {
+  // D-08 calls for a clearly-marked placeholder and D-02 for deliberately
+  // typeset content; they resolve exactly one way — the placeholder is
+  // marked in the source, not on the screen. A rendered
+  // "[positioning sentence goes here]" on a live URL during a job hunt is
+  // what D-02 exists to prevent (Pitfall 7).
+  const bodyText = (await page.locator("body").innerText()).toLowerCase();
+  const banned = ["todo", "placeholder", "coming soon", "under construction", "lorem", "tbd"];
+  for (const word of banned) {
+    expect(bodyText).not.toContain(word);
+  }
+});
+
+test("(t) no card idiom anywhere on the page: no button, no img, no svg, no rounded corners, no shadow", async ({
+  page,
+}) => {
+  // This phase ships no form, no toggle, no icon and no image
+  // (PROF-02 is Phase 6). Scoped to <main> because Next.js's dev-mode
+  // overlay injects its own "Open Next.js Dev Tools" <button> into a
+  // <nextjs-portal> shadow root appended to <body> on every route in every
+  // dev-server render — a framework artifact Playwright's shadow-piercing
+  // locator finds regardless of what this phase ships, absent from any
+  // production build. Scoping to <main> asserts what this phase actually
+  // controls rather than the dev server's own tooling.
+  await expect(page.locator("main button")).toHaveCount(0);
+  await expect(page.locator("img")).toHaveCount(0);
+  await expect(page.locator("main svg")).toHaveCount(0);
+
+  const boxStyles = await page.evaluate(() => {
+    const els = Array.from(document.querySelectorAll("main section, main div"));
+    return els.map((el) => {
+      const s = getComputedStyle(el);
+      return { borderRadius: s.borderRadius, boxShadow: s.boxShadow };
+    });
+  });
+  for (const style of boxStyles) {
+    expect(style.borderRadius).toBe("0px");
+    expect(style.boxShadow).toBe("none");
+  }
+});
+
+test("(u) both stubs render one standfirst and one body line, standfirst at weight 530", async ({
+  page,
+}) => {
+  for (const id of ["backlog", "contact"]) {
+    const section = page.locator(`section#${id}`);
+    const standfirst = section.locator("p.text-standfirst");
+    const body = section.locator("p.text-body");
+    await expect(standfirst).toHaveCount(1);
+    await expect(body).toHaveCount(1);
+
+    const fontWeight = await standfirst.evaluate((el) => getComputedStyle(el).fontWeight);
+    expect(fontWeight).toBe("530");
+  }
+  // Production truth for the stub copy strings belongs to Plan 03-08's
+  // build-tier test; the absence assertion in (s) already covers the
+  // failure mode that matters here.
+});
