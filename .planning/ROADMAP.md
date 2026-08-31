@@ -121,9 +121,9 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 03-03-PLAN.md — The four landing components and the de-cliented `app/(en)/page.tsx` (A1: Client → async Server Component, own metadata, rel=canonical)
-- [ ] 03-04-PLAN.md — The `/cv` stub route and its spec, plus the A4 `/type` specimen for the three new classes
-- [ ] 03-05-PLAN.md — A2 site-root back links on both indexes and A3 `.link-quiet` across every shipped non-prose link, with spec extensions
+- [x] 03-03-PLAN.md — The four landing components and the de-cliented `app/(en)/page.tsx` (A1: Client → async Server Component, own metadata, rel=canonical)
+- [x] 03-04-PLAN.md — The `/cv` stub route and its spec, plus the A4 `/type` specimen for the three new classes
+- [x] 03-05-PLAN.md — A2 site-root back links on both indexes and A3 `.link-quiet` across every shipped non-prose link, with spec extensions
 
 **Wave 3** *(blocked on Wave 2)*
 
@@ -193,7 +193,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Deploy Foundation & Design System | 4/4 | Complete   | 2026-08-29 |
 | 2. Content Pipeline | 7/7 | Complete   | 2026-08-31 |
-| 3. Work List & Landing Skeleton | 2/9 | In Progress|  |
+| 3. Work List & Landing Skeleton | 5/9 | In Progress|  |
 | 4. The Case Study | 0/TBD | Not started | - |
 | 5. Backlog | 0/TBD | Not started | - |
 | 6. CV, Contact, Photo & Discoverability | 0/TBD | Not started | - |
