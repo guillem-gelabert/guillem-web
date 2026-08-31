@@ -172,7 +172,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4)*
 
-- [ ] 04-05-PLAN.md — Close the six assertions publishing broke (four in `tests/build/prerender.test.ts`, two in `tests/writing-index.spec.ts`); prove CASE-03 and HOME-02 in real prerendered HTML; full suite green
+- [x] 04-05-PLAN.md — Close the six assertions publishing broke (four in `tests/build/prerender.test.ts`, two in `tests/writing-index.spec.ts`); prove CASE-03 and HOME-02 in real prerendered HTML; full suite green
 
 **Wave 6** *(blocked on Wave 5)*
 
@@ -219,7 +219,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Deploy Foundation & Design System | 4/4 | Complete   | 2026-08-29 |
 | 2. Content Pipeline | 7/7 | Complete   | 2026-08-31 |
 | 3. Work List & Landing Skeleton | 9/9 | Complete   | 2026-08-31 |
-| 4. The Case Study | 4/6 | In Progress|  |
+| 4. The Case Study | 5/6 | In Progress|  |
 | 5. Backlog | 0/TBD | Not started | - |
 | 6. CV, Contact, Photo & Discoverability | 0/TBD | Not started | - |
 
