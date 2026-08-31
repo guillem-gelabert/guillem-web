@@ -14,7 +14,7 @@ Six phases take the repo from its current state (a leftover static-prototype Doc
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
 - [x] **Phase 1: Deploy Foundation & Design System** - Delete the stale Dockerfile, stand up Next.js on Railway, and lay down the typographic system, the heading trail effect, and accessibility defaults before any content exists. (completed 2026-08-29)
-- [ ] **Phase 2: Content Pipeline** - Build the front-matter/Markdown+MDX loader, the `/writing` route and index, and the prose layer the case study renders through. The 2020 archive migration is deferred to v2.
+- [x] **Phase 2: Content Pipeline** - Build the front-matter/Markdown+MDX loader, the `/writing` route and index, and the prose layer the case study renders through. The 2020 archive migration is deferred to v2. (completed 2026-08-31)
 - [ ] **Phase 3: Work List & Landing Skeleton** - Assemble the landing view's positioning sentence, navigation, and vertical work list; leave the featured slot pointed at a placeholder.
 - [ ] **Phase 4: The Case Study** - Write and publish the ib-gdp-evolution case study and wire the landing view's featured slot to it.
 - [ ] **Phase 5: Backlog** - Ship the curated, section-dated backlog of work in progress.
@@ -96,7 +96,7 @@ Plans:
 
 **Wave 7** *(blocked on Wave 6)*
 
-- [ ] 02-07-PLAN.md — Production build-output gate, deploy confirmation, and the optical sign-off checkpoint
+- [x] 02-07-PLAN.md — Production build-output gate, deploy confirmation, and the optical sign-off checkpoint
 
 **UI hint**: yes
 
@@ -167,7 +167,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Deploy Foundation & Design System | 4/4 | Complete   | 2026-08-29 |
-| 2. Content Pipeline | 6/7 | In Progress|  |
+| 2. Content Pipeline | 7/7 | Complete   | 2026-08-31 |
 | 3. Work List & Landing Skeleton | 0/TBD | Not started | - |
 | 4. The Case Study | 0/TBD | Not started | - |
 | 5. Backlog | 0/TBD | Not started | - |
