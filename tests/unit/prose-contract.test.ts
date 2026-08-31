@@ -18,10 +18,20 @@ const css = rawCss.replace(/\/\*[\s\S]*?\*\//g, "");
 type Block = { selector: string; body: string };
 
 // A minimal brace-depth-aware block extractor. Handles bare statements with
-// no body (`@import "…";`, `@plugin "…";`) and one level of at-rule nesting
-// (`@theme { … }`, `@media (…) { … }`) by recursing into the captured body —
-// all this stylesheet ever needs.
-function extractBlocks(text: string): Block[] {
+// no body (`@import "…";`, `@plugin "…";`) and at-rule or CSS nesting
+// (`@theme { … }`, `@media (…) { … }`, `.prose-site { … .foo { … } }`) by
+// recursing into the captured body.
+//
+// The `parent` argument is load-bearing, not cosmetic. It used to be absent,
+// so a nested `.prose-site { … .foo { font-size: 20px } }` pushed a child
+// block whose selector was the bare `.foo` — which failed the
+// startsWith(".prose-site") filter below and slipped past tests (a)-(d)
+// entirely, while the PARENT's declaration split produced the nonsense key
+// `.foo { font-size` that matched no property either. A fifth type size, a
+// third weight, a second tracking value or a rounded corner authored with
+// nesting was invisible to this gate. The stylesheet happens to use no
+// nesting today, and Tailwind v4 actively encourages it.
+function extractBlocks(text: string, parent = ""): Block[] {
   const blocks: Block[] = [];
   let i = 0;
   while (i < text.length) {
@@ -31,7 +41,8 @@ function extractBlocks(text: string): Block[] {
     while (i < text.length && text[i] !== "{" && text[i] !== ";") i++;
     if (i >= text.length) break;
     if (text[i] === ";") {
-      // Bare statement (e.g. @import, @plugin) — no body to capture.
+      // Bare statement (e.g. @import, @plugin, or a declaration inside a
+      // block we are recursing into) — no body to capture.
       i++;
       continue;
     }
@@ -47,19 +58,88 @@ function extractBlocks(text: string): Block[] {
     }
     const body = text.slice(bodyStart, i);
     i++; // skip closing '}'
-    blocks.push({ selector, body });
+
+    // An at-rule is a container, not a scope: `@media (…) { .foo { … } }`
+    // leaves .foo's selector as .foo, qualified by whatever the at-rule
+    // itself was nested in.
+    const isAtRule = selector.startsWith("@");
+    const qualified = parent && !isAtRule ? `${parent} ${selector}` : selector;
+    blocks.push({ selector: qualified, body });
     if (body.includes("{")) {
-      blocks.push(...extractBlocks(body));
+      blocks.push(...extractBlocks(body, isAtRule ? parent : qualified));
     }
   }
   return blocks;
 }
 
+/**
+ * A block's own declarations, with any nested rule blocks removed first so
+ * their contents are attributed to the child block that extractBlocks already
+ * pushed, never to the parent.
+ */
+function ownDeclarationText(body: string): string {
+  let out = "";
+  let i = 0;
+  while (i < body.length) {
+    if (body[i] === "{") {
+      // Drop the selector text accumulated since the last `;`, then skip the
+      // whole nested block.
+      out = out.slice(0, out.lastIndexOf(";") + 1);
+      let depth = 1;
+      i++;
+      while (i < body.length && depth > 0) {
+        if (body[i] === "{") depth++;
+        else if (body[i] === "}") depth--;
+        i++;
+      }
+      continue;
+    }
+    out += body[i];
+    i++;
+  }
+  return out;
+}
+
+/**
+ * Split on `;` only at the top level. A naive split mis-parses any value
+ * containing a semicolon — `url(data:image/svg+xml;base64,…)`, `content: "\;"`
+ * — turning one declaration into two nonsense ones.
+ */
+function splitDeclarations(text: string): string[] {
+  const parts: string[] = [];
+  let current = "";
+  let parens = 0;
+  let quote: string | null = null;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i]!;
+    if (quote) {
+      current += ch;
+      if (ch === "\\") current += text[++i] ?? "";
+      else if (ch === quote) quote = null;
+      continue;
+    }
+    if (ch === '"' || ch === "'") {
+      quote = ch;
+    } else if (ch === "(") {
+      parens++;
+    } else if (ch === ")") {
+      parens--;
+    } else if (ch === ";" && parens === 0) {
+      parts.push(current);
+      current = "";
+      continue;
+    }
+    current += ch;
+  }
+  parts.push(current);
+  return parts;
+}
+
 function declarationsOf(block: Block): Array<[string, string]> {
-  return block.body
-    .split(";")
+  return splitDeclarations(ownDeclarationText(block.body))
     .map((d) => d.trim())
-    .filter((d) => d.length > 0)
+    .filter((d) => d.includes(":"))
     .map((d) => {
       const idx = d.indexOf(":");
       return [d.slice(0, idx).trim(), d.slice(idx + 1).trim()] as [string, string];
@@ -194,4 +274,60 @@ test("(j) the edit was additive — Phase 1's clamp() curves are untouched", () 
   const countOccurrences = (needle: string) => css.split(needle).length - 1;
   assert.equal(countOccurrences(display), 1, "Display clamp() curve must appear exactly once");
   assert.equal(countOccurrences(heading), 1, "Heading clamp() curve must appear exactly once");
+});
+
+test("(k) the parser sees through CSS nesting — a nested violation is attributed to .prose-site", () => {
+  // WR-13: the gate is only as good as its parser. Before the `parent`
+  // argument existed, both of the blocks below were invisible to tests
+  // (a)-(d): the child's selector was the bare `.callout` / `figure`, and the
+  // parent's declaration split produced keys like ".callout { font-size".
+  const nested = `
+    .prose-site {
+      font-size: 18px;
+      .callout {
+        font-size: 20px;
+        border-radius: 6px;
+      }
+    }
+    @media (min-width: 40rem) {
+      .prose-site {
+        letter-spacing: 0.08em;
+      }
+    }
+  `;
+
+  const blocks = extractBlocks(nested);
+  const prose = blocks.filter((b) => b.selector.startsWith(".prose-site"));
+
+  assert.ok(
+    prose.some((b) => b.selector === ".prose-site .callout"),
+    "a nested block must inherit its ancestor's selector",
+  );
+  assert.deepEqual(valuesOf("font-size", prose).sort(), ["18px", "20px"]);
+  assert.deepEqual(valuesOf("border-radius", prose), ["6px"]);
+  // An at-rule is a container, not a scope: the rule inside @media is still
+  // `.prose-site`, not `@media (…) .prose-site`.
+  assert.deepEqual(valuesOf("letter-spacing", prose), ["0.08em"]);
+
+  // ...and the parent must not have swallowed the child's declarations.
+  const parent = prose.find((b) => b.selector === ".prose-site")!;
+  assert.deepEqual(declarationsOf(parent), [["font-size", "18px"]]);
+});
+
+test("(l) a declaration whose value contains a semicolon is not split into two", () => {
+  // Secondary WR-13 defect: a naive split(';') mis-parses url(data:…;base64,…)
+  // and content: "\;", turning one declaration into two nonsense ones.
+  const tricky = `
+    .prose-site figure {
+      background-image: url("data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=");
+      content: "a;b";
+      font-size: 14px;
+    }
+  `;
+  const [block] = extractBlocks(tricky);
+  assert.deepEqual(declarationsOf(block!), [
+    ["background-image", 'url("data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=")'],
+    ["content", '"a;b"'],
+    ["font-size", "14px"],
+  ]);
 });
