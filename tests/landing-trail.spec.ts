@@ -152,3 +152,70 @@ test("Newsreader does not trail", async ({ page }) => {
   expect(shadows.workTitle).toBe("none");
   expect(shadows.navLink).toBe("none");
 });
+
+// Covers BUILD-05 as a Phase 3 regression: a visitor with
+// prefers-reduced-motion set is never shown motion that ignores it, on the
+// landing view specifically (tests/reduced-motion.spec.ts covers the same
+// contract on the /type calibration route).
+test("under reduced-motion emulation, both headings stay none across a full scroll", async ({
+  page,
+}) => {
+  // page.emulateMedia BEFORE page.goto is load-bearing: the app reads
+  // matchMedia(...).matches at mount, so emulation applied after
+  // navigation would test the change-listener path rather than the
+  // visitor-arrives-with-the-preference path (03-VALIDATION.md rule 2;
+  // tests/reduced-motion.spec.ts:8-16).
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await page.evaluate(() => document.fonts.ready);
+  await page.waitForTimeout(200);
+
+  const atRest = await readShadows(page);
+  for (const shadow of atRest) {
+    expect(shadow).toBe("none");
+  }
+
+  await page.evaluate(() => window.scrollBy(0, 1200));
+  for (let step = 0; step < 10; step++) {
+    await page.waitForTimeout(16);
+    const samples = await readShadows(page);
+    for (const shadow of samples) {
+      expect(shadow).toBe("none");
+    }
+  }
+
+  // Scroll again, all the way to the bottom, and confirm again.
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  for (let step = 0; step < 10; step++) {
+    await page.waitForTimeout(16);
+    const samples = await readShadows(page);
+    for (const shadow of samples) {
+      expect(shadow).toBe("none");
+    }
+  }
+});
+
+test("under reduced-motion emulation, a nav link keeps its colour state change but loses its transition", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await page.evaluate(() => document.fonts.ready);
+
+  // The state change is not motion — under prefers-reduced-motion: reduce a
+  // link still changes to accent and still gains its hover underline; only
+  // the transition is removed. .link/.link-quiet's transition declaration
+  // lives entirely inside @media (prefers-reduced-motion: no-preference),
+  // so under "reduce" a nav link's computed transition-duration falls back
+  // to the CSS initial value, 0s, while its rest colour is unchanged.
+  const navLink = page.locator('nav[aria-label="Sections"] a').first();
+  const restColor = await navLink.evaluate((el) => getComputedStyle(el).color);
+  const transitionDuration = await navLink.evaluate(
+    (el) => getComputedStyle(el).transitionDuration,
+  );
+
+  expect(transitionDuration).toBe("0s");
+  // rgb(0, 0, 0) — color: inherit from --color-ink, unchanged by the
+  // reduced-motion emulation.
+  expect(restColor).toBe("rgb(0, 0, 0)");
+});
