@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { POSITIONING_PLACEHOLDER } from "../../lib/work.ts";
+import { UI } from "../../lib/locales.ts";
 
 // Covers WRIT-01 (SC5) / D-11: the production half of "a draft prerenders
 // nowhere and appears in no index". tests/draft-visibility.spec.ts (Playwright)
@@ -271,9 +272,8 @@ test("/'s production HTML emits a canonical it did not have before this phase", 
   assert.equal(new URL(match![1]).pathname, "/", '/\'s canonical must resolve to pathname "/"');
 });
 
-test("/'s meta description is bound to POSITIONING_PLACEHOLDER by equality, not a hardcoded literal", async () => {
+test("every (en) route's meta description is bound to POSITIONING_PLACEHOLDER by equality, not a hardcoded literal", async () => {
   const routes = await getRoutes();
-  const root = routes.get("")!;
 
   // Pitfall 6: the failure this prevents is the user writing the real
   // positioning sentence into the rendered <p> while the meta description
@@ -281,9 +281,51 @@ test("/'s meta description is bound to POSITIONING_PLACEHOLDER by equality, not 
   // and eventually Google quote once Phase 6 flips FIND-02. Comparing
   // against the imported constant rather than a literal means this keeps
   // passing when the real sentence lands and fails the moment the two drift.
-  const match = root.match(/<meta name="description" content="([^"]*)"/);
-  assert.ok(match, "/ must carry a meta description");
-  assert.equal(match![1], POSITIONING_PLACEHOLDER);
+  //
+  // The sweep covers /cv and /type as well as /, which is code review
+  // WR-06: this gate used to scope to / only, and app/(en)/layout.tsx
+  // hardcoded the literal "Developer." as the group default. /cv sets its
+  // own title but no description and /type is a Client Component that can
+  // export no metadata at all, so both served the layout's copy — three
+  // routes shipping the same sentence from two sources, while lib/work.ts,
+  // app/(en)/page.tsx and deferred-items.md §1 all documented one. The
+  // layout now reads the constant, and this asserts all three follow it.
+  for (const key of ["", "cv", "type"]) {
+    const html = routes.get(key);
+    assert.ok(html, `route "${key || "/"}" must exist in the production build`);
+    const match = html!.match(/<meta name="description" content="([^"]*)"/);
+    assert.ok(match, `route "${key || "/"}" must carry a meta description`);
+    assert.equal(
+      match![1],
+      POSITIONING_PLACEHOLDER,
+      `route "${key || "/"}" must serve POSITIONING_PLACEHOLDER, not a second copy of its value`,
+    );
+  }
+});
+
+test("the German layout's default description reaches no shipped route (WR-06)", async () => {
+  const routes = await getRoutes();
+
+  // app/(de)/layout.tsx deliberately does NOT track POSITIONING_PLACEHOLDER
+  // — that constant is HOME-01's English sentence and the landing view is
+  // English-only in v1, so a lang="de" document must not inherit it. The
+  // guarantee that replaces "tracks the constant" is this one: every (de)
+  // route declares its own description, so the layout default is a fallback
+  // nothing reaches. If a German route ever loses its own description this
+  // fails, rather than silently serving the layout's line.
+  const texte = routes.get("texte");
+  assert.ok(texte, 'route "texte" must exist in the production build');
+  const match = texte!.match(/<meta name="description" content="([^"]*)"/);
+  assert.ok(match, "/texte must carry a meta description");
+  assert.equal(match![1], UI.de.indexDescription);
+
+  for (const [routeKey, html] of routes) {
+    assert.doesNotMatch(
+      html,
+      /<meta name="description" content="Entwickler\."/,
+      `route "${routeKey || "/"}" fell back to the (de) layout's default description`,
+    );
+  }
 });
 
 test("the inherited noindex reaches both new surfaces — neither route restates robots", async () => {

@@ -21,17 +21,48 @@ phase gate. No 375px or 1440px visual pass can catch that the site's single most
 sentence is still `Developer.` That is precisely the defect class that survives review: it is
 correct-looking while still outstanding.
 
-**Where it is consumed.** Exactly two places, both from the one constant:
+**Where it is consumed.** Three places, all three now from the one constant:
 - The rendered `<p className="text-standfirst">` in `app/(en)/page.tsx`.
 - That same route's `metadata.description` export.
+- `app/(en)/layout.tsx`'s `metadata.description` — the default every `(en)` route inherits,
+  which is what `/cv` and `/type` actually serve.
 
-Because both read from `POSITIONING_PLACEHOLDER`, supplying the real sentence is a one-line edit
-to `lib/work.ts` (Pitfall 6) — no second file to remember.
+**Correction (code review WR-06, 2026-08-31).** This section previously read *"Exactly two
+places, both from the one constant"*, and that was measurably false. `app/(en)/layout.tsx:12`
+hardcoded the literal `"Developer."` — a second copy of the constant's *value*, not a reference
+to it. `/cv` sets its own title but no description, and `/type` is a Client Component so it can
+export no metadata at all, so both inherited the literal. Measured against the shipped build,
+three routes served `"Developer."` from two independent sources:
 
-**The gate that catches a partial fix.** Two automated tests bind the two consumption sites
-together so editing one without the other fails:
-- `tests/build/prerender.test.ts` asserts the built `<meta name="description">` on `/` equals
-  `POSITIONING_PLACEHOLDER` by equality, not by literal string.
+```
+index    <meta name="description" content="Developer."   <- POSITIONING_PLACEHOLDER
+cv       <meta name="description" content="Developer."   <- the layout literal
+type     <meta name="description" content="Developer."   <- the layout literal
+```
+
+Writing the real sentence into `lib/work.ts` would have updated `/` while `/cv` and `/type` went
+on serving `Developer.` as their share-preview text — the tripwire two-thirds effective at
+exactly the moment `FIND-02` makes the site discoverable. `app/(en)/layout.tsx` now imports the
+constant, so the one-line-edit claim below is true rather than aspirational.
+
+Because all three read from `POSITIONING_PLACEHOLDER`, supplying the real sentence is a one-line
+edit to `lib/work.ts` (Pitfall 6) — no second file to remember.
+
+**`app/(de)/layout.tsx` deliberately does not track the constant.** It keeps `"Entwickler."`
+as the `(de)` group default. `POSITIONING_PLACEHOLDER` is HOME-01's *English* sentence and the
+landing view is English-only in v1 (`03-UI-SPEC.md` § Localisation), so importing it there would
+put English share-preview copy on a `lang="de"` document the moment the real sentence lands. The
+guarantee that replaces "tracks the constant" is that the German default never actually ships:
+every `(de)` route declares its own description, and `tests/build/prerender.test.ts` asserts
+both halves — `/texte`'s description equals `UI.de.indexDescription`, and no prerendered route
+anywhere carries `content="Entwickler."`.
+
+**The gate that catches a partial fix.** Automated tests bind the consumption sites together so
+editing one without the others fails:
+- `tests/build/prerender.test.ts` asserts the built `<meta name="description">` on `/`, `/cv`
+  **and** `/type` equals `POSITIONING_PLACEHOLDER` by equality, not by literal string. Verified
+  by probe: changing the constant alone keeps all three in step and the suite green; restoring
+  the layout's literal while the constant differs fails the test on `/cv` and `/type`.
 - `tests/landing.spec.ts` asserts the rendered `<p>`'s text equals `meta[name="description"]`'s
   content — the one-source property, proven by equality rather than assumed.
 
