@@ -476,3 +476,128 @@ test("(u) the contact stub renders one standfirst and one body line, standfirst 
   // build-tier test; the absence assertion in (s) already covers the
   // failure mode that matters here.
 });
+
+// ---------------------------------------------------------------------------
+// Plan 05-03: BACK-01's structure and D-11's three subtractions (v);
+// BACK-02's placement (w) — real-render proof that a source-level gate
+// structurally cannot make (see (x) below for the type-budget and
+// separator half of that same point).
+// ---------------------------------------------------------------------------
+
+test("(v) BACK-01: the backlog is three rows of name and description, with the work list's affordances subtracted", async ({
+  page,
+}) => {
+  const backlog = page.locator("section#backlog");
+  const list = backlog.locator("ul[role='list']");
+  await expect(list).toHaveCount(1);
+  // A <ul>, not an <ol>: the backlog is unranked (D-11.1).
+  await expect(backlog.locator("ol")).toHaveCount(0);
+
+  const items = list.locator("> li");
+  await expect(items).toHaveCount(3);
+
+  // Each row is exactly one h3.text-standfirst (the name) then one
+  // p.max-w-prose.text-body (the description), in that order and with no
+  // third child — the work list's row grammar (D-10) minus its ordinal and
+  // host-line rows.
+  const rowShapes = await items.evaluateAll((els) =>
+    els.map((el) => ({
+      childTags: Array.from(el.children).map((child) => child.tagName.toLowerCase()),
+      standfirstCount: el.querySelectorAll("h3.text-standfirst").length,
+      bodyCount: el.querySelectorAll("p.max-w-prose.text-body").length,
+    })),
+  );
+  for (const row of rowShapes) {
+    expect(row.childTags).toEqual(["h3", "p"]);
+    expect(row.standfirstCount).toBe(1);
+    expect(row.bodyCount).toBe(1);
+  }
+
+  // D-11.1, no ordinals: the work list's aria-hidden "01"/"02" p.text-label
+  // row is absent, and no rendered line in the list is a bare two-digit
+  // ordinal.
+  await expect(list.locator("p.text-label")).toHaveCount(0);
+  const ulWholeText = await list.evaluate((el) => el.textContent ?? "");
+  expect(ulWholeText).not.toMatch(/^\s*0\d\s*$/);
+
+  // D-11.2, no host line: the same p.text-label count of 0 above already
+  // covers it structurally. Additionally, no standalone rendered line
+  // inside the list reads like a bare hostname (e.g. "example.com") — the
+  // backlog items go nowhere, so there is no destination to name.
+  const standaloneLines = await list.evaluate((el) =>
+    (el.textContent ?? "")
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0),
+  );
+  for (const line of standaloneLines) {
+    expect(line).not.toMatch(/\.[a-z]{2,}\b/);
+  }
+
+  // D-11.3, the name is not a link: zero anchors anywhere in the section —
+  // not merely "the h3 has no <a>". v1 ships no inline .link either, and a
+  // stray one would be a decision, not a detail.
+  await expect(backlog.locator("a")).toHaveCount(0);
+
+  // The three item names, in order. Sourced from lib/backlog.tsx's BACKLOG
+  // array (D-04: array order is editorial order); stated here as a literal
+  // rather than imported, since Playwright must not import the .tsx
+  // content module.
+  const names = await items.locator("h3.text-standfirst").allTextContents();
+  expect(names).toEqual([
+    "A data portrait of the Swiss commodity trade",
+    "The house names of Zürich",
+    "The Pudding, read as a corpus",
+  ]);
+});
+
+test("(w) BACK-02: the section date is one Label line carrying a <time>, above the first item", async ({
+  page,
+}) => {
+  const backlog = page.locator("section#backlog");
+  const dateLine = backlog.locator("p.text-label");
+  await expect(dateLine).toHaveCount(1);
+
+  // Not a descendant of the <ul> — it sits above the list, in the shared
+  // date/list <div> (D-12).
+  const isInsideList = await dateLine.evaluate((el) => el.closest("ul") !== null);
+  expect(isInsideList).toBe(false);
+
+  const time = dateLine.locator("time");
+  await expect(time).toHaveCount(1);
+
+  // Browsers ASCII-lowercase attribute names while parsing HTML, so
+  // getAttribute("datetime") resolves even though React emits the JSX prop
+  // as dateTime (camelCase) in the raw source — 05-RESEARCH.md Pitfall 2.
+  const datetimeAttr = await time.getAttribute("datetime");
+  expect(datetimeAttr).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+
+  // textContent, not innerText: .text-label computes text-transform:
+  // uppercase, and innerText returns the RENDERED text (post-transform) —
+  // "LAST TOUCHED 31 AUGUST 2026" — which would make a literal-casing
+  // startsWith assertion fail even though the source and DOM text are
+  // correct. Measured this session. textContent reads the un-transformed
+  // string, which is what "Last touched " actually names.
+  const lineText = await dateLine.evaluate((el) => el.textContent ?? "");
+  expect(lineText.startsWith("Last touched ")).toBe(true);
+
+  const timeText = await time.evaluate((el) => el.textContent ?? "");
+  expect(timeText.trim().length).toBeGreaterThan(0);
+  // An absolute date: a four-digit year and a month name, not a relative
+  // string.
+  expect(timeText).toMatch(/\d{4}/);
+  expect(timeText).toMatch(/[A-Za-z]{3,}/);
+  expect(timeText).not.toMatch(/\bago\b|\byesterday\b|\btoday\b/i);
+
+  // Placement, geometrically, not by DOM order. BACK-02 is the mitigation
+  // the user accepted in place of per-item dates, and a freshness signal
+  // read only AFTER the list has mitigated nothing — the requirement is
+  // "above", and only the rendered box proves it.
+  const firstItem = backlog.locator("ul[role='list'] > li").first();
+  const dateY = await dateLine.evaluate((el) => el.getBoundingClientRect().y);
+  const firstItemY = await firstItem.evaluate((el) => el.getBoundingClientRect().y);
+  expect(dateY).toBeLessThan(firstItemY);
+
+  const textTransform = await dateLine.evaluate((el) => getComputedStyle(el).textTransform);
+  expect(textTransform).toBe("uppercase");
+});
