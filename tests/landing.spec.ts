@@ -370,7 +370,7 @@ test("(q) all four section heads render in order with the structural 1px full-in
   }
 });
 
-test("(r) the heading outline is h1=1, h2=4, h3=3, h4/h5/h6=0, and every aria-labelledby resolves", async ({
+test("(r) the heading outline is h1=1, h2=4, h3=6, h4/h5/h6=0, and every aria-labelledby resolves", async ({
   page,
 }) => {
   const counts = await page.evaluate(() => ({
@@ -386,7 +386,16 @@ test("(r) the heading outline is h1=1, h2=4, h3=3, h4/h5/h6=0, and every aria-la
   // editorial hierarchy. An <h2> in the featured slot would put two <h2>s
   // inside section#case-study and silently break the outline
   // aria-labelledby depends on.
-  expect(counts).toEqual({ h1: 1, h2: 4, h3: 3, h4: 0, h5: 0, h6: 0 });
+  //
+  // 2026-08-31: h3 moved from 3 to 6 because Phase 5 replaced the backlog
+  // stub's single p.text-standfirst with three h3.text-standfirst item
+  // names (lib/backlog.tsx / components/landing/backlog-list.tsx). <h3>
+  // was chosen deliberately over <p>: D-11 names exactly three
+  // subtractions from the work list's grammar (ordinal, host line, link)
+  // and element type is not a fourth one — downgrading to <p> would cost
+  // screen-reader users a navigable outline in a section that is
+  // otherwise pure prose.
+  expect(counts).toEqual({ h1: 1, h2: 4, h3: 6, h4: 0, h5: 0, h6: 0 });
 
   const labelledBy = await page.evaluate(() =>
     Array.from(document.querySelectorAll("section[id]")).map((section) => {
@@ -441,10 +450,19 @@ test("(t) no card idiom anywhere on the page: no button, no img, no svg, no roun
   }
 });
 
-test("(u) both stubs render one standfirst and one body line, standfirst at weight 530", async ({
+test("(u) the contact stub renders one standfirst and one body line, standfirst at weight 530", async ({
   page,
 }) => {
-  for (const id of ["backlog", "contact"]) {
+  // 2026-08-31: narrowed from a two-section loop (backlog plus contact) to
+  // contact alone. Phase 5 filled #backlog's stub with three real items
+  // (lib/backlog.tsx, rendered by components/landing/backlog-list.tsx) — it
+  // no longer renders one p.text-standfirst / one p.text-body pair, so this
+  // assertion no longer describes it. SectionStub still serves #contact
+  // until Phase 6, so this loop keeps proving that stub's shape unchanged.
+  // The backlog's own structure — three h3.text-standfirst names, three
+  // p.text-body descriptions, zero ordinals/host lines/links — is asserted
+  // by (v), (w) and (x) below instead.
+  for (const id of ["contact"]) {
     const section = page.locator(`section#${id}`);
     const standfirst = section.locator("p.text-standfirst");
     const body = section.locator("p.text-body");
