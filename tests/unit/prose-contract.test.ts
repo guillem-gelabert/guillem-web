@@ -81,6 +81,9 @@ test("(f) every required Prose Contract selector is present", () => {
     ".prose-site aside",
     ".prose-site hr",
     ".text-standfirst",
+    ".section-head",
+    ".link",
+    ".link-quiet",
   ];
   for (const selector of required) {
     assert.ok(allSelectors.has(selector), `missing required selector: ${selector}`);
