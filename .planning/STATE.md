@@ -4,12 +4,12 @@ milestone: v1.0
 milestone_name: Working Site
 status: executing
 stopped_at: "Phase 04 complete (04-06): fact check, deploy confirmation, closure records"
-last_updated: "2026-08-31T17:36:48.504Z"
-last_activity: 2026-08-31
+last_updated: "2026-08-31T18:28:46.213Z"
+last_activity: 2026-08-31 -- Phase 05 execution started
 progress:
   total_phases: 6
   completed_phases: 4
-  total_plans: 26
+  total_plans: 30
   completed_plans: 26
   percent: 67
 ---
@@ -21,14 +21,14 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-08-29)
 
 **Core value:** A visitor scanning a shortlist can tell within ninety seconds that Guillem has editorial judgment as well as craft — enough to decide the conversation is worth opening.
-**Current focus:** Phase 04 — The Case Study
+**Current focus:** Phase 05 — Backlog
 
 ## Current Position
 
-Phase: 04 (The Case Study) — COMPLETE
-Plan: 6 of 6 (04-06: fact check, deploy confirmation, closure records)
-Status: Phase 04 complete — ready for Phase 05 (Backlog)
-Last activity: 2026-08-31
+Phase: 05 (Backlog) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 05
+Last activity: 2026-08-31 -- Phase 05 execution started
 
 Progress: [██████████] 100%
 
