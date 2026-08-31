@@ -266,9 +266,16 @@ const LANDING_PAGE_PATH = path.join(process.cwd(), "app/(en)/page.tsx");
 const landingPageSource = readFileSync(LANDING_PAGE_PATH, "utf8");
 
 test("(i) app/(en)/page.tsx is a Server Component exporting route metadata with a canonical, and declares no robots of its own", () => {
+  // The directive's SHAPE, not one spelling of it. There is no Prettier
+  // config and no .editorconfig in this repo, so nothing normalises quote
+  // style: `'use client'` with single quotes is a valid directive that the
+  // old includes('"use client"') check accepted, silently re-clienting the
+  // landing view while this test stayed green. Anchored to the start of a
+  // line (/m) so the words appearing inside a comment or a string cannot
+  // trip it either.
   assert.ok(
-    !landingPageSource.includes('"use client"'),
-    'app/(en)/page.tsx must not contain "use client" — Amendment A1 de-clients the landing view',
+    !/^\s*["']use client["']/m.test(landingPageSource),
+    "app/(en)/page.tsx must not carry a `use client` directive in any quote style — Amendment A1 de-clients the landing view",
   );
   assert.ok(
     !landingPageSource.includes("useSmearHeading"),
@@ -282,8 +289,13 @@ test("(i) app/(en)/page.tsx is a Server Component exporting route metadata with 
     landingPageSource.includes("canonical"),
     "app/(en)/page.tsx's metadata must declare a canonical",
   );
+  // Scoped to a DECLARATION, not to the word. `includes("robots")` is the
+  // mirror of the defect above: it fails the moment the word appears in a
+  // comment in this file — and app/(en)/page.tsx's metadata comment has
+  // every reason to explain why it declares no robots field — which is a
+  // brittle way to state "declares no robots field".
   assert.ok(
-    !landingPageSource.includes("robots"),
-    'the string "robots" must not appear in app/(en)/page.tsx — it stays confined to the two root layouts until Phase 6\'s FIND-02',
+    !/\brobots\s*:/.test(landingPageSource),
+    "app/(en)/page.tsx must declare no `robots:` field — it stays confined to the two root layouts until Phase 6's FIND-02",
   );
 });
