@@ -75,9 +75,39 @@ export function assertFrontmatter(fm: unknown, file: string): asserts fm is Post
   }
 }
 
+/**
+ * The slug list, with the two ways readdir can lie about it closed off.
+ *
+ * withFileTypes + isFile(): a directory named content/notes.mdx/, an editor
+ * lock symlink (content/.#draft.mdx) or any other non-file entry matching the
+ * extension would otherwise become a "slug" whose import fails the build with
+ * a message that points at the wrong file.
+ *
+ * Collision check: the phase deliberately ships both .md and .mdx, so
+ * content/foo.md alongside content/foo.mdx is a live possibility (and a v2
+ * archive migration makes it likelier). Stripping both extensions without
+ * de-duplicating returned two entries with slug "foo", both resolving to the
+ * .mdx module — the index rendered the same post twice under a duplicate
+ * React key, and generateStaticParams() returned the same param twice. Fail
+ * the build naming both filenames instead.
+ */
 async function slugsOnDisk(): Promise<string[]> {
-  const files = await readdir(CONTENT_DIR);
-  return files.filter((file) => /\.mdx?$/.test(file)).map((file) => file.replace(/\.mdx?$/, ""));
+  const entries = await readdir(CONTENT_DIR, { withFileTypes: true });
+  const seen = new Map<string, string>();
+
+  for (const entry of entries) {
+    if (!entry.isFile() || !/\.mdx?$/.test(entry.name)) continue;
+    const slug = entry.name.replace(/\.mdx?$/, "");
+    const previous = seen.get(slug);
+    if (previous) {
+      throw new Error(
+        `content/: "${previous}" and "${entry.name}" resolve to the same slug "${slug}"`,
+      );
+    }
+    seen.set(slug, entry.name);
+  }
+
+  return [...seen.keys()];
 }
 
 /**
