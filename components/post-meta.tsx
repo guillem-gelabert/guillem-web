@@ -1,4 +1,4 @@
-import type { Locale } from "@/lib/content";
+import { showDrafts, type Locale } from "@/lib/content";
 import { formatPostDate, UI } from "@/lib/locales";
 import { LanguageSwitch } from "@/components/language-switch";
 
@@ -11,7 +11,8 @@ type PostMetaProps = {
 
 // Date, language switch and dev-only draft marker on one Label-role line.
 export function PostMeta({ locale, date, switchHref, draft }: PostMetaProps) {
-  const showDraftMarker = draft === true && process.env.NODE_ENV === "development";
+  // One predicate, imported — never a second inline copy of D-11 (WR-07).
+  const showDraftMarker = draft === true && showDrafts();
 
   return (
     <p className="text-label">

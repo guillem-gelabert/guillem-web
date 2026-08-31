@@ -111,12 +111,6 @@ async function slugsOnDisk(): Promise<string[]> {
 }
 
 /**
- * Dual-extension dynamic import — the extension must stay in the specifier
- * or the build fails at prerender with "Cannot find module". @next/mdx
- * derives .md vs .mdx format from the file suffix, so this six-line
- * try/catch is the entirety of the two-format dispatch.
- */
-/**
  * ASVS V4: the allowlist ordering documented at findBySlug is enforced by
  * convention — a comment — and the routes honour it today. This regex is the
  * same property expressed as code, so it survives a refactor that inlines a
@@ -127,6 +121,12 @@ async function slugsOnDisk(): Promise<string[]> {
  */
 const SAFE_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+/**
+ * Dual-extension dynamic import — the extension must stay in the specifier
+ * or the build fails at prerender with "Cannot find module". @next/mdx
+ * derives .md vs .mdx format from the file suffix, so this try/catch is the
+ * entirety of the two-format dispatch.
+ */
 export async function loadPostModule(
   slug: string,
 ): Promise<{ default: ComponentType; frontmatter: unknown }> {
@@ -161,9 +161,20 @@ function isModuleResolutionError(error: unknown): boolean {
   return /Cannot find module|Module not found/.test(String((error as Error | null)?.message ?? ""));
 }
 
+/**
+ * D-11, stated once. PostMeta needs the same predicate to decide whether to
+ * print the draft marker, and used to re-derive it inline — two independent
+ * statements of one rule that could drift apart the moment it changes (a
+ * SHOW_DRAFTS flag, a preview mode), with the visible symptom being a draft
+ * marker on a published post or a published post with no marker in dev.
+ */
+export function showDrafts(): boolean {
+  return process.env.NODE_ENV === "development";
+}
+
 /** Drafts are visible in dev, invisible in a production build. D-11. */
 export function isVisible(entry: PostEntry): boolean {
-  return process.env.NODE_ENV === "development" || entry.frontmatter.draft !== true;
+  return showDrafts() || entry.frontmatter.draft !== true;
 }
 
 export function selectForLocale(entries: PostEntry[], lang: Locale): PostEntry[] {
