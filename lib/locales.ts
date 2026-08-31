@@ -49,6 +49,15 @@ type UiCopy = {
   notFoundHeading: string;
   notFoundBody: string;
   draftMarker: string;
+  /**
+   * The site-root back link (`← Guillem Gelabert`), added by Phase 3
+   * Amendment A2. Deliberately identical in both locales — unlike every
+   * other key here, this is a proper noun, and a translated variant would
+   * be a different affordance for no gain. On /texte the link carries
+   * hrefLang="en", the one declared locale crossing: the landing genuinely
+   * only exists in English (UI-SPEC § Localisation).
+   */
+  homeLink: string;
 };
 
 export const UI: Record<Locale, UiCopy> = {
@@ -62,6 +71,7 @@ export const UI: Record<Locale, UiCopy> = {
     notFoundHeading: "Not found",
     notFoundBody: "That piece doesn't exist here.",
     draftMarker: "Draft",
+    homeLink: "← Guillem Gelabert",
   },
   de: {
     indexKicker: "Texte",
@@ -73,5 +83,6 @@ export const UI: Record<Locale, UiCopy> = {
     notFoundHeading: "Nicht gefunden",
     notFoundBody: "Diesen Text gibt es hier nicht.",
     draftMarker: "Entwurf",
+    homeLink: "← Guillem Gelabert",
   },
 };
