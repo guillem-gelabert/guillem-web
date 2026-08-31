@@ -14,10 +14,10 @@ Requirements for milestone v1.0. Each maps to exactly one roadmap phase.
 
 ### Landing View
 
-- [ ] **HOME-01**: Visitor can read a single positioning sentence on the landing view stating what Guillem does.
+- [x] **HOME-01**: Visitor can read a single positioning sentence on the landing view stating what Guillem does.
 - [ ] **HOME-02**: Visitor can see one featured piece given clear visual primacy on the landing view.
-- [ ] **HOME-03**: Visitor can reach the work list, backlog, writing index, CV, and contact block from the landing view.
-- [ ] **HOME-04**: Visitor sees a landing layout that stays legible with only two work items — lists and prose, no card grids or three-across rows. *(Corrected from "three" on 2026-08-29: the real count is two — ib-gdp-evolution and Watch People Die.)*
+- [x] **HOME-03**: Visitor can reach the work list, backlog, writing index, CV, and contact block from the landing view.
+- [x] **HOME-04**: Visitor sees a landing layout that stays legible with only two work items — lists and prose, no card grids or three-across rows. *(Corrected from "three" on 2026-08-29: the real count is two — ib-gdp-evolution and Watch People Die.)*
 - [x] **HOME-05**: Visitor sees a deliberate typographic system that reads as authored rather than framework-default.
 - [x] **HOME-06**: Visitor scrolling the page sees headings trail behind the scroll position with a smear effect that settles when scrolling stops.
 
@@ -29,8 +29,8 @@ Requirements for milestone v1.0. Each maps to exactly one roadmap phase.
 
 ### Work List
 
-- [ ] **WORK-01**: Visitor can see a vertical list of Guillem's interactive projects.
-- [ ] **WORK-02**: Visitor can read a one-line annotation per project describing what it is about rather than what it was built with.
+- [x] **WORK-01**: Visitor can see a vertical list of Guillem's interactive projects.
+- [x] **WORK-02**: Visitor can read a one-line annotation per project describing what it is about rather than what it was built with.
 
 ### Backlog
 
@@ -135,11 +135,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HOME-06 | Phase 1 | Complete |
 | WRIT-01 | Phase 2 | Complete |
 | I18N-01 | Phase 2 | Complete |
-| WORK-01 | Phase 3 | Pending |
-| WORK-02 | Phase 3 | Pending |
-| HOME-01 | Phase 3 | Pending |
-| HOME-03 | Phase 3 | Pending |
-| HOME-04 | Phase 3 | Pending |
+| WORK-01 | Phase 3 | Complete |
+| WORK-02 | Phase 3 | Complete |
+| HOME-01 | Phase 3 | Complete (placeholder — copy deferred by D-08, blocks FIND-02) |
+| HOME-03 | Phase 3 | Complete |
+| HOME-04 | Phase 3 | Complete |
 | CASE-01 | Phase 4 | Pending |
 | CASE-02 | Phase 4 | Pending |
 | CASE-03 | Phase 4 | Pending |
