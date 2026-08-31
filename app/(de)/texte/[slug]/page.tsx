@@ -73,7 +73,7 @@ export default async function WritingPost({
   return (
     <main className="flex flex-col gap-3xl px-lg py-3xl">
       <header className="flex flex-col gap-2xl">
-        <Link href={indexPath("de")} className="text-label">
+        <Link href={indexPath("de")} className="text-label link-quiet inline-block py-xs">
           {UI.de.backLink}
         </Link>
         <div className="flex flex-col gap-lg">

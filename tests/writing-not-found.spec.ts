@@ -11,6 +11,12 @@ import { expect, test } from "@playwright/test";
 //
 // A one-entry table today, looped over rather than hand-written once, so
 // Plan 06 can add the German /texte case without restructuring this file.
+//
+// Amendment A3 grows this to three entries: /nope reaches the root
+// app/not-found.tsx boundary (that boundary renders UI.en, matching the
+// English-locale writing case) rather than a localised not-found.tsx, but
+// its rendered copy and back link are identical to the /writing case, so it
+// slots into the same table without a fourth field.
 const LOCALE_CASES = [
   {
     path: "/writing/does-not-exist",
@@ -25,6 +31,13 @@ const LOCALE_CASES = [
     body: "Diesen Text gibt es hier nicht.",
     backLinkText: "← Texte",
     backLinkHref: "/texte",
+  },
+  {
+    path: "/nope",
+    heading: "Not found",
+    body: "That piece doesn't exist here.",
+    backLinkText: "← Writing",
+    backLinkHref: "/writing",
   },
 ];
 
@@ -72,6 +85,21 @@ for (const locale of LOCALE_CASES) {
 
     const backLink = page.getByRole("link", { name: locale.backLinkText });
     await expect(backLink).toHaveAttribute("href", locale.backLinkHref);
+  });
+
+  // Amendment A3: all three not-found back links take link-quiet and clear
+  // the WCAG 2.5.8 24px target floor.
+  test(`the back link at ${locale.path} carries link-quiet and clears the 24px target floor`, async ({
+    page,
+  }) => {
+    await page.goto(locale.path);
+    await page.evaluate(() => document.fonts.ready);
+
+    const backLink = page.getByRole("link", { name: locale.backLinkText });
+    await expect(backLink).toHaveClass(/link-quiet/);
+
+    const height = await backLink.evaluate((el) => el.getBoundingClientRect().height);
+    expect(height).toBeGreaterThanOrEqual(24);
   });
 }
 

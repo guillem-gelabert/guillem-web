@@ -70,7 +70,12 @@ export default async function WritingPost({
   return (
     <main className="flex flex-col gap-3xl px-lg py-3xl">
       <header className="flex flex-col gap-2xl">
-        <Link href={indexPath("en")} className="text-label">
+        {/* Amendment A3: conformance with Phase 2's own Color section,
+            which already reserves the accent for link hover/focus on any
+            link. inline-block py-xs is not decoration — this Label-role
+            link on its own line measures an 18.2px line box, under WCAG
+            2.5.8's 24px floor; the 4px block padding takes it to 26.2px. */}
+        <Link href={indexPath("en")} className="text-label link-quiet inline-block py-xs">
           {UI.en.backLink}
         </Link>
         <div className="flex flex-col gap-lg">
