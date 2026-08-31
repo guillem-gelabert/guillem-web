@@ -132,7 +132,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3)*
 
-- [ ] 03-08-PLAN.md — Production-tier prerender assertions, the clean-`.next` phase gate, the deploy confirmation, and the HOME-01 tripwire record
+- [x] 03-08-PLAN.md — Production-tier prerender assertions, the clean-`.next` phase gate, the deploy confirmation, and the HOME-01 tripwire record
 
 **Wave 5** *(blocked on Wave 4)*
 
@@ -193,7 +193,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Deploy Foundation & Design System | 4/4 | Complete   | 2026-08-29 |
 | 2. Content Pipeline | 7/7 | Complete   | 2026-08-31 |
-| 3. Work List & Landing Skeleton | 7/9 | In Progress|  |
+| 3. Work List & Landing Skeleton | 8/9 | In Progress|  |
 | 4. The Case Study | 0/TBD | Not started | - |
 | 5. Backlog | 0/TBD | Not started | - |
 | 6. CV, Contact, Photo & Discoverability | 0/TBD | Not started | - |
