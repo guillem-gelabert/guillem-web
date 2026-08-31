@@ -141,3 +141,176 @@ test("(g) the one-source property: meta[name=description] equals the rendered po
   const standfirstText = await page.locator("header p.text-standfirst").innerText();
   expect(metaContent).toBe(standfirstText.trim());
 });
+
+// ---------------------------------------------------------------------------
+// Task 2: WORK-01, WORK-02 and HOME-04 — the work list's structure,
+// destinations and non-card treatment
+// ---------------------------------------------------------------------------
+
+test("(h) #work holds exactly one ol[role=list] with exactly 2 li", async ({ page }) => {
+  const work = page.locator("section#work");
+  const list = work.locator('ol[role="list"]');
+  await expect(list).toHaveCount(1);
+
+  // role="list" is not redundant: Safari drops list semantics when
+  // list-style: none is applied, so the role restores what the CSS removes.
+  await expect(list).toHaveAttribute("role", "list");
+
+  const items = list.locator("> li");
+  await expect(items).toHaveCount(2);
+});
+
+test("(i) both work-list rows point at the two locked D-06 destinations, same tab", async ({
+  page,
+}) => {
+  const items = page.locator("section#work ol[role='list'] > li");
+  await expect(items).toHaveCount(2);
+
+  for (let i = 0; i < 2; i++) {
+    await expect(items.nth(i).locator("a")).toHaveCount(1);
+  }
+
+  const hrefs = await items.locator("a").evaluateAll((els) => els.map((el) => el.getAttribute("href")));
+  // Hosting is per-project with no uniform pattern (one is an apex
+  // subdomain, the other a separate domain), so these are asserted as
+  // literals rather than derived from a rule (D-06).
+  expect(hrefs).toEqual([
+    "https://ib-gdp.guillemgelabert.com/everyone-in-mallorca-agrees-on-one-thing",
+    "https://watchpeopledie.live",
+  ]);
+
+  // Same-tab links create no window.opener, so there is no reverse-
+  // tabnabbing surface, and adding a new-window attribute later would
+  // require the accompanying hardening attribute to be considered.
+  const targets = await items.locator("a").evaluateAll((els) =>
+    els.map((el) => el.getAttribute("target")),
+  );
+  expect(targets).toEqual([null, null]);
+});
+
+test("(j) the private repo stays private: no github.com link, no repo name in rendered text", async ({
+  page,
+}) => {
+  await expect(page.locator('a[href*="github.com"]')).toHaveCount(0);
+
+  const bodyText = await page.locator("body").innerText();
+  // The repo is private and the entry titles are the pieces' published
+  // headlines, never repository names (D-06).
+  expect(bodyText).not.toContain("ib-gdp-evolution");
+});
+
+test("(k) each row's annotation is a single non-empty line, and its host label names the row's real destination", async ({
+  page,
+}) => {
+  const items = page.locator("section#work ol[role='list'] > li");
+  await expect(items).toHaveCount(2);
+
+  for (let i = 0; i < 2; i++) {
+    const row = items.nth(i);
+    const annotation = row.locator("p.text-body");
+    await expect(annotation).toHaveCount(1);
+    const annotationText = await annotation.innerText();
+    expect(annotationText.trim().length).toBeGreaterThan(0);
+    expect(annotationText).not.toContain("\n");
+
+    // The host line is derived, inside the browser, from the row's own <a>
+    // — proving the outbound marker names the real destination rather than
+    // a stale copy, not merely that some string with two dots is present.
+    const hostText = await row.evaluate((el) => {
+      const link = el.querySelector("a");
+      const labels = el.querySelectorAll("p.text-label");
+      const hostLabel = labels[labels.length - 1];
+      return {
+        expected: link ? new URL(link.getAttribute("href") as string).hostname : null,
+        rendered: (hostLabel?.textContent ?? "").trim(),
+      };
+    });
+    expect(hostText.rendered).toBe(hostText.expected);
+  }
+});
+
+test("(l) the ordinals are aria-hidden and read 01, 02", async ({ page }) => {
+  const items = page.locator("section#work ol[role='list'] > li");
+  await expect(items).toHaveCount(2);
+
+  // The <ol> already conveys order and count to assistive technology; a
+  // visible "01" read aloud as "zero one" is noise.
+  const ordinals = await items.evaluateAll((els) =>
+    els.map((el) => {
+      const p = el.querySelector("p.text-label");
+      return { text: (p?.textContent ?? "").trim(), ariaHidden: p?.getAttribute("aria-hidden") };
+    }),
+  );
+  expect(ordinals[0]).toEqual({ text: "01", ariaHidden: "true" });
+  expect(ordinals[1]).toEqual({ text: "02", ariaHidden: "true" });
+});
+
+test("(m) HOME-04: the work list and its first row are not a card", async ({ page }) => {
+  const list = page.locator("section#work ol[role='list']");
+  const firstItem = page.locator("section#work ol[role='list'] > li").first();
+
+  for (const locator of [list, firstItem]) {
+    const style = await locator.evaluate((el) => {
+      const s = getComputedStyle(el);
+      return {
+        borderTopWidth: s.borderTopWidth,
+        borderRightWidth: s.borderRightWidth,
+        borderBottomWidth: s.borderBottomWidth,
+        borderLeftWidth: s.borderLeftWidth,
+        boxShadow: s.boxShadow,
+        borderRadius: s.borderRadius,
+        backgroundColor: s.backgroundColor,
+      };
+    });
+    expect(style.borderTopWidth).toBe("0px");
+    expect(style.borderRightWidth).toBe("0px");
+    expect(style.borderBottomWidth).toBe("0px");
+    expect(style.borderLeftWidth).toBe("0px");
+    expect(style.boxShadow).toBe("none");
+    expect(style.borderRadius).toBe("0px");
+    expect(["rgba(0, 0, 0, 0)", "transparent", "rgb(255, 255, 255)"]).toContain(
+      style.backgroundColor,
+    );
+  }
+});
+
+test("(n) HOME-04: the second row's separator is the hairline, not a fourth rule weight", async ({
+  page,
+}) => {
+  const secondItem = page.locator("section#work ol[role='list'] > li").nth(1);
+
+  const style = await secondItem.evaluate((el) => {
+    const s = getComputedStyle(el);
+    return {
+      borderTopWidth: s.borderTopWidth,
+      borderTopStyle: s.borderTopStyle,
+      borderTopColor: s.borderTopColor,
+      borderRightWidth: s.borderRightWidth,
+      borderBottomWidth: s.borderBottomWidth,
+      borderLeftWidth: s.borderLeftWidth,
+    };
+  });
+
+  // Tailwind v4's preflight emits `border: 0 solid` with no colour, so
+  // border-t without border-rule falls through to currentColor — full-ink
+  // black, 8x darker than --color-rule, and a fourth rule weight the Prose
+  // Contract forbids (WR-06 recurring). A toHaveCount() assertion cannot see
+  // this; only the computed colour can.
+  expect(style.borderTopWidth).toBe("1px");
+  expect(style.borderTopStyle).toBe("solid");
+  expect(style.borderTopColor).toBe("rgba(0, 0, 0, 0.12)");
+  expect(style.borderRightWidth).toBe("0px");
+  expect(style.borderBottomWidth).toBe("0px");
+  expect(style.borderLeftWidth).toBe("0px");
+});
+
+test("(o) the work list is a single column at the default viewport", async ({ page }) => {
+  const items = page.locator("section#work ol[role='list'] > li");
+  await expect(items).toHaveCount(2);
+
+  const boxes = await items.evaluateAll((els) =>
+    els.map((el) => el.getBoundingClientRect()),
+  );
+  expect(boxes[0].x).toBe(boxes[1].x);
+  expect(boxes[1].y).toBeGreaterThan(boxes[0].y);
+});
