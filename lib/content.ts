@@ -91,9 +91,26 @@ export async function loadPostModule(
 ): Promise<{ default: ComponentType; frontmatter: unknown }> {
   try {
     return await import(`@/content/${slug}.mdx`);
-  } catch {
+  } catch (error) {
+    // Only a *resolution* failure means "this post is a .md, not a .mdx".
+    // A bare catch here would swallow every error thrown while EVALUATING
+    // content/{slug}.mdx — a broken relative import inside the MDX, a
+    // component that throws at module scope, a plugin failure specific to
+    // that file — and replace it with the .md fallback's own resolution
+    // error, so the build would fail with "Cannot find module
+    // '@/content/{slug}.md'" while pointing at a file that was never the
+    // problem and hiding the real stack.
+    if (!isModuleResolutionError(error)) throw error;
     return await import(`@/content/${slug}.md`);
   }
+}
+
+function isModuleResolutionError(error: unknown): boolean {
+  const code = (error as NodeJS.ErrnoException | null)?.code;
+  if (code === "MODULE_NOT_FOUND" || code === "ERR_MODULE_NOT_FOUND") return true;
+  // Turbopack and webpack both phrase their context-module misses in prose
+  // rather than with an errno code, so the message is the only signal.
+  return /Cannot find module|Module not found/.test(String((error as Error | null)?.message ?? ""));
 }
 
 /** Drafts are visible in dev, invisible in a production build. D-11. */
