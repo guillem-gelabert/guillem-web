@@ -116,8 +116,8 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 03-01-PLAN.md — lib/work.ts (entries, CASE_STUDY_SLUG, POSITIONING_PLACEHOLDER) + its unit gate; SmearTitle `as` widened to h3; `homeLink` in lib/locales.ts
-- [ ] 03-02-PLAN.md — Extract the globals.css parser to a shared helper; add `.section-head` / `.link` / `.link-quiet`; the link-contract source gate
+- [x] 03-01-PLAN.md — lib/work.ts (entries, CASE_STUDY_SLUG, POSITIONING_PLACEHOLDER) + its unit gate; SmearTitle `as` widened to h3; `homeLink` in lib/locales.ts
+- [x] 03-02-PLAN.md — Extract the globals.css parser to a shared helper; add `.section-head` / `.link` / `.link-quiet`; the link-contract source gate
 
 **Wave 2** *(blocked on Wave 1)*
 
@@ -193,7 +193,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Deploy Foundation & Design System | 4/4 | Complete   | 2026-08-29 |
 | 2. Content Pipeline | 7/7 | Complete   | 2026-08-31 |
-| 3. Work List & Landing Skeleton | 0/9 | Planned | - |
+| 3. Work List & Landing Skeleton | 2/9 | In Progress|  |
 | 4. The Case Study | 0/TBD | Not started | - |
 | 5. Backlog | 0/TBD | Not started | - |
 | 6. CV, Contact, Photo & Discoverability | 0/TBD | Not started | - |
