@@ -16,7 +16,7 @@ Six phases take the repo from its current state (a leftover static-prototype Doc
 - [x] **Phase 1: Deploy Foundation & Design System** - Delete the stale Dockerfile, stand up Next.js on Railway, and lay down the typographic system, the heading trail effect, and accessibility defaults before any content exists. (completed 2026-08-29)
 - [x] **Phase 2: Content Pipeline** - Build the front-matter/Markdown+MDX loader, the `/writing` route and index, and the prose layer the case study renders through. The 2020 archive migration is deferred to v2. (completed 2026-08-31)
 - [x] **Phase 3: Work List & Landing Skeleton** - Assemble the landing view's positioning sentence, navigation, and vertical work list; leave the featured slot pointed at a placeholder. (completed 2026-08-31)
-- [ ] **Phase 4: The Case Study** - Write and publish the ib-gdp-evolution case study and wire the landing view's featured slot to it.
+- [x] **Phase 4: The Case Study** - Write and publish the ib-gdp-evolution case study and wire the landing view's featured slot to it. (completed 2026-08-31)
 - [ ] **Phase 5: Backlog** - Ship the curated, section-dated backlog of work in progress.
 - [ ] **Phase 6: CV, Contact, Photo & Discoverability** - Complete the CV page, photograph, contact block, real security headers, and search/social metadata.
 
@@ -176,7 +176,7 @@ Plans:
 
 **Wave 6** *(blocked on Wave 5)*
 
-- [ ] 04-06-PLAN.md — The D-19 fact check as a committed per-claim record, the live deploy confirmation, and the launch-gate closure with the HOME-01 tripwire carried forward
+- [x] 04-06-PLAN.md — The D-19 fact check as a committed per-claim record, the live deploy confirmation, and the launch-gate closure with the HOME-01 tripwire carried forward
 
 **UI hint**: yes
 
@@ -219,7 +219,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Deploy Foundation & Design System | 4/4 | Complete   | 2026-08-29 |
 | 2. Content Pipeline | 7/7 | Complete   | 2026-08-31 |
 | 3. Work List & Landing Skeleton | 9/9 | Complete   | 2026-08-31 |
-| 4. The Case Study | 5/6 | In Progress|  |
+| 4. The Case Study | 6/6 | Complete   | 2026-08-31 |
 | 5. Backlog | 0/TBD | Not started | - |
 | 6. CV, Contact, Photo & Discoverability | 0/TBD | Not started | - |
 

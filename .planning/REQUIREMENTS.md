@@ -15,7 +15,7 @@ Requirements for milestone v1.0. Each maps to exactly one roadmap phase.
 ### Landing View
 
 - [x] **HOME-01**: Visitor can read a single positioning sentence on the landing view stating what Guillem does.
-- [ ] **HOME-02**: Visitor can see one featured piece given clear visual primacy on the landing view.
+- [x] **HOME-02**: Visitor can see one featured piece given clear visual primacy on the landing view.
 - [x] **HOME-03**: Visitor can reach the work list, backlog, writing index, CV, and contact block from the landing view.
 - [x] **HOME-04**: Visitor sees a landing layout that stays legible with only two work items — lists and prose, no card grids or three-across rows. *(Corrected from "three" on 2026-08-29: the real count is two — ib-gdp-evolution and Watch People Die.)*
 - [x] **HOME-05**: Visitor sees a deliberate typographic system that reads as authored rather than framework-default.
@@ -23,9 +23,9 @@ Requirements for milestone v1.0. Each maps to exactly one roadmap phase.
 
 ### Case Study
 
-- [ ] **CASE-01**: Visitor can read a published case study covering ib-gdp-evolution.
+- [x] **CASE-01**: Visitor can read a published case study covering ib-gdp-evolution.
 - [ ] **CASE-02**: Visitor can follow the case study through six parts: the question, Guillem's stated prior expectation, what the data actually showed, how the visual form changed in response, the shipped result, and a methodology note.
-- [ ] **CASE-03**: Visitor can reach the case study from the landing view's featured slot.
+- [x] **CASE-03**: Visitor can reach the case study from the landing view's featured slot.
 
 ### Work List
 
@@ -140,10 +140,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HOME-01 | Phase 3 | Complete (placeholder — copy deferred by D-08, blocks FIND-02) |
 | HOME-03 | Phase 3 | Complete |
 | HOME-04 | Phase 3 | Complete |
-| CASE-01 | Phase 4 | Pending |
+| CASE-01 | Phase 4 | Complete |
 | CASE-02 | Phase 4 | Pending |
-| CASE-03 | Phase 4 | Pending |
-| HOME-02 | Phase 4 | Pending |
+| CASE-03 | Phase 4 | Complete |
+| HOME-02 | Phase 4 | Complete |
 | BACK-01 | Phase 5 | Pending |
 | BACK-02 | Phase 5 | Pending |
 | PROF-01 | Phase 6 | Pending |
