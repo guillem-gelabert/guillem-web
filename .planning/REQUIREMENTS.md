@@ -39,11 +39,11 @@ Requirements for milestone v1.0. Each maps to exactly one roadmap phase.
 
 ### Writing Archive
 
-- [ ] **WRIT-01**: Visitor can browse an index of Guillem's writing hosted on the site. *(At v1 launch the index holds the case study; the 2020 archive that would fill it is deferred to v2.)*
+- [x] **WRIT-01**: Visitor can browse an index of Guillem's writing hosted on the site. *(At v1 launch the index holds the case study; the 2020 archive that would fill it is deferred to v2.)*
 
 ### Internationalisation
 
-- [ ] **I18N-01**: Visitor can read any piece of writing in English or German wherever a translation exists, at a language-appropriate URL, and can switch between them. *(Added 2026-08-29. Slugs are localised per language rather than sharing one slug under a locale prefix — the convention the published ib-gdp piece already uses. A piece may exist in one locale only.)*
+- [x] **I18N-01**: Visitor can read any piece of writing in English or German wherever a translation exists, at a language-appropriate URL, and can switch between them. *(Added 2026-08-29. Slugs are localised per language rather than sharing one slug under a locale prefix — the convention the published ib-gdp piece already uses. A piece may exist in one locale only.)*
 
 ### Profile and Contact
 
@@ -133,8 +133,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BUILD-06 | Phase 1 | Complete |
 | HOME-05 | Phase 1 | Complete |
 | HOME-06 | Phase 1 | Complete |
-| WRIT-01 | Phase 2 | Pending |
-| I18N-01 | Phase 2 | Pending |
+| WRIT-01 | Phase 2 | Complete |
+| I18N-01 | Phase 2 | Complete |
 | WORK-01 | Phase 3 | Pending |
 | WORK-02 | Phase 3 | Pending |
 | HOME-01 | Phase 3 | Pending |
