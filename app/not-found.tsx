@@ -33,7 +33,7 @@ export default function GlobalNotFound() {
               {UI.en.notFoundHeading}
             </SmearTitle>
             <p className="text-body">{UI.en.notFoundBody}</p>
-            <Link href={indexPath("en")} className="text-label">
+            <Link href={indexPath("en")} className="text-label link-quiet inline-block py-xs">
               {UI.en.backLink}
             </Link>
           </main>

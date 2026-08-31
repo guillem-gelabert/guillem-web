@@ -15,7 +15,7 @@ export default function WritingNotFound() {
         {UI.de.notFoundHeading}
       </SmearTitle>
       <p className="text-body">{UI.de.notFoundBody}</p>
-      <Link href={indexPath("de")} className="text-label">
+      <Link href={indexPath("de")} className="text-label link-quiet inline-block py-xs">
         {UI.de.backLink}
       </Link>
     </main>

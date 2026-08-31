@@ -17,7 +17,13 @@ export function LanguageSwitch({ from, href }: LanguageSwitchProps) {
   }
 
   return (
-    <Link href={href} className="text-label" hrefLang={otherLocale(from)}>
+    // Amendment A3: link-quiet only — deliberately no target-size block
+    // padding here. Two concrete reasons: it sits inline inside PostMeta's
+    // text line, which is WCAG 2.5.8's explicit inline exception; and
+    // padding it to a block box would change the shipped meta-line height
+    // on /writing, /texte and every post — a visual regression on shipped
+    // surfaces for no accessibility gain.
+    <Link href={href} className="text-label link-quiet" hrefLang={otherLocale(from)}>
       {UI[from].switchLabel}
     </Link>
   );
