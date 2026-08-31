@@ -28,6 +28,14 @@ export default async function WritingIndex() {
 
   return (
     <main className="flex flex-col gap-2xl px-lg py-3xl">
+      {/* Amendment A2: the site-root back link the contents nav's Writing
+          entry creates a need for. inline-block py-xs is not decoration —
+          a Label-role link on its own line measures an 18.2px line box,
+          under WCAG 2.5.8's 24px floor; the 4px block padding takes it to
+          26.2px. */}
+      <Link href="/" className="text-label link-quiet inline-block py-xs">
+        {UI[locale].homeLink}
+      </Link>
       <div className="flex flex-row items-baseline gap-md">
         <h1 className="text-label">{UI[locale].indexKicker}</h1>
         <LanguageSwitch from={locale} href={indexPath(otherLocale(locale))} />
@@ -43,7 +51,12 @@ export default async function WritingIndex() {
             {index > 0 ? <hr /> : null}
             <article className="flex flex-col gap-lg">
               <SmearTitle as="h2" className="text-display">
-                <Link href={postPath(locale, entry.slug)}>{entry.frontmatter.title}</Link>
+                {/* Amendment A3: conformance with Phase 2's own Color
+                    section, which already reserves the accent for link
+                    hover/focus on any link — not a new visual decision. */}
+                <Link href={postPath(locale, entry.slug)} className="link-quiet">
+                  {entry.frontmatter.title}
+                </Link>
               </SmearTitle>
               <div className="flex flex-col gap-md">
                 <p className="max-w-prose text-standfirst">{entry.frontmatter.standfirst}</p>
