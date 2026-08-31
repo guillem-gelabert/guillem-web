@@ -456,6 +456,21 @@ affordance.**
   feature the site genuinely does not use.
 - Plan decomposition and wave structure, subject only to the flip being last.
 
+
+### Carried in from Phase 2 (coordinator decision, 2026-08-31)
+
+- **CR-01 — localised `[slug]` 404s must server-render.** Phase 2's code review found
+  that `/writing/<unknown>` and `/texte/<unbekannt>` return `<html id="__next_error__">`
+  with no `lang` and an empty body when JavaScript is disabled — a WCAG 3.1.1 Level A
+  failure. The cause is framework-level in Next 16.3.3 and was isolated four ways; full
+  measurements are in `.planning/phases/02-content-pipeline/deferred-items.md`.
+  `dynamicParams = false` fixes the rendering but forces English error copy onto German
+  URLs, contradicting `02-UI-SPEC.md`'s Error State row. **This phase must fix it in the
+  Node-runtime `middleware.ts` it already builds for security headers**, by rewriting
+  unmatched localised slugs to a per-locale 404 page with a 404 status. This is the only
+  option that preserves the German copy and closes the accessibility defect.
+  Add it to this phase's launch-gate checklist.
+
 </decisions>
 
 <canonical_refs>
