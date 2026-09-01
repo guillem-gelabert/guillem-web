@@ -17,13 +17,20 @@ import { SITE_URL } from "@/lib/site";
  * fix: de-clienting `/type` so it can export its own `index: false` `robots`
  * metadata directly. Until then, treat this Disallow line as a crawl fence,
  * not a search-result guarantee.
+ *
+ * `/api` is fenced for the same reason and with the same caveat. It is not a
+ * security control — the endpoints are token-gated in lib/api-auth.ts, which
+ * is what actually protects them, and a crawler that ignores this file gets a
+ * 401 rather than a backlog. What the line buys is that a well-behaved crawler
+ * does not spend requests on a route that can only ever answer 401, and that
+ * the endpoint does not turn up in a search result as a URL worth poking at.
  */
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: "/type",
+      disallow: ["/type", "/api"],
     },
     sitemap: new URL("/sitemap.xml", SITE_URL).toString(),
   };

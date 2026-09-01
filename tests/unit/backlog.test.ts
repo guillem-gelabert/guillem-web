@@ -128,12 +128,33 @@ test("every item has a non-empty name and description, and no item declares a th
     assert.ok(nameMatch, `item ${index + 1}: could not find a name field`);
     assert.ok(nameMatch![1].trim().length > 0, `item ${index + 1}: name must be non-empty`);
 
-    assert.match(chunk, /description:\s*\(/, `item ${index + 1}: could not find a description field`);
+    // description was a JSX fragment (`description: (<>…</>)`) until
+    // 2026-09-01 and is now a plain string literal, possibly split across
+    // several concatenated lines to stay inside the line-length budget.
+    // Items can arrive over HTTP from lib/backlog-store.ts, and a ReactNode
+    // is not something a JSON body can carry — nor something that should be
+    // rendered from an outside caller. The assertion follows the shape:
+    // string literals, joined, non-empty.
+    assert.match(
+      chunk,
+      /description:\s*\n?\s*"/,
+      `item ${index + 1}: description must be a string literal (it stopped being JSX on 2026-09-01)`,
+    );
+    assert.doesNotMatch(
+      chunk,
+      /description:\s*\(/,
+      `item ${index + 1}: description must not be a JSX expression — items also come from the ` +
+        "database now, and only one of the two shapes can be rendered from both sources",
+    );
 
-    const fragmentMatch = chunk.match(/<>([\s\S]*?)<\/>/);
-    assert.ok(fragmentMatch, `item ${index + 1}: description must be a JSX fragment (<>...</>)`);
-    const fragmentText = fragmentMatch![1].replace(/\s+/g, " ").trim();
-    assert.ok(fragmentText.length > 0, `item ${index + 1}: description must be non-empty`);
+    const descriptionText = [
+      ...chunk.slice(chunk.indexOf("description:")).matchAll(/"((?:[^"\\]|\\.)*)"/g),
+    ]
+      .map((m) => m[1])
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim();
+    assert.ok(descriptionText.length > 0, `item ${index + 1}: description must be non-empty`);
   }
 });
 

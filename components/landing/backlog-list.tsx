@@ -1,4 +1,13 @@
-import { BACKLOG } from "@/lib/backlog";
+import type { BacklogItem } from "@/lib/backlog";
+
+type BacklogListProps = {
+  // Passed in rather than imported. The list used to read lib/backlog.tsx's
+  // BACKLOG directly, which stopped being the only source when the items
+  // started coming from lib/backlog-store.ts — and a component that reaches
+  // for a module-level constant cannot be handed database rows. The page owns
+  // the fetch; this stays a pure renderer.
+  items: readonly BacklogItem[];
+};
 
 // The work list's row grammar (D-10), minus three affordances (D-11): no
 // ordinal, no destination host line, and the name is plain text, not a
@@ -6,10 +15,10 @@ import { BACKLOG } from "@/lib/backlog";
 // them. <ul>, not <ol>: the backlog is unranked (D-11.1). role="list" is
 // required and not redundant: Safari drops list semantics when
 // list-style: none is applied.
-export function BacklogList() {
+export function BacklogList({ items }: BacklogListProps) {
   return (
     <ul role="list" className="flex list-none flex-col gap-xl">
-      {BACKLOG.map((item, index) => {
+      {items.map((item, index) => {
         // border-rule is not optional. Tailwind v4's preflight emits
         // `border: 0 solid` with NO colour, so a bare border-t falls
         // through to currentColor and renders full ink — an 8x darker

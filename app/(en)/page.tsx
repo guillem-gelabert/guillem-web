@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { findBySlug, publishedFor } from "@/lib/content";
 import { CASE_STUDY_SLUG, POSITIONING_PLACEHOLDER } from "@/lib/work";
-import { LAST_TOUCHED } from "@/lib/backlog";
+import { getBacklog } from "@/lib/backlog-store";
 import { formatPostDate } from "@/lib/locales";
 import { channels } from "@/lib/contact";
 import { SmearTitle } from "@/components/smear-title";
@@ -43,12 +43,23 @@ export const metadata: Metadata = {
   // /texte, which call lib/metadata.ts's routeOpenGraph for their own path.
 };
 
+// The backlog is the one section on this page whose content can change
+// without a deploy (lib/backlog-store.ts, POST /api/backlog). Sixty seconds
+// keeps the page a static asset for almost every visitor while bounding how
+// stale the list can be; a write also calls revalidatePath("/"), so the
+// window is the ceiling on staleness, not the typical wait. Everything else
+// here still resolves from files at build time.
+export const revalidate = 60;
+
 export default async function Landing() {
   // A null result IS the interim state — there is no boolean to flip. This
   // must tolerate null forever, not just this phase, so a renamed or
   // re-drafted Phase 4 file returns the slot to interim rather than
   // throwing.
   const caseStudy = findBySlug(await publishedFor("en"), CASE_STUDY_SLUG);
+  // Never throws: with no database configured, or with one that is
+  // unreachable, this returns lib/backlog.tsx's seed. See that module's header.
+  const { items: backlog, lastTouched } = await getBacklog();
 
   return (
     <main className="flex flex-col gap-3xl px-lg py-3xl">
@@ -102,9 +113,9 @@ export default async function Landing() {
             only mitigates the wishlist read if it is read before the list. */}
         <div className="flex flex-col gap-lg">
           <p className="text-label">
-            Last touched <time dateTime={LAST_TOUCHED}>{formatPostDate(LAST_TOUCHED, "en")}</time>
+            Last touched <time dateTime={lastTouched}>{formatPostDate(lastTouched, "en")}</time>
           </p>
-          <BacklogList />
+          <BacklogList items={backlog} />
         </div>
       </section>
 

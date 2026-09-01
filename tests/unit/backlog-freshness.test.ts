@@ -3,7 +3,8 @@ import { spawnSync } from "node:child_process";
 import { statSync } from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { BACKLOG_MODULE, LAST_TOUCHED } from "./backlog-source.ts";
+import { createHash } from "node:crypto";
+import { BACKLOG_MODULE, LAST_TOUCHED, backlogContentFingerprint, backlogSource } from "./backlog-source.ts";
 
 // D-09.2's repo-tier freshness guard: the module's newest change must never
 // be later than the hand-set LAST_TOUCHED. Two halves, deliberately
@@ -127,7 +128,56 @@ function lastChangeDate(): Verdict {
   return { source: "git log -1 --format=%cs", date: log.out };
 }
 
+// ---------------------------------------------------------------------------
+// Half three — the content fingerprint, which narrows what "changed" means.
+//
+// The probe above answers "when did the FILE change?". Since lib/backlog.tsx
+// became the seed for lib/backlog-store.ts as well as the fallback content, a
+// file change no longer implies a content change: adding a comment, changing
+// the BacklogItem type, or re-encoding a description from a JSX fragment to a
+// string literal all move the mtime and move nothing a reader sees. Demanding
+// a LAST_TOUCHED bump for those would manufacture exactly the freshness
+// overclaim BACK-02 exists to prevent.
+//
+// So the date check below is gated on the content actually having moved.
+// ---------------------------------------------------------------------------
+
+function recordedContentSha(): string {
+  const match = backlogSource.match(/export const BACKLOG_CONTENT_SHA256\s*=\s*\n?\s*"([0-9a-f]{64})"/);
+  if (!match) {
+    throw new Error(
+      `could not find \`export const BACKLOG_CONTENT_SHA256 = "<64 hex>"\` in ${BACKLOG_MODULE} — ` +
+        "if the declaration was reformatted, fix this reader, do not delete it.",
+    );
+  }
+  return match[1]!;
+}
+
+function currentContentSha(): string {
+  return createHash("sha256").update(backlogContentFingerprint()).digest("hex");
+}
+
+test("BACKLOG_CONTENT_SHA256 matches the array's actual content — the pair with LAST_TOUCHED is authored together", () => {
+  assert.equal(
+    currentContentSha(),
+    recordedContentSha(),
+    "the backlog's wording changed but BACKLOG_CONTENT_SHA256 was not updated — update it AND " +
+      "LAST_TOUCHED in lib/backlog.tsx together; they are one claim, not two",
+  );
+});
+
 test("lib/backlog.tsx's last change is not later than LAST_TOUCHED (D-09.2, five-branch environment probe)", (t) => {
+  // Content-unchanged short-circuit. If the words are the ones LAST_TOUCHED
+  // was authored against, no edit to this file can have made the date a
+  // stale claim, whatever the mtime says.
+  if (currentContentSha() === recordedContentSha()) {
+    t.diagnostic(
+      `content fingerprint unchanged (${recordedContentSha().slice(0, 12)}…) — the module may have ` +
+        "been edited, but not one word of the backlog moved, so LAST_TOUCHED is not a stale claim",
+    );
+    return;
+  }
+
   const verdict = lastChangeDate();
 
   if ("skip" in verdict) {
