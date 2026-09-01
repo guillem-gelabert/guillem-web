@@ -22,6 +22,10 @@ const ROUTES = [
   "/writing/the-chart-therefore-changes",
   "/texte/die-darstellung-aendert-sich",
   "/writing/does-not-exist",
+  // CR-01 (plan 06-01): every new route this phase adds goes in this list.
+  "/texte/gibt-es-nicht",
+  "/writing/not-found-page",
+  "/texte/nicht-gefunden",
 ];
 
 export default async function globalSetup(config: FullConfig) {

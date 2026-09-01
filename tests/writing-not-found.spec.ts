@@ -23,6 +23,7 @@ import { expect, test } from "@playwright/test";
 const LOCALE_CASES = [
   {
     path: "/writing/does-not-exist",
+    lang: "en",
     heading: "Not found",
     body: "That piece doesn't exist here.",
     backLinkText: "← Writing",
@@ -30,6 +31,7 @@ const LOCALE_CASES = [
   },
   {
     path: "/texte/gibt-es-nicht",
+    lang: "de",
     heading: "Nicht gefunden",
     body: "Diesen Text gibt es hier nicht.",
     backLinkText: "← Texte",
@@ -91,21 +93,55 @@ for (const path of UNMATCHED_PATHS) {
 }
 
 for (const locale of LOCALE_CASES) {
-  test(`an unknown slug at ${locale.path} renders the localised not-found copy`, async ({ page }) => {
-    const response = await page.goto(locale.path);
-    expect(response?.status()).toBe(404);
+  // CR-01, resolved: proxy.ts rewrites an unmatched or cross-locale slug to
+  // a real per-locale page with an explicit 404 status BEFORE the App
+  // Router render starts, rather than this segment's [slug]/page.tsx
+  // throwing notFound() (which Next 16.3.3 never server-renders — see
+  // .planning/phases/02-content-pipeline/deferred-items.md for the original
+  // isolation, this file's own git history for the code-review comment this
+  // block replaces, and 06-RESEARCH.md § "CR-01 — SOLVED AND MEASURED" for
+  // the fix). The status is set at the proxy tier because an App Router
+  // page cannot set one itself, and the German copy survives because the
+  // rewrite target is a real per-locale page — dynamicParams = false was
+  // the other option and could not preserve it (it always serves the
+  // English global boundary). Asserted here exactly as WCAG 3.1.1 requires:
+  // in the server HTML, with JavaScript disabled.
+  test(`an unknown slug at ${locale.path} renders the localised not-found copy without JavaScript`, async ({
+    browser,
+  }) => {
+    const context = await browser.newContext({ javaScriptEnabled: false });
+    const page = await context.newPage();
+    try {
+      const response = await page.goto(locale.path);
+      expect(response?.status()).toBe(404);
 
-    await page.evaluate(() => document.fonts.ready);
+      // WCAG 2.1 SC 3.1.1 (Level A), the defect this block replaces: the
+      // document must declare the REQUESTED locale's language in the server
+      // HTML, before any script runs.
+      expect(await page.evaluate(() => document.documentElement.lang)).toBe(locale.lang);
 
-    await expect(page.locator("h1")).toHaveText(locale.heading);
-    await expect(page.getByText(locale.body)).toBeVisible();
+      // WCAG 2.1 SC 2.4.2 Page Titled (Level A). The reserved pages export
+      // their own metadata.title precisely so this is never the bare layout
+      // default (06-RESEARCH.md: measured falling back to "Guillem Gelabert"
+      // without it).
+      const title = await page.title();
+      expect(title).not.toBe("");
+      expect(title).not.toBe("Guillem Gelabert");
 
-    const backLink = page.getByRole("link", { name: locale.backLinkText });
-    await expect(backLink).toHaveAttribute("href", locale.backLinkHref);
+      await expect(page.locator("h1")).toHaveText(locale.heading);
+      await expect(page.getByText(locale.body)).toBeVisible();
+
+      const backLink = page.getByRole("link", { name: locale.backLinkText });
+      await expect(backLink).toHaveAttribute("href", locale.backLinkHref);
+    } finally {
+      await context.close();
+    }
   });
 
   // Amendment A3: all three not-found back links take link-quiet and clear
-  // the WCAG 2.5.8 24px target floor.
+  // the WCAG 2.5.8 24px target floor. Left JavaScript-enabled: it needs a
+  // real layout pass (getBoundingClientRect after fonts load), unlike the
+  // status/lang/title/h1/body assertions above.
   test(`the back link at ${locale.path} carries link-quiet and clears the 24px target floor`, async ({
     page,
   }) => {
@@ -120,14 +156,50 @@ for (const locale of LOCALE_CASES) {
   });
 }
 
-// KNOWN GAP (code review CR-01), deliberately not asserted here: the two
-// localised boundaries above are reached by an explicit notFound() throw, and
-// Next 16.3.3 never server-renders a thrown notFound()'s boundary — it emits
-// `<html id="__next_error__">` with an empty hidden body and paints the copy
-// on hydration. Measured in this repo against `next start` for a static
-// prerender, an ISR render and `dynamic = "force-dynamic"` alike, with and
-// without app/not-found.tsx present. A no-JS assertion on these two paths
-// would therefore fail today, and the only fix that makes them server-render
-// (dynamicParams = false, which routes them to the English global boundary
-// above) drops the German copy 02-UI-SPEC's Error State row requires. That is
-// a design trade, not a code fix; see 02-REVIEW-FIX notes.
+// CR-01: the locale filter, not just the unmatched-slug case. A published
+// post's own slug requested under the OTHER locale's segment must still
+// 404, in that segment's own language — the case that catches a slug
+// allowlist that forgot to check `lang` and matched by filename alone.
+// Asserted with JavaScript disabled for the same WCAG 3.1.1 reason as above.
+const CROSS_LOCALE_CASES = [
+  {
+    path: "/writing/die-darstellung-aendert-sich",
+    lang: "en",
+    heading: "Not found",
+  },
+  {
+    path: "/texte/the-chart-therefore-changes",
+    lang: "de",
+    heading: "Nicht gefunden",
+  },
+];
+
+for (const cross of CROSS_LOCALE_CASES) {
+  test(`${cross.path} (the other locale's published slug) 404s in the requesting segment's own language`, async ({
+    browser,
+  }) => {
+    const context = await browser.newContext({ javaScriptEnabled: false });
+    const page = await context.newPage();
+    try {
+      const response = await page.goto(cross.path);
+      expect(response?.status()).toBe(404);
+      expect(await page.evaluate(() => document.documentElement.lang)).toBe(cross.lang);
+      await expect(page.locator("h1")).toHaveText(cross.heading);
+    } finally {
+      await context.close();
+    }
+  });
+}
+
+// CR-01: the reserved rewrite targets are self-guarding. A direct visit is
+// itself matched by the proxy's own /writing/:slug or /texte/:slug matcher,
+// is not in the published set, and is rewritten to itself with a 404 — so
+// neither reserved route is a crawlable soft-404 URL.
+const RESERVED_TARGET_PATHS = ["/writing/not-found-page", "/texte/nicht-gefunden"];
+
+for (const path of RESERVED_TARGET_PATHS) {
+  test(`a direct visit to the reserved target ${path} returns 404, not 200`, async ({ page }) => {
+    const response = await page.goto(path);
+    expect(response?.status()).toBe(404);
+  });
+}

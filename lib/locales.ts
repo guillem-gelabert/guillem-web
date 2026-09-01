@@ -5,8 +5,24 @@ export const PATH_TOKEN: Record<Locale, string> = {
   de: "texte",
 };
 
+/**
+ * CR-01. The proxy's fixed rewrite target per locale, and the sitemap's
+ * exclusion list (plan 06-05) — a path constant beside PATH_TOKEN, not UI
+ * copy, so it does NOT belong in the UI map below (D-1.5 forbids growing
+ * Record<Locale, UiCopy>). Both callers read this same constant so the two
+ * cannot drift apart.
+ */
+export const NOT_FOUND_SLUG: Record<Locale, string> = {
+  en: "not-found-page",
+  de: "nicht-gefunden",
+};
+
 export function indexPath(locale: Locale): string {
   return `/${PATH_TOKEN[locale]}`;
+}
+
+export function notFoundPath(locale: Locale): string {
+  return `/${PATH_TOKEN[locale]}/${NOT_FOUND_SLUG[locale]}`;
 }
 
 export function postPath(locale: Locale, slug: string): string {
