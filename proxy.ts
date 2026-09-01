@@ -24,9 +24,17 @@
 // on infrastructure the headers already needed.
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
-import { NextResponse, type NextRequest } from "next/server";
-import type { Locale } from "@/lib/content";
-import { NOT_FOUND_SLUG, PATH_TOKEN } from "@/lib/locales";
+// Relative imports throughout this file, not the @/ alias every other module
+// uses: tests/unit/proxy-slugs.test.ts imports this file directly under
+// plain `node --test`, which understands neither tsconfig's `paths` map nor
+// a bare "next/server" specifier missing its extension (Next's package.json
+// carries no "exports" field, so Node's ESM resolver — unlike Turbopack's
+// bundler resolution, which built this file successfully — requires the
+// literal file). Both read identically once Turbopack bundles them; this is
+// resolution-only, not a behaviour change.
+import { NextResponse, type NextRequest } from "next/server.js";
+import type { Locale } from "./lib/content.ts";
+import { NOT_FOUND_SLUG, PATH_TOKEN } from "./lib/locales.ts";
 
 export const config = {
   // One segment only, so /writing/a/b matches no route here and correctly
