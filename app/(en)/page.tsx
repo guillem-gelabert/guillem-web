@@ -3,12 +3,13 @@ import { findBySlug, publishedFor } from "@/lib/content";
 import { CASE_STUDY_SLUG, POSITIONING_PLACEHOLDER } from "@/lib/work";
 import { LAST_TOUCHED } from "@/lib/backlog";
 import { formatPostDate } from "@/lib/locales";
+import { channels } from "@/lib/contact";
 import { SmearTitle } from "@/components/smear-title";
 import { ContentsNav } from "@/components/landing/contents-nav";
 import { FeaturedSlot } from "@/components/landing/featured-slot";
 import { WorkList } from "@/components/landing/work-list";
 import { BacklogList } from "@/components/landing/backlog-list";
-import { SectionStub } from "@/components/landing/section-stub";
+import { ContactBlock } from "@/components/contact-block";
 
 // This route carries no client directive. Phase 1 marked whole pages as
 // Client Components to reach the scroll-trail hook; doing that here would
@@ -104,10 +105,25 @@ export default async function Landing() {
         <h2 id="contact-head" className="section-head">
           Contact
         </h2>
-        <SectionStub
-          state="No contact details here yet."
-          body="Email, GitHub and LinkedIn are being added."
-        />
+        {channels().length > 0 ? (
+          <ContactBlock />
+        ) : (
+          // Unreachable today: GITHUB is a non-null established fact
+          // (lib/contact.ts), so channels() always returns at least one
+          // row. This branch is kept explicit rather than letting the
+          // section render a bare heading if that ever changes — D-13's
+          // lesson (Phase 5, Plan 04) is that a component kept around
+          // purely as an unreachable fallback is exactly the dead-code
+          // branch a later reader mistakes for a supported state, so this
+          // is inline copy, not a call to the interim stub component this
+          // plan deletes.
+          <div className="flex flex-col gap-md">
+            <p className="max-w-prose text-standfirst">No contact channel is available yet.</p>
+            <p className="max-w-prose text-body">
+              Email, GitHub and LinkedIn appear here as each one is added.
+            </p>
+          </div>
+        )}
       </section>
     </main>
   );
