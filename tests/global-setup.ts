@@ -26,6 +26,10 @@ const ROUTES = [
   "/texte/gibt-es-nicht",
   "/writing/not-found-page",
   "/texte/nicht-gefunden",
+  // Plan 06-05: metadata routes, not locator-tested pages, but the comment
+  // above binds every new route this phase adds to this list.
+  "/sitemap.xml",
+  "/robots.txt",
 ];
 
 export default async function globalSetup(config: FullConfig) {
