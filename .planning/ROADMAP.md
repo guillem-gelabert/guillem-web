@@ -224,10 +224,10 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 06-01-PLAN.md — CR-01: `proxy.ts`, the two reserved localised 404 routes, the shared not-found body, and the unit test binding the proxy's slug predicate to `publishedFor()`
-- [ ] 06-02-PLAN.md — BUILD-04: pure `buildCsp({dev})`, `next.config.ts` `headers()`, delivery proof, and G9's three-part code-colour proof
-- [ ] 06-03-PLAN.md — The five `[USER-SUPPLIED]` facts as typed placeholders (`lib/cv.ts`, `lib/contact.ts`) and `tests/unit/launch-gate.test.ts`, the biconditional that gates the robots flag
-- [ ] 06-06-PLAN.md — FIND-01 rasters: the Playwright capture script, both site-wide OG cards, per-post cards, `app/icon.png`, and the scaffold favicon deleted
+- [x] 06-01-PLAN.md — CR-01: `proxy.ts`, the two reserved localised 404 routes, the shared not-found body, and the unit test binding the proxy's slug predicate to `publishedFor()`
+- [x] 06-02-PLAN.md — BUILD-04: pure `buildCsp({dev})`, `next.config.ts` `headers()`, delivery proof, and G9's three-part code-colour proof
+- [x] 06-03-PLAN.md — The five `[USER-SUPPLIED]` facts as typed placeholders (`lib/cv.ts`, `lib/contact.ts`) and `tests/unit/launch-gate.test.ts`, the biconditional that gates the robots flag
+- [x] 06-06-PLAN.md — FIND-01 rasters: the Playwright capture script, both site-wide OG cards, per-post cards, `app/icon.png`, and the scaffold favicon deleted
 
 **Wave 2** *(blocked on Wave 1)*
 
@@ -272,7 +272,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Work List & Landing Skeleton | 9/9 | Complete   | 2026-08-31 |
 | 4. The Case Study | 6/6 | Complete   | 2026-08-31 |
 | 5. Backlog | 4/4 | Complete   | 2026-08-31 |
-| 6. CV, Contact, Photo & Discoverability | 0/12 | Planned | - |
+| 6. CV, Contact, Photo & Discoverability | 4/12 | In Progress|  |
 
 ---
 *Roadmap created: 2026-08-29*
