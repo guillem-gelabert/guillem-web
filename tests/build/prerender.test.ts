@@ -4,6 +4,16 @@ import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { POSITIONING_PLACEHOLDER } from "../../lib/work.ts";
 import { formatPostDate, UI } from "../../lib/locales.ts";
+// PROF-04: the established (not user-supplied) GitHub profile fact — see
+// lib/contact.ts's own comment for why it is never gated by the launch gate.
+// Imported here (not retyped) so the private-repo test and the launch-gate
+// test below can assert against it by equality, the same technique
+// POSITIONING_PLACEHOLDER already uses.
+import { GITHUB } from "../../lib/contact.ts";
+// FIND-01 (plan 06-07): the (en) layout's own default description, read
+// from source rather than retyped, so the "nothing falls back to it" test
+// below cannot silently drift from the real value.
+import { SITE_DESCRIPTION } from "../../lib/site.ts";
 // BACK-02 (Phase 5, Plan 04): the source-binding technique HOME-01's gate
 // uses for POSITIONING_PLACEHOLDER, applied to lib/backlog.tsx. That
 // module is .tsx, and node --test cannot import a .tsx file
@@ -334,25 +344,28 @@ test("/'s production HTML emits a canonical it did not have before this phase", 
   assert.equal(new URL(match![1]).pathname, "/", '/\'s canonical must resolve to pathname "/"');
 });
 
-test("every (en) route's meta description is bound to POSITIONING_PLACEHOLDER by equality, not a hardcoded literal", async () => {
+test("/'s meta description is bound to POSITIONING_PLACEHOLDER by equality, not a hardcoded literal — /cv and /type now carry their own", async () => {
   const routes = await getRoutes();
 
   // Pitfall 6: the failure this prevents is the user writing the real
-  // positioning sentence into the rendered <p> while the meta description
+  // positioning sentence into the rendered <p> while / 's meta description
   // still holds the old placeholder value — which is what Slack, LinkedIn
   // and eventually Google quote once Phase 6 flips FIND-02. Comparing
   // against the imported constant rather than a literal means this keeps
   // passing when the real sentence lands and fails the moment the two drift.
   //
-  // The sweep covers /cv and /type as well as /, which is code review
-  // WR-06: this gate used to scope to / only, and app/(en)/layout.tsx
-  // hardcoded the literal "Developer." as the group default. /cv sets its
-  // own title but no description and /type is a Client Component that can
-  // export no metadata at all, so both served the layout's copy — three
-  // routes shipping the same sentence from two sources, while lib/work.ts,
-  // app/(en)/page.tsx and deferred-items.md §1 all documented one. The
-  // layout now reads the constant, and this asserts all three follow it.
-  for (const key of ["", "cv", "type"]) {
+  // NARROWED 2026-09-01 (Phase 6, Plan 07/09): this gate used to sweep
+  // ["", "cv", "type"] — code review WR-06's fix for app/(en)/layout.tsx
+  // hardcoding the literal "Developer." as the group default, which made
+  // /cv and /type (neither able to declare its own description at the
+  // time) serve the same sentence from a second, undocumented source. Plan
+  // 06-07 superseded that fix rather than merely preserving it: /cv and
+  // /type each now declare their own real description (FIND-01), so the
+  // group default they used to fall back to is no longer what they serve.
+  // The loop narrows back to what the constant actually has exactly one
+  // rendered consumer and one metadata consumer for — / alone — and the
+  // assertions below lock in what replaced the old three-route sweep.
+  for (const key of [""]) {
     const html = routes.get(key);
     assert.ok(html, `route "${key || "/"}" must exist in the production build`);
     const match = html!.match(/<meta name="description" content="([^"]*)"/);
@@ -361,6 +374,39 @@ test("every (en) route's meta description is bound to POSITIONING_PLACEHOLDER by
       match![1],
       POSITIONING_PLACEHOLDER,
       `route "${key || "/"}" must serve POSITIONING_PLACEHOLDER, not a second copy of its value`,
+    );
+  }
+
+  // FIND-01 (plan 06-07): /cv and /type each carry their own non-empty
+  // description now, neither equal to POSITIONING_PLACEHOLDER — this is
+  // the replacement guarantee for the two routes the loop above dropped.
+  const ownDescriptions = new Map<string, string>();
+  for (const key of ["cv", "type"]) {
+    const html = routes.get(key);
+    assert.ok(html, `route "/${key}" must exist in the production build`);
+    const match = html!.match(/<meta name="description" content="([^"]*)"/);
+    assert.ok(match, `route "/${key}" must carry a meta description`);
+    assert.notEqual(match![1], "", `route "/${key}" must carry a non-empty description`);
+    assert.notEqual(
+      match![1],
+      POSITIONING_PLACEHOLDER,
+      `route "/${key}" must not serve POSITIONING_PLACEHOLDER — it now has its own description`,
+    );
+    ownDescriptions.set(key, match![1]);
+  }
+
+  // No (en) route serves the (en) layout's own default description
+  // (lib/site.ts's SITE_DESCRIPTION.en, the group fallback lib/metadata.ts's
+  // rootMetadata() supplies) — mirrors the German shape the very next test
+  // below already asserts for "Entwickler.". Every (en) route declares its
+  // own description today, so the fallback is a value nothing reaches; this
+  // is a positive statement of that fact, not an inference from its absence
+  // being merely unobserved.
+  for (const [routeKey, html] of routes) {
+    assert.equal(
+      html.includes(`<meta name="description" content="${SITE_DESCRIPTION.en}"`),
+      false,
+      `route "${routeKey || "/"}" fell back to the (en) layout's default description`,
     );
   }
 });
@@ -390,13 +436,18 @@ test("the German layout's default description reaches no shipped route (WR-06)",
   }
 });
 
-test("the inherited noindex reaches both new surfaces — neither route restates robots", async () => {
+test("robots noindex reaches all three (en) surfaces — / and /cv inherit it, /type declares its own permanent one", async () => {
   const routes = await getRoutes();
 
-  // Neither route declares `robots` in its own source: Next merges metadata
-  // parent -> child, the two root layouts are the only declarations
-  // site-wide, and Phase 6's FIND-02 flips it in exactly those two places
-  // (Pitfall 5).
+  // NARROWED 2026-09-01 (Phase 6, Plan 07/09): retitled — "neither route
+  // restates robots" stopped being true the moment plan 06-07 de-cliented
+  // /type and gave it its own metadata export. Two claims now, not one:
+  //
+  // 1. / and /cv declare no `robots` in their own source: Next merges
+  //    metadata parent -> child, the two root layouts are the only
+  //    declarations backing them, and Phase 6's eventual FIND-02 flip
+  //    changes exactly those two files — which is what these two routes'
+  //    noindex would invert to if that flip landed (it has not).
   for (const key of ["", "cv"]) {
     const html = routes.get(key)!;
     assert.match(
@@ -405,6 +456,17 @@ test("the inherited noindex reaches both new surfaces — neither route restates
       `route "${key || "/"}" must carry an inherited noindex`,
     );
   }
+
+  // 2. /type declares its OWN noindex directly (Phase 1 D-05, Pitfall 6) —
+  //    a de-clienting fix, not an inheritance. This is not a FIND-02
+  //    inversion target: the eventual flip must NOT touch /type, and this
+  //    assertion is what would catch a flip that mistakenly did.
+  const typeHtml = routes.get("type")!;
+  assert.match(
+    typeHtml,
+    /name="robots"\s+content="[^"]*noindex[^"]*"/i,
+    'route "/type" must carry its own permanent noindex',
+  );
 });
 
 test("/cv's production HTML carries its own title and its own canonical", async () => {
@@ -481,27 +543,32 @@ test("the featured headline is a link to the case study and the slot's only link
   );
 });
 
-test("the contact stub ships its real, deliberately typeset copy — no marker word leaks into production", async () => {
+test("both closed stubs' deleted copy — contact and backlog alike — is absent from production, and no marker word leaks in", async () => {
   const routes = await getRoutes();
   const root = routes.get("")!;
 
-  // D-02 requires placeholder content to be deliberately typeset because
-  // the site is on a live URL during a job hunt. Pitfall 7's warning sign
-  // is exactly one of the banned words below reaching rendered output.
-  for (const stub of ["No contact details here yet.", "Email, GitHub and LinkedIn are being added."]) {
-    assert.ok(root.includes(stub), `/ must render the stub copy "${stub}"`);
-  }
-
-  // D-13 (Phase 5, Plan 04): the backlog stub's copy was DELETED from
-  // #backlog, not kept as an unreachable fallback branch. The difference
-  // between "not rendered" and "not present" is exactly the dead-code
-  // branch a later reader would otherwise mistake for a supported state —
-  // this inversion proves absence, not merely that dev never showed it.
-  for (const removedStub of ["Nothing listed here yet.", "The current work is being written up."]) {
+  // NARROWED 2026-09-01 (Phase 6, Plan 04/09): the contact stub closed.
+  // components/landing/section-stub.tsx is deleted (D-13's precedent
+  // applied a second time) and app/(en)/page.tsx's #contact section now
+  // renders ContactBlock's real channels. Both of the contact stub's
+  // strings move from a "must render" assertion (this test's prior form)
+  // into the "must NOT render" loop below, alongside the backlog stub's —
+  // D-13's own reasoning: the difference between "not rendered" and "not
+  // present" is exactly the dead-code branch a later reader would
+  // otherwise mistake for a supported state. This inversion proves
+  // absence, not merely that dev never showed it (dev always shows
+  // drafts, but neither stub's copy was ever draft-gated — both were
+  // simply deleted from the render tree).
+  for (const removedStub of [
+    "No contact details here yet.",
+    "Email, GitHub and LinkedIn are being added.",
+    "Nothing listed here yet.",
+    "The current work is being written up.",
+  ]) {
     assert.equal(
       root.includes(removedStub),
       false,
-      `/ must NOT render the deleted backlog stub copy "${removedStub}" (D-13)`,
+      `/ must NOT render the deleted stub copy "${removedStub}"`,
     );
   }
 
@@ -528,7 +595,7 @@ function backlogSectionOf(root: string): string {
   return root.slice(start, end);
 }
 
-test("the private repository stays private in production", async () => {
+test("the private repository stays private in production — the blanket github.com ban is narrowed to the profile root (PROF-04)", async () => {
   const routes = await getRoutes();
   const root = routes.get("")!;
 
@@ -537,22 +604,40 @@ test("the private repository stays private in production", async () => {
   // independently-hosted domain, same tab, no target="_blank".
   assert.ok(root.includes("https://ib-gdp.guillemgelabert.com/everyone-in-mallorca-agrees-on-one-thing"));
   assert.ok(root.includes("https://watchpeopledie.live"));
-  assert.doesNotMatch(root, /href="[^"]*github\.com[^"]*"/i);
+
+  // NARROWED 2026-09-01 (Phase 6, Plan 04/09): PROF-04 deliberately breaks
+  // the blanket github.com ban — the #contact section now renders the real
+  // GitHub profile link (lib/contact.ts's GITHUB, an established fact, not
+  // user-supplied). The ban is narrowed, not deleted: every github.com href
+  // on / must equal the profile root exactly, with no repository path
+  // segment beyond it — which is what would leak a private repo's name via
+  // a link rather than via the literal string check below.
+  const githubHrefs = [...root.matchAll(/href="([^"]*github\.com[^"]*)"/gi)].map((m) => m[1]);
+  assert.ok(githubHrefs.length > 0, "/ must render at least one github.com link (PROF-04)");
+  for (const href of githubHrefs) {
+    assert.equal(
+      href,
+      GITHUB,
+      `every github.com href on / must be the profile root, not a repository path — found "${href}"`,
+    );
+  }
+
+  // Untouched by the narrowing above — both still hold and both are the
+  // point of the test.
   assert.equal(root.includes("ib-gdp-evolution"), false);
   assert.doesNotMatch(root, /target="_blank"/);
 });
 
-test("launch gate: the contact stub is still interim and three copy items are still unreviewed — the backlog stub closed on 2026-08-31", async () => {
+test("launch gate: /cv is still interim and three copy items are still unreviewed — the contact stub closed on 2026-09-01", async () => {
   const routes = await getRoutes();
   const root = routes.get("")!;
 
-  // If the contact stub, /cv, or any of the three unreviewed copy items
-  // below is still open when Phase 6 goes to flip the robots flag, Phase 6
-  // is blocked. This test passing today is the record that the contact
-  // stub is interim (the /cv route's own interim body is asserted by
-  // tests/cv.spec.ts); when Phase 6 fills it, THIS test is the thing that
-  // must be updated, which is where the gate gets noticed rather than
-  // forgotten.
+  // If /cv, or any of the three unreviewed copy items below, is still open
+  // when Phase 6 goes to flip the robots flag, Phase 6 is blocked. This
+  // test passing today is the record of which surface is still interim
+  // (/cv's own interim body is asserted by tests/cv.spec.ts); when the
+  // user fills it, THIS test is the thing that must be updated, which is
+  // where the gate gets noticed rather than forgotten.
   //
   // NARROWED 2026-08-31 (Phase 4, Plan 5): the featured slot closed. It was
   // the third interim surface this gate covered — content/the-chart-therefore-changes.mdx
@@ -566,14 +651,25 @@ test("launch gate: the contact stub is still interim and three copy items are st
   // NARROWED 2026-08-31 (Phase 5, Plan 04): the backlog leg closed too.
   // lib/backlog.tsx ships three real items and a section date;
   // app/(en)/page.tsx no longer mounts SectionStub at #backlog; the two
-  // backlog stub strings are asserted ABSENT from production HTML by "the
-  // contact stub ships its real copy" test above, not merely unrendered in
-  // dev. Removing the interim assertion from THIS test IS the gate
-  // mechanism working, same as Phase 4's narrowing above.
+  // backlog stub strings are asserted ABSENT from production HTML by the
+  // stub-copy test above, not merely unrendered in dev. Removing the
+  // interim assertion from THIS test IS the gate mechanism working, same
+  // as Phase 4's narrowing above.
   //
-  // One interim surface remains — the contact stub, asserted directly
-  // below — plus /cv (tests/cv.spec.ts). THREE copy items remain
-  // unreviewed and all three still block Phase 6's FIND-02 robots flip:
+  // NARROWED 2026-09-01 (Phase 6, Plan 04/09): the contact stub closed too.
+  // components/contact-block.tsx renders lib/contact.ts's real channels;
+  // the interim stub component is deleted (D-13's precedent applied a
+  // third time). "No contact details here yet." is removed from this
+  // assertion — that string is asserted ABSENT (not present) by the
+  // stub-copy test above, which is the gate mechanism working exactly as
+  // it did for the two prior narrowings. In its place, a POSITIVE
+  // assertion: the contact leg actually closed, not merely stopped being
+  // asserted, is proven by / rendering the real GitHub profile URL below —
+  // the evidence, not an inference from an assertion's own absence.
+  //
+  // One interim surface remains — /cv (tests/cv.spec.ts, and this file's
+  // G3/G6 tests below). THREE copy items remain unreviewed and all three
+  // still block Phase 6's FIND-02 robots flip:
   //   1. HOME-01 — the positioning sentence still ships as
   //      POSITIONING_PLACEHOLDER in lib/work.ts (asserted elsewhere in
   //      this file).
@@ -588,7 +684,10 @@ test("launch gate: the contact stub is still interim and three copy items are st
   //      repo tier by tests/unit/backlog.test.ts). WHEN THE ASSERTION
   //      BELOW FAILS: the author's editorial pass has happened — narrow
   //      this gate again, do not delete it.
-  assert.ok(root.includes("No contact details here yet."));
+  assert.ok(
+    root.includes(GITHUB),
+    "/ must render the real GitHub profile URL — the evidence the contact leg actually closed",
+  );
   assert.match(
     backlogSource,
     /export const COPY_REVIEWED = false/,
