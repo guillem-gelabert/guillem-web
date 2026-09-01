@@ -3,23 +3,29 @@ import { humane } from "../fonts/humane";
 import { newsreader } from "../fonts/newsreader";
 import { ibmPlexMono } from "../fonts/ibm-plex-mono";
 import { SmearHeadingProvider } from "@/components/smear-heading/smear-heading-provider";
-import { SITE_URL } from "@/lib/site";
-import { POSITIONING_PLACEHOLDER } from "@/lib/work";
+import { rootMetadata } from "@/lib/metadata";
 import "../globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: SITE_URL,
-  title: "Guillem Gelabert",
-  // HOME-01, and this is the DEFAULT every (en) route inherits — not just
-  // the landing's. It used to be the literal "Developer.", a duplicate of
-  // POSITIONING_PLACEHOLDER's value that lib/work.ts, app/(en)/page.tsx and
-  // deferred-items.md §1 all described as the single source (code review
-  // WR-06). /cv sets its own title but no description, and /type is a
-  // Client Component so it can export no metadata at all, so both inherited
-  // the literal: writing the real positioning sentence into lib/work.ts
-  // would have updated / while /cv and /type went on serving "Developer."
-  // as their share-preview text.
-  description: POSITIONING_PLACEHOLDER,
+  // lib/metadata.ts's shared factory: metadataBase, title template/default,
+  // description default and OG defaults. See lib/metadata.ts for why
+  // `robots` is NOT part of that factory.
+  ...rootMetadata("en"),
+  // Plan 06-07: the group default used to be POSITIONING_PLACEHOLDER
+  // (HOME-01's sentence, code review WR-06's fix for the literal
+  // "Developer." this file used to hardcode). Under the factory the group
+  // default is now SITE_DESCRIPTION.en — the site's ARTIFACT description,
+  // not the person's positioning sentence — which is what FIND-01 needs
+  // /cv and /type to serve instead of "Developer.". `/` still keeps
+  // POSITIONING_PLACEHOLDER by declaring it explicitly in its own metadata
+  // export (app/(en)/page.tsx), unaffected by this change (HOME-01's
+  // one-line-edit property, tests/landing.spec.ts:125).
+  //
+  // `robots` is declared literally here, not via the factory (see
+  // lib/metadata.ts's own comment on why): Phase 6's eventual FIND-02 flip
+  // edits exactly this line and app/(de)/layout.tsx's twin, and
+  // tests/unit/launch-gate.test.ts asserts those are the only two files
+  // site-wide (besides /type's own permanent noindex) that declare it.
   robots: { index: false },
 };
 
