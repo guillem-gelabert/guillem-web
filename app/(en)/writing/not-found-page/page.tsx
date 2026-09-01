@@ -12,6 +12,18 @@ import { UI } from "@/lib/locales";
 // "Guillem Gelabert" without one, a WCAG 2.4.2 regression against what
 // app/global-not-found.tsx already achieves.
 //
+// The title is now the BARE heading, and the " — Guillem Gelabert" suffix
+// comes from the root layout's title.template. It used to carry the suffix
+// literally, which was correct when written and stopped being so the moment
+// plan 06-07 gave the layout a template: the two composed, and the live 404
+// served "Not found — Guillem Gelabert — Guillem Gelabert" (measured on the
+// deploy 2026-09-01, in both locales). app/global-not-found.tsx keeps its
+// literal suffix because it renders OUTSIDE both locale layouts and no
+// template reaches it.
+//
+// Read from UI rather than retyped, so the tab title and the rendered
+// heading cannot drift apart.
+//
 // It also exports its own metadata.description rather than inheriting
 // app/(en)/layout.tsx's POSITIONING_PLACEHOLDER ("Developer.") — a 404
 // page's share preview should not claim to be the site's positioning
@@ -25,7 +37,7 @@ import { UI } from "@/lib/locales";
 // stays unindexed after FIND-02 flips the two root layouts, with no extra
 // code. That field stays confined to the two root layouts.
 export const metadata: Metadata = {
-  title: "Not found — Guillem Gelabert",
+  title: UI.en.notFoundHeading,
   description: UI.en.notFoundBody,
 };
 

@@ -25,7 +25,7 @@ import { BANNED_MARKERS } from "../../lib/placeholder.ts";
 // FIND-01 (plan 06-07): the (en) layout's own default description, read
 // from source rather than retyped, so the "nothing falls back to it" test
 // below cannot silently drift from the real value.
-import { SITE_DESCRIPTION, SITE_URL } from "../../lib/site.ts";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "../../lib/site.ts";
 // FIND-01/FIND-02: the sitemap test below binds to lib/content.ts's real
 // selection rule rather than a second, driftable statement of it — the
 // forward note this file used to carry. It binds to selectForLocale() +
@@ -357,6 +357,36 @@ test("every prerendered route carries a title — /_not-found was the one that d
       html,
       /<title>[^<]+<\/title>/,
       `route "${routeKey || "/"}" must carry a non-empty <title>`,
+    );
+  }
+});
+
+// The other half of the same property, and the one that was missing.
+//
+// A route's title comes from two places that do not know about each other: a
+// bare `title` in the route's own metadata, and `title.template` on the root
+// layout that appends " — Guillem Gelabert". A route that writes the suffix
+// LITERALLY composes with the template and ships it twice. That is not
+// hypothetical — the two localised 404 routes hardcoded their suffix before
+// plan 06-07 introduced the template, and the live deploy served
+// "Not found — Guillem Gelabert — Guillem Gelabert" in English and its German
+// equivalent until 2026-09-01. Every existing title assertion passed: they
+// checked that a title was present and non-empty, never that it was assembled
+// once.
+//
+// app/global-not-found.tsx is exempt by construction — it renders outside both
+// locale layouts, so no template reaches it and its literal suffix is the only
+// way it gets one. It is not a prerendered route in this map, so no exclusion
+// is needed here.
+test("no route's <title> repeats the site name — a literal suffix composing with title.template", async () => {
+  const routes = await getRoutes();
+  for (const [routeKey, html] of routes) {
+    const title = html.match(/<title>([^<]+)<\/title>/)![1];
+    const occurrences = title.split(SITE_NAME).length - 1;
+    assert.ok(
+      occurrences <= 1,
+      `route "${routeKey || "/"}" renders the site name ${occurrences} times in its <title> (${title}) — ` +
+        "a route that writes the suffix literally doubles it against the layout's title.template",
     );
   }
 });
