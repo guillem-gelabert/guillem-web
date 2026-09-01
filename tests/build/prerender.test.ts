@@ -10,7 +10,12 @@ import { formatPostDate, indexPath, notFoundPath, postPath, UI } from "../../lib
 // Imported here (not retyped) so the private-repo test and the launch-gate
 // test below can assert against it by equality, the same technique
 // POSITIONING_PLACEHOLDER already uses.
-import { GITHUB } from "../../lib/contact.ts";
+// EMAIL: [USER-SUPPLIED], launch gate G4, null is the shipped state.
+import { EMAIL, GITHUB } from "../../lib/contact.ts";
+// EXPERIENCE/PORTRAIT: [USER-SUPPLIED], launch gates G3/G6, empty/null is
+// the shipped state. CV_STUB_BODY: the copy /cv already ships while
+// EXPERIENCE is empty (not user-supplied — established stub text).
+import { CV_STUB_BODY, EXPERIENCE, PORTRAIT } from "../../lib/cv.ts";
 // FIND-01 (plan 06-07): the (en) layout's own default description, read
 // from source rather than retyped, so the "nothing falls back to it" test
 // below cannot silently drift from the real value.
@@ -51,6 +56,12 @@ import { LAST_TOUCHED as BACKLOG_LAST_TOUCHED, backlogSource } from "../unit/bac
 // Run via `npm run test:build`, NOT `npm run test:unit` — test:unit sweeps
 // tests/unit/*.test.ts on every task commit and must stay fast; this file
 // depends on build output that does not exist at that point in the cycle.
+//
+// `rm -rf .next && npm run build` before `npm run test:build` is
+// load-bearing, not hygiene: `next start` writes on-demand-rendered
+// dynamic responses (e.g. a curled 404) into .next/server/app/, and
+// walkHtmlRoutes below picks up whatever is on disk, drafts included.
+// `npm run test:all` already sequences this correctly.
 
 const APP_DIR = path.join(process.cwd(), ".next", "server", "app");
 
@@ -183,6 +194,35 @@ test("per-route language: html lang=en on writing, html lang=de on texte, no loc
   assert.equal(routes.has("en/writing"), false);
 });
 
+/**
+ * FLIP INVERSION POINTS (Phase 6's FIND-02) — named by test title, not line
+ * number, because line numbers move as this file grows. This phase does
+ * NOT perform the flip (06-VALIDATION.md § USER DECISIONS, item 2 — the
+ * copy gate stays blocking); it is the user's to make after their own
+ * review, gated by tests/unit/launch-gate.test.ts's biconditional.
+ * Recorded here so whoever performs it later knows exactly what changes
+ * and what does not:
+ *
+ * - "robots noindex survived the two-root-layout split — present on both
+ *   writing and texte" (the test directly below): BOTH assertions invert
+ *   with the flip, in the same commit, and the test is renamed in that
+ *   same commit. A test named "noindex survived" that asserts the
+ *   opposite is worse than no test.
+ * - "robots noindex reaches all three (en) surfaces — / and /cv inherit
+ *   it, /type declares its own permanent one": the "" and "cv" rows
+ *   invert; the "type" row does NOT — /type declares its own permanent
+ *   noindex (Phase 1 D-05) that the flip must never touch.
+ * - "the global 404 is one valid document with a non-empty title
+ *   (CR-01/WR-01)" (its noindex assertion, and the two reserved-404-route
+ *   assertions it was extended with in plan 06-09): NONE of these invert.
+ *   Next injects noindex for any status >= 400, including a proxy-set one
+ *   (CR-01, measured), so the global 404 and both reserved rewrite targets
+ *   stay unindexed after the flip with no extra code.
+ *
+ * The flip itself is a two-file edit (app/(en)/layout.tsx,
+ * app/(de)/layout.tsx) gated by tests/unit/launch-gate.test.ts's
+ * biconditional — not this file's concern, and not this phase's act.
+ */
 test("robots noindex survived the two-root-layout split — present on both writing and texte", async () => {
   const routes = await getRoutes();
   const writing = routes.get("writing")!;
@@ -283,6 +323,25 @@ test("the global 404 is one valid document with a non-empty title (CR-01/WR-01)"
     1,
     "/_not-found must carry exactly one noindex robots meta",
   );
+
+  // Extended, not duplicated (plan 06-09 Task 3): the same measured
+  // behaviour — Next injects noindex for any status >= 400, including a
+  // proxy-set one (CR-01) — makes both reserved 404 routes (plan 06-01's
+  // proxy rewrite targets) safe after the eventual FIND-02 flip with no
+  // extra code. This does NOT invert when that flip lands; see the comment
+  // block above "robots noindex survived the two-root-layout split" below.
+  for (const [locale, routeKey] of [
+    ["en", notFoundPath("en").slice(1)],
+    ["de", notFoundPath("de").slice(1)],
+  ] as const) {
+    const html = routes.get(routeKey);
+    assert.ok(html, `the reserved 404 route "${routeKey}" (${locale}) must be prerendered`);
+    assert.equal(
+      (html!.match(/name="robots"\s+content="[^"]*noindex[^"]*"/gi) ?? []).length,
+      1,
+      `the reserved 404 route "${routeKey}" (${locale}) must carry exactly one noindex robots meta`,
+    );
+  }
 });
 
 test("every prerendered route carries a title — /_not-found was the one that did not", async () => {
@@ -1186,4 +1245,100 @@ test("/writing and /texte still emit hreflang alternates including x-default; /,
       `route "${key || "/"}" must emit no hreflang alternates (English-only by design)`,
     );
   }
+});
+
+// --- The three user-supplied gate rows (G3, G4, G6) ------------------------
+//
+// Three of this phase's five user-supplied values have no production
+// surface because the values do not exist. Each gets a current-state
+// assertion (what genuinely ships today) plus a skipped test naming its
+// gate ID — plan 06-03's own pattern for G12. A missing assertion is
+// invisible; a skipped one is a standing instruction with a name attached,
+// and `npm run test:build`'s own output becomes a readable gate report.
+
+const CV_MARKER_WORDS = ["todo", "placeholder", "coming soon", "under construction", "lorem", "tbd"];
+
+test("G4 (email): the double-escape signature never appears anywhere, and no mailto: link exists yet", async () => {
+  const routes = await getRoutes();
+
+  // Pitfall 3: React escapes `&` in both text nodes and attribute values,
+  // so a naive entity-in-JSX approach ships as `&amp;#64;` on the wire —
+  // the page DISPLAYS the literal text "&#64;" instead of "@", and the
+  // mailto: is broken. This fires whether or not EMAIL is set, which is
+  // why the ban is unconditional across every prerendered route rather
+  // than gated on G4's fill state.
+  for (const [routeKey, html] of routes) {
+    assert.equal(
+      html.includes("&amp;#"),
+      false,
+      `route "${routeKey || "/"}" must never carry the double-escaped entity signature "&amp;#"`,
+    );
+  }
+
+  // The current absent state: EMAIL is null (G4 unfilled), so zero
+  // mailto: links exist anywhere in production yet.
+  for (const [routeKey, html] of routes) {
+    assert.equal(
+      html.includes("mailto:"),
+      false,
+      `route "${routeKey || "/"}" must carry no mailto: link while EMAIL is null`,
+    );
+  }
+});
+
+test("G4: /'s production HTML carries the real, correctly entity-encoded address, once EMAIL is filled", async (t) => {
+  if (EMAIL === null) {
+    t.skip("blocked by G4 (lib/contact.ts) — EMAIL is still null; unblocks when the user supplies a real address");
+    return;
+  }
+  const routes = await getRoutes();
+  const root = routes.get("")!;
+  assert.ok(root.includes("&#64;"), "/ must carry the entity-encoded @ (Pitfall 3)");
+  assert.ok(root.includes("&#46;"), "/ must carry the entity-encoded . (Pitfall 3)");
+  assert.equal(root.includes(EMAIL), false, "/ must NOT carry the bare address with an unescaped @");
+});
+
+test("G3 (experience): /cv's production HTML currently ships CV_STUB_BODY, with none of the six banned marker words", async () => {
+  const routes = await getRoutes();
+  const cv = routes.get("cv")!;
+  assert.ok(cv.includes(CV_STUB_BODY), "/cv must render CV_STUB_BODY while EXPERIENCE is empty");
+  for (const marker of CV_MARKER_WORDS) {
+    assert.doesNotMatch(cv, new RegExp(marker, "i"), `/cv must not render the marker word "${marker}"`);
+  }
+});
+
+test("G3: /cv's production HTML carries EXPERIENCE's first row and the stub line is gone, once EXPERIENCE is filled", async (t) => {
+  if (EXPERIENCE.length === 0) {
+    t.skip(
+      "blocked by G3 (lib/cv.ts) — EXPERIENCE is still empty; unblocks when the user supplies real employment history",
+    );
+    return;
+  }
+  const routes = await getRoutes();
+  const cv = routes.get("cv")!;
+  assert.ok(cv.includes(EXPERIENCE[0].org), "/cv must render the first EXPERIENCE row's org");
+  assert.equal(cv.includes(CV_STUB_BODY), false, "/cv must not render CV_STUB_BODY once EXPERIENCE is filled");
+});
+
+test("G6 (portrait): /cv's production HTML currently renders zero <img> elements", async () => {
+  const routes = await getRoutes();
+  const cv = routes.get("cv")!;
+  assert.equal((cv.match(/<img\b/g) ?? []).length, 0, "/cv must render zero <img> elements while PORTRAIT is null");
+});
+
+test("G6: /cv's production HTML carries exactly one <img> at PORTRAIT's declared dimensions, once PORTRAIT is filled", async (t) => {
+  if (PORTRAIT === null) {
+    t.skip("blocked by G6 (lib/cv.ts) — PORTRAIT is still null; unblocks when the user supplies a real photograph");
+    return;
+  }
+  const routes = await getRoutes();
+  const cv = routes.get("cv")!;
+  const imgs = cv.match(/<img\b[^>]*>/g) ?? [];
+  assert.equal(imgs.length, 1, "/cv must render exactly one <img>");
+  assert.match(imgs[0], new RegExp(`width="${PORTRAIT.width}"`), "the <img>'s width must match PORTRAIT's declared width");
+  assert.match(
+    imgs[0],
+    new RegExp(`height="${PORTRAIT.height}"`),
+    "the <img>'s height must match PORTRAIT's declared height",
+  );
 });
