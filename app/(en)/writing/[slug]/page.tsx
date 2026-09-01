@@ -6,7 +6,7 @@ import { indexPath, postPath, UI } from "@/lib/locales";
 import { Prose } from "@/components/prose";
 import { SmearTitle } from "@/components/smear-title";
 import { PostMeta } from "@/components/post-meta";
-import { routeOpenGraph } from "@/lib/metadata";
+import { postOpenGraph } from "@/lib/metadata";
 
 // This route carries no client directive. Phase 1 marked whole pages as
 // Client Components to reach the scroll-trail hook; doing that here would
@@ -49,12 +49,14 @@ export async function generateMetadata({
       canonical: postPath("en", entry.slug),
       languages,
     },
-    // lib/metadata.ts's routeOpenGraph supplies this route's own og:url
-    // without hand-restating og:type/og:site_name/og:locale — see that
-    // function's comment for why a bare `openGraph: { url }` would have
-    // silently dropped them. og:title/og:description come free from the
-    // title/description fields above.
-    openGraph: routeOpenGraph("en", postPath("en", entry.slug)),
+    // postOpenGraph, not routeOpenGraph: this is the one segment with a
+    // card of its own. The generic helper would name the locale's site-wide
+    // card here and, because a declared openGraph object also overrides the
+    // opengraph-image FILE CONVENTION for its segment, would silently
+    // replace the post's committed card with it — which is exactly what
+    // shipped between 2026-09-01's og:image fix and this one. See
+    // lib/metadata.ts's postOpenGraph comment for the full account.
+    openGraph: postOpenGraph("en", postPath("en", entry.slug), entry.slug),
   };
 }
 

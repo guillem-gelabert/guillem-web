@@ -1,8 +1,16 @@
 # public/og/
 
 These PNGs are the per-post social cards, one per published post per locale
-(`{slug}.png`), served by `app/(en)/writing/[slug]/opengraph-image.tsx` and
-`app/(de)/texte/[slug]/opengraph-image.tsx`.
+(`{slug}.png`), named directly by each post's `og:image` through
+`postOpenGraph()` in `lib/metadata.ts`.
+
+They used to be served by an `opengraph-image.tsx` route in each `[slug]`
+segment. Those routes are deleted. A declared `openGraph` object in a page's
+metadata overrides the file convention for that segment, so once every route
+got an explicit card the convention routes stopped being referenced by
+anything and the posts silently fell back to the site-wide cards. Naming the
+public path directly is both the fix and the only form an assertion can
+check: the convention emits a content-hashed filename no test can name.
 
 **They are committed deliberately, not generated at request time or at
 build time by `next/og`.** `next/og`'s bundled Satori cannot load any

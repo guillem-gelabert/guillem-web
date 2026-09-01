@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import path from "node:path";
 import type { Metadata } from "next";
 import type { Locale } from "./content";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "./site";
@@ -78,14 +80,64 @@ export function rootMetadata(locale: Locale): Metadata {
  */
 export function routeOpenGraph(
   locale: Locale,
-  path: string,
+  routePath: string,
 ): NonNullable<Metadata["openGraph"]> {
-  const card = SITE_CARD[locale];
+  return openGraphWithCard(locale, routePath, SITE_CARD[locale]);
+}
+
+/**
+ * The per-post variant, and the reason it has to exist.
+ *
+ * Giving routeOpenGraph() an explicit `images` entry fixed the routes that
+ * had no card at all, and broke the two that already had a good one. A route
+ * that declares any `openGraph` field replaces the parent object wholesale —
+ * the same Next behaviour routeOpenGraph()'s own comment documents — and the
+ * declaration equally overrides the `opengraph-image` FILE CONVENTION for
+ * that segment. So `/writing/[slug]` and `/texte/[slug]`, the only two
+ * segments whose convention route was actually doing something, quietly
+ * started serving the locale's site-wide card instead of the post's own.
+ *
+ * Nothing failed. The committed per-post PNGs stayed on disk, the capture
+ * script kept producing them, the convention route kept building and
+ * answering at a hashed URL nobody referenced, and the build-tier assertion
+ * that was supposed to catch this passed — it compared the English post's
+ * card against the German post's, and those two differ by LOCALE whether or
+ * not the per-post override fires. Measured on the live deploy 2026-09-01:
+ * both case studies served /og/site-en.png and /og/site-de.png respectively,
+ * byte-identical to the site cards.
+ *
+ * Serving the card from its stable public path rather than the convention
+ * route is the same call SITE_CARD already made and for the same reason: the
+ * convention emits a content-hashed filename that no assertion can name and
+ * no metadata field can reference. The existsSync fallback preserves the
+ * convention route's own contract — a post whose card has not been captured
+ * yet gets the site card rather than a broken image URL — and it runs at
+ * build time in generateMetadata, not per request.
+ */
+export function postOpenGraph(
+  locale: Locale,
+  routePath: string,
+  slug: string,
+): NonNullable<Metadata["openGraph"]> {
+  const cardPath = `/og/${slug}.png`;
+  const committed = existsSync(path.join(process.cwd(), "public", "og", `${slug}.png`));
+  return openGraphWithCard(
+    locale,
+    routePath,
+    committed ? { url: cardPath, alt: SITE_CARD[locale].alt } : SITE_CARD[locale],
+  );
+}
+
+function openGraphWithCard(
+  locale: Locale,
+  routePath: string,
+  card: { url: string; alt: string },
+): NonNullable<Metadata["openGraph"]> {
   return {
     type: "website",
     siteName: SITE_NAME,
     locale: OG_LOCALE[locale],
-    url: new URL(path, SITE_URL).toString(),
+    url: new URL(routePath, SITE_URL).toString(),
     images: [
       {
         url: new URL(card.url, SITE_URL).toString(),

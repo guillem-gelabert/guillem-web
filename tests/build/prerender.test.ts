@@ -1155,17 +1155,38 @@ test("og:image is parsed from the meta tag (never hardcoded) and resolves to a r
     );
   }
 
-  // The per-post override is live, not merely inherited: the English
-  // post's og:image differs from /'s site-wide card and from the German
-  // post's own — proof the [slug]/opengraph-image.tsx route actually fires
-  // per post rather than falling back silently.
+  // The per-post override is live, not merely inherited.
+  //
+  // This block used to assert only that the English post's card differed
+  // from the German post's and from /'s. Both held while the per-post
+  // override was completely broken: the two posts were serving
+  // /og/site-en.png and /og/site-de.png, which differ from each other by
+  // LOCALE and from / by path, so a green assertion sat on top of a defect
+  // for the life of the fix that caused it. Difference is not the property
+  // worth asserting — IDENTITY is. Each post's card must be the card
+  // captured for THAT SLUG, named by the slug, and it is asserted that way
+  // now.
   const ogImageOf = (key: string) =>
     routes.get(key)!.match(/<meta property="og:image" content="([^"]*)"/)![1];
-  const rootImage = ogImageOf("");
-  const enPostImage = ogImageOf("writing/the-chart-therefore-changes");
-  const dePostImage = ogImageOf("texte/die-darstellung-aendert-sich");
-  assert.notEqual(enPostImage, rootImage, "the English post's og:image must differ from /'s");
-  assert.notEqual(enPostImage, dePostImage, "the English post's og:image must differ from the German post's");
+
+  for (const [key, slug] of [
+    ["writing/the-chart-therefore-changes", "the-chart-therefore-changes"],
+    ["texte/die-darstellung-aendert-sich", "die-darstellung-aendert-sich"],
+  ] as const) {
+    const committed = path.join(process.cwd(), "public", "og", `${slug}.png`);
+    assert.ok(existsSync(committed), `public/og/${slug}.png must be committed for this post`);
+    assert.equal(
+      new URL(ogImageOf(key)).pathname,
+      `/og/${slug}.png`,
+      `the post at "${key}" must serve its OWN captured card, not a site-wide fallback`,
+    );
+  }
+
+  assert.notEqual(
+    ogImageOf("writing/the-chart-therefore-changes"),
+    ogImageOf(""),
+    "the English post's og:image must differ from /'s",
+  );
 });
 
 test('exactly one rel="icon" ships on / and the Next scaffold favicon.ico is gone (HOME-05, Pitfall 9)', async () => {
