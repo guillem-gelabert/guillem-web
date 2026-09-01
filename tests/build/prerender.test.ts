@@ -1102,7 +1102,7 @@ test("every one of the six discoverability routes carries og:title/description/u
   }
 });
 
-test("og:image is parsed from the meta tag (never hardcoded) and resolves to a real build asset — present only where a route's own segment carries the file convention", async () => {
+test("og:image is parsed from the meta tag (never hardcoded) and resolves to a real build asset on every target route", async () => {
   const routes = await getRoutes();
 
   for (const { key, hasOwnOgImage } of OG_TARGET_ROUTES) {
@@ -1111,41 +1111,17 @@ test("og:image is parsed from the meta tag (never hardcoded) and resolves to a r
     const twitterCardMatch = html.match(/<meta name="twitter:card" content="([^"]*)"/);
     assert.ok(twitterCardMatch, `route "${key || "/"}" must carry twitter:card`);
 
-    if (!hasOwnOgImage) {
-      // MEASURED GAP, out of this plan's scope (files_modified: this file
-      // only — see the phase's deferred-items.md). 06-06-SUMMARY.md's own
-      // accomplishments line claims the site-wide app/(en|de)/opengraph-image.png
-      // cards cover /, /cv, /writing, /type and /texte "by segment
-      // inheritance" — measured against a real production build, that claim
-      // is false for four of those five. Next's own docs describe the file
-      // convention as setting "a route segment's shared image", scoped to
-      // the exact segment the file lives in — not inherited by nested
-      // segments the way an ordinary metadata OBJECT field is.
-      // app/(en)/opengraph-image.png sits beside app/(en)/layout.tsx, so it
-      // reaches app/(en)/page.tsx (the page at that same segment) but not
-      // app/(en)/cv/page.tsx, app/(en)/writing/page.tsx or
-      // app/(de)/texte/page.tsx, each one segment deeper — measured: zero
-      // og:image tags on any of the three. Both [slug] post routes carry
-      // their OWN opengraph-image.tsx at the exact same segment as their own
-      // page.tsx (plan 06-06), which is why they DO get one. Fixing the gap
-      // needs a new committed image (or a generateMetadata override) at
-      // each of those segments — a change to files this plan's
-      // files_modified list does not include, so it is asserted here as the
-      // true current state rather than silently assumed away.
-      assert.equal(
-        ogImageMatch,
-        null,
-        `route "${key || "/"}" must NOT carry og:image today (measured gap, see comment above)`,
-      );
-      // Next's own default when no image is resolvable: "summary", not
-      // "summary_large_image" — the same measured gap, one field over.
-      assert.equal(
-        twitterCardMatch![1],
-        "summary",
-        `route "${key || "/"}" must carry twitter:card="summary" (no image resolvable, measured gap)`,
-      );
-      continue;
-    }
+    // The file convention does NOT cascade. app/(en)/opengraph-image.png sits
+    // beside app/(en)/layout.tsx, so it reaches app/(en)/page.tsx at that same
+    // segment but not app/(en)/cv/page.tsx, app/(en)/writing/page.tsx or
+    // app/(de)/texte/page.tsx one segment deeper — plan 06-09 measured zero
+    // og:image tags on those, with twitter:card falling back to "summary".
+    // (app/icon.png DOES cascade; opengraph-image does not.) Closed by giving
+    // routeOpenGraph() in lib/metadata.ts an explicit `images` entry pointing
+    // at a stable public path (/og/site-{locale}.png) rather than Next's
+    // content-hashed convention output. Every route now carries a card, so
+    // hasOwnOgImage no longer gates presence — it only distinguishes routes
+    // whose image is a build artifact from those served from public/.
 
     assert.ok(ogImageMatch, `route "${key || "/"}" must carry og:image`);
     const ogImageUrl = new URL(ogImageMatch![1]);
@@ -1154,10 +1130,14 @@ test("og:image is parsed from the meta tag (never hardcoded) and resolves to a r
       SITE_URL.host,
       `route "${key || "/"}"'s og:image must resolve to ${SITE_URL.host}`,
     );
+    // A convention-produced image lands in the build output; one declared via
+    // routeOpenGraph() is served from public/. Both must resolve to a real
+    // file on disk — assert whichever applies rather than only the first.
     const builtAssetPath = path.join(APP_DIR, `${ogImageUrl.pathname}.body`);
+    const publicAssetPath = path.join(process.cwd(), "public", ogImageUrl.pathname);
     assert.ok(
-      existsSync(builtAssetPath),
-      `route "${key || "/"}"'s og:image "${ogImageUrl.pathname}" must exist in the build output`,
+      existsSync(builtAssetPath) || existsSync(publicAssetPath),
+      `route "${key || "/"}"'s og:image "${ogImageUrl.pathname}" must exist on disk, either as a build artifact or under public/`,
     );
     // twitter:card arrives "for free" from the opengraph-image file
     // convention, not a hand-declaration — this is the note the plan's own

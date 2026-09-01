@@ -3,7 +3,7 @@
 Items discovered during execution that are out of scope for the plan that found them. Format
 follows `.planning/phases/03-work-list-landing-skeleton/deferred-items.md`.
 
-## 1. `og:image` does not reach `/cv`, `/writing`, `/texte` or `/type` — 06-06-SUMMARY.md's
+## 1. [CLOSED 2026-09-01] `og:image` does not reach `/cv`, `/writing`, `/texte` or `/type` — 06-06-SUMMARY.md's
    "segment inheritance" claim is measurably false
 
 **Status:** discovered by plan 06-09 (Task 2), out of scope — `files_modified: [tests/build/prerender.test.ts]`
@@ -47,3 +47,25 @@ absolute URL resolved at metadata-build time rather than relying on the file con
 at an absolute URL") is about the OG image resolving at all, not about every single route carrying
 its own — `/`'s card (the one most link-preview surfaces will actually unfurl, since it's the
 canonical entry point) is unaffected by this gap.
+
+
+---
+
+### Resolution (coordinator, 2026-09-01)
+
+**Closed.** `routeOpenGraph()` in `lib/metadata.ts` now supplies an explicit `images` entry
+pointing at a stable public path (`/og/site-en.png`, `/og/site-de.png` — copies of the two
+convention cards) rather than relying on cascade. Measured against a clean production build:
+
+| route | og:image | twitter:card |
+|---|---|---|
+| `/` | convention artifact | `summary_large_image` |
+| `/cv` | `/og/site-en.png` | `summary_large_image` |
+| `/writing` | `/og/site-en.png` | `summary_large_image` |
+| `/texte` | `/og/site-de.png` | `summary_large_image` |
+| `/type` | `/og/site-en.png` | `summary_large_image` |
+
+`prerender.test.ts:1105` was rewritten from asserting the gap to asserting the fix, and its
+disk-existence check now accepts either a build artifact or a `public/` file, since the two
+sources land in different places. The per-post `[slug]` overrides are unaffected and still prove
+they fire per post.
