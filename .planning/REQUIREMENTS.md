@@ -116,7 +116,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | Contact form | An obfuscated email address does the same job with no backend |
 | Custom domain | Unresolved (guillemgelabert.com vs guillem.ch); v1 ships on the Railway URL |
 | Per-item backlog dates or states | Explicit user decision. Accepted risk logged in PROJECT.md; partially mitigated by the section-level date in BACK-02 |
-| Headless CMS or database | Disproportionate at roughly fifteen content files, single author |
+| ~~Headless CMS or database~~ **REVERSED 2026-09-01** | Was: "disproportionate at roughly fifteen content files, single author" — sound reasoning, and overridden by an explicit decision to expose a write API for the backlog. A Railway Postgres now backs `POST /api/backlog`. Scope is deliberately one table and three endpoints, not a CMS: no admin UI, no auth system, no second entity. Every other surface still renders from files on disk, and the site still builds and renders with no database at all |
 | Static export (`output: 'export'`) | Forecloses `next.config` `headers()`, which BUILD-04 depends on |
 | Animation library, state manager, component library | No surface in v1 earns the weight |
 
@@ -162,4 +162,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-08-29*
-*Last updated: 2026-09-01 at the v1.0 milestone close (Phase 6, plan 06-12)*
+*Last updated: 2026-09-01 — backlog write API (reverses the headless-CMS/database exclusion)*

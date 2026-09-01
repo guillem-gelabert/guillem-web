@@ -107,6 +107,11 @@ Recent decisions affecting current work:
 - [Phase 06]: Both localised 404s served a doubled title ("Not found — Guillem Gelabert — Guillem Gelabert") from the moment plan 06-07 introduced title.template, because both routes hardcode a literal suffix. Every existing title assertion passed throughout — they checked presence and non-emptiness, never single assembly
 - [Phase 06]: playwright.config.ts's port is now a variable. Port 3000 is not this machine's to assume: another project in the same vault runs its own next dev there, and reuseExistingServer adopted it mid-run, reporting 404s on every route rather than "this is not my server"
 - [Phase 06]: package.json renamed gw-scaffold -> guillem-web at milestone close. Cosmetic and invisible to visitors, but this milestone's audience opens repos
+- [post-v1.0, 2026-09-01]: REQUIREMENTS.md's "headless CMS or database" exclusion is REVERSED by explicit decision — a Railway Postgres now backs POST/GET/DELETE /api/backlog. Scope is one table and three endpoints, not a CMS. The exclusion row is amended in place with the date and reason rather than deleted
+- [post-v1.0]: The site must still build and render with NO database, and this is load-bearing rather than a nicety: next build runs without DATABASE_URL locally and in CI, tests/build/prerender.test.ts asserts against that build's HTML, and 173 Playwright specs run against next dev. lib/backlog.tsx's BACKLOG is therefore the seed AND the fallback, and getBacklog() never throws
+- [post-v1.0]: BACK-02's freshness date is now DERIVED (max(created_at)) rather than hand-maintained, and seeded rows carry created_at = LAST_TOUCHED rather than now() — seeding with now() would make a fresh deploy of three-week-old items claim they were touched today, the exact overclaim the section-level date exists to prevent
+- [post-v1.0]: The backlog freshness guard was NARROWED, not satisfied. It asked "when did lib/backlog.tsx last change?", which stopped implying "did the backlog change?" once the module became a seed with plumbing. Re-encoding descriptions from JSX to strings moved every byte and not one word; bumping LAST_TOUCHED to satisfy it would have been the overclaim the guard exists to prevent. It now consults BACKLOG_CONTENT_SHA256, a hash of the normalised item text
+- [post-v1.0]: BacklogItem.description is a plain string, no longer a ReactNode. No shipped description ever used the JSX the type was chosen for; a JSON body cannot carry a ReactNode; and rendering caller-supplied markup would be a real injection surface where rendering text is not. lib/backlog.tsx keeps its .tsx path regardless — three test readers scrape it by literal path
 
 ### Pending Todos
 
@@ -135,6 +140,14 @@ None pending.
   disarmed the other five:** G2–G6 test whether a value is *filled*, a sound proxy for *real* only
   while the states were absent and authored, and without G14 the launch gate's biconditional would
   have started demanding `index: true` over a lorem-ipsum CV.
+
+**NEW BLOCKER, not copy — `/api/*` is unreachable on the apex.**
+`guillemgelabert.com/api/backlog` returns 404 while
+`web-production-9cedb.up.railway.app/api/backlog` returns 401 as designed. The apex is fronted by
+the `guillem-edge` Cloudflare Worker, which lives in a DIFFERENT repository and does not forward
+`/api/*` to this service. It was deliberately not changed — `audit.md` § 2.5 records that this
+milestone attaches and detaches nothing. Until that Worker forwards the path, the write API is
+usable at the Railway origin only. Owner: user (the `guillem-edge` repo).
 
 **Resolved during Phase 6, previously listed here:** the backlog risk (Phase 5) stays "Revisit
 post-launch" as logged, unchanged. The legacy source-repo concern (Phase 2) is moot — the archive

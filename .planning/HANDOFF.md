@@ -98,6 +98,23 @@ corrected beneath, rather than quietly edited.
 
 ---
 
+## Added after the milestone closed: a backlog write API
+
+`POST /api/backlog` (plus `GET` and `DELETE /api/backlog/:id`), token-gated, backed by a Railway
+Postgres. Full usage, the rules it enforces and the reasoning: **`.planning/backlog-api.md`**.
+
+Two things to know now:
+
+- **Use the Railway origin.** `guillemgelabert.com/api/backlog` 404s — the `guillem-edge` Cloudflare
+  Worker (a different repo) does not forward `/api/*`. Page requests are unaffected. Fixing it means
+  an `/api/*` passthrough in that Worker, which this repo deliberately does not touch.
+- **This reverses an out-of-scope decision.** REQUIREMENTS.md excluded "headless CMS or database";
+  the row is amended in place with the date and reason rather than deleted. Scope is one table and
+  three endpoints — no admin UI, no auth system, no second entity — and the site still builds and
+  renders with no database at all.
+
+---
+
 ## Things that will bite whoever picks this up
 
 - **`.planning/` is gitignored but tracked.** Every commit of a planning file needs `git add -f`,
