@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { installPortraitFixture, removePortraitFixture } from "./fixtures/cv-portrait-fixture";
 
 // Covers HOME-06 as a Phase 3 regression: Phase 1 shipped the smear trail
 // against a specimen route (/type), and / is now the first real page
@@ -218,4 +219,74 @@ test("under reduced-motion emulation, a nav link keeps its colour state change b
   // rgb(0, 0, 0) — color: inherit from --color-ink, unchanged by the
   // reduced-motion emulation.
   expect(restColor).toBe("rgb(0, 0, 0)");
+});
+
+// ---------------------------------------------------------------------------
+// Plan 06-08, D-2.6: /cv's <h1> smear origin across the portrait's load.
+//
+// This proves invariance, not a fix for a desync — and the record it
+// supersedes is wrong. 03-UI-SPEC.md:232 said a post-mount layout change
+// above a trail-carrying heading leaves it smearing from a stale origin. It
+// does not: components/smear-heading/use-smear-heading.ts measures
+// `documentTop` exactly once, after document.fonts.ready resolves, and
+// hands it to the shared driver
+// (components/smear-heading/smear-heading-provider.tsx). From there
+// `documentTop` enters the trail maths only as `lagY - targetY`:
+//   - line 110 (draw):      const difference = lagY - targetY;
+//   - line 137 (frame):     const targetY = state.documentTop - scrollY;
+//   - line 145 (frame):     const distance = Math.abs(state.lagY - targetY);
+//   - line 271 (register):  lagY: documentTop - window.scrollY,
+// `documentTop` cancels in every one of those — shifting it by any delta
+// shifts both terms of each difference by the same delta, and draw() never
+// consumes an absolute document offset. The requirement to reserve the
+// portrait's space stands (D-2.6), but its real justification is BUILD-06 /
+// CLS, and the portrait sitting BELOW the <h1> makes even a late layout
+// change a non-event for the trail specifically. If a future reader is
+// tempted to "fix" a perceived desync here, the correct response is not a
+// browser API that watches an element's box for size changes — there is
+// nothing here for one to fix.
+test.describe("D-2.6: /cv's h1 smear origin is invariant across the portrait's load", () => {
+  test.describe.configure({ mode: "serial" });
+
+  test.beforeAll(async () => {
+    await installPortraitFixture();
+  });
+
+  test.afterAll(async () => {
+    await removePortraitFixture();
+  });
+
+  test("the h1's document-relative position is identical before and after the fixture portrait decodes", async ({
+    page,
+  }) => {
+    await page.goto("/cv");
+    await page.evaluate(() => document.fonts.ready);
+
+    const measureOrigin = () =>
+      page.evaluate(() => {
+        const h1 = document.querySelector("h1");
+        if (!h1) return null;
+        return h1.getBoundingClientRect().top + window.scrollY;
+      });
+
+    // "Before": read immediately once fonts are ready. This is the exact
+    // moment use-smear-heading.ts itself measures documentTop, so this
+    // value IS what the registry stores.
+    const before = await measureOrigin();
+
+    const img = page.locator("main img");
+    await expect(img).toHaveCount(1);
+    await img.evaluate((el) => (el as HTMLImageElement).decode());
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(resolve)));
+
+    // "After": read again once the portrait has decoded. If the reserved
+    // box (explicit width/height + aspect-ratio, plan 06-04) failed to hold
+    // and the image popped in at a different size, the <h1> sits below
+    // nothing that could move (D-2.4: portrait below the heading) — so this
+    // is expected to hold regardless, and the assertion proves exactly that.
+    const after = await measureOrigin();
+
+    expect(before).not.toBeNull();
+    expect(after).toBe(before);
+  });
 });

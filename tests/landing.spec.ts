@@ -188,10 +188,19 @@ test("(i) both work-list rows point at the two locked D-06 destinations, same ta
   expect(targets).toEqual([null, null]);
 });
 
-test("(j) the private repo stays private: no github.com link, no repo name in rendered text", async ({
+test("(j) the private repo stays private: the only github.com link is the contact profile, no repo name in rendered text", async ({
   page,
 }) => {
-  await expect(page.locator('a[href*="github.com"]')).toHaveCount(0);
+  // 2026-09-01 (plan 06-08): narrowed, not deleted. Plan 06-04 gave #contact
+  // a real GitHub PROFILE link (lib/contact.ts's GITHUB, a fact established
+  // from `git remote -v`, never gated) — the blanket "zero github.com
+  // anywhere" ban this test used to assert is exactly what T-06-22..T-06-27's
+  // threat model predicted it would break, in the way it predicted. The
+  // private REPOSITORY still never appears; only the public PROFILE link
+  // does, and there is exactly one of it.
+  const githubLinks = page.locator('a[href*="github.com"]');
+  await expect(githubLinks).toHaveCount(1);
+  await expect(githubLinks).toHaveAttribute("href", "https://github.com/guillem-gelabert");
 
   const bodyText = await page.locator("body").innerText();
   // The repo is private and the entry titles are the pieces' published
@@ -450,31 +459,53 @@ test("(t) no card idiom anywhere on the page: no button, no img, no svg, no roun
   }
 });
 
-test("(u) the contact stub renders one standfirst and one body line, standfirst at weight 530", async ({
+test("(u) #contact renders the real channel block: zero stub copy, the github.com profile link, and no target=_blank anywhere on the page", async ({
   page,
 }) => {
-  // 2026-08-31: narrowed from a two-section loop (backlog plus contact) to
-  // contact alone. Phase 5 filled #backlog's stub with three real items
-  // (lib/backlog.tsx, rendered by components/landing/backlog-list.tsx) — it
-  // no longer renders one p.text-standfirst / one p.text-body pair, so this
-  // assertion no longer describes it. SectionStub still serves #contact
-  // until Phase 6, so this loop keeps proving that stub's shape unchanged.
-  // The backlog's own structure — three h3.text-standfirst names, three
-  // p.text-body descriptions, zero ordinals/host lines/links — is asserted
-  // by (v), (w) and (x) below instead.
-  for (const id of ["contact"]) {
-    const section = page.locator(`section#${id}`);
-    const standfirst = section.locator("p.text-standfirst");
-    const body = section.locator("p.text-body");
-    await expect(standfirst).toHaveCount(1);
-    await expect(body).toHaveCount(1);
+  // 2026-09-01 (plan 06-08): the interim stub component this comment used to
+  // describe no longer exists — plan 06-04 deleted it once #contact became
+  // its last call site, following Phase 5's D-13 precedent that an ended
+  // interim state means the component is deleted, not orphaned as an
+  // unreachable branch. #contact now renders ContactBlock
+  // (components/contact-block.tsx) reading lib/contact.ts's real channels()
+  // output; with EMAIL and LINKEDIN both null (the shipped state) that is
+  // GitHub alone. This test proves that real block, not the interim stub it
+  // replaced — production truth for the stub-copy strings' absence belongs
+  // to plan 06-09's tests/build/prerender.test.ts.
+  const section = page.locator("section#contact");
+  const list = section.locator('ol[role="list"]');
+  await expect(list).toHaveCount(1);
 
-    const fontWeight = await standfirst.evaluate((el) => getComputedStyle(el).fontWeight);
-    expect(fontWeight).toBe("530");
+  const bodyText = await page.locator("body").innerText();
+  expect(bodyText).not.toContain("No contact details here yet.");
+  expect(bodyText).not.toContain("Email, GitHub and LinkedIn are being added.");
+
+  const githubLink = section.locator('a[href="https://github.com/guillem-gelabert"]');
+  await expect(githubLink).toHaveCount(1);
+
+  // tests/build/prerender.test.ts:542 covers the built HTML; this is the
+  // dev-tier companion — no reverse-tabnabbing surface anywhere on /.
+  await expect(page.locator('a[target="_blank"]')).toHaveCount(0);
+
+  // The type budget on screen (Pitfall 1), scoped to the contact block —
+  // #contact is a new prose-adjacent surface plan 06-04 added, and a stray
+  // <strong> here would render at 700 (Tailwind v4 preflight's
+  // b,strong{font-weight:bolder}, compiled, not in app/globals.css) with
+  // every source-level budget gate green. Mirrors (x)'s identical sweep
+  // over #backlog.
+  const typeBudget = await section.evaluate((el) => {
+    const withDirectText = Array.from(el.querySelectorAll("*")).filter((node) =>
+      Array.from(node.childNodes).some(
+        (child) =>
+          child.nodeType === Node.TEXT_NODE && (child.textContent ?? "").trim().length > 0,
+      ),
+    );
+    return withDirectText.map((node) => getComputedStyle(node).fontWeight);
+  });
+  expect(typeBudget.length).toBeGreaterThan(0);
+  for (const fontWeight of typeBudget) {
+    expect(["400", "530"]).toContain(fontWeight);
   }
-  // Production truth for the stub copy strings belongs to Plan 03-08's
-  // build-tier test; the absence assertion in (s) already covers the
-  // failure mode that matters here.
 });
 
 // ---------------------------------------------------------------------------
