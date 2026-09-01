@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { UI } from "@/lib/locales";
 import { SmearTitle } from "@/components/smear-title";
+import { Portrait } from "@/components/portrait";
+import { CvSections } from "@/components/cv/cv-sections";
+import { ContactBlock } from "@/components/contact-block";
+import { CV_STUB_BODY, EXPERIENCE, PORTRAIT } from "@/lib/cv";
 
 // The noindex directive is deliberately absent here. It is inherited from
 // app/(en)/layout.tsx:13 and stating it again would be a second
@@ -26,13 +30,33 @@ export default function CvPage() {
         <Link href="/" className="text-label link-quiet inline-block py-xs">
           {UI.en.homeLink}
         </Link>
-        <div className="flex flex-col gap-lg">
-          <SmearTitle as="h1" className="text-heading">
-            CV
-          </SmearTitle>
-          <p className="max-w-prose text-body">The CV is being written up as a page.</p>
-        </div>
+        <SmearTitle as="h1" className="text-heading">
+          CV
+        </SmearTitle>
       </header>
+
+      {/* Below the h1, never above it (D-2.6): a late layout change above a
+          trail-carrying heading would leave it smearing from a stale
+          origin. Returns null on its own when PORTRAIT is null — no slot,
+          no frame, no grey box. */}
+      <Portrait asset={PORTRAIT} />
+
+      {/* D-02: an incomplete CV is acceptable and expected; a fabricated one
+          is a serious failure. With EXPERIENCE empty this renders the
+          deliberately-typeset stub line, never an empty <section> and never
+          a visible marker word. */}
+      {EXPERIENCE.length === 0 ? (
+        <p className="max-w-prose text-body">{CV_STUB_BODY}</p>
+      ) : (
+        <CvSections />
+      )}
+
+      <section aria-labelledby="contact-head" className="flex flex-col gap-lg">
+        <h2 id="contact-head" className="section-head">
+          Contact
+        </h2>
+        <ContactBlock />
+      </section>
     </main>
   );
 }
