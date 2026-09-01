@@ -19,7 +19,12 @@ import { ContactBlock } from "@/components/contact-block";
 // the trail instead.
 
 export const metadata: Metadata = {
-  title: "Guillem Gelabert",
+  // Plan 06-07: deliberately no `title` here. Under the factory's
+  // title.template ("%s — Guillem Gelabert"), any string this route
+  // supplied would render doubled for the landing specifically — "Guillem
+  // Gelabert — Guillem Gelabert". Leaving `title` undeclared inherits the
+  // layout's title.default (SITE_NAME) instead, which renders the bare
+  // name once — the correct <title> for the site root.
   // HOME-01 (Pitfall 6): one source for the positioning sentence. When the
   // user's real sentence replaces POSITIONING_PLACEHOLDER in lib/work.ts,
   // both the rendered <p> and this share-preview description update from
@@ -30,6 +35,12 @@ export const metadata: Metadata = {
   // places).
   description: POSITIONING_PLACEHOLDER,
   alternates: { canonical: "/" },
+  // No `languages` alternate: the landing is English-only in v1
+  // (03-UI-SPEC.md § Localisation), so there is no German twin to declare.
+  // No `openGraph` override either: the site root's own path already IS
+  // rootMetadata("en")'s default og:url (lib/metadata.ts), so the factory's
+  // inherited value is already correct here — unlike /cv, /writing and
+  // /texte, which call lib/metadata.ts's routeOpenGraph for their own path.
 };
 
 export default async function Landing() {

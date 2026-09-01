@@ -36,3 +36,29 @@ export function rootMetadata(locale: Locale): Metadata {
     },
   };
 }
+
+/**
+ * Every leaf route's own `og:url`, without hand-restating `og:type`,
+ * `og:site_name` or `og:locale`. Next does not derive `og:url` from
+ * `alternates.canonical` (06-RESEARCH.md Q1, measured), so it needs its
+ * own declaration per route — but per Next's own docs ("Merging >
+ * Overwriting fields"), a route that declares ANY `openGraph` field
+ * replaces the parent's WHOLE `openGraph` object rather than merging into
+ * it. A route that wrote only `openGraph: { url: "/cv" }` would therefore
+ * silently drop `type`/`siteName`/`locale` from rootMetadata's factory
+ * default — measured directly against a real build. This helper re-supplies
+ * those three from the one source (rootMetadata's own values, never
+ * hand-typed a second time in a route file) alongside the route's own path,
+ * so no leaf route restates them literally.
+ */
+export function routeOpenGraph(
+  locale: Locale,
+  path: string,
+): NonNullable<Metadata["openGraph"]> {
+  return {
+    type: "website",
+    siteName: SITE_NAME,
+    locale: OG_LOCALE[locale],
+    url: new URL(path, SITE_URL).toString(),
+  };
+}

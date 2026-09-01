@@ -6,6 +6,7 @@ import { indexPath, postPath, UI } from "@/lib/locales";
 import { Prose } from "@/components/prose";
 import { SmearTitle } from "@/components/smear-title";
 import { PostMeta } from "@/components/post-meta";
+import { routeOpenGraph } from "@/lib/metadata";
 
 // This route carries no client directive. Phase 1 marked whole pages as
 // Client Components to reach the scroll-trail hook; doing that here would
@@ -51,6 +52,12 @@ export async function generateMetadata({
       canonical: postPath("de", entry.slug),
       languages,
     },
+    // lib/metadata.ts's routeOpenGraph supplies this route's own og:url
+    // without hand-restating og:type/og:site_name/og:locale — see that
+    // function's comment for why a bare `openGraph: { url }` would have
+    // silently dropped them. og:title/og:description come free from the
+    // title/description fields above.
+    openGraph: routeOpenGraph("de", postPath("de", entry.slug)),
   };
 }
 

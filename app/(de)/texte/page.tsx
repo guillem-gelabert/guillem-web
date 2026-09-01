@@ -6,10 +6,13 @@ import { indexPath, otherLocale, postPath, UI } from "@/lib/locales";
 import { LanguageSwitch } from "@/components/language-switch";
 import { SmearTitle } from "@/components/smear-title";
 import { PostMeta } from "@/components/post-meta";
+import { routeOpenGraph } from "@/lib/metadata";
 
 export function generateMetadata(): Metadata {
   return {
-    title: `${UI.de.indexKicker} — Guillem Gelabert`,
+    // Bare: the factory's title.template ("%s — Guillem Gelabert") adds the
+    // suffix. The old literal here would have doubled it (plan 06-07).
+    title: UI.de.indexKicker,
     description: UI.de.indexDescription,
     alternates: {
       canonical: indexPath("de"),
@@ -19,6 +22,11 @@ export function generateMetadata(): Metadata {
         "x-default": indexPath("en"),
       },
     },
+    // lib/metadata.ts's routeOpenGraph supplies this route's own og:url
+    // without hand-restating og:type/og:site_name/og:locale — see that
+    // function's comment for why a bare `openGraph: { url }` would have
+    // silently dropped them.
+    openGraph: routeOpenGraph("de", indexPath("de")),
   };
 }
 
