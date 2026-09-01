@@ -231,8 +231,8 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 06-04-PLAN.md — PROF-01…05 surfaces: the contact block with the entity-encoded email, the portrait, the CV sections, the rebuilt `/cv`, and the landing's real `#contact`
-- [ ] 06-05-PLAN.md — FIND-02 plumbing: `app/sitemap.ts` from `publishedFor()`, `app/robots.ts`, and the five scaffold SVGs deleted
+- [x] 06-04-PLAN.md — PROF-01…05 surfaces: the contact block with the entity-encoded email, the portrait, the CV sections, the rebuilt `/cv`, and the landing's real `#contact`
+- [x] 06-05-PLAN.md — FIND-02 plumbing: `app/sitemap.ts` from `publishedFor()`, `app/robots.ts`, and the five scaffold SVGs deleted
 
 **Wave 3** *(blocked on Wave 2)*
 
@@ -272,7 +272,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Work List & Landing Skeleton | 9/9 | Complete   | 2026-08-31 |
 | 4. The Case Study | 6/6 | Complete   | 2026-08-31 |
 | 5. Backlog | 4/4 | Complete   | 2026-08-31 |
-| 6. CV, Contact, Photo & Discoverability | 4/12 | In Progress|  |
+| 6. CV, Contact, Photo & Discoverability | 6/12 | In Progress|  |
 
 ---
 *Roadmap created: 2026-08-29*
