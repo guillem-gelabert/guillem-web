@@ -66,6 +66,19 @@ function readField(block: string, field: string): string | undefined {
 }
 
 /**
+ * D-11, restated. lib/content.ts's showDrafts() gates draft visibility on
+ * process.env.NODE_ENV so a draft is previewable at its own URL in `next
+ * dev` and invisible in a production build. The proxy runs in both dev and
+ * prod (it is the request layer, not a build-time concern) — without this,
+ * a draft listed on /writing in dev would 404 the instant its own link was
+ * followed, because the proxy's matcher sits in front of [slug]/page.tsx
+ * and would reject it before the page's own publishedFor() check ever ran.
+ */
+function showDrafts(): boolean {
+  return process.env.NODE_ENV === "development";
+}
+
+/**
  * CR-01's published-slug predicate. Reads content/ with node:fs at request
  * time — the measured-working option (06-RESEARCH.md): Next's file tracing
  * adds content/*.mdx to the proxy's .nft.json automatically, so no manifest
@@ -73,15 +86,15 @@ function readField(block: string, field: string): string | undefined {
  *
  * Admits a slug only when it is SAFE_SLUG-shaped, a file with that stem
  * exists in content/, its front-matter `lang` equals the requested locale,
- * AND its `draft` is not `true`. The locale filter is not optional: without
- * it /writing/die-darstellung-aendert-sich would serve German content under
- * an English layout with a 200.
+ * AND (its `draft` is not `true` OR showDrafts()). The locale filter is not
+ * optional: without it /writing/die-darstellung-aendert-sich would serve
+ * German content under an English layout with a 200.
  *
  * Exported so tests/unit/proxy-slugs.test.ts can assert this predicate and
- * lib/content.ts's publishedFor() return identical slug sets per locale —
- * the binding test that stops the two from silently diverging. Deleting
- * that test re-opens the failure mode where a published post 404s or a
- * draft becomes reachable.
+ * lib/content.ts's publishedFor() return identical slug sets per locale, in
+ * both NODE_ENV values — the binding test that stops the two from silently
+ * diverging. Deleting that test re-opens the failure mode where a published
+ * post 404s or a draft becomes unreachable in dev even though it is listed.
  *
  * Synchronous fs, matching the measured-working option (06-RESEARCH.md
  * § "How the proxy learns the published slug set"): fs.readdirSync(content/)
@@ -108,7 +121,8 @@ export function isPublished(locale: Locale, slug: string): boolean {
   if (!fence) return false;
 
   const block = fence[1];
-  return readField(block, "lang") === locale && readField(block, "draft") !== "true";
+  const isDraft = readField(block, "draft") === "true";
+  return readField(block, "lang") === locale && (!isDraft || showDrafts());
 }
 
 export function proxy(request: NextRequest) {
