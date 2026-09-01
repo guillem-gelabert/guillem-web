@@ -149,9 +149,62 @@ test("the long fenced block scrolls internally — proving the overflow case exi
   expect(overflowing.length).toBeGreaterThan(0);
 });
 
-test("token colouring is present inside pre — at least one span carries an inline color style", async ({
+test("token colouring survives while the CSP header is delivered — style-src carries 'unsafe-inline', then at least one span carries an inline color style (G9, part 1 of 3)", async ({
   page,
 }) => {
+  // BUILD-04 / G9's three-part proof (06-RESEARCH.md FINDING F6). No
+  // published post contains a code fence or a table — every one lives in a
+  // draft (fixture.mdx, musterseite.mdx, nur-auf-deutsch.md) and a
+  // production build prerenders none of them — so G9 ("code blocks still
+  // render token colour with CSP enforced") has no production surface to
+  // assert against directly. That is a deliberate accepted position,
+  // recorded here rather than hidden, not an oversight.
+  //
+  // Part 1, here: the real browser-enforcement proof. This re-navigates to
+  // /writing/fixture (on top of beforeEach's navigation) specifically to
+  // capture THIS response's headers and THIS navigation's console output,
+  // and asserts the CSP header is actually being delivered — with
+  // style-src 'unsafe-inline' present, and no "Refused to apply inline
+  // style" console message — before trusting the colour claim below. A
+  // policy that blocked inline style attributes would fail this test, not
+  // silently degrade to monochrome.
+  // Part 2: tests/unit/csp.test.ts's dev/prod style-src token-set parity
+  // assertion — that is what transfers this dev-tier result to production.
+  // Part 3: the post-deploy curl recording the production CSP string
+  // verbatim, owned by plan 06-11.
+
+  const consoleMessages: string[] = [];
+  page.on("console", (msg) => consoleMessages.push(msg.text()));
+
+  const response = await page.goto("/writing/fixture");
+  await page.evaluate(() => document.fonts.ready);
+
+  const csp = response?.headers()["content-security-policy"];
+  expect(csp, "the CSP header must be delivered on this navigation").toBeTruthy();
+  // Scoped to the style-src directive specifically, not the policy string
+  // as a whole — script-src also carries 'unsafe-inline', so a substring
+  // check against the whole header would still pass even if style-src's
+  // own 'unsafe-inline' were dropped, silently defeating this precondition.
+  const styleSrc = csp!.match(/style-src ([^;]+)/)?.[1];
+  expect(styleSrc, "policy must contain a style-src directive").toBeTruthy();
+  expect(styleSrc).toContain("'unsafe-inline'");
+
+  // Matched against what this Chromium build actually emits — measured
+  // directly by narrowing lib/csp.ts's dev style-src to 'self' and
+  // recording the console output (06-02-SUMMARY.md). The real message is
+  // "Applying inline style violates the following Content Security Policy
+  // directive 'style-src ...'", not the older "Refused to apply inline
+  // style" phrasing some CSP writing still quotes. Matched on both
+  // fragments together so a wording change in either direction still
+  // catches a real violation rather than silently stop matching.
+  const cspViolations = consoleMessages.filter(
+    (m) => m.includes("Content Security Policy directive") && m.toLowerCase().includes("style"),
+  );
+  expect(
+    cspViolations,
+    `browser blocked inline styles: ${cspViolations.join(" | ")}`,
+  ).toHaveLength(0);
+
   const { pres } = await readCodeBlocks(page);
   for (const pre of pres) {
     expect(pre.hasColoredSpan).toBe(true);
