@@ -14,7 +14,7 @@
 /**
  * [USER-SUPPLIED] — PROF-03, launch gate G4. null is the shipped state.
  * The contact block renders only the channels that exist
- * (components/language-switch.tsx's null-rather-than-disabled pattern) —
+ * (components/language-switch.tsx's null-rather-than-greyed-out pattern) —
  * a dead affordance is worse than no affordance. NEVER invent an address.
  *
  * A current-employer address is on record in this environment and is
@@ -53,9 +53,9 @@ export type ContactChannel = {
  * today's shipped state.
  *
  * Returns EXACTLY the non-null channels — with two of three null this
- * returns one entry, never three entries two of which are empty. There is
- * no "disabled" or "coming soon" branch anywhere in this path: a dead
- * affordance is worse than no affordance.
+ * returns one entry, never three entries two of which are empty. No
+ * branch here ever returns a greyed-out or "not yet available" entry: a
+ * dead affordance is worse than no affordance.
  */
 export function channels(
   email: string | null = EMAIL,
