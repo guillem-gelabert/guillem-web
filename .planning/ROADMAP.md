@@ -220,7 +220,44 @@ Plans:
   4. Visitor loading the site receives real security response headers, demonstrating in practice what the migrated security-headers series describes.
   5. Visitor pasting the site URL into Slack or a DM sees a correct title, description, and preview image; search engines can index the site through a sitemap and robots file.
 
-**Plans**: TBD
+**Plans**: 12 plans
+Plans:
+**Wave 1**
+
+- [ ] 06-01-PLAN.md — CR-01: `proxy.ts`, the two reserved localised 404 routes, the shared not-found body, and the unit test binding the proxy's slug predicate to `publishedFor()`
+- [ ] 06-02-PLAN.md — BUILD-04: pure `buildCsp({dev})`, `next.config.ts` `headers()`, delivery proof, and G9's three-part code-colour proof
+- [ ] 06-03-PLAN.md — The five `[USER-SUPPLIED]` facts as typed placeholders (`lib/cv.ts`, `lib/contact.ts`) and `tests/unit/launch-gate.test.ts`, the biconditional that gates the robots flag
+- [ ] 06-06-PLAN.md — FIND-01 rasters: the Playwright capture script, both site-wide OG cards, per-post cards, `app/icon.png`, and the scaffold favicon deleted
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 06-04-PLAN.md — PROF-01…05 surfaces: the contact block with the entity-encoded email, the portrait, the CV sections, the rebuilt `/cv`, and the landing's real `#contact`
+- [ ] 06-05-PLAN.md — FIND-02 plumbing: `app/sitemap.ts` from `publishedFor()`, `app/robots.ts`, and the five scaffold SVGs deleted
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 06-07-PLAN.md — FIND-01 metadata: `lib/site.ts` on the apex, the `lib/metadata.ts` factory, per-route titles/descriptions/`og:url`, and `/type` de-cliented with its own permanent noindex
+- [ ] 06-08-PLAN.md — Browser tier: `tests/contact.spec.ts`, the portrait and CLS guards in `tests/cv.spec.ts`, and the smear-origin invariance in `tests/landing-trail.spec.ts`
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 06-09-PLAN.md — Production truth: the five narrowed assertions, the FIND-01/FIND-02 additions, and the three named skipped gate rows in `tests/build/prerender.test.ts`
+- [ ] 06-10-PLAN.md — D-4.4's automated halves: `tests/cross-links.spec.ts` and `tests/design-budget.spec.ts`
+
+**Wave 5** *(blocked on Wave 4)*
+
+- [ ] 06-11-PLAN.md — Live-deploy verification, the six-part written audit, the 13-row launch gate, and `HANDOFF-user-supplied.md`
+
+**Wave 6** *(blocked on Wave 5)*
+
+- [ ] 06-12-PLAN.md — The three manual rows (Slack unfurl, screen-reader pass, optical sign-off) and the milestone tracking close
+
+> **FIND-02 is deliberately not flipped by this phase.** By explicit user decision the copy gate stays
+> blocking: HOME-01's positioning sentence, the case-study editorial pass and the backlog
+> `COPY_REVIEWED` review are all outstanding. The phase builds every surface, leaves
+> `robots: { index: false }` in place, and delivers the flip as a gated one-commit procedure the user
+> performs after their own review. `tests/unit/launch-gate.test.ts` holds the biconditional.
+
 **UI hint**: yes
 
 ## Progress
@@ -235,8 +272,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Work List & Landing Skeleton | 9/9 | Complete   | 2026-08-31 |
 | 4. The Case Study | 6/6 | Complete   | 2026-08-31 |
 | 5. Backlog | 4/4 | Complete   | 2026-08-31 |
-| 6. CV, Contact, Photo & Discoverability | 0/TBD | Not started | - |
+| 6. CV, Contact, Photo & Discoverability | 0/12 | Planned | - |
 
 ---
 *Roadmap created: 2026-08-29*
-*Last updated: 2026-08-31 — Phase 5 planned into 4 plans across 3 waves*
+*Last updated: 2026-09-01 — Phase 6 planned into 12 plans across 6 waves*
