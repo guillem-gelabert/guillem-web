@@ -45,11 +45,18 @@ export const WORK: readonly [WorkEntry, WorkEntry] = [
 export const CASE_STUDY_SLUG = "the-chart-therefore-changes";
 
 /**
- * HOME-01: the positioning sentence is the user's to write (D-08). Marked
- * HERE in source, never on screen (D-02, Pitfall 7) — a rendered
- * "[positioning sentence goes here]" is exactly the failure D-02 exists to
- * prevent. Also serves as app/(en)/page.tsx's metadata.description, so the
- * real sentence is a one-line change in this file when it arrives
- * (Pitfall 6).
+ * HOME-01: the positioning sentence is the user's to write (D-08). It is
+ * still unwritten. What changed is the stand-in: it used to be the single
+ * word "Developer.", which had the failure mode of reading as a finished
+ * (if terse) choice at every optical pass. Lorem ipsum cannot be mistaken
+ * for a decision, and it occupies the sentence's real length, so the
+ * landing view is laid out against the measure the eventual sentence will
+ * have.
+ *
+ * [PLACEHOLDER] — bound to lib/placeholder.ts's PLACEHOLDER_CONTENT, which
+ * holds the site at noindex until this is real. Also serves as
+ * app/(en)/page.tsx's metadata.description, so the real sentence remains a
+ * one-line change in this file when it arrives (Pitfall 6).
  */
-export const POSITIONING_PLACEHOLDER = "Developer.";
+export const POSITIONING_PLACEHOLDER =
+  "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore.";

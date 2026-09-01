@@ -16,6 +16,12 @@ import { EMAIL, GITHUB } from "../../lib/contact.ts";
 // the shipped state. CV_STUB_BODY: the copy /cv already ships while
 // EXPERIENCE is empty (not user-supplied — established stub text).
 import { CV_STUB_BODY, EXPERIENCE, PORTRAIT } from "../../lib/cv.ts";
+// The flag-dependent marker ban. While lib/placeholder.ts's
+// PLACEHOLDER_CONTENT is true, "lorem" and "placeholder" are expected on
+// screen and only the four apology markers are banned; the moment it goes
+// false, all six are banned again across every prerendered route — which is
+// what turns "the placeholders are gone" from a claim into an assertion.
+import { BANNED_MARKERS } from "../../lib/placeholder.ts";
 // FIND-01 (plan 06-07): the (en) layout's own default description, read
 // from source rather than retyped, so the "nothing falls back to it" test
 // below cannot silently drift from the real value.
@@ -647,7 +653,7 @@ test("both closed stubs' deleted copy — contact and backlog alike — is absen
     );
   }
 
-  for (const banned of ["TODO", "Coming soon", "Under construction", "Lorem"]) {
+  for (const banned of BANNED_MARKERS) {
     assert.doesNotMatch(
       root,
       new RegExp(banned, "i"),
@@ -1236,8 +1242,6 @@ test("/writing and /texte still emit hreflang alternates including x-default; /,
 // invisible; a skipped one is a standing instruction with a name attached,
 // and `npm run test:build`'s own output becomes a readable gate report.
 
-const CV_MARKER_WORDS = ["todo", "placeholder", "coming soon", "under construction", "lorem", "tbd"];
-
 test("G4 (email): the double-escape signature never appears anywhere, and no mailto: link exists yet", async () => {
   const routes = await getRoutes();
 
@@ -1255,13 +1259,20 @@ test("G4 (email): the double-escape signature never appears anywhere, and no mai
     );
   }
 
-  // The current absent state: EMAIL is null (G4 unfilled), so zero
-  // mailto: links exist anywhere in production yet.
+  // The other half is stated against whichever state EMAIL is actually in,
+  // rather than against the state it happened to be in when this file was
+  // written. With EMAIL null, no route may carry a mailto: at all. With it
+  // filled, exactly the two surfaces that render the contact block — / and
+  // /cv — must carry one, and no other route may pick one up by accident.
+  const CONTACT_SURFACES = ["", "cv"];
   for (const [routeKey, html] of routes) {
+    const expectMailto = EMAIL !== null && CONTACT_SURFACES.includes(routeKey);
     assert.equal(
       html.includes("mailto:"),
-      false,
-      `route "${routeKey || "/"}" must carry no mailto: link while EMAIL is null`,
+      expectMailto,
+      expectMailto
+        ? `route "${routeKey || "/"}" renders the contact block and must carry a mailto: link`
+        : `route "${routeKey || "/"}" must carry no mailto: link`,
     );
   }
 });
@@ -1278,11 +1289,15 @@ test("G4: /'s production HTML carries the real, correctly entity-encoded address
   assert.equal(root.includes(EMAIL), false, "/ must NOT carry the bare address with an unescaped @");
 });
 
-test("G3 (experience): /cv's production HTML currently ships CV_STUB_BODY, with none of the six banned marker words", async () => {
+test("G3 (experience): /cv's production HTML ships the arm its data selects, with none of the currently-banned marker words", async () => {
   const routes = await getRoutes();
   const cv = routes.get("cv")!;
-  assert.ok(cv.includes(CV_STUB_BODY), "/cv must render CV_STUB_BODY while EXPERIENCE is empty");
-  for (const marker of CV_MARKER_WORDS) {
+  assert.equal(
+    cv.includes(CV_STUB_BODY),
+    EXPERIENCE.length === 0,
+    "/cv must render CV_STUB_BODY when and only when EXPERIENCE is empty",
+  );
+  for (const marker of BANNED_MARKERS) {
     assert.doesNotMatch(cv, new RegExp(marker, "i"), `/cv must not render the marker word "${marker}"`);
   }
 });
@@ -1300,10 +1315,14 @@ test("G3: /cv's production HTML carries EXPERIENCE's first row and the stub line
   assert.equal(cv.includes(CV_STUB_BODY), false, "/cv must not render CV_STUB_BODY once EXPERIENCE is filled");
 });
 
-test("G6 (portrait): /cv's production HTML currently renders zero <img> elements", async () => {
+test("G6 (portrait): /cv's <img> count is exactly what PORTRAIT's state calls for — zero when null, one when declared", async () => {
   const routes = await getRoutes();
   const cv = routes.get("cv")!;
-  assert.equal((cv.match(/<img\b/g) ?? []).length, 0, "/cv must render zero <img> elements while PORTRAIT is null");
+  assert.equal(
+    (cv.match(/<img\b/g) ?? []).length,
+    PORTRAIT === null ? 0 : 1,
+    "/cv renders no portrait slot at all when PORTRAIT is null, and exactly one <img> when it is declared",
+  );
 });
 
 test("G6: /cv's production HTML carries exactly one <img> at PORTRAIT's declared dimensions, once PORTRAIT is filled", async (t) => {

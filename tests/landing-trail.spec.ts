@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { installPortraitFixture, removePortraitFixture } from "./fixtures/cv-portrait-fixture";
+import { PORTRAIT } from "../lib/cv";
 
 // Covers HOME-06 as a Phase 3 regression: Phase 1 shipped the smear trail
 // against a specimen route (/type), and / is now the first real page
@@ -246,17 +246,14 @@ test("under reduced-motion emulation, a nav link keeps its colour state change b
 // browser API that watches an element's box for size changes — there is
 // nothing here for one to fix.
 test.describe("D-2.6: /cv's h1 smear origin is invariant across the portrait's load", () => {
-  test.describe.configure({ mode: "serial" });
+  // This block used to install a source-rewriting fixture, because
+  // lib/cv.ts shipped PORTRAIT null and there was no image whose decode
+  // could move anything. PORTRAIT is now declared, so the measurement runs
+  // against the real page; the skip guard covers PORTRAIT returning to null,
+  // in which case there is nothing to measure rather than something failing.
+  test.skip(PORTRAIT === null, "PORTRAIT is null in lib/cv.ts — /cv renders no image to decode");
 
-  test.beforeAll(async () => {
-    await installPortraitFixture();
-  });
-
-  test.afterAll(async () => {
-    await removePortraitFixture();
-  });
-
-  test("the h1's document-relative position is identical before and after the fixture portrait decodes", async ({
+  test("the h1's document-relative position is identical before and after the portrait decodes", async ({
     page,
   }) => {
     await page.goto("/cv");

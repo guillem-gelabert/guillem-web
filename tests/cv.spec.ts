@@ -1,11 +1,6 @@
 import { expect, test } from "@playwright/test";
-import {
-  FIXTURE_EXPERIENCE_ROWS,
-  FIXTURE_PORTRAIT_HEIGHT,
-  FIXTURE_PORTRAIT_WIDTH,
-  installPortraitFixture,
-  removePortraitFixture,
-} from "./fixtures/cv-portrait-fixture";
+import { EDUCATION, EXPERIENCE, LANGUAGES, PORTRAIT } from "../lib/cv";
+import { BANNED_MARKERS } from "../lib/placeholder";
 
 // Covers HOME-03 / D-02: /cv is one of the five destinations the landing's
 // contents list names, it 404'd before this phase, and D-02 requires it to
@@ -13,14 +8,18 @@ import {
 // absence assertion (f) is the automated half of that, because "reads as
 // authored" is otherwise only checkable optically.
 //
-// Plan 06-08 (PROF-01/PROF-02): PORTRAIT and EXPERIENCE are both null/empty
-// in the shipped lib/cv.ts (no-fabrication rule), so the "populated" tests
-// below run against a FIXTURE — a temporary rewrite of lib/cv.ts on disk via
-// tests/fixtures/cv-portrait-fixture.ts, reverted before this file's run
-// ends. FIXTURE_EXPERIENCE_ROWS and the generated fixture portrait PNG are
-// fixtures: neither is real, and neither may ever become a real lib/cv.ts
-// export. `git diff --stat lib/cv.ts` is asserted empty by this task's own
-// verify command, run right after this spec.
+// Plan 06-08 (PROF-01/PROF-02) originally ran the populated assertions
+// against a FIXTURE, because PORTRAIT and EXPERIENCE both shipped null/empty
+// and there was nothing on the page to measure. That fixture temporarily
+// rewrote lib/cv.ts on disk, waited for Turbopack to recompile, and restored
+// the bytes under a cross-process lock — a lot of machinery to simulate a
+// state that now simply ships. lib/cv.ts is populated (with placeholder
+// content, tagged as such in that file), so every assertion below reads the
+// real served page and the fixture is deleted.
+//
+// The values are imported from lib/cv, never retyped: replacing the lorem
+// with a real CV must not require touching this file, and an assertion that
+// hardcoded three rows would fail on the first real edit for no good reason.
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/cv");
@@ -70,52 +69,45 @@ test("(e) the back link clears the WCAG 2.5.8 24px target floor", async ({ page 
   expect(height).toBeGreaterThanOrEqual(24);
 });
 
-test("(f) body text contains no placeholder marker word", async ({ page }) => {
+test("(f) body text contains no currently-banned marker word", async ({ page }) => {
+  // BANNED_MARKERS, not a literal list: the four apology markers ("todo",
+  // "coming soon", "under construction", "tbd") are banned in every state
+  // the site can be in, because they tell a reader the page is broken.
+  // "lorem" and "placeholder" join them only once lib/placeholder.ts's
+  // PLACEHOLDER_CONTENT goes false — which is the assertion that proves the
+  // placeholder copy is actually gone rather than merely declared gone.
   const bodyText = (await page.locator("body").innerText()).toLowerCase();
-  for (const word of [
-    "todo",
-    "placeholder",
-    "coming soon",
-    "under construction",
-    "lorem",
-    "tbd",
-  ]) {
+  for (const word of BANNED_MARKERS) {
     expect(bodyText).not.toContain(word);
   }
 });
 
 // ---------------------------------------------------------------------------
 // Plan 06-08 (PROF-01, PROF-02): the portrait, the CLS guard, and the
-// sections. (g) runs against the real shipped null state — no fixture, no
-// mutation. Everything inside "populated" runs against the temporary
-// fixture installed by tests/fixtures/cv-portrait-fixture.ts.
+// sections. Everything below runs against the real served /cv — no fixture,
+// no source mutation — and derives what it expects from lib/cv's own
+// exports, so the assertions survive the swap from placeholder to real.
 // ---------------------------------------------------------------------------
 
 test.describe("portrait, CLS, and sections", () => {
-  // Serial so (g)'s shipped-null assertion is guaranteed to run BEFORE the
-  // nested "populated" block's beforeAll ever mutates lib/cv.ts on disk —
-  // fullyParallel: true would otherwise let a different worker race this
-  // test against the fixture window.
-  test.describe.configure({ mode: "serial" });
-
-  test("(g) with PORTRAIT null (shipped state), /cv renders zero <img> — no slot, no frame, no placeholder box", async ({
+  test("(g) the portrait slot renders exactly as many <img> as PORTRAIT declares — none when null", async ({
     page,
   }) => {
+    // The null arm is not dead code waiting to be deleted: components/
+    // portrait.tsx's contract is that absence renders as absence — no
+    // frame, no grey box, no slot — and PORTRAIT going back to null while
+    // the real photograph is being taken is a state the site can genuinely
+    // be in. Asserting the count against the declaration keeps both arms
+    // honest with one expression.
     await page.goto("/cv");
     await page.evaluate(() => document.fonts.ready);
-    await expect(page.locator("img")).toHaveCount(0);
+    await expect(page.locator("main img")).toHaveCount(PORTRAIT === null ? 0 : 1);
   });
 
-  test.describe("populated (fixture portrait + fixture EXPERIENCE)", () => {
-    test.describe.configure({ mode: "serial" });
+  test.describe("populated", () => {
+    test.skip(PORTRAIT === null, "PORTRAIT is null in lib/cv.ts — there is no image to measure");
 
-    test.beforeAll(async () => {
-      await installPortraitFixture();
-    });
-
-    test.afterAll(async () => {
-      await removePortraitFixture();
-    });
+    const portrait = PORTRAIT!;
 
     test("(h) exactly one <img>, and naturalWidth > 0 — the browser actually decoded the bytes", async ({
       page,
@@ -131,15 +123,15 @@ test.describe("portrait, CLS, and sections", () => {
       expect(naturalWidth).toBeGreaterThan(0);
     });
 
-    test("(i) width/height attributes are present and equal the fixture asset's real intrinsic pixels", async ({
+    test("(i) width/height attributes are present and equal the asset's real intrinsic pixels", async ({
       page,
     }) => {
       await page.goto("/cv");
       await page.evaluate(() => document.fonts.ready);
 
       const img = page.locator("main img");
-      expect(await img.getAttribute("width")).toBe(String(FIXTURE_PORTRAIT_WIDTH));
-      expect(await img.getAttribute("height")).toBe(String(FIXTURE_PORTRAIT_HEIGHT));
+      expect(await img.getAttribute("width")).toBe(String(portrait.width));
+      expect(await img.getAttribute("height")).toBe(String(portrait.height));
     });
 
     test("(j) Pitfall 10: computed width is strictly less than <main>'s content width, measured not assumed", async ({
@@ -258,16 +250,26 @@ test.describe("portrait, CLS, and sections", () => {
 
       await expect(page.locator("h1")).toHaveCount(1);
 
-      // EDUCATION/LANGUAGES stay empty (their own independent gate) — only
-      // EXPERIENCE and the always-rendered Selected work section, plus /cv's
-      // own Contact heading (unrelated to CvSections), so 3 total.
+      // Education and Languages are each gated on their own length in
+      // components/cv/cv-sections.tsx — an h2 the author never filled must
+      // not render over an empty list (D-02) — so the expected headings are
+      // derived from the data rather than hardcoded. Selected work always
+      // renders (WORK is a fixed two-tuple by type), and Contact is /cv's
+      // own heading, unrelated to CvSections.
+      const expectedHeads = [
+        "Experience",
+        ...(EDUCATION.length > 0 ? ["Education"] : []),
+        ...(LANGUAGES.length > 0 ? ["Languages"] : []),
+        "Selected work",
+        "Contact",
+      ];
       const sectionHeads = page.locator("h2.section-head");
-      await expect(sectionHeads).toHaveCount(3);
+      await expect(sectionHeads).toHaveCount(expectedHeads.length);
       const headTexts = await sectionHeads.allTextContents();
-      expect(headTexts.map((t) => t.trim())).toEqual(["Experience", "Selected work", "Contact"]);
+      expect(headTexts.map((t) => t.trim())).toEqual(expectedHeads);
 
       const experienceRows = page.locator("h2#experience-head ~ ol > li");
-      await expect(experienceRows).toHaveCount(FIXTURE_EXPERIENCE_ROWS.length);
+      await expect(experienceRows).toHaveCount(EXPERIENCE.length);
 
       const rowShapes = await experienceRows.evaluateAll((els) =>
         els.map((el) => ({
@@ -287,7 +289,7 @@ test.describe("portrait, CLS, and sections", () => {
       // tests/unit/prose-contract.test.ts reads app/globals.css from disk;
       // Tailwind v4 preflight ships b,strong{font-weight:bolder} in the
       // COMPILED CSS, not in that file, so a stray <strong> anywhere inside
-      // <main> — including inside the fixture's own note text — would
+      // <main> — including inside a CV row's own note text — would
       // render at 700 with every source-level budget gate green. This is
       // the only place that catches it.
       await page.goto("/cv");

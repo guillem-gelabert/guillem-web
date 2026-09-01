@@ -8,27 +8,43 @@
  *
  * Nothing in this file may contain a plausible-looking example value, even
  * commented out — a commented-out fake address is the failure mode this
- * file exists to prevent.
+ * file exists to prevent. That rule is what shapes the two [PLACEHOLDER]
+ * values below: both are filled so the contact block renders all three
+ * rows at their true length, and both are built out of reserved,
+ * unreachable strings so neither can be mistaken for a real channel or
+ * accidentally deliver mail to a stranger.
  */
 
 /**
- * [USER-SUPPLIED] — PROF-03, launch gate G4. null is the shipped state.
- * The contact block renders only the channels that exist
- * (components/language-switch.tsx's null-rather-than-greyed-out pattern) —
- * a dead affordance is worse than no affordance. NEVER invent an address.
+ * [PLACEHOLDER] — PROF-03, launch gate G4, held at noindex by G14
+ * (lib/placeholder.ts).
  *
- * A current-employer address is on record in this environment and is
- * deliberately NOT used here: a current-employer address is the wrong
- * channel for a job hunt and is not the user's to publish here by
- * inference (06-CONTEXT.md's no-fabrication rule).
+ * example.com is reserved by RFC 2606 precisely so that documentation and
+ * placeholders cannot collide with a real domain: it has no MX record and
+ * can never accept mail. That is the entire reason it is used here rather
+ * than a plausible-looking address — a wrong-but-deliverable address on a
+ * live contact block sends a stranger someone else's job enquiries, which
+ * is a worse failure than an empty row.
+ *
+ * A current-employer address is on record in this environment and is still
+ * deliberately NOT used: a current-employer address is the wrong channel
+ * for a job hunt and is not the user's to publish here by inference
+ * (06-CONTEXT.md's no-fabrication rule).
  */
-export const EMAIL: string | null = null;
+export const EMAIL: string | null = "lorem.ipsum@example.com";
 
 /**
- * [USER-SUPPLIED] — PROF-05, launch gate G5. null is the shipped state.
- * NEVER invent a LinkedIn profile URL.
+ * [PLACEHOLDER] — PROF-05, launch gate G5, held at noindex by G14.
+ *
+ * The host is kept real and the slug is kept impossible. A LinkedIn URL is
+ * rendered as its own link text, so its measured width is what the contact
+ * block's rhythm has to accommodate; pointing this at example.com instead
+ * would lay the row out against the wrong string. But the slug must never
+ * resolve — a placeholder that lands on a real stranger's profile is the
+ * one outcome worse than a broken link, so it is four lorem words no
+ * profile will ever hold.
  */
-export const LINKEDIN: string | null = null;
+export const LINKEDIN: string | null = "https://www.linkedin.com/in/lorem-ipsum-dolor-sit-amet";
 
 /**
  * Established from evidence, NOT user-supplied: `git remote -v` resolves

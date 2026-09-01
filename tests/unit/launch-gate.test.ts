@@ -16,8 +16,8 @@ import path from "node:path";
 // LinkedIn URL, the employment history, and the photograph — G3/G4/G5/G6).
 // This file is the mechanical enforcement of that choice.
 //
-// It binds six blocking, mechanisable launch-gate rows (G2, G3, G4, G5,
-// G6, G11) to robots: { index: false } on BOTH root layouts as a
+// It binds seven blocking, mechanisable launch-gate rows (G2, G3, G4, G5,
+// G6, G11, G14) to robots: { index: false } on BOTH root layouts as a
 // BICONDITIONAL — not a one-directional assertion. While ANY value is
 // unfilled, both layouts MUST read index: false; once EVERY value is
 // filled, both MUST read index: true. Both branches exist below on
@@ -41,6 +41,7 @@ const DE_LAYOUT_SRC = readFileSync(DE_LAYOUT_PATH, "utf8");
 const { POSITIONING_PLACEHOLDER } = await import("../../lib/work.ts");
 const { EXPERIENCE, PORTRAIT } = await import("../../lib/cv.ts");
 const { EMAIL, LINKEDIN } = await import("../../lib/contact.ts");
+const { PLACEHOLDER_CONTENT } = await import("../../lib/placeholder.ts");
 // lib/backlog.tsx is .tsx — node --test cannot import it
 // (ERR_UNKNOWN_FILE_EXTENSION). Reuse the shared source-reader
 // tests/build/prerender.test.ts already imports rather than writing a
@@ -62,19 +63,38 @@ const PORTRAIT_FILE_EXISTS =
 
 type GateCheck = { id: string; filled: boolean; file: string };
 
+// G14 — THE ROW THAT KEEPS THE OTHER SIX HONEST.
+//
+// Every row below G2..G6 asks "is this value FILLED?". That was a sound
+// proxy for "is this value REAL?" while the only two states were absent and
+// authored. It stopped being one the moment the site was deliberately filled
+// with lorem ipsum so every surface could be laid out at full length: a page
+// of `Lorem ipsum dolor sit amet` passes G3 exactly the way a real
+// employment history does, and the biconditional below would then start
+// DEMANDING index: true over placeholder copy — inverting the gate into the
+// thing it was built to prevent.
+//
+// So the flag in lib/placeholder.ts joins the gate as a row of its own.
+// While it is true, every branch below takes the unfilled path regardless of
+// how full the data modules look, and the site stays noindex. Flipping it is
+// the deliberate act of asserting the placeholders are gone; the build-tier
+// marker sweep in tests/build/prerender.test.ts then re-bans "lorem" across
+// every prerendered route, so a premature flip fails loudly instead of
+// publishing lorem ipsum to search engines.
 const GATES: readonly GateCheck[] = [
-  { id: "G2", filled: POSITIONING_PLACEHOLDER !== "Developer.", file: "lib/work.ts" },
+  { id: "G2", filled: (POSITIONING_PLACEHOLDER as string) !== "Developer.", file: "lib/work.ts" },
   { id: "G3", filled: EXPERIENCE.length > 0, file: "lib/cv.ts" },
   { id: "G4", filled: EMAIL !== null, file: "lib/contact.ts" },
   { id: "G5", filled: LINKEDIN !== null, file: "lib/contact.ts" },
   { id: "G6", filled: PORTRAIT_FILE_EXISTS, file: "lib/cv.ts" },
   { id: "G11", filled: COPY_REVIEWED, file: "lib/backlog.tsx" },
+  { id: "G14", filled: !PLACEHOLDER_CONTENT, file: "lib/placeholder.ts" },
 ] as const;
 
 const UNFILLED = GATES.filter((gate) => !gate.filled);
 const ALL_FILLED = UNFILLED.length === 0;
 
-test("G2-G6, G11: robots is a BICONDITIONAL on the six blocking values, not a one-directional assertion", () => {
+test("G2-G6, G11, G14: robots is a BICONDITIONAL on the seven blocking values, not a one-directional assertion", () => {
   const unfilledMessage = () =>
     `blocked — unfilled rows: ${UNFILLED.map((g) => `${g.id} (${g.file})`).join(", ")}`;
 
@@ -94,7 +114,7 @@ test("G2-G6, G11: robots is a BICONDITIONAL on the six blocking values, not a on
       assert.match(
         source,
         /robots:\s*\{\s*index:\s*true\s*\}/,
-        `${name} must read robots: { index: true } — every blocking value (G2, G3, G4, G5, G6, G11) is now filled`,
+        `${name} must read robots: { index: true } — every blocking value (G2, G3, G4, G5, G6, G11, G14) is now filled`,
       );
     }
   }

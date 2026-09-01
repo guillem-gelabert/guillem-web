@@ -10,6 +10,7 @@ import { test } from "node:test";
 // a destination.
 
 const { WORK, CASE_STUDY_SLUG, POSITIONING_PLACEHOLDER } = await import("../../lib/work.ts");
+const { BANNED_MARKERS } = await import("../../lib/placeholder.ts");
 
 test("WORK has exactly 2 entries, each with four non-empty string fields", () => {
   assert.equal(WORK.length, 2);
@@ -79,11 +80,19 @@ test("CASE_STUDY_SLUG matches the SAFE_SLUG shape", () => {
   assert.match(CASE_STUDY_SLUG, SAFE_SLUG);
 });
 
+// BANNED_MARKERS, not a literal list: while lib/placeholder.ts's
+// PLACEHOLDER_CONTENT is true this permits the lorem stand-in the sentence
+// currently ships, and the moment that flag goes false the same assertion
+// starts demanding the lorem be gone. The four apology markers are banned
+// either way — those never become acceptable, because they tell a reader
+// the site is broken rather than that the copy is pending.
 test("POSITIONING_PLACEHOLDER is a non-empty string with no rendered-marker word", () => {
   assert.ok(POSITIONING_PLACEHOLDER.length > 0);
-  const markers = ["TODO", "placeholder", "TBD", "Coming soon", "Under construction", "Lorem"];
-  for (const marker of markers) {
-    assert.ok(!POSITIONING_PLACEHOLDER.toLowerCase().includes(marker.toLowerCase()));
+  for (const marker of BANNED_MARKERS) {
+    assert.ok(
+      !POSITIONING_PLACEHOLDER.toLowerCase().includes(marker.toLowerCase()),
+      `POSITIONING_PLACEHOLDER must not contain "${marker}"`,
+    );
   }
 });
 

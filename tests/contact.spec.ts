@@ -1,7 +1,5 @@
-import { readFileSync, writeFileSync } from "node:fs";
-import path from "node:path";
 import { expect, test } from "@playwright/test";
-import { acquireLock, releaseLock } from "./fixtures/file-lock";
+import { EMAIL, GITHUB, LINKEDIN } from "../lib/contact";
 
 // Covers PROF-03 (email obfuscation's three-part acceptance, PITFALLS #5)
 // and D-2.1/D-2.2 (three channels, one shared component, absence as
@@ -9,101 +7,26 @@ import { acquireLock, releaseLock } from "./fixtures/file-lock";
 // #5 names: keyboard reachability and copyability. The third — reading the
 // address with a screen reader — is a recorded manual check owned by plan
 // 06-11. Production truth for the served BYTES (as opposed to the decoded
-// DOM this file reads) belongs to plan 06-09's tests/build/prerender.test.ts
-// — a textContent check here reads the decoded DOM and would pass even if
-// the wire carried a broken entity, which is exactly why that split exists
+// DOM this file reads) belongs to tests/build/prerender.test.ts — a
+// textContent check here reads the decoded DOM and would pass even if the
+// wire carried a broken entity, which is exactly why that split exists
 // (T-06-46).
 //
-// EMAIL and LINKEDIN are both null in the shipped lib/contact.ts (the
-// no-fabrication rule — a fabricated address is a serious failure, a
-// labelled absence is not), so there is nothing to exercise the keyboard/
-// accessible-name/copyable legs against without a fixture. This file
-// installs an OBVIOUSLY-fixture address and LinkedIn URL directly into
-// lib/contact.ts on disk, waits for the dev server to recompile, runs the
-// populated-state assertions, then restores the file's exact original
-// bytes — the same technique tests/cv.spec.ts uses for the portrait, and
-// the one already proven to work against this exact dev server/Turbopack
-// setup (plan 06-04's own manual verification).
+// THIS FILE USED TO CARRY A FIXTURE. EMAIL and LINKEDIN were both null in
+// the shipped module, so exercising the keyboard/accessible-name/copyable
+// legs meant temporarily rewriting lib/contact.ts on disk, waiting for
+// Turbopack to recompile, asserting, and restoring the original bytes under
+// a cross-process lock. All of that is gone: both channels now ship
+// populated (with placeholder values — see lib/contact.ts), so every leg is
+// exercisable against the real served page. A fixture that mutates source
+// files is a liability to keep once the state it simulated is the state
+// that ships.
 //
-// FIXTURE_EMAIL and FIXTURE_LINKEDIN below are FIXTURES. Neither is a real
-// contact channel and neither may ever become the value lib/contact.ts
-// ships. FIXTURE_EMAIL's local part ("fixturecontact") deliberately
-// contains no "@" or "." so it survives the entity-substitution step
-// unchanged and can be grepped for in the raw served HTML regardless of
-// which characters get encoded.
-
-const REPO_ROOT = path.resolve(__dirname, "..");
-const CONTACT_MODULE_PATH = path.join(REPO_ROOT, "lib", "contact.ts");
-const LOCK_DIR = path.join(REPO_ROOT, ".contact-fixture.lock");
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
-
-const FIXTURE_EMAIL = "fixturecontact@example.test";
-const FIXTURE_LINKEDIN = "https://www.linkedin.com/in/fixturecontact-test-profile";
-
-let originalContactSource: string | null = null;
-
-async function waitForContactState(matcher: (body: string) => boolean, timeoutMs = 20000) {
-  const deadline = Date.now() + timeoutMs;
-  for (;;) {
-    const body = await fetch(`${BASE_URL}/cv`)
-      .then((res) => res.text())
-      .catch(() => "");
-    if (matcher(body)) return;
-    if (Date.now() > deadline) {
-      throw new Error(
-        `contact.spec.ts: /cv never reflected the expected contact state after ${timeoutMs}ms.`,
-      );
-    }
-    await new Promise((resolve) => setTimeout(resolve, 150));
-  }
-}
-
-// Locked with the same technique tests/fixtures/cv-portrait-fixture.ts uses
-// for lib/cv.ts: --repeat-each duplicates this file's whole test tree, and
-// each duplicate's serial describe block is a separate instance that
-// Playwright's fullyParallel scheduling may run in a different worker
-// process — without a real cross-process lock, two duplicates would race to
-// mutate the same lib/contact.ts.
-async function installContactFixture() {
-  await acquireLock(LOCK_DIR);
-  try {
-    originalContactSource = readFileSync(CONTACT_MODULE_PATH, "utf8");
-    let mutated = originalContactSource.replace(
-      "export const EMAIL: string | null = null;",
-      `export const EMAIL: string | null = "${FIXTURE_EMAIL}";`,
-    );
-    mutated = mutated.replace(
-      "export const LINKEDIN: string | null = null;",
-      `export const LINKEDIN: string | null = "${FIXTURE_LINKEDIN}";`,
-    );
-    if (mutated === originalContactSource) {
-      throw new Error(
-        "contact.spec.ts: the expected EMAIL/LINKEDIN null-state lines were not found " +
-          "verbatim in lib/contact.ts — the source has drifted from what this fixture expects.",
-      );
-    }
-    writeFileSync(CONTACT_MODULE_PATH, mutated);
-    await waitForContactState((body) => body.includes("fixturecontact"));
-  } catch (err) {
-    if (originalContactSource !== null) {
-      writeFileSync(CONTACT_MODULE_PATH, originalContactSource);
-      originalContactSource = null;
-    }
-    releaseLock(LOCK_DIR);
-    throw err;
-  }
-}
-
-async function removeContactFixture() {
-  try {
-    if (originalContactSource === null) return;
-    writeFileSync(CONTACT_MODULE_PATH, originalContactSource);
-    originalContactSource = null;
-    await waitForContactState((body) => !body.includes("fixturecontact"));
-  } finally {
-    releaseLock(LOCK_DIR);
-  }
-}
+// The absence half of D-2.1 did not go untested with it. channels()'s
+// omit-rather-than-grey-out behaviour is covered exhaustively in
+// tests/unit/contact.test.ts:57-83 against all four null combinations,
+// which is a better home for it than a browser spec that could only ever
+// observe one combination at a time.
 
 // Both surfaces render the same shared component from the same data module
 // (D-2.2) — the landing's #contact section, and /cv's foot section, located
@@ -119,46 +42,23 @@ async function tabUntilFocused(
 ): Promise<boolean> {
   for (let i = 0; i < maxPresses; i++) {
     await page.keyboard.press("Tab");
-    const isFocused = await target.evaluate((el) => el === document.activeElement).catch(() => false);
+    const isFocused = await target
+      .evaluate((el) => el === document.activeElement)
+      .catch(() => false);
     if (isFocused) return true;
   }
   return false;
 }
 
-// ---------------------------------------------------------------------------
-// Absent state — against the real, untouched lib/contact.ts. Run first, and
-// entirely independent of the fixture below, so these stay meaningful even
-// if the fixture install ever fails.
-// ---------------------------------------------------------------------------
+// Read from the module rather than retyped, so these specs follow the real
+// values through the placeholder era and out the other side without an edit.
+// A null here is a legitimate state the site can return to, and the guarded
+// tests below skip rather than fail if it does.
+const SURFACES = ["/", "/cv"];
 
-test.describe("absent channels render as absence, on the real shipped module", () => {
-  test("/ renders exactly one channel row (GitHub) and zero mailto links", async ({ page }) => {
-    await page.goto("/");
-    await page.evaluate(() => document.fonts.ready);
-
-    const section = contactSection(page);
-    const rows = section.locator('ol[role="list"] > li');
-    await expect(rows).toHaveCount(1);
-
-    await expect(page.getByRole("link", { name: /mailto/i })).toHaveCount(0);
-    await expect(section.locator("a[href^='mailto:']")).toHaveCount(0);
-  });
-
-  test("zero [disabled] and zero [aria-disabled] anywhere inside the contact block, on either surface", async ({
-    page,
-  }) => {
-    for (const route of ["/", "/cv"]) {
-      await page.goto(route);
-      await page.evaluate(() => document.fonts.ready);
-
-      const section = contactSection(page);
-      await expect(section.locator("[disabled]")).toHaveCount(0);
-      await expect(section.locator("[aria-disabled]")).toHaveCount(0);
-    }
-  });
-
-  test("the contact block renders on both / and /cv, from one component", async ({ page }) => {
-    for (const route of ["/", "/cv"]) {
+test.describe("the shared contact block, on both surfaces", () => {
+  test("renders on / and /cv from one component, as a single semantic list", async ({ page }) => {
+    for (const route of SURFACES) {
       await page.goto(route);
       await page.evaluate(() => document.fonts.ready);
 
@@ -168,35 +68,77 @@ test.describe("absent channels render as absence, on the real shipped module", (
     }
   });
 
-  test("the GitHub link carries no target attribute, on either surface", async ({ page }) => {
-    for (const route of ["/", "/cv"]) {
+  test("renders exactly the channels that are non-null — no empty row, no greyed-out row", async ({
+    page,
+  }) => {
+    const expectedRows = [EMAIL, GITHUB, LINKEDIN].filter((value) => value !== null).length;
+
+    for (const route of SURFACES) {
       await page.goto(route);
       await page.evaluate(() => document.fonts.ready);
 
-      const githubLink = contactSection(page).locator('a[href="https://github.com/guillem-gelabert"]');
+      const rows = contactSection(page).locator('ol[role="list"] > li');
+      await expect(rows).toHaveCount(expectedRows);
+    }
+  });
+
+  test("zero [disabled] and zero [aria-disabled] anywhere inside the contact block, on either surface", async ({
+    page,
+  }) => {
+    for (const route of SURFACES) {
+      await page.goto(route);
+      await page.evaluate(() => document.fonts.ready);
+
+      const section = contactSection(page);
+      await expect(section.locator("[disabled]")).toHaveCount(0);
+      await expect(section.locator("[aria-disabled]")).toHaveCount(0);
+    }
+  });
+
+  test("the GitHub link carries no target attribute, on either surface", async ({ page }) => {
+    for (const route of SURFACES) {
+      await page.goto(route);
+      await page.evaluate(() => document.fonts.ready);
+
+      const githubLink = contactSection(page).locator(`a[href="${GITHUB}"]`);
       await expect(githubLink).toHaveCount(1);
       expect(await githubLink.getAttribute("target")).toBeNull();
+    }
+  });
+
+  test("every channel link clears the WCAG 2.5.8 24px target floor, on both surfaces", async ({
+    page,
+  }) => {
+    const expectedRows = [EMAIL, GITHUB, LINKEDIN].filter((value) => value !== null).length;
+
+    for (const route of SURFACES) {
+      await page.goto(route);
+      await page.evaluate(() => document.fonts.ready);
+
+      const links = contactSection(page).locator('ol[role="list"] a');
+      await expect(links).toHaveCount(expectedRows);
+
+      const heights = await links.evaluateAll((els) =>
+        els.map((el) => el.getBoundingClientRect().height),
+      );
+      for (const height of heights) {
+        expect(height).toBeGreaterThanOrEqual(24);
+      }
     }
   });
 });
 
 // ---------------------------------------------------------------------------
-// Populated state — against a fixture EMAIL/LINKEDIN written temporarily
-// into lib/contact.ts. Serial: this describe's tests must not interleave
-// with each other or with the fixture install/removal, since they all read
-// the same live, temporarily-mutated module.
+// PROF-03's three-part acceptance (PITFALLS #5), against the address the
+// site actually serves. Guarded on EMAIL rather than assuming it: an empty
+// contact channel is a state lib/contact.ts explicitly permits, and a spec
+// that hard-failed on it would be asserting today's data, not the contract.
 // ---------------------------------------------------------------------------
 
-test.describe("PROF-03: the email's keyboard, accessible-name and copyable legs, against a real fixture address", () => {
-  test.describe.configure({ mode: "serial" });
+test.describe("PROF-03: the email's keyboard, accessible-name and copyable legs", () => {
+  test.skip(EMAIL === null, "EMAIL is null in lib/contact.ts — nothing to read, tab to or copy");
 
-  test.beforeAll(async () => {
-    await installContactFixture();
-  });
-
-  test.afterAll(async () => {
-    await removeContactFixture();
-  });
+  const address = EMAIL as string;
 
   test("the mailto anchor is reachable by Tab and shows a visible, measured focus ring", async ({
     page,
@@ -204,7 +146,7 @@ test.describe("PROF-03: the email's keyboard, accessible-name and copyable legs,
     await page.goto("/cv");
     await page.evaluate(() => document.fonts.ready);
 
-    const mailLink = page.locator(`a[href="mailto:${FIXTURE_EMAIL}"]`);
+    const mailLink = page.locator(`a[href="mailto:${address}"]`);
     await expect(mailLink).toHaveCount(1);
 
     const reached = await tabUntilFocused(page, mailLink);
@@ -221,7 +163,7 @@ test.describe("PROF-03: the email's keyboard, accessible-name and copyable legs,
     expect(outline.style).toBe("solid");
   });
 
-  test("getByRole('link', {name}) resolves to exactly one element for the real address", async ({
+  test("getByRole('link', {name}) resolves to exactly one element for the served address", async ({
     page,
   }) => {
     await page.goto("/cv");
@@ -229,64 +171,40 @@ test.describe("PROF-03: the email's keyboard, accessible-name and copyable legs,
 
     // This is the assertion that fails if the entities leak into the
     // accessible name instead of decoding to the real address.
-    const byAccessibleName = page.getByRole("link", { name: FIXTURE_EMAIL, exact: true });
+    const byAccessibleName = page.getByRole("link", { name: address, exact: true });
     await expect(byAccessibleName).toHaveCount(1);
   });
 
-  test("textContent equals the real address and href equals mailto: plus the real address", async ({
+  test("textContent equals the address and href equals mailto: plus the address", async ({
     page,
   }) => {
     await page.goto("/cv");
     await page.evaluate(() => document.fonts.ready);
 
-    const mailLink = page.locator(`a[href="mailto:${FIXTURE_EMAIL}"]`);
+    const mailLink = page.locator(`a[href="mailto:${address}"]`);
     await expect(mailLink).toHaveCount(1);
 
     // The browser decodes entities at parse time, so both come out clean —
     // if they do not, the obfuscation is broken in the way that matters.
     const text = await mailLink.evaluate((el) => el.textContent ?? "");
-    expect(text).toBe(FIXTURE_EMAIL);
+    expect(text).toBe(address);
 
     const href = await mailLink.getAttribute("href");
-    expect(href).toBe(`mailto:${FIXTURE_EMAIL}`);
+    expect(href).toBe(`mailto:${address}`);
   });
+});
 
-  test("every channel link (Email, GitHub, LinkedIn) clears the WCAG 2.5.8 24px target floor, on both surfaces", async ({
-    page,
-  }) => {
-    for (const route of ["/", "/cv"]) {
+test.describe("PROF-05: the LinkedIn row", () => {
+  test.skip(LINKEDIN === null, "LINKEDIN is null in lib/contact.ts — the row is absent by design");
+
+  test("resolves to exactly one link at the declared URL, on both surfaces", async ({ page }) => {
+    for (const route of SURFACES) {
       await page.goto(route);
       await page.evaluate(() => document.fonts.ready);
 
-      const links = contactSection(page).locator('ol[role="list"] a');
-      await expect(links).toHaveCount(3);
-
-      const heights = await links.evaluateAll((els) =>
-        els.map((el) => el.getBoundingClientRect().height),
-      );
-      for (const height of heights) {
-        expect(height).toBeGreaterThanOrEqual(24);
-      }
-    }
-  });
-
-  test("with the fixture populated, both surfaces render exactly one three-row channel list, GitHub still carries no target", async ({
-    page,
-  }) => {
-    for (const route of ["/", "/cv"]) {
-      await page.goto(route);
-      await page.evaluate(() => document.fonts.ready);
-
-      const section = contactSection(page);
-      const rows = section.locator('ol[role="list"] > li');
-      await expect(rows).toHaveCount(3);
-
-      const githubLink = section.locator('a[href="https://github.com/guillem-gelabert"]');
-      await expect(githubLink).toHaveCount(1);
-      expect(await githubLink.getAttribute("target")).toBeNull();
-
-      const linkedinLink = section.locator(`a[href="${FIXTURE_LINKEDIN}"]`);
+      const linkedinLink = contactSection(page).locator(`a[href="${LINKEDIN}"]`);
       await expect(linkedinLink).toHaveCount(1);
+      expect(await linkedinLink.getAttribute("target")).toBeNull();
     }
   });
 });

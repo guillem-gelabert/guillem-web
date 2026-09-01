@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { BANNED_MARKERS } from "../lib/placeholder";
 
 // Covers HOME-01, HOME-03, HOME-04, WORK-01, WORK-02 and the CASE-03 slot's
 // structure — the eleven rows 03-VALIDATION.md's requirement->test map
@@ -425,8 +426,7 @@ test("(s) D-02: nothing on / reads as unfinished", async ({ page }) => {
   // "[positioning sentence goes here]" on a live URL during a job hunt is
   // what D-02 exists to prevent (Pitfall 7).
   const bodyText = (await page.locator("body").innerText()).toLowerCase();
-  const banned = ["todo", "placeholder", "coming soon", "under construction", "lorem", "tbd"];
-  for (const word of banned) {
+  for (const word of BANNED_MARKERS) {
     expect(bodyText).not.toContain(word);
   }
 });

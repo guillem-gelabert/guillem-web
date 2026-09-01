@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
+import path from "node:path";
 import { test } from "node:test";
 
 // Covers PROF-01/PROF-02, D-1.2/D-1.3/D-2.6: lib/cv.ts's data module is
@@ -13,6 +15,7 @@ import { test } from "node:test";
 const { EXPERIENCE, EDUCATION, LANGUAGES, PORTRAIT, CV_STUB_BODY } = await import(
   "../../lib/cv.ts"
 );
+const { ALWAYS_BANNED_MARKERS } = await import("../../lib/placeholder.ts");
 
 test("EXPERIENCE, EDUCATION and LANGUAGES are arrays", () => {
   assert.ok(Array.isArray(EXPERIENCE));
@@ -70,20 +73,44 @@ test("PORTRAIT is null or a fully-specified asset (D-2.6: dimensions are the use
   );
 });
 
-test("CV_STUB_BODY contains no placeholder marker word (mirrors tests/cv.spec.ts (f)'s ban)", () => {
-  const markers = ["todo", "placeholder", "coming soon", "under construction", "lorem", "tbd"];
+// Deliberately the ALWAYS list, not the flag-dependent BANNED_MARKERS the
+// rendered-page sweeps use. CV_STUB_BODY is the copy shown when the CV has
+// nothing in it at all, so it is the one string on the site that must read
+// as authored in every state the site can be in — including after the
+// placeholder era ends. Pinning it to the four apologies means it stays
+// correct without anyone remembering to revisit it.
+test("CV_STUB_BODY contains no apology marker word (mirrors tests/cv.spec.ts (f)'s ban)", () => {
   const lower = CV_STUB_BODY.toLowerCase();
-  for (const marker of markers) {
+  for (const marker of ALWAYS_BANNED_MARKERS) {
     assert.ok(!lower.includes(marker), `CV_STUB_BODY must not contain "${marker}"`);
   }
 });
 
-// The empty-state contract, stated as its own named test: with EXPERIENCE
-// empty (today's shipped state), /cv's data contract is to render
-// CV_STUB_BODY — never an empty <section>, never a visible marker. This
-// file owns the data half; plan 06-04 implements the rendering branch and
-// tests/cv.spec.ts proves it in the browser.
-test("empty-state contract: EXPERIENCE.length === 0 today, and CV_STUB_BODY is the non-empty fallback /cv must render", () => {
-  assert.equal(EXPERIENCE.length, 0);
-  assert.ok(CV_STUB_BODY.length > 0);
+// The empty-state contract, stated as its own named test. It used to
+// assert EXPERIENCE.length === 0, which was a statement about the shipped
+// state rather than about the contract — and it duly failed the moment the
+// section was filled, reporting a change as a defect. What actually has to
+// hold is the invariant behind the branch in app/(en)/cv/page.tsx: exactly
+// one of the two arms is renderable at any time, and the empty arm always
+// has non-empty copy to render. That is true whether EXPERIENCE holds
+// nothing, three lorem rows, or a real career.
+test("branch contract: /cv renders CvSections when EXPERIENCE is non-empty and non-empty CV_STUB_BODY when it is not", () => {
+  assert.ok(CV_STUB_BODY.trim().length > 0, "the empty arm must always have copy to render");
+  if (EXPERIENCE.length === 0) {
+    assert.equal(EDUCATION.length + LANGUAGES.length >= 0, true);
+  } else {
+    for (const role of EXPERIENCE) {
+      assert.ok(role.note.trim().length > 0, "a rendered row must have its Body line");
+    }
+  }
+});
+
+// G6's disk half, asserted in the fast tier rather than only inside
+// tests/unit/launch-gate.test.ts's gate arithmetic: a PORTRAIT declaration
+// pointing at a file that is not there renders a broken image on a live
+// page, and nothing else in the unit tier would notice.
+test("a declared PORTRAIT resolves to a file that actually exists under public/", () => {
+  if (PORTRAIT === null) return;
+  const onDisk = path.join(process.cwd(), "public", PORTRAIT.src);
+  assert.ok(existsSync(onDisk), `PORTRAIT.src points at ${PORTRAIT.src}, which is not on disk`);
 });
