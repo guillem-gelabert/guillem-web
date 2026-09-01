@@ -236,8 +236,8 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2)*
 
-- [ ] 06-07-PLAN.md — FIND-01 metadata: `lib/site.ts` on the apex, the `lib/metadata.ts` factory, per-route titles/descriptions/`og:url`, and `/type` de-cliented with its own permanent noindex
-- [ ] 06-08-PLAN.md — Browser tier: `tests/contact.spec.ts`, the portrait and CLS guards in `tests/cv.spec.ts`, and the smear-origin invariance in `tests/landing-trail.spec.ts`
+- [x] 06-07-PLAN.md — FIND-01 metadata: `lib/site.ts` on the apex, the `lib/metadata.ts` factory, per-route titles/descriptions/`og:url`, and `/type` de-cliented with its own permanent noindex
+- [x] 06-08-PLAN.md — Browser tier: `tests/contact.spec.ts`, the portrait and CLS guards in `tests/cv.spec.ts`, and the smear-origin invariance in `tests/landing-trail.spec.ts`
 
 **Wave 4** *(blocked on Wave 3)*
 
@@ -272,7 +272,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Work List & Landing Skeleton | 9/9 | Complete   | 2026-08-31 |
 | 4. The Case Study | 6/6 | Complete   | 2026-08-31 |
 | 5. Backlog | 4/4 | Complete   | 2026-08-31 |
-| 6. CV, Contact, Photo & Discoverability | 6/12 | In Progress|  |
+| 6. CV, Contact, Photo & Discoverability | 8/12 | In Progress|  |
 
 ---
 *Roadmap created: 2026-08-29*
