@@ -137,7 +137,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | I18N-01 | Phase 2 | Complete |
 | WORK-01 | Phase 3 | Complete |
 | WORK-02 | Phase 3 | Complete |
-| HOME-01 | Phase 3 | Complete (placeholder — copy deferred by D-08, blocks FIND-02) |
+| HOME-01 | Phase 3 | Complete (placeholder — copy deferred by D-08, blocks FIND-02. Stand-in changed from `Developer.` to lorem ipsum 2026-09-01: a word that read as a terse choice became a string that cannot) |
 | HOME-03 | Phase 3 | Complete |
 | HOME-04 | Phase 3 | Complete |
 | CASE-01 | Phase 4 | Complete |
@@ -146,14 +146,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HOME-02 | Phase 4 | Complete |
 | BACK-01 | Phase 5 | Complete |
 | BACK-02 | Phase 5 | Complete |
-| PROF-01 | Phase 6 | Pending |
-| PROF-02 | Phase 6 | Pending |
-| PROF-03 | Phase 6 | Pending |
-| PROF-04 | Phase 6 | Pending |
-| PROF-05 | Phase 6 | Pending |
-| BUILD-04 | Phase 6 | Pending |
-| FIND-01 | Phase 6 | Pending |
-| FIND-02 | Phase 6 | Pending |
+| PROF-01 | Phase 6 | Complete (surface shipped; content is placeholder — blocks FIND-02 via G3/G14) |
+| PROF-02 | Phase 6 | Complete (slot shipped; the asset is a tone panel, not the photograph — blocks FIND-02 via G6/G14) |
+| PROF-03 | Phase 6 | Complete (obfuscation, keyboard and copyable legs proven; the address is a placeholder — blocks FIND-02 via G4/G14. Screen-reader leg deferred until a real address exists) |
+| PROF-04 | Phase 6 | Complete — the GitHub profile is established fact, never gated |
+| PROF-05 | Phase 6 | Complete (row shipped; the URL is a placeholder — blocks FIND-02 via G5/G14) |
+| BUILD-04 | Phase 6 | Complete — six headers live, delivered CSP byte-identical to the unit-tested string |
+| FIND-01 | Phase 6 | Complete — sitemap, robots, per-route metadata, and per-post OG cards (the last fixed at close, `audit.md` § 5.3) |
+| FIND-02 | Phase 6 | **Deliberately not performed.** Every mechanism ships and the site stays noindex by decision. Blocked on G11, G12, G14. Flip procedure: `06-.../launch-gate.md` |
 
 **Coverage:**
 - v1 requirements: 29 total
@@ -162,4 +162,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-08-29*
-*Last updated: 2026-08-29 after adding HOME-06 (heading trail effect, CSS text-shadow)*
+*Last updated: 2026-09-01 at the v1.0 milestone close (Phase 6, plan 06-12)*

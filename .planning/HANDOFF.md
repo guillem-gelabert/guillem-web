@@ -1,129 +1,131 @@
-# Context Handoff — paused 2026-09-01
+# v1.0 is done — and deliberately not indexed
 
-**Milestone:** v1.0 Working Site · **Phases 1–5 complete and live** · **Phase 6 at 10/12 plans**
+**Milestone:** v1.0 Working Site · **All six phases complete** · **Closed 2026-09-01**
 
-Everything built so far is merged, pushed, deployed and verified in production.
-Working tree clean. Full suite green: **130 unit · 34 build-tier (3 skip) · 173 Playwright**.
-`npm run lint` reports exactly one known deferred error (see Open Debt).
+Everything is merged, pushed, deployed and verified against the live origin. Suite green from a
+clean build: **132 unit (0 skipped) · 38 build-tier · 173 Playwright**. `npx tsc --noEmit` clean.
+`npm run lint` reports exactly one re-deferred error.
 
----
-
-## Resume with
-
-```
-/gsd:execute-phase 6
-```
-
-Two plans remain: **06-11** (live verification, milestone audit, user hand-off artifact) and
-**06-12** (three manual gate rows + milestone close — the phase's only `autonomous: false` plan).
-
-`.planning/STATE.md` frontmatter reads `status: executing`, `completed_phases: 5`.
+Live: `https://guillemgelabert.com` (and the Railway origin, `web-production-9cedb.up.railway.app`,
+which declares the same canonical).
 
 ---
 
-## THE SITE IS DELIBERATELY NOT INDEXED
+## Read this first
 
-`robots: { index: false }` is still declared in `app/(en)/layout.tsx` and `app/(de)/layout.tsx`.
-**This is a decision you made, not an oversight.** You chose to keep the copy gate blocking until
-you have reviewed three items.
+**The site is structurally finished and full of lorem ipsum.**
 
-`tests/unit/launch-gate.test.ts` enforces it as a **biconditional**: while any user-supplied value
-is unfilled it *demands* `index: false`; once all are filled it *demands* `index: true`. So the flag
-and the values cannot drift apart — flipping the flag with a placeholder still in place fails the
-suite by construction.
+Every surface v1.0 promised renders at full length. Five of the values those surfaces render are
+placeholders — the CV, the contact email and LinkedIn URL, the portrait, and the positioning
+sentence — because you asked for the layout to be finishable before the copy existed. That was the
+right call and it worked: `/` and `/cv` are laid out against realistic measure, and the optical pass
+at 375 and 1440 came back clean.
 
-`/type` declares its own permanent noindex and is excluded from the flip.
+It also creates the exact failure mode this project has been guarding against for four phases: **the
+site looks done.** No visual review will catch that the CV is lorem, because it reads as a CV.
 
----
-
-## What you need to supply — the five facts I would not invent
-
-Each has a typed placeholder in source, is invisible on screen (a live job-hunting site must never
-render `[goes here]`), and is bound to a named gate row.
-
-| # | Value | Where | Requirement |
-|---|---|---|---|
-| 1 | Public contact email | `lib/contact.ts` | PROF-03 |
-| 2 | LinkedIn profile URL | `lib/contact.ts` | PROF-05 |
-| 3 | Employment history, education, languages | `lib/cv.ts` | PROF-01 |
-| 4 | The photograph file | `lib/cv.ts` / `components/portrait.tsx` | PROF-02 |
-| 5 | The positioning sentence | `POSITIONING_PLACEHOLDER` in `lib/work.ts` | HOME-01 |
-
-Your `@liip.ch` address was deliberately **not** used — a current-employer address is the wrong
-channel for a job hunt and is not yours to publish by inference. Your name and the GitHub handle
-`guillem-gelabert` were treated as established fact.
-
-**Item 5 is the one that matters most.** The landing page currently reads `Developer.` under your
-name. Everything around it is finished, which is exactly why it needs a tripwire — the page *looks*
-done.
-
-## Three copy items awaiting your review
-
-All three block the robots flip:
-
-1. **The positioning sentence** — still `Developer.`
-2. **Both case studies** — live and bylined at `/writing/the-chart-therefore-changes` and
-   `/texte/die-darstellung-aendert-sich`. 1,788 words EN / 1,764 DE, 83 claims fact-checked against
-   snapshots of your own live pages with zero unsourced, twelve named traps checked in both
-   languages. **But no human has read them.** German shipped `draft: false`; the escape hatch to
-   `draft: true` remains if you would rather it did not.
-3. **Backlog copy** — `COPY_REVIEWED = false` in `lib/backlog.tsx`. Three items drafted from
-   repository evidence. **"The Pudding, read as a corpus" must never be described as a pitch** — it
-   may be a live pitch and getting that wrong publicly could cost it. Flagged for one-edit veto.
-
-Also drafted, not reviewed: the two work-list annotations in `lib/work.ts`.
+So the gate grew a row. `PLACEHOLDER_CONTENT` in `lib/placeholder.ts` is **G14**, and while it is
+`true` the launch gate refuses to let the site be indexed however full the pages look. Without it,
+`tests/unit/launch-gate.test.ts` would have started *demanding* an indexable site over a lorem-ipsum
+CV — because G2–G6 test whether a value is **filled**, which was a fine proxy for **real** right up
+until lorem satisfied it.
 
 ---
 
-## Decisions you made this run
+## Finish it from one page
 
-- **Canonical host is `guillemgelabert.com`.** Research found your apex was *already* serving this
-  exact site byte-identically while `rel=canonical` pointed at the Railway URL. `lib/site.ts` reads
-  `NEXT_PUBLIC_SITE_URL` with the apex as fallback, so it is one variable.
-- **Keep the copy gate blocking.** Build everything; do not flip robots.
+**`.planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md`**
 
-## Corrections worth remembering
+Five values, five files, each with its export, its gate row, what changes on screen, and which tests
+move. Plus the three copy reviews. Then:
 
-- **"IB" is *Illes Balears*, not International Baccalaureate.** I had this wrong in a brief; the
-  research agent caught it. The whole case study depends on it.
-- Your landing page was never metadata-less, as I once said — it inherited title and description
-  from the layout. The real gap was a missing canonical, now fixed.
-- Phase 3 carries five requirements, not the eight I first stated. FIND-02 is Phase 6.
+1. Set `PLACEHOLDER_CONTENT = false` in `lib/placeholder.ts`.
+2. Delete `public/portrait.png` and `scripts/make-placeholder-portrait.mjs`.
+3. `npm run test:unit` — it names any row still outstanding, and once all are filled it **demands**
+   the flip.
+4. Follow the flip procedure in
+   `.planning/phases/06-cv-contact-photo-discoverability/launch-gate.md` (re-measure F3 first — it
+   has a ~7-day shelf life).
+
+At no point can the flag and the values drift apart. That is what the biconditional is for.
 
 ---
 
-## Open debt, all recorded
+## What still blocks an indexed site — all copy, all yours
 
-| Item | Where | Status |
+| Row | What | Where |
 |---|---|---|
-| One lint error, `use-prefers-reduced-motion.ts:23` (`react-hooks/set-state-in-effect`) | Phase 1 code | Deliberately untouched since Phase 2; re-deferred at each phase close |
-| Five optical sign-offs (does the work section read as hierarchy at 1440px, etc.) | `03-09-SUMMARY.md` | Open — remedies pre-specified: **more space from the existing seven tokens, never a fifth type size** |
-| CR-01 | — | **CLOSED.** Localised 404s now server-render with correct `lang` and German copy, JS disabled, verified in production |
-| `og:image` not cascading | `06/deferred-items.md` | **CLOSED 2026-09-01** — every route now carries a card and `summary_large_image` |
+| **G2** | The positioning sentence | `POSITIONING_PLACEHOLDER`, `lib/work.ts` |
+| **G3** | Employment history, education, languages | `lib/cv.ts` |
+| **G4/G5** | Email, LinkedIn URL | `lib/contact.ts` |
+| **G6** | The photograph | `public/` + `PORTRAIT` in `lib/cv.ts` |
+| **G11** | Backlog copy review | `COPY_REVIEWED`, `lib/backlog.tsx` |
+| **G12** | Editorial pass over both case studies | Not mechanisable — signature row in `launch-gate.md` |
+| **G14** | The placeholder content itself | `lib/placeholder.ts` |
+
+**Six of fourteen rows pass outright. There is no engineering work left between here and an indexed
+site.**
+
+> **Two things worth your attention specifically.**
+>
+> **The positioning sentence** is the site's single most important line and doubles as `/`'s
+> share-preview description. It used to read `Developer.`, which looked like a terse but finished
+> choice at every optical pass; lorem cannot be mistaken for a decision, which is why the swap made
+> it a better tripwire rather than a worse one.
+>
+> **Both case studies are live and bylined, in two languages, and no human has read either.** 1,788
+> words EN, 1,764 DE. Phase 4 fact-checked 83 claims with zero unsourced — that reduces factual risk
+> only, and says nothing about whether the German reads like German. `draft: true` is one line in
+> either file if you would rather they did not stand.
+
+---
+
+## Three defects this phase found by curling the live deploy
+
+None was caught by a test. All three had assertions that passed throughout, because each checked a
+**weaker property** than the one that mattered. That pattern is the most useful thing this milestone
+learned.
+
+| Defect | The assertion that missed it | Fixed |
+|---|---|---|
+| Both case studies served the **site-wide OG card**; their own committed PNGs were never referenced | Compared the EN post's card to the DE post's and to `/`'s — those differ by **locale** whether or not the per-post override fires | `315518d` — the assertion now requires each pathname to *be* `/og/{slug}.png` |
+| Both localised 404s rendered `Not found — Guillem Gelabert — Guillem Gelabert` | Checked that a `<title>` was present and non-empty. It was | `ff5eb40` — no title may contain the site name twice |
+| The test suite silently ran against **another project's dev server** on port 3000 | `reuseExistingServer` has no idea whose server it found | `315518d` — `PORT` is now a variable |
+
+The OG bug was introduced by the fix for the *previous* OG bug, and its own resolution note in
+`deferred-items.md` claims the per-post cards were unaffected. That sentence is left standing and
+corrected beneath, rather than quietly edited.
 
 ---
 
 ## Things that will bite whoever picks this up
 
 - **`.planning/` is gitignored but tracked.** Every commit of a planning file needs `git add -f`,
-  and shell `grep` is gitignore-aware — use `/usr/bin/grep` when searching `.planning/`.
-- **Worktree executors repeatedly fork off stale `master`.** Every executor prompt carries a
-  base-assertion guard that corrects it. Keep that guard.
-- **Port 3000 contention between parallel executors is real** and produced spurious failures twice.
-  `tests/global-setup.ts` warms every route to kill a measured 1-in-3 cold-compile flake; add any
-  new route to its list.
-- **`next-env.d.ts` toggles between dev and build type paths** and dirties the tree, which aborts a
-  merge. `git checkout --` it before merging.
-- **Plans' own acceptance-criteria greps scan comments too**, so writing a banned literal in an
-  explanatory comment trips the plan's own gate. This caught six different executors.
-- **Tailwind v4 preflight makes `<strong>` outside `.prose-site` render 700** — a third weight on
-  screen that source-level budget gates cannot see. Only a rendered-value assertion catches it.
+  and shell `grep` is gitignore-aware — use `/usr/bin/grep` when searching it.
+- **Port 3000 is not yours to assume.** `PORT=3111 npm run test:all` if another project is running.
+- **`npm run test:all`, never `npm test`.** Playwright always boots `next dev`, where every draft is
+  visible; only `tests/build/prerender.test.ts` covers the production half of the draft rule, and it
+  needs a real build first.
+- **A plan's own acceptance greps scan comments too.** Writing a banned literal in an explanatory
+  comment trips the gate. This caught six executors — and caught this session once more, when the
+  string `robots:` in a new comment broke "robots is declared in exactly two files".
+- **`zsh` ties `$path` to `$PATH`.** A `for path in ...` loop in a shell script destroys `PATH`
+  mid-run and every subsequent command reports "command not found".
+- **Tailwind v4 preflight makes `<strong>` outside `.prose-site` render 700** — a third weight that
+  source-level gates cannot see. Only a rendered-value assertion catches it.
+- **`next-env.d.ts` toggles between dev and build type paths** and dirties the tree.
 
 ---
 
-## Live
+## Deferred, all recorded
 
-`https://web-production-9cedb.up.railway.app` (and `guillemgelabert.com`, already serving it)
+`.planning/phases/06-cv-contact-photo-discoverability/deferred-items.md` — BUILD-07 (attach the
+domain, then HSTS `preload`, together), PROF-06 (print stylesheet; `/cv`'s markup was built so it
+stays stylesheet-only), the nonce CSP (recorded as *not* the fix for `style-src` — Shiki's inline
+`style` attributes are not noncible), the lint debt at `use-prefers-reduced-motion.ts:23`
+(re-deferred with reasoning), and the `_pm/` vs `.planning/` question, which is yours.
 
-`/` · `/cv` · `/writing` · `/texte` · `/type` — all 200. Security headers, sitemap, robots.txt,
-OG cards, and server-rendered localised 404s all verified in production.
+One optical observation, also yours: at 1440 the section rules run the full width while content sits
+in a 663px measure. Consistent and legitimate; filed in `06-12-optical.md` because it is the one
+thing at desktop width a reader might look at twice. Remedy if wanted is pre-specified — more space
+from the existing seven tokens, never a fifth type size.

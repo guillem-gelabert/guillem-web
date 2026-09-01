@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Working Site
-status: executing
-stopped_at: Paused at Phase 6, 10/12 plans — see .planning/HANDOFF.md
-last_updated: "2026-09-01T12:02:27.515Z"
-last_activity: 2026-09-01 -- Phase 06 execution started
+status: milestone-complete
+stopped_at: v1.0 complete — every surface ships, held at noindex by the copy gate (see .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md)
+last_updated: "2026-09-01T14:30:00.000Z"
+last_activity: 2026-09-01 -- Phase 06 complete, v1.0 milestone closed
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 42
-  completed_plans: 40
-  percent: 83
+  completed_plans: 42
+  percent: 100
 ---
 
 # Project State
@@ -21,14 +21,22 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-08-29)
 
 **Core value:** A visitor scanning a shortlist can tell within ninety seconds that Guillem has editorial judgment as well as craft — enough to decide the conversation is worth opening.
-**Current focus:** Phase 06 — CV, Contact, Photo & Discoverability
+**Current focus:** v1.0 complete. Next action is the user's: fill the five placeholder values, do the three copy reviews, then follow the FIND-02 flip procedure in `06-.../launch-gate.md`.
 
 ## Current Position
 
-Phase: 06 (CV, Contact, Photo & Discoverability) — EXECUTING
-Plan: 1 of 12
-Status: Executing Phase 06
-Last activity: 2026-09-01 -- Phase 06 execution started
+Phase: 06 (CV, Contact, Photo & Discoverability) — COMPLETE
+Plan: 12 of 12
+Status: v1.0 milestone closed 2026-09-01
+Last activity: 2026-09-01 -- Phase 06 complete, v1.0 milestone closed
+
+**The site is structurally complete and deliberately not indexed.** Every surface the milestone
+promised ships and is live at `guillemgelabert.com`. Five of the values those surfaces render are
+lorem ipsum, by the owner's instruction, so the layout could be judged before the copy exists — and
+the launch gate holds the site at `noindex` for exactly that reason. There is no engineering work
+left between here and an indexed site; everything blocking is copy, and all of it is the user's.
+
+Finish it from one page: `.planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md`
 
 Progress: [██████████] 100%
 
@@ -92,6 +100,13 @@ Recent decisions affecting current work:
 - [Phase 05]: The launch gate was re-pointed, not shrunk -- the deleted backlog-stub assertion was replaced by a COPY_REVIEWED = false source-scrape (D-14's second tripwire channel), naming all three outstanding copy items in the comment rather than leaving a one-line check nobody reads
 - [Phase 05]: The new production test matches dateTime (camelCase), not datetime -- React 19.2.8 emits the JSX prop name verbatim in the raw prerendered file; re-confirmed this session against the real build
 - [Phase 05]: The live deploy check used the already-live origin/master tip (e76b6d8, from Plan 01) rather than requiring a push of this plan's own test-tier/documentation-only commits, since they carry zero production-code delta
+- [Phase 06]: The five outstanding user-supplied values were filled with lorem ipsum and a generated tone panel (never a face) on the owner's explicit instruction, so every surface renders at full length before the copy exists — and a fourteenth launch-gate row, PLACEHOLDER_CONTENT in lib/placeholder.ts, was added because the fill silently disarmed the other five: G2-G6 test "filled", which stopped implying "real"
+- [Phase 06]: The marker-word ban split in two rather than being relaxed — "todo"/"coming soon"/"under construction"/"tbd" stay banned in every state because they tell a reader the page is broken; "lorem"/"placeholder" are banned only once PLACEHOLDER_CONTENT goes false, which is what turns "the placeholders are gone" from a claim into an assertion
+- [Phase 06]: Two source-mutating test fixtures (cv-portrait-fixture.ts, contact.spec.ts's inline equivalent, plus the cross-process file lock they shared) were deleted rather than updated — they existed to simulate a populated /cv and contact block, that state now ships, and the absence half of D-2.1 keeps better coverage in tests/unit/contact.test.ts against all four null combinations than a browser spec observing one at a time
+- [Phase 06]: The per-post OG cards were built, committed and never served for the life of commit c85eb18 — an explicit openGraph.images entry also overrides the opengraph-image file convention for its segment. Found by curling the live deploy during the phase's own audit, not by a test: the assertion compared the EN post's card to the DE post's and to /'s, and those differ by LOCALE whether or not the override fires. The transferable lesson is that asserting two things DIFFER is much weaker than asserting what each IS, and it fails silently in exactly the case it was written for
+- [Phase 06]: Both localised 404s served a doubled title ("Not found — Guillem Gelabert — Guillem Gelabert") from the moment plan 06-07 introduced title.template, because both routes hardcode a literal suffix. Every existing title assertion passed throughout — they checked presence and non-emptiness, never single assembly
+- [Phase 06]: playwright.config.ts's port is now a variable. Port 3000 is not this machine's to assume: another project in the same vault runs its own next dev there, and reuseExistingServer adopted it mid-run, reporting 404s on every route rather than "this is not my server"
+- [Phase 06]: package.json renamed gw-scaffold -> guillem-web at milestone close. Cosmetic and invisible to visitors, but this milestone's audience opens repos
 
 ### Pending Todos
 
@@ -99,12 +114,31 @@ None pending.
 
 ### Blockers/Concerns
 
-- Backlog (Phase 5) — RESOLVED, not closed: PROJECT.md logged the dateless/stateless-per-item backlog as an accepted risk (⚠️ Revisit). The mitigation shipped as designed in Phase 05: curation to three items (D-02), the section-level `LAST_TOUCHED` date above the list rather than per-item dates (BACK-02), and progress-report copy voice (D-08's copy rule). The risk itself stays **Revisit post-launch**, not Closed — it should be re-examined if the backlog reads as stale after the site has been live for a while. Full record: `.planning/phases/05-backlog/launch-gate.md`.
-- Legacy source repo (Phase 2): all Jekyll/permalink/pagination findings in research come from crawling the *live rendered* `guillem-gelabert.github.io` site, not yet verified against the source GitHub repo. Confirm the authoritative 13-post list and check for Liquid-syntax (`{% highlight %}`, `{% raw %}`) code fences against the repo before finalizing the migration plan.
-- **`HOME-01` tripwire (Phase 3, THE TRIPWIRE):** the positioning sentence still ships as `Developer.` behind `POSITIONING_PLACEHOLDER` in `lib/work.ts`. It is marked in source only, never on screen, so the landing view looks finished at every optical pass while the site's single most important sentence is unwritten. Must be re-asserted at the top of every subsequent phase's carried-forward state until the user supplies the sentence, and must never reach Phase 6's `FIND-02` robots flag flip still holding the placeholder. Full record: `.planning/phases/03-work-list-landing-skeleton/deferred-items.md`.
-- HOME-01 tripwire, re-asserted after Phase 4 and again after Phase 5 (per deferred-items.md's carry-forward rule): the positioning sentence still ships as Developer. behind POSITIONING_PLACEHOLDER in lib/work.ts. Marked in source only, never on screen, so the landing view looks finished at every optical pass while the site's single most important sentence is unwritten. Must be re-asserted at the top of every subsequent phase's carried-forward state until the user supplies the sentence, and must never reach Phase 6's FIND-02 robots flip still holding the placeholder. Full record: .planning/phases/04-the-case-study/launch-gate.md.
-- The user's editorial pass over both case studies has not happened, re-asserted after Phase 5 at the same weight as HOME-01: Both content/the-chart-therefore-changes.mdx and content/die-darstellung-aendert-sich.mdx shipped draft:false without a human proofread, in two languages, by directive. CONTEXT D-18 recommends this pass occur before Phase 6 flips robots to indexable. The D-19 accuracy gate (fact-check.md) reduces factual risk only; it does not substitute for the author's ear. A live, indexable, bylined piece that no human has read is the risk this phase creates. Must be re-asserted alongside HOME-01 until the user completes the pass. Full record: .planning/phases/04-the-case-study/launch-gate.md.
-- NEW carried item from Phase 5, same weight as HOME-01 and the case-study editorial pass: the backlog item copy is drafted from repository evidence and has NOT been reviewed by the author (`COPY_REVIEWED = false` in `lib/backlog.tsx`). The backlog section looks finished at every optical pass — three real items, a real date, real prose, no visible marker — so no visual review will catch that the copy is unreviewed, the same failure mode as HOME-01. Item 3 ("The Pudding, read as a corpus") carries an additional one-edit veto flag: it is described strictly as a corpus study and never as a pitch, because it may be a live pitch elsewhere in the user's own planning, and getting that wrong publicly could cost it. D-14's tripwire has three independent channels (source constant, build-tier test, this record) so the risk stays visible until the author's editorial pass. Must not reach Phase 6's FIND-02 robots flip while COPY_REVIEWED is false. Full record: .planning/phases/05-backlog/launch-gate.md.
+**All four are copy, none is engineering, and all four are the user's.** Full record:
+`.planning/phases/06-cv-contact-photo-discoverability/deferred-items.md` (T1–T4) and
+`launch-gate.md`. The hand-off that resolves them is `HANDOFF-user-supplied.md`.
+
+- **T1 — HOME-01's positioning sentence (gate G2).** Still unwritten. The stand-in changed from
+  `Developer.` to lorem ipsum on 2026-09-01, which is a stronger tripwire, not a weaker one:
+  `Developer.` looked like a terse but finished choice at every optical pass, and lorem cannot be
+  mistaken for a decision. It is the site's single most important sentence and doubles as `/`'s
+  share-preview description.
+- **T2 — the case-study editorial pass (gate G12).** Both pieces are live, bylined and `draft: false`
+  in two languages, and **no human has read either**. Phase 4's `fact-check.md` audited 83 claims
+  with zero unsourced; that reduces factual risk only and says nothing about voice, or about whether
+  the German reads like German. Cannot be mechanised — it is a signature row in `launch-gate.md`.
+- **T3 — backlog copy (gate G11).** `COPY_REVIEWED = false`. "The Pudding, read as a corpus" carries
+  a one-edit veto: never describe it as a pitch.
+- **T4 — NEW: five values are placeholder copy (gate G14).** `PLACEHOLDER_CONTENT = true` in
+  `lib/placeholder.ts`. The CV, the contact email and LinkedIn URL, the portrait file and T1's
+  sentence are all lorem ipsum or a placeholder asset. **This row exists because the fill silently
+  disarmed the other five:** G2–G6 test whether a value is *filled*, a sound proxy for *real* only
+  while the states were absent and authored, and without G14 the launch gate's biconditional would
+  have started demanding `index: true` over a lorem-ipsum CV.
+
+**Resolved during Phase 6, previously listed here:** the backlog risk (Phase 5) stays "Revisit
+post-launch" as logged, unchanged. The legacy source-repo concern (Phase 2) is moot — the archive
+migration is deferred to v2 and no migration was performed.
 
 ## Deferred Items
 
@@ -112,15 +146,25 @@ Items acknowledged and carried forward from previous milestone close:
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
-| Content | CR-01 — localised `[slug]` 404s do not server-render without JS | Open, deferred to Phase 6 (middleware layer) | Phase 02 |
-| Copy | `HOME-01` — the positioning sentence is unwritten (`Developer.` placeholder); **blocks `FIND-02`** | Deferred by decision (`D-08`) — the tripwire | Phase 03 |
+| Content | CR-01 — localised `[slug]` 404s do not server-render without JS | **CLOSED Phase 06** — `proxy.ts` + two reserved routes; verified in production with JS disabled, correct `lang` in both locales | Phase 02 |
+| Copy | `HOME-01` — the positioning sentence is unwritten; **blocks `FIND-02`** | Deferred by decision (`D-08`) — the tripwire. Stand-in changed `Developer.` → lorem ipsum at Phase 06 | Phase 03 |
 | Copy | `WORK-02` — the two work-list annotations are drafts awaiting the user's edit (`D-09`) | Deferred by decision — requirement is met, copy is not final | Phase 03 |
-| Content | Two interim surfaces remain (contact stub, `/cv`) — none may be the public launch condition; **blocks `FIND-02`** | Deliberately typeset (`D-02`), safe under `noindex`. Narrowed from four: the featured slot closed Phase 04, the backlog stub closed Phase 05 | Phase 03 |
+| Content | Two interim surfaces remain (contact stub, `/cv`) — none may be the public launch condition; **blocks `FIND-02`** | **CLOSED Phase 06** — both are real surfaces now: `/cv` renders the portrait, three CV sections and the contact block; the landing's `#contact` renders the same shared component. Their *content* is placeholder, which is T4's row, not an interim surface | Phase 03 |
 | Copy | The user's editorial pass over both case studies has not happened (English and German, both `draft: false`); **blocks `FIND-02`** | Carried at equal weight to `HOME-01`; D-19's accuracy gate reduces factual risk only, not voice/register | Phase 04 |
 | Copy | `BACK-01` item copy is drafted from repository evidence and unreviewed by the author (`COPY_REVIEWED = false`) | Deferred by decision (D-14) — the third tripwire | Phase 05 |
+| Copy | **NEW —** five user-supplied values ship as lorem ipsum / a placeholder panel (`PLACEHOLDER_CONTENT = true`); **blocks `FIND-02` via G14** | Deferred by owner instruction — fill the surfaces now, write the words after. The gate row exists because the fill disarmed G2–G6 | Phase 06 |
+| Build | BUILD-07 — attach `guillemgelabert.com` to the `web` service, and add HSTS `preload` with it | v2. This milestone changed the *declared* canonical only; nothing was attached or detached | Phase 06 |
+| Build | PROF-06 — print stylesheet | v2. `/cv`'s markup was built for it, so it stays a stylesheet addition, not a markup change | Phase 06 |
+| Build | Nonce-based CSP | v2, and recorded as *not* the fix for `style-src` — Shiki's per-token inline `style` attributes are not noncible | Phase 06 |
+| Debt | Lint error at `use-prefers-reduced-motion.ts:23` | Re-deferred with reasoning: `components/smear-heading/` has an empty diff across the whole milestone and its reduced-motion coverage was hard-won | Phase 06 |
+| Process | `_pm/kanban.md` and `.planning/` are two tracking surfaces for one project | Flagged for the user, not resolved | Phase 06 |
 
 ## Session Continuity
 
-Last session: 2026-09-01T12:02:27.507Z
-Stopped at: Paused at Phase 6, 10/12 plans — see .planning/HANDOFF.md
-Resume file: .planning/HANDOFF.md
+Last session: 2026-09-01T14:30:00.000Z
+Stopped at: v1.0 complete. Phase 6 closed; every surface ships; the site is deliberately noindex.
+Resume file: .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md
+
+The next action belongs to the user, not to an executor: fill five values, do three copy reviews,
+set `PLACEHOLDER_CONTENT = false`, then follow the flip procedure in `launch-gate.md`. Running
+`npm run test:unit` at any point names exactly which rows are still outstanding.

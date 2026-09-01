@@ -18,7 +18,7 @@ Six phases take the repo from its current state (a leftover static-prototype Doc
 - [x] **Phase 3: Work List & Landing Skeleton** - Assemble the landing view's positioning sentence, navigation, and vertical work list; leave the featured slot pointed at a placeholder. (completed 2026-08-31)
 - [x] **Phase 4: The Case Study** - Write and publish the ib-gdp-evolution case study and wire the landing view's featured slot to it. (completed 2026-08-31)
 - [x] **Phase 5: Backlog** - Ship the curated, section-dated backlog of work in progress. (completed 2026-08-31)
-- [ ] **Phase 6: CV, Contact, Photo & Discoverability** - Complete the CV page, photograph, contact block, real security headers, and search/social metadata.
+- [x] **Phase 6: CV, Contact, Photo & Discoverability** - Complete the CV page, photograph, contact block, real security headers, and search/social metadata.
 
 ## Phase Details
 
@@ -246,17 +246,24 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4)*
 
-- [ ] 06-11-PLAN.md — Live-deploy verification, the six-part written audit, the 13-row launch gate, and `HANDOFF-user-supplied.md`
+- [x] 06-11-PLAN.md — Live-deploy verification, the six-part written audit, the launch gate (13 rows planned, **14 shipped** — G14 was added when the site was filled with placeholder copy and "is it filled" stopped implying "is it real"), and `HANDOFF-user-supplied.md`
 
 **Wave 6** *(blocked on Wave 5)*
 
-- [ ] 06-12-PLAN.md — The three manual rows (Slack unfurl, screen-reader pass, optical sign-off) and the milestone tracking close
+- [x] 06-12-PLAN.md — The three manual rows and the milestone tracking close. All three are recorded with a verdict in `audit.md` § 7; **none is a completed owner sign-off**, and each says so: the unfurl is mechanically pre-verified with the visual judgment outstanding, the screen-reader pass is deferred until a real address exists (the current one is a placeholder), and the optical pass was performed by the agent at both widths (`06-12-optical.md`) without standing in for the owner's eye
 
 > **FIND-02 is deliberately not flipped by this phase.** By explicit user decision the copy gate stays
 > blocking: HOME-01's positioning sentence, the case-study editorial pass and the backlog
 > `COPY_REVIEWED` review are all outstanding. The phase builds every surface, leaves
 > `robots: { index: false }` in place, and delivers the flip as a gated one-commit procedure the user
 > performs after their own review. `tests/unit/launch-gate.test.ts` holds the biconditional.
+>
+> **Amended 2026-09-01.** The five outstanding user-supplied values were filled with lorem ipsum and
+> a placeholder portrait panel, on the owner's explicit instruction, so every surface renders at full
+> length before the real words exist. This required a fourteenth gate row: G2–G6 test whether a value
+> is *filled*, which stopped implying *real* the moment lorem satisfied it, and the biconditional
+> would otherwise have begun demanding `index: true` over a lorem-ipsum CV. `PLACEHOLDER_CONTENT` in
+> `lib/placeholder.ts` is that row. The site remains noindex on every surface, verified live.
 
 **UI hint**: yes
 
@@ -272,7 +279,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Work List & Landing Skeleton | 9/9 | Complete   | 2026-08-31 |
 | 4. The Case Study | 6/6 | Complete   | 2026-08-31 |
 | 5. Backlog | 4/4 | Complete   | 2026-08-31 |
-| 6. CV, Contact, Photo & Discoverability | 10/12 | In Progress|  |
+| 6. CV, Contact, Photo & Discoverability | 12/12 | Complete   | 2026-09-01 |
 
 ---
 *Roadmap created: 2026-08-29*
