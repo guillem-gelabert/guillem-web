@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { readFile, readdir } from "node:fs/promises";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { POSITIONING_PLACEHOLDER } from "../../lib/work.ts";
-import { formatPostDate, UI } from "../../lib/locales.ts";
+import { formatPostDate, indexPath, notFoundPath, postPath, UI } from "../../lib/locales.ts";
 // PROF-04: the established (not user-supplied) GitHub profile fact — see
 // lib/contact.ts's own comment for why it is never gated by the launch gate.
 // Imported here (not retyped) so the private-repo test and the launch-gate
@@ -13,7 +14,22 @@ import { GITHUB } from "../../lib/contact.ts";
 // FIND-01 (plan 06-07): the (en) layout's own default description, read
 // from source rather than retyped, so the "nothing falls back to it" test
 // below cannot silently drift from the real value.
-import { SITE_DESCRIPTION } from "../../lib/site.ts";
+import { SITE_DESCRIPTION, SITE_URL } from "../../lib/site.ts";
+// FIND-01/FIND-02: the sitemap test below binds to lib/content.ts's real
+// selection rule rather than a second, driftable statement of it — the
+// forward note this file used to carry. It binds to selectForLocale() +
+// assertFrontmatter(), NOT the literal publishedFor(): publishedFor() =
+// selectForLocale(await allPosts(), lang), and allPosts() loads every post
+// via loadPostModule's import(`@/content/${slug}.mdx`) — a bundler-only
+// alias specifier that tests/unit/proxy-slugs.test.ts's own header comment
+// already documents as ERR_MODULE_NOT_FOUND under plain `node --test`
+// (confirmed here too, before this substitution). selectForLocale is the
+// exact, unmodified selection algorithm publishedFor() delegates to; this
+// file supplies it with entries read from the same content/ files' real
+// front-matter, validated through the real assertFrontmatter() — the same
+// substitution proxy-slugs.test.ts already made, not a weaker one.
+import { assertFrontmatter, LOCALES, selectForLocale } from "../../lib/content.ts";
+import type { Locale, PostEntry, PostFrontmatter } from "../../lib/content.ts";
 // BACK-02 (Phase 5, Plan 04): the source-binding technique HOME-01's gate
 // uses for POSITIONING_PLACEHOLDER, applied to lib/backlog.tsx. That
 // module is .tsx, and node --test cannot import a .tsx file
@@ -807,8 +823,367 @@ test("I18N-01: the German twin also prerendered and the English post carries a m
   );
 });
 
-// Forward note for Phase 6 (FIND-02): when sitemap.ts is added, it must call
-// publishedFor() from lib/content.ts rather than re-deriving the draft rule
-// from front-matter directly. This file is otherwise the only place that
-// rule is asserted; stating the draft predicate a second, independent way
-// in sitemap.ts would let the two silently drift apart.
+// --- Phase 6 production-tier assertions (FIND-01/FIND-02) ------------------
+//
+// This section replaces the file's old forward note ("when sitemap.ts is
+// added, it must call publishedFor()..."): app/sitemap.ts now exists and
+// does call publishedFor() (plan 06-05). The test below is what enforces
+// that binding going forward, rather than trusting the source comment to
+// stay true on its own.
+//
+// sitemap.xml and robots.txt are not *.html, so walkHtmlRoutes/getRoutes
+// above never see them — their built bodies are read directly from
+// .next/server/app/{sitemap.xml,robots.txt}.body, the same flattened
+// on-disk shape next start serves from.
+
+async function readBuiltBody(filename: string): Promise<string> {
+  try {
+    return await readFile(path.join(APP_DIR, filename), "utf8");
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") {
+      throw new Error(NO_BUILD_MESSAGE);
+    }
+    throw err;
+  }
+}
+
+function sitemapLocs(xml: string): string[] {
+  return [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+}
+
+// A minimal, single-line-value front-matter reader — deliberately not a
+// YAML parser, mirroring tests/unit/proxy-slugs.test.ts's own (good enough
+// for this repo's actual content/ files, and every value produced is passed
+// through the real assertFrontmatter() below).
+function parseFrontmatterBlock(raw: string): Record<string, string | boolean> {
+  const fence = raw.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!fence) {
+    throw new Error("prerender.test.ts: no front-matter fence found");
+  }
+  const result: Record<string, string | boolean> = {};
+  for (const line of fence[1].split(/\r?\n/)) {
+    const field = line.match(/^([a-zA-Z]+):\s*(.+)$/);
+    if (!field) continue;
+    const value = field[2].trim().replace(/^["']|["']$/g, "");
+    result[field[1]] = value === "true" ? true : value === "false" ? false : value;
+  }
+  return result;
+}
+
+function postEntriesOnDisk(): PostEntry[] {
+  const contentDir = path.join(process.cwd(), "content");
+  return readdirSync(contentDir, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && /\.mdx?$/.test(entry.name))
+    .map((entry) => {
+      const slug = entry.name.replace(/\.mdx?$/, "");
+      const raw = readFileSync(path.join(contentDir, entry.name), "utf8");
+      const fm = parseFrontmatterBlock(raw);
+      assertFrontmatter(fm, entry.name);
+      return { slug, frontmatter: fm as PostFrontmatter };
+    });
+}
+
+test("the sitemap's post entries equal lib/content.ts's real published selection for both locales, compared as sets", async () => {
+  const xml = await readBuiltBody("sitemap.xml.body");
+  const locs = sitemapLocs(xml);
+
+  const staticUrls = new Set([
+    SITE_URL.origin,
+    new URL("/cv", SITE_URL).toString(),
+    new URL(indexPath("en"), SITE_URL).toString(),
+    new URL(indexPath("de"), SITE_URL).toString(),
+  ]);
+  const actualPostUrls = new Set(locs.filter((loc) => !staticUrls.has(loc)));
+
+  const entries = postEntriesOnDisk();
+  const expectedPostUrls = new Set<string>();
+  for (const locale of LOCALES as readonly Locale[]) {
+    for (const post of selectForLocale(entries, locale)) {
+      expectedPostUrls.add(new URL(postPath(locale, post.slug), SITE_URL).toString());
+    }
+  }
+
+  // Set comparison, not a count: a count passes when one entry is swapped
+  // for another. Report the differing URL(s) by name on failure.
+  const missing = [...expectedPostUrls].filter((url) => !actualPostUrls.has(url));
+  const extra = [...actualPostUrls].filter((url) => !expectedPostUrls.has(url));
+  assert.deepEqual(
+    { missing, extra },
+    { missing: [], extra: [] },
+    "the sitemap's post entries must equal the real published selection exactly",
+  );
+});
+
+test("the sitemap carries the four static routes, excludes /type and both reserved 404 routes by constant reference, and every loc resolves to the canonical host", async () => {
+  const xml = await readBuiltBody("sitemap.xml.body");
+  const locs = sitemapLocs(xml);
+
+  for (const expected of [
+    SITE_URL.origin,
+    new URL("/cv", SITE_URL).toString(),
+    new URL(indexPath("en"), SITE_URL).toString(),
+    new URL(indexPath("de"), SITE_URL).toString(),
+  ]) {
+    assert.ok(locs.includes(expected), `sitemap must include the static route "${expected}"`);
+  }
+
+  // /type is Phase 1 D-05's deliberately non-indexed specimen — never a
+  // sitemap candidate in the first place (F8). Both reserved 404 routes
+  // (CR-01's proxy rewrite targets, plan 06-01) are real prerendered pages
+  // under the same [slug]-shaped paths a post could occupy, so they are
+  // excluded by constant reference — notFoundPath() — rather than assumed
+  // absent.
+  for (const excludedUrl of [
+    new URL("/type", SITE_URL).toString(),
+    new URL(notFoundPath("en"), SITE_URL).toString(),
+    new URL(notFoundPath("de"), SITE_URL).toString(),
+  ]) {
+    assert.equal(locs.includes(excludedUrl), false, `sitemap must NOT include "${excludedUrl}"`);
+  }
+
+  for (const loc of locs) {
+    assert.equal(
+      new URL(loc).host,
+      SITE_URL.host,
+      `sitemap loc "${loc}" must resolve to the canonical host ${SITE_URL.host}`,
+    );
+  }
+});
+
+test("robots.txt allows crawling, disallows /type, and points to an absolute sitemap URL on the canonical host", async () => {
+  const body = await readBuiltBody("robots.txt.body");
+
+  assert.match(body, /Allow:\s*\/\s*$/m, 'robots.txt must carry "Allow: /"');
+  assert.match(body, /Disallow:\s*\/type\s*$/m, 'robots.txt must carry "Disallow: /type"');
+
+  const sitemapLineMatch = body.match(/Sitemap:\s*(\S+)/);
+  assert.ok(sitemapLineMatch, "robots.txt must carry a Sitemap: line");
+  const sitemapUrl = new URL(sitemapLineMatch![1]);
+  assert.equal(
+    sitemapUrl.origin,
+    SITE_URL.origin,
+    "robots.txt's Sitemap: URL must share SITE_URL's origin — the sitemap.ts default's own origin decision",
+  );
+});
+
+test("/'s canonical and the sitemap's site-root loc are the exact same spelling of one page (Pitfall 8)", async () => {
+  const routes = await getRoutes();
+  const root = routes.get("")!;
+  const canonicalMatch = root.match(/<link rel="canonical" href="([^"]+)"/);
+  assert.ok(canonicalMatch, '/ must carry a rel="canonical" link');
+
+  const xml = await readBuiltBody("sitemap.xml.body");
+  const locs = sitemapLocs(xml);
+  const siteRootLoc = locs.find((loc) => new URL(loc).pathname === "/");
+  assert.ok(siteRootLoc, "the sitemap must carry a site-root entry");
+
+  // This is the one assertion that binds two files together, and it must
+  // be STRING-identical, not merely same-host: the whole failure mode
+  // Pitfall 8 names is two spellings of one page (the bare origin vs. the
+  // origin plus a trailing slash) — same-host would pass on both spellings
+  // and prove nothing.
+  assert.equal(
+    canonicalMatch![1],
+    siteRootLoc,
+    "/'s canonical href and the sitemap's site-root loc must be the exact same string",
+  );
+});
+
+// The six routes FIND-01's OG sweep covers — /type is deliberately excluded
+// here (it is covered separately, below, only for hreflang) because it was
+// never in this plan's OG-tag instruction. hasOwnOgImage records what is
+// MEASURED against the real build, not assumed from the file layout — see
+// the og:image test's own comment for why three of the six read false.
+const OG_TARGET_ROUTES: readonly { key: string; locale: "en" | "de"; hasOwnOgImage: boolean }[] = [
+  { key: "", locale: "en", hasOwnOgImage: true },
+  { key: "cv", locale: "en", hasOwnOgImage: false },
+  { key: "writing", locale: "en", hasOwnOgImage: false },
+  { key: "texte", locale: "de", hasOwnOgImage: false },
+  { key: "writing/the-chart-therefore-changes", locale: "en", hasOwnOgImage: true },
+  { key: "texte/die-darstellung-aendert-sich", locale: "de", hasOwnOgImage: true },
+] as const;
+
+test("every one of the six discoverability routes carries og:title/description/url/type/site_name/locale, on the canonical host, with the right locale", async () => {
+  const routes = await getRoutes();
+
+  for (const { key, locale } of OG_TARGET_ROUTES) {
+    const html = routes.get(key);
+    assert.ok(html, `route "${key || "/"}" must exist in the production build`);
+
+    for (const property of ["og:title", "og:description", "og:url", "og:type", "og:site_name", "og:locale"]) {
+      assert.match(
+        html!,
+        new RegExp(`<meta property="${property}" content="[^"]*"`),
+        `route "${key || "/"}" must carry ${property}`,
+      );
+    }
+
+    const ogUrlMatch = html!.match(/<meta property="og:url" content="([^"]*)"/);
+    assert.equal(
+      new URL(ogUrlMatch![1]).host,
+      SITE_URL.host,
+      `route "${key || "/"}"'s og:url must resolve to ${SITE_URL.host}`,
+    );
+
+    const canonicalMatch = html!.match(/<link rel="canonical" href="([^"]+)"/);
+    assert.ok(canonicalMatch, `route "${key || "/"}" must carry a rel="canonical" link`);
+    assert.equal(
+      new URL(canonicalMatch![1]).host,
+      SITE_URL.host,
+      `route "${key || "/"}"'s canonical must resolve to ${SITE_URL.host}`,
+    );
+
+    const ogLocaleMatch = html!.match(/<meta property="og:locale" content="([^"]*)"/);
+    const expectedOgLocale = locale === "en" ? "en_GB" : "de_DE";
+    assert.equal(
+      ogLocaleMatch![1],
+      expectedOgLocale,
+      `route "${key || "/"}"'s og:locale must be ${expectedOgLocale}`,
+    );
+  }
+});
+
+test("og:image is parsed from the meta tag (never hardcoded) and resolves to a real build asset — present only where a route's own segment carries the file convention", async () => {
+  const routes = await getRoutes();
+
+  for (const { key, hasOwnOgImage } of OG_TARGET_ROUTES) {
+    const html = routes.get(key)!;
+    const ogImageMatch = html.match(/<meta property="og:image" content="([^"]*)"/);
+    const twitterCardMatch = html.match(/<meta name="twitter:card" content="([^"]*)"/);
+    assert.ok(twitterCardMatch, `route "${key || "/"}" must carry twitter:card`);
+
+    if (!hasOwnOgImage) {
+      // MEASURED GAP, out of this plan's scope (files_modified: this file
+      // only — see the phase's deferred-items.md). 06-06-SUMMARY.md's own
+      // accomplishments line claims the site-wide app/(en|de)/opengraph-image.png
+      // cards cover /, /cv, /writing, /type and /texte "by segment
+      // inheritance" — measured against a real production build, that claim
+      // is false for four of those five. Next's own docs describe the file
+      // convention as setting "a route segment's shared image", scoped to
+      // the exact segment the file lives in — not inherited by nested
+      // segments the way an ordinary metadata OBJECT field is.
+      // app/(en)/opengraph-image.png sits beside app/(en)/layout.tsx, so it
+      // reaches app/(en)/page.tsx (the page at that same segment) but not
+      // app/(en)/cv/page.tsx, app/(en)/writing/page.tsx or
+      // app/(de)/texte/page.tsx, each one segment deeper — measured: zero
+      // og:image tags on any of the three. Both [slug] post routes carry
+      // their OWN opengraph-image.tsx at the exact same segment as their own
+      // page.tsx (plan 06-06), which is why they DO get one. Fixing the gap
+      // needs a new committed image (or a generateMetadata override) at
+      // each of those segments — a change to files this plan's
+      // files_modified list does not include, so it is asserted here as the
+      // true current state rather than silently assumed away.
+      assert.equal(
+        ogImageMatch,
+        null,
+        `route "${key || "/"}" must NOT carry og:image today (measured gap, see comment above)`,
+      );
+      // Next's own default when no image is resolvable: "summary", not
+      // "summary_large_image" — the same measured gap, one field over.
+      assert.equal(
+        twitterCardMatch![1],
+        "summary",
+        `route "${key || "/"}" must carry twitter:card="summary" (no image resolvable, measured gap)`,
+      );
+      continue;
+    }
+
+    assert.ok(ogImageMatch, `route "${key || "/"}" must carry og:image`);
+    const ogImageUrl = new URL(ogImageMatch![1]);
+    assert.equal(
+      ogImageUrl.host,
+      SITE_URL.host,
+      `route "${key || "/"}"'s og:image must resolve to ${SITE_URL.host}`,
+    );
+    const builtAssetPath = path.join(APP_DIR, `${ogImageUrl.pathname}.body`);
+    assert.ok(
+      existsSync(builtAssetPath),
+      `route "${key || "/"}"'s og:image "${ogImageUrl.pathname}" must exist in the build output`,
+    );
+    // twitter:card arrives "for free" from the opengraph-image file
+    // convention, not a hand-declaration — this is the note the plan's own
+    // action asked for.
+    assert.equal(
+      twitterCardMatch![1],
+      "summary_large_image",
+      `route "${key || "/"}" must carry twitter:card="summary_large_image"`,
+    );
+  }
+
+  // The per-post override is live, not merely inherited: the English
+  // post's og:image differs from /'s site-wide card and from the German
+  // post's own — proof the [slug]/opengraph-image.tsx route actually fires
+  // per post rather than falling back silently.
+  const ogImageOf = (key: string) =>
+    routes.get(key)!.match(/<meta property="og:image" content="([^"]*)"/)![1];
+  const rootImage = ogImageOf("");
+  const enPostImage = ogImageOf("writing/the-chart-therefore-changes");
+  const dePostImage = ogImageOf("texte/die-darstellung-aendert-sich");
+  assert.notEqual(enPostImage, rootImage, "the English post's og:image must differ from /'s");
+  assert.notEqual(enPostImage, dePostImage, "the English post's og:image must differ from the German post's");
+});
+
+test('exactly one rel="icon" ships on / and the Next scaffold favicon.ico is gone (HOME-05, Pitfall 9)', async () => {
+  const routes = await getRoutes();
+  const root = routes.get("")!;
+  const iconMatches = root.match(/<link rel="icon"[^>]*>/g) ?? [];
+  assert.equal(iconMatches.length, 1, '/ must carry exactly one rel="icon" link');
+  assert.equal(
+    existsSync(path.join(process.cwd(), "app", "favicon.ico")),
+    false,
+    "app/favicon.ico must not exist on disk — HOME-05's Next scaffold mark",
+  );
+});
+
+test("every one of the six discoverability routes carries a non-empty title, no two share a title or a description, and the site name never doubles", async () => {
+  const routes = await getRoutes();
+  const titles = new Map<string, string>();
+  const descriptions = new Map<string, string>();
+
+  for (const { key } of OG_TARGET_ROUTES) {
+    const html = routes.get(key)!;
+    const titleMatch = html.match(/<title>([^<]+)<\/title>/);
+    assert.ok(titleMatch, `route "${key || "/"}" must carry a non-empty <title>`);
+    titles.set(key, titleMatch![1]);
+
+    const nameOccurrences = (titleMatch![1].match(/Guillem Gelabert/g) ?? []).length;
+    assert.ok(
+      nameOccurrences <= 1,
+      `route "${key || "/"}"'s title must not repeat "Guillem Gelabert" — found ${nameOccurrences} times`,
+    );
+
+    const descriptionMatch = html.match(/<meta name="description" content="([^"]*)"/);
+    assert.ok(descriptionMatch, `route "${key || "/"}" must carry a meta description`);
+    descriptions.set(key, descriptionMatch![1]);
+  }
+
+  assert.equal(new Set(titles.values()).size, titles.size, "no two of the six routes may share a title");
+  assert.equal(
+    new Set(descriptions.values()).size,
+    descriptions.size,
+    "no two of the six routes may share a description",
+  );
+});
+
+test("/writing and /texte still emit hreflang alternates including x-default; /, /cv and /type deliberately emit none (English-only in v1)", async () => {
+  const routes = await getRoutes();
+
+  for (const key of ["writing", "texte"]) {
+    const html = routes.get(key)!;
+    assert.match(html, /hrefLang="x-default"/i, `route "${key}" must emit an x-default alternate`);
+  }
+
+  // A positive statement, not an omission left to look like one: / and /cv
+  // are English-only pages with no German twin (03-UI-SPEC.md §
+  // Localisation), and /type is the specimen page plan 06-07 also declared
+  // English-only for the same reason, in its own source comment. None of
+  // the three should ever emit a languages alternate.
+  for (const key of ["", "cv", "type"]) {
+    const html = routes.get(key)!;
+    assert.equal(
+      html.includes("hrefLang"),
+      false,
+      `route "${key || "/"}" must emit no hreflang alternates (English-only by design)`,
+    );
+  }
+});
