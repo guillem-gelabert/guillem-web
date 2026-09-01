@@ -241,8 +241,8 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3)*
 
-- [ ] 06-09-PLAN.md — Production truth: the five narrowed assertions, the FIND-01/FIND-02 additions, and the three named skipped gate rows in `tests/build/prerender.test.ts`
-- [ ] 06-10-PLAN.md — D-4.4's automated halves: `tests/cross-links.spec.ts` and `tests/design-budget.spec.ts`
+- [x] 06-09-PLAN.md — Production truth: the five narrowed assertions, the FIND-01/FIND-02 additions, and the three named skipped gate rows in `tests/build/prerender.test.ts`
+- [x] 06-10-PLAN.md — D-4.4's automated halves: `tests/cross-links.spec.ts` and `tests/design-budget.spec.ts`
 
 **Wave 5** *(blocked on Wave 4)*
 
@@ -272,7 +272,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Work List & Landing Skeleton | 9/9 | Complete   | 2026-08-31 |
 | 4. The Case Study | 6/6 | Complete   | 2026-08-31 |
 | 5. Backlog | 4/4 | Complete   | 2026-08-31 |
-| 6. CV, Contact, Photo & Discoverability | 8/12 | In Progress|  |
+| 6. CV, Contact, Photo & Discoverability | 10/12 | In Progress|  |
 
 ---
 *Roadmap created: 2026-08-29*
