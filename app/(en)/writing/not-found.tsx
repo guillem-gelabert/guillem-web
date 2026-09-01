@@ -1,6 +1,4 @@
-import Link from "next/link";
-import { indexPath, UI } from "@/lib/locales";
-import { SmearTitle } from "@/components/smear-title";
+import { NotFoundBody } from "@/components/not-found-body";
 
 // This segment's own localised not-found boundary. Reached via
 // dynamicParams = true + an explicit notFound() call in [slug]/page.tsx,
@@ -8,16 +6,10 @@ import { SmearTitle } from "@/components/smear-title";
 // layouts). No error boundary anywhere in this plan: UI-SPEC is explicit
 // that a malformed post fails next build rather than degrading a visitor's
 // request, so there is no runtime error state to build for.
+//
+// The body itself lives in components/not-found-body.tsx, shared with
+// app/(de)/texte/not-found.tsx and both CR-01 proxy-rewritten reserved
+// pages — four copies of two locales is how the German drifts.
 export default function WritingNotFound() {
-  return (
-    <main className="flex min-h-screen flex-col justify-center gap-md px-lg">
-      <SmearTitle as="h1" className="text-heading">
-        {UI.en.notFoundHeading}
-      </SmearTitle>
-      <p className="text-body">{UI.en.notFoundBody}</p>
-      <Link href={indexPath("en")} className="text-label link-quiet inline-block py-xs">
-        {UI.en.backLink}
-      </Link>
-    </main>
-  );
+  return <NotFoundBody locale="en" />;
 }
