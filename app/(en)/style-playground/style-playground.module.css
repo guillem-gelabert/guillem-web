@@ -1,0 +1,94 @@
+.scene {
+  --edge: clamp(1rem, 3.5vw, 3rem);
+  --box-size: clamp(7rem, 21vw, 18rem);
+  --seam-rise: clamp(0.75rem, calc(12vw - 2.4rem), 18rem);
+  --box-offset: max(
+    var(--edge),
+    calc(50dvh - var(--box-size) - var(--seam-rise))
+  );
+  --seam-angle: 98deg;
+  --seam-x: 50%;
+  --seam-y: 50%;
+
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  min-height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+  background: conic-gradient(
+    from var(--seam-angle) at var(--seam-x) var(--seam-y),
+    #f48f82 0deg,
+    #ffd5ce 179.96deg,
+    #cce3ff 180deg,
+    #78aff9 359.96deg,
+    #f48f82 360deg
+  );
+}
+
+.box {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: var(--box-size);
+  aspect-ratio: 1;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: clamp(3.5rem, 10vw, 8rem);
+  font-weight: 530;
+  line-height: 0.8;
+  letter-spacing: 0.01em;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 14%);
+}
+
+.box::after {
+  position: absolute;
+  width: clamp(0.5rem, 0.8vw, 0.75rem);
+  aspect-ratio: 1;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #111;
+  content: "";
+}
+
+.boxA {
+  top: var(--box-offset);
+  left: var(--edge);
+  background: #0647ed;
+}
+
+.boxA::after {
+  bottom: 0;
+  left: 0;
+  translate: -50% 50%;
+}
+
+.boxB {
+  right: var(--edge);
+  bottom: var(--box-offset);
+  background: #e52f26;
+}
+
+.boxB::after {
+  top: 0;
+  right: 0;
+  translate: 50% -50%;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-contrast: more) {
+  .box {
+    box-shadow: 0 0 0 2px #111;
+  }
+}
