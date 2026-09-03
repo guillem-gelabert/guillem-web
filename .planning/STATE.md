@@ -5,7 +5,7 @@ milestone_name: Working Site
 status: milestone-complete
 stopped_at: v1.0 complete — every surface ships, held at noindex by the copy gate (see .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md). Test suite is red by decision after 260903-hb4; see Blockers/Concerns
 last_updated: "2026-09-03T15:10:00+02:00"
-last_activity: 2026-09-03 - Completed quick task 260903-kgc: add a checkbox to toggle the conic noise mask
+last_activity: 2026-09-03 - Completed quick task 260903-khp: add contrast and brightness controls for SVG-noise intensity
 progress:
   total_phases: 6
   completed_phases: 6
@@ -28,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-08-29)
 Phase: 06 (CV, Contact, Photo & Discoverability) — COMPLETE
 Plan: 12 of 12
 Status: v1.0 milestone closed 2026-09-01
-Last activity: 2026-09-03 - Completed quick task 260903-kgc: add a checkbox to toggle the conic noise mask
+Last activity: 2026-09-03 - Completed quick task 260903-khp: add contrast and brightness controls for SVG-noise intensity
 
 **The site is structurally complete and deliberately not indexed.** Every surface the milestone
 promised ships and is live at `guillemgelabert.com`. Five of the values those surfaces render are
@@ -229,6 +229,7 @@ migration is deferred to v2 and no migration was performed.
 | 260903-kci | Restore background-blend-mode and mix-blend-mode controls for continued /noise-gradient tuning | 2026-09-03 | 3af9a53 | [260903-kci-restore-blend-mode-controls](./quick/260903-kci-restore-blend-mode-controls/) |
 | 260903-keg | Change the /noise-gradient base layer from orange to bright pink | 2026-09-03 | 6129d1e | [260903-keg-pink-background-layer](./quick/260903-keg-pink-background-layer/) |
 | 260903-kgc | Add a checkbox to toggle the conic noise mask while retaining SVG turbulence | 2026-09-03 | fbf0bc4 | [260903-kgc-toggle-noise-mask](./quick/260903-kgc-toggle-noise-mask/) |
+| 260903-khp | Add contrast and brightness sliders for /noise-gradient SVG-noise intensity | 2026-09-03 | ee82c86 | [260903-khp-add-noise-intensity-sliders](./quick/260903-khp-add-noise-intensity-sliders/) |
 
 ## Deferred Items
 
@@ -253,7 +254,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 Last session: 2026-09-03T15:10:00+02:00
 Stopped at: v1.0 complete. Phase 6 closed; every surface ships; the site is deliberately noindex.
-Post-milestone design work continues as quick tasks; the latest is 260903-kgc.
+Post-milestone design work continues as quick tasks; the latest is 260903-khp.
 Resume file: .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md
 
 The next action belongs to the user, not to an executor: fill five values, do three copy reviews,
