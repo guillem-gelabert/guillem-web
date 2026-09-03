@@ -145,8 +145,14 @@
   height: 100lvh;
   min-height: 100svh;
   overflow: hidden;
-  isolation: isolate;
-  background: var(--gradient-shade);
+  /* Deliberately NOT isolated, and deliberately unpainted. .content blends
+     with mix-blend-mode: difference, which composites against whatever has
+     already painted in its stacking context — the grain stack. Isolating
+     here, or painting a background here, gives it that instead: a flat
+     near-black, and difference against near-black returns near-white, which
+     is why the name came out solid white. The white-band problem this was
+     added for is solved by .grainBase covering the scene instead. */
+  background: none;
 }
 
 /* The grainy gradient, ported from the /noise-gradient study's five-band
@@ -174,11 +180,12 @@
 .grain {
   position: absolute;
   inset: 0;
-  z-index: 0;
   isolation: isolate;
   pointer-events: none;
 }
 
+/* Also the scene's backstop: .scene paints nothing, so this is what covers
+   the safe-area bands the composition runs under. */
 .grainBase {
   background: var(--gradient-base);
 }
@@ -261,9 +268,14 @@
 /* A corner, not a box: where the pair sits and how wide it is. Its height
    is whatever its two boxes come to, so an aside that needs another line
    grows the corner rather than shrinking the name above it. */
+/* Neither this nor .grain carries a z-index. Both are positioned, so paint
+   order alone stacks them, and the stacks come later in the markup. A
+   z-index on either one makes it a stacking context: on .grain it would
+   seal the gradient away from .content's difference blend, and on .stack it
+   would trap that blend inside its own box, where there is nothing to blend
+   against. */
 .stack {
   position: absolute;
-  z-index: 1;
   display: flex;
   box-sizing: border-box;
   width: var(--box-width);
