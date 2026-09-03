@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Working Site
 status: milestone-complete
-stopped_at: v1.0 complete — every surface ships, held at noindex by the copy gate (see .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md)
-last_updated: "2026-09-03T12:22:31+02:00"
-last_activity: 2026-09-03 - Completed quick task 260903-h61: reverse the desktop seam aspect response so wider screens produce a flatter angle
+stopped_at: v1.0 complete — every surface ships, held at noindex by the copy gate (see .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md). Test suite is red by decision after 260903-hb4; see Blockers/Concerns
+last_updated: "2026-09-03T15:10:00+02:00"
+last_activity: 2026-09-03 - Completed quick task 260903-hb4: set the featured slot in the body serif and drop its meta line
 progress:
   total_phases: 6
   completed_phases: 6
@@ -28,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-08-29)
 Phase: 06 (CV, Contact, Photo & Discoverability) — COMPLETE
 Plan: 12 of 12
 Status: v1.0 milestone closed 2026-09-01
-Last activity: 2026-09-03 - Completed quick task 260903-h61: reverse the desktop seam aspect response so wider screens produce a flatter angle
+Last activity: 2026-09-03 - Completed quick task 260903-hb4: set the featured slot in the body serif and drop its meta line
 
 **The site is structurally complete and deliberately not indexed.** Every surface the milestone
 promised ships and is live at `guillemgelabert.com`. Five of the values those surfaces render are
@@ -112,6 +112,8 @@ Recent decisions affecting current work:
 - [post-v1.0]: BACK-02's freshness date is now DERIVED (max(created_at)) rather than hand-maintained, and seeded rows carry created_at = LAST_TOUCHED rather than now() — seeding with now() would make a fresh deploy of three-week-old items claim they were touched today, the exact overclaim the section-level date exists to prevent
 - [post-v1.0]: The backlog freshness guard was NARROWED, not satisfied. It asked "when did lib/backlog.tsx last change?", which stopped implying "did the backlog change?" once the module became a seed with plumbing. Re-encoding descriptions from JSX to strings moved every byte and not one word; bumping LAST_TOUCHED to satisfy it would have been the overclaim the guard exists to prevent. It now consults BACKLOG_CONTENT_SHA256, a hash of the normalised item text
 - [post-v1.0]: BacklogItem.description is a plain string, no longer a ReactNode. No shipped description ever used the JSX the type was chosen for; a JSON body cannot carry a ReactNode; and rendering caller-supplied markup would be a real injection surface where rendering text is not. lib/backlog.tsx keeps its .tsx path regardless — three test readers scrape it by literal path
+- [quick-260903-hb4]: The landing's featured slot no longer renders PostMeta, which retires the draft marker on `/`. Phase 3 wired `draft={entry.frontmatter.draft}` through precisely so `/` and `/writing` could not print contradictory answers for one file; they cannot contradict now because `/` no longer answers. `/writing` is the single surface that answers "is this published?" from here. The date went with it by intent — it was the only thing between the pitch and the fold
+- [quick-260903-hb4]: The featured headline moved to `.text-heading-serif`, the class `6cc7c43` had already added to app/globals.css and left with no caller. Same clamp, weight and tracking as `.text-heading`; only the family differs, so the case-study headline stops competing with the "GUILLEM GELABERT" nameplate directly above it for the one Humane voice
 
 ### Pending Todos
 
@@ -140,6 +142,29 @@ None pending.
   disarmed the other five:** G2–G6 test whether a value is *filled*, a sound proxy for *real* only
   while the states were absent and authored, and without G14 the launch gate's biconditional would
   have started demanding `index: true` over a lorem-ipsum CV.
+
+**NEW BLOCKER, not copy — the test suite is red by decision (quick task 260903-hb4).**
+`npm run test:all` cannot pass. Committed knowingly on 2026-09-03 at the owner's instruction: the
+design change shipped, the contracts it contradicts were deliberately NOT rewritten to match, so the
+red tests stand as the open question rather than being quietly retuned. Two groups, with different
+owners:
+
+- **Two failures caused by 260903-hb4.** `tests/unit/post-meta-contract.test.ts` asserts at least
+  five `<PostMeta>` call sites (four remain) and that the featured slot renders one passing
+  `draft={entry.frontmatter.draft}` (WR-02). Both encode Phase 2/3 decisions that the design change
+  supersedes. Three Playwright specs — `landing.spec.ts:351`, `landing-trail.spec.ts:44,59`,
+  `landing-viewport.spec.ts:79` — select `h3.text-heading`, which matches nothing now that the
+  element carries `.text-heading-serif`. **Note the disagreement worth resolving:**
+  `tests/build/prerender.test.ts:642` still PASSES against the same element, because it matches
+  `class="[^"]*text-heading[^"]*"` as a substring. Two assertions over one element now disagree about
+  whether it exists.
+- **Four failures that predate it, inherited from `6cc7c43`.** The `robots:` root-layout count, and
+  prose-contract `(m)`, `(n)`, `(o)`: that commit added `.text-nameplate` and `.text-heading-serif`
+  to `app/globals.css`, putting the stylesheet past the four-size/two-weight budget those three
+  enforce. `.text-nameplate`'s own comment in the stylesheet says as much. The budget is the real
+  question — widen it to admit a fifth size, or fold the additions back into four.
+
+Full record: `.planning/quick/260903-hb4-set-the-featured-slot-in-the-body-serif/260903-hb4-SUMMARY.md`
 
 **NEW BLOCKER, not copy — `/api/*` is unreachable on the apex.**
 `guillemgelabert.com/api/backlog` returns 404 while
@@ -175,6 +200,7 @@ migration is deferred to v2 and no migration was performed.
 | 260903-gn5 | Update the main page to use the style playground design and responsive seam logic | 2026-09-03 | 6cc7c43 | [260903-gn5-update-the-main-page-to-use-the-style-pl](./quick/260903-gn5-update-the-main-page-to-use-the-style-pl/) |
 | 260903-gy7 | Add desktop and mobile seam modes with rotated mobile landscape behavior and more dynamic desktop angles | 2026-09-03 | 88cfed3 | [260903-gy7-add-desktop-and-mobile-seam-modes-with-r](./quick/260903-gy7-add-desktop-and-mobile-seam-modes-with-r/) |
 | 260903-h61 | Reverse the desktop seam aspect response so wider screens produce a flatter angle | 2026-09-03 | 39cfbdd | [260903-h61-reverse-the-desktop-seam-aspect-response](./quick/260903-h61-reverse-the-desktop-seam-aspect-response/) |
+| 260903-hb4 | Set the featured slot in the body serif and drop its meta line | 2026-09-03 | 3b1a3b4 | [260903-hb4-set-the-featured-slot-in-the-body-serif](./quick/260903-hb4-set-the-featured-slot-in-the-body-serif/) |
 
 ## Deferred Items
 
@@ -197,10 +223,15 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-09-01T14:30:00.000Z
+Last session: 2026-09-03T15:10:00+02:00
 Stopped at: v1.0 complete. Phase 6 closed; every surface ships; the site is deliberately noindex.
+Post-milestone design work continues as quick tasks; the latest is 260903-hb4.
 Resume file: .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md
 
 The next action belongs to the user, not to an executor: fill five values, do three copy reviews,
-set `PLACEHOLDER_CONTENT = false`, then follow the flip procedure in `launch-gate.md`. Running
-`npm run test:unit` at any point names exactly which rows are still outstanding.
+set `PLACEHOLDER_CONTENT = false`, then follow the flip procedure in `launch-gate.md`.
+
+**Caveat added 2026-09-03:** `npm run test:unit` used to name exactly which gate rows were still
+outstanding, and it no longer does on its own — six failures now sit alongside the gate rows, none
+of them a gate row (see Blockers/Concerns). Read the launch-gate rows out of the run; do not read a
+red run as "the gate is failing".

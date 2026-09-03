@@ -11,6 +11,18 @@ which declares the same canonical).
 
 ---
 
+> **Amendment, 2026-09-03 — the green-suite line above is no longer true.**
+> It was accurate at milestone close and is left standing as the record of that state. Since then,
+> post-milestone design quick tasks have changed `app/globals.css` (`6cc7c43`) and
+> `components/landing/featured-slot.tsx` (`3b1a3b4`) without updating the contracts those changes
+> contradict. Six unit tests and three Playwright specs are red **by decision**, not by accident.
+> `STATE.md` → Blockers/Concerns has the breakdown; the full record is
+> `.planning/quick/260903-hb4-set-the-featured-slot-in-the-body-serif/260903-hb4-SUMMARY.md`.
+> Nothing in the launch gate itself regressed — but `npm run test:all` will not go green until the
+> four-size type budget and the featured slot's `PostMeta`/`.text-heading` contracts are settled.
+
+---
+
 ## Read this first
 
 **The site is structurally finished and full of lorem ipsum.**
