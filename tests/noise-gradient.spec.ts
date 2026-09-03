@@ -10,25 +10,36 @@ test("/noise-gradient blends a noise PNG with a conic gradient", async ({ page }
     noise: page.getByTestId("noise-layer"),
   };
 
-  const backgrounds = await page.evaluate(() => ({
-    gradient: getComputedStyle(
+  const layerStyles = await page.evaluate(() => {
+    const gradient = getComputedStyle(
       document.querySelector('[data-testid="conic-gradient-layer"]')!,
-    ).backgroundImage,
-    noise: getComputedStyle(
+    );
+    const noise = getComputedStyle(
       document.querySelector('[data-testid="noise-layer"]')!,
-    ).backgroundImage,
-  }));
+    );
 
-  expect(backgrounds.gradient).toContain("conic-gradient");
-  expect(backgrounds.gradient).toContain("at 50% calc(100% - 5px)");
-  expect(backgrounds.gradient).toContain("rgb(255, 225, 0)");
-  expect(backgrounds.gradient).toContain("rgba(255, 128, 0, 0.5)");
-  expect(backgrounds.gradient).toContain("rgb(228, 0, 0)");
-  expect(backgrounds.noise).toContain("noise-gradient.png");
+    return {
+      gradient: { backgroundImage: gradient.backgroundImage, zIndex: gradient.zIndex },
+      noise: { backgroundImage: noise.backgroundImage, zIndex: noise.zIndex },
+    };
+  });
+
+  expect(layerStyles.gradient.backgroundImage).toContain("conic-gradient");
+  expect(layerStyles.gradient.backgroundImage).toContain(
+    "at 50% calc(100% - 5px)",
+  );
+  expect(layerStyles.gradient.backgroundImage).toContain("rgb(255, 225, 0)");
+  expect(layerStyles.gradient.backgroundImage).toContain(
+    "rgba(255, 128, 0, 0.5)",
+  );
+  expect(layerStyles.gradient.backgroundImage).toContain("rgb(228, 0, 0)");
+  expect(layerStyles.gradient.zIndex).toBe("1");
+  expect(layerStyles.noise.backgroundImage).toContain("noise-gradient.png");
+  expect(layerStyles.noise.zIndex).toBe("0");
 
   const blendMode = page.getByLabel("Blend mode");
   await expect(blendMode).toHaveValue("soft-light");
 
   await blendMode.selectOption("multiply");
-  await expect(layers.noise).toHaveCSS("mix-blend-mode", "multiply");
+  await expect(layers.gradient).toHaveCSS("mix-blend-mode", "multiply");
 });

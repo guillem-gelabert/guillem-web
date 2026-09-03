@@ -23,6 +23,7 @@
 }
 
 .gradient {
+  z-index: 1;
   background: conic-gradient(
     from 0deg at 50% calc(100% - 5px),
     #ffe100,
@@ -32,6 +33,7 @@
 }
 
 .noise {
+  z-index: 0;
   background: url("/noise-gradient.png") center / 256px repeat;
 }
 

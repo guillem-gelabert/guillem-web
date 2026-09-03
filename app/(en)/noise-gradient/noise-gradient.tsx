@@ -28,16 +28,16 @@ export function NoiseGradient() {
         className={styles.study}
         data-testid="noise-gradient-study"
         role="img"
-        aria-label={`Monochrome Gaussian noise blended with a red-to-yellow conical gradient using ${blendMode}`}
+        aria-label={`Monochrome Gaussian noise blended with a yellow-to-orange-to-red conical gradient using ${blendMode}`}
       >
-        <div
-          className={styles.gradient}
-          data-testid="conic-gradient-layer"
-          aria-hidden="true"
-        />
         <div
           className={styles.noise}
           data-testid="noise-layer"
+          aria-hidden="true"
+        />
+        <div
+          className={styles.gradient}
+          data-testid="conic-gradient-layer"
           style={{ mixBlendMode: blendMode }}
           aria-hidden="true"
         />
