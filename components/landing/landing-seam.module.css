@@ -378,12 +378,15 @@
 /* One rotated container, EN over DE, turned so the pair reads across the
    seam rather than along it.
 
-   The rotation is +--seam-angle, not negated. Working in standard maths
-   degrees: the ray points (90 - S) off the x axis, and rotating the
-   container by R puts its baselines at -R, so perpendicular needs
-   -R = (90 - S) + 90, giving R = S. Negating it instead lands the labels
-   nearly PARALLEL to the seam — 10deg apart at S=50 — which is what the
-   first attempt did.
+   The rotation is --seam-angle minus 90. In screen coordinates (y down,
+   CSS rotate clockwise) an unrotated column flows (0, 1) and a rotation R
+   sends it to (-sin R, cos R); the ray at S clockwise from north is
+   (sin S, -cos S). Those are perpendicular at R = S +/- 90, and PARALLEL at
+   R = S exactly.
+
+   What matters is the column's flow direction, not the text baseline — the
+   two are 90deg apart, and measuring the baseline instead is what produced
+   two wrong answers here: -S first, then +S, which was parallel.
 
    transform-origin at the top centre pivots the stack about its anchor
    rather than letting it drift as the hook re-aims.
@@ -425,7 +428,7 @@
   line-height: 1;
   mix-blend-mode: difference;
   transform-origin: top center;
-  rotate: var(--seam-angle, 50deg);
+  rotate: calc(var(--seam-angle, 50deg) - 90deg);
   translate: -50% 0;
 }
 
