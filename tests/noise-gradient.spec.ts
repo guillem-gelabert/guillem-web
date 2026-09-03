@@ -33,7 +33,13 @@ test("/noise-gradient blends a noise PNG with a conic gradient", async ({ page }
   expect(layerStyles.gradient.backgroundImage).toContain("rgb(228, 0, 0)");
   expect(layerStyles.gradient.zIndex).toBe("1");
   expect(layerStyles.noise.backgroundImage).toContain("noise-gradient.png");
+  expect(layerStyles.noise.backgroundImage).toContain("radial-gradient");
   expect(layerStyles.noise.zIndex).toBe("0");
+  await expect(layers.noise).toHaveCSS("mix-blend-mode", "screen");
+  await expect(layers.noise).toHaveCSS(
+    "filter",
+    "contrast(1.45) brightness(6.5) invert(1)",
+  );
 
   await expect(page.getByLabel("yellow", { exact: true })).toHaveValue(
     "#ffe100",
