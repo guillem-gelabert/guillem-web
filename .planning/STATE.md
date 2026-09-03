@@ -5,7 +5,7 @@ milestone_name: Working Site
 status: milestone-complete
 stopped_at: v1.0 complete — every surface ships, held at noindex by the copy gate (see .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md). Test suite is red by decision after 260903-hb4; see Blockers/Concerns
 last_updated: "2026-09-03T15:10:00+02:00"
-last_activity: 2026-09-03 - Completed quick task 260903-ied: add a /noise-gradient route with a monochrome Gaussian noise PNG layer, a red-to-yellow conic-gradient layer, and a dropdown that changes their blend mode
+last_activity: 2026-09-03 - Completed quick task 260903-ijg: move the /noise-gradient conic-gradient center to the bottom-center of the square, inset by 5px
 progress:
   total_phases: 6
   completed_phases: 6
@@ -28,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-08-29)
 Phase: 06 (CV, Contact, Photo & Discoverability) — COMPLETE
 Plan: 12 of 12
 Status: v1.0 milestone closed 2026-09-01
-Last activity: 2026-09-03 - Completed quick task 260903-ied: add a /noise-gradient route with a monochrome Gaussian noise PNG layer, a red-to-yellow conic-gradient layer, and a dropdown that changes their blend mode
+Last activity: 2026-09-03 - Completed quick task 260903-ijg: move the /noise-gradient conic-gradient center to the bottom-center of the square, inset by 5px
 
 **The site is structurally complete and deliberately not indexed.** Every surface the milestone
 promised ships and is live at `guillemgelabert.com`. Five of the values those surfaces render are
@@ -203,6 +203,7 @@ migration is deferred to v2 and no migration was performed.
 | 260903-hb4 | Set the featured slot in the body serif and drop its meta line | 2026-09-03 | 3b1a3b4 | [260903-hb4-set-the-featured-slot-in-the-body-serif](./quick/260903-hb4-set-the-featured-slot-in-the-body-serif/) |
 | 260903-ic4 | Make the desktop landing seam panels wider and shorter | 2026-09-03 | 09fb8aa | [260903-ic4-on-desktop-make-the-two-landing-seam-pan](./quick/260903-ic4-on-desktop-make-the-two-landing-seam-pan/) |
 | 260903-ied | Add a /noise-gradient route with a monochrome Gaussian noise PNG layer, a red-to-yellow conic-gradient layer, and a dropdown that changes their blend mode | 2026-09-03 | b124afd | [260903-ied-add-a-noise-gradient-route-with-a-monoch](./quick/260903-ied-add-a-noise-gradient-route-with-a-monoch/) |
+| 260903-ijg | Move the /noise-gradient conic-gradient center to the bottom-center of the square, inset by 5px | 2026-09-03 | bb86214 | [260903-ijg-move-the-noise-gradient-conic-gradient-c](./quick/260903-ijg-move-the-noise-gradient-conic-gradient-c/) |
 
 ## Deferred Items
 
@@ -227,7 +228,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 Last session: 2026-09-03T15:10:00+02:00
 Stopped at: v1.0 complete. Phase 6 closed; every surface ships; the site is deliberately noindex.
-Post-milestone design work continues as quick tasks; the latest is 260903-ied.
+Post-milestone design work continues as quick tasks; the latest is 260903-ijg.
 Resume file: .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md
 
 The next action belongs to the user, not to an executor: fill five values, do three copy reviews,
