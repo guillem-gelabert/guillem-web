@@ -1,10 +1,9 @@
 .scene {
   /* The inset the BOXES sit at. Nothing about the background reads it —
      .grain is inset: 0 and paints the full scene — so raising these pushes
-     content off an edge without letterboxing the gradient. Ignores the safe
-     areas by default: portrait is meant to run under the notch and the home
-     indicator. The landscape branch overrides that, where the notch is on
-     the side and would otherwise sit on the name. */
+     content off an edge without letterboxing the gradient. Desktop has no
+     safe areas to respect; the phone block near the end of this file raises
+     all four to clear the notch and the home indicator. */
   --edge: clamp(1rem, 3.5vw, 12rem);
   --edge-top: var(--edge);
   --edge-bottom: var(--edge);
@@ -494,13 +493,15 @@
   }
 }
 
-/* A phone on its side puts the notch beside the content, not above it, so
-   here the boxes take the safe area even though the background still does
-   not. Only these four variables change: .grain is inset: 0 and reads none
-   of them, so the gradient keeps running edge to edge under the notch while
-   the name and the case study clear it. Declared after the landscape block
-   above so it wins on the same media condition. */
-@media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+/* Both phone orientations: the boxes take the safe area, the background
+   does not. Only these four variables change, and .grain is inset: 0 and
+   reads none of them, so the gradient keeps running edge to edge — under
+   the notch and the home indicator — while the name and the case study
+   clear both. Landscape puts the notch beside the content, portrait above
+   it; the same four maxima cover each, since env() is 0px on the sides that
+   have no inset. Declared after the two branches above so it wins on the
+   same media conditions. */
+@media (hover: none) and (pointer: coarse) {
   .scene {
     --edge: max(
       clamp(1rem, 3.5vw, 12rem),
