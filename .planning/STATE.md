@@ -5,7 +5,7 @@ milestone_name: Working Site
 status: milestone-complete
 stopped_at: v1.0 complete — every surface ships, held at noindex by the copy gate (see .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md). Test suite is red by decision after 260903-hb4; see Blockers/Concerns
 last_updated: "2026-09-03T15:10:00+02:00"
-last_activity: 2026-09-03 - Completed quick task 260903-j3j: texture the landing with a hard-light black, orange, and white conic gradient
+last_activity: 2026-09-03 - Completed quick task 260903-jaj: update /noise-gradient to match the interaction behavior of the referenced CodePen while retaining the page controls
 progress:
   total_phases: 6
   completed_phases: 6
@@ -28,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-08-29)
 Phase: 06 (CV, Contact, Photo & Discoverability) — COMPLETE
 Plan: 12 of 12
 Status: v1.0 milestone closed 2026-09-01
-Last activity: 2026-09-03 - Completed quick task 260903-j3j: texture the landing with a hard-light black, orange, and white conic gradient
+Last activity: 2026-09-03 - Completed quick task 260903-jaj: update /noise-gradient to match the interaction behavior of the referenced CodePen while retaining the page controls
 
 **The site is structurally complete and deliberately not indexed.** Every surface the milestone
 promised ships and is live at `guillemgelabert.com`. Five of the values those surfaces render are
@@ -210,6 +210,7 @@ migration is deferred to v2 and no migration was performed.
 | 260903-irk | Add three color pickers to /noise-gradient for its yellow, orange, and red gradient stops, and move the gradient center to 30% inset from the bottom | 2026-09-03 | 94b9f96 | [260903-irk-add-three-color-pickers-to-noise-gradien](./quick/260903-irk-add-three-color-pickers-to-noise-gradien/) |
 | 260903-ivi | Add independent alpha controls to the /noise-gradient color selectors | 2026-09-03 | 5f37535 | [260903-ivi-add-per-color-alpha-controls-to-the-nois](./quick/260903-ivi-add-per-color-alpha-controls-to-the-nois/) |
 | 260903-j3j | Texture the landing with a hard-light black, orange, and white conic gradient | 2026-09-03 | 0cb518e | [260903-j3j-restyle-the-desktop-and-responsive-landi](./quick/260903-j3j-restyle-the-desktop-and-responsive-landi/) |
+| 260903-jaj | Update /noise-gradient to match the interaction behavior of the referenced CodePen while retaining the page controls | 2026-09-03 | 4e7f96b | [260903-jaj-update-noise-gradient-to-match-the-inter](./quick/260903-jaj-update-noise-gradient-to-match-the-inter/) |
 
 ## Deferred Items
 
@@ -234,7 +235,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 Last session: 2026-09-03T15:10:00+02:00
 Stopped at: v1.0 complete. Phase 6 closed; every surface ships; the site is deliberately noindex.
-Post-milestone design work continues as quick tasks; the latest is 260903-j3j.
+Post-milestone design work continues as quick tasks; the latest is 260903-jaj.
 Resume file: .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md
 
 The next action belongs to the user, not to an executor: fill five values, do three copy reviews,
