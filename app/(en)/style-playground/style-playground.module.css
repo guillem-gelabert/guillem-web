@@ -90,6 +90,20 @@
   translate: -50% -50%;
 }
 
+@media (max-aspect-ratio: 1 / 1) {
+  .scene {
+    --box-width: calc(100vw - var(--edge) - var(--edge));
+    --box-height: calc(
+      (100dvh - var(--edge) - var(--edge) - var(--corner-gap)) / 2
+    );
+  }
+
+  .boxB {
+    right: auto;
+    left: var(--edge);
+  }
+}
+
 .srOnly {
   position: absolute;
   width: 1px;
