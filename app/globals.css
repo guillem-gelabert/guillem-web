@@ -307,7 +307,8 @@ hr {
   margin: 48px 0;
 }
 
-.text-display {
+.text-display,
+.text-nameplate {
   font-family: var(--font-display);
   font-size: clamp(3.5rem, 1.5rem + 8vw, 11.25rem);
   font-weight: 530;
@@ -315,12 +316,38 @@ hr {
   letter-spacing: 0.035em;
 }
 
-.text-heading {
+/* The landing nameplate, set two lines deep in caps. A separate class and
+   not a bigger .text-display: /type, /writing and /texte all use
+   .text-display for their entry titles, and none of those should grow with
+   the name on the front page. Size is the only thing it changes, which is
+   the point — the nameplate stays the display role rather than becoming a
+   fifth voice.
+
+   This is a FIFTH type size. tests/unit/prose-contract.test.ts (m) and (o)
+   enforce a four-size budget over this file and will fail until that budget
+   is either widened to admit this or this is folded back into one of the
+   four. */
+.text-nameplate {
+  font-size: clamp(4rem, min(18vw, 22dvh), 22rem);
+}
+
+.text-heading,
+.text-heading-serif {
   font-family: var(--font-display);
   font-size: clamp(2rem, 1rem + 4vw, 4.5rem);
   font-weight: 530;
   line-height: 0.9;
   letter-spacing: 0.035em;
+}
+
+/* Only the family differs. Humane is the nameplate's typeface now, not a
+   general display face: components/landing/featured-slot.tsx is the one
+   caller, for the case-study headline, which sits right below "GUILLEM
+   GELABERT" on the landing and needs its own scale (hence reusing
+   .text-heading's numbers, not .text-body's) without competing for the one
+   Humane voice. */
+.text-heading-serif {
+  font-family: var(--font-body);
 }
 
 .text-body {

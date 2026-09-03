@@ -1,15 +1,9 @@
 import type { Metadata } from "next";
 import { findBySlug, publishedFor } from "@/lib/content";
 import { CASE_STUDY_SLUG, POSITIONING_PLACEHOLDER } from "@/lib/work";
-import { getBacklog } from "@/lib/backlog-store";
-import { formatPostDate } from "@/lib/locales";
-import { channels } from "@/lib/contact";
 import { SmearTitle } from "@/components/smear-title";
-import { ContentsNav } from "@/components/landing/contents-nav";
 import { FeaturedSlot } from "@/components/landing/featured-slot";
-import { WorkList } from "@/components/landing/work-list";
-import { BacklogList } from "@/components/landing/backlog-list";
-import { ContactBlock } from "@/components/contact-block";
+import { LandingSeam } from "@/components/landing/landing-seam";
 
 // This route carries no client directive. Phase 1 marked whole pages as
 // Client Components to reach the scroll-trail hook; doing that here would
@@ -43,110 +37,31 @@ export const metadata: Metadata = {
   // /texte, which call lib/metadata.ts's routeOpenGraph for their own path.
 };
 
-// The backlog is the one section on this page whose content can change
-// without a deploy (lib/backlog-store.ts, POST /api/backlog). Sixty seconds
-// keeps the page a static asset for almost every visitor while bounding how
-// stale the list can be; a write also calls revalidatePath("/"), so the
-// window is the ceiling on staleness, not the typical wait. Everything else
-// here still resolves from files at build time.
-export const revalidate = 60;
-
 export default async function Landing() {
   // A null result IS the interim state — there is no boolean to flip. This
   // must tolerate null forever, not just this phase, so a renamed or
   // re-drafted Phase 4 file returns the slot to interim rather than
   // throwing.
   const caseStudy = findBySlug(await publishedFor("en"), CASE_STUDY_SLUG);
-  // Never throws: with no database configured, or with one that is
-  // unreachable, this returns lib/backlog.tsx's seed. See that module's header.
-  const { items: backlog, lastTouched } = await getBacklog();
 
   return (
-    <main className="flex flex-col gap-3xl px-lg py-3xl">
-      {/* Deliberately no full-viewport-height sizing and no vertical
-          centring on this shell: the site is content-led, not hero-led, and
-          the featured section must be reachable by a short scroll at
-          1440px rather than gated behind a viewport-height nameplate. Do
-          not reintroduce either. */}
-      <header className="flex flex-col gap-lg">
-        <SmearTitle as="h1" className="text-display">
-          Guillem Gelabert
-        </SmearTitle>
-        <p className="max-w-prose text-standfirst">{POSITIONING_PLACEHOLDER}</p>
-        <ContentsNav />
-      </header>
-
-      {/* Section order: evidence first (case study, then work), then
-          work-in-progress (backlog), then the ask (contact). Every
-          section[id] carries scroll-mt-xl so an anchor jump does not park
-          the section head flush against the viewport edge. */}
-      <section
-        id="case-study"
-        aria-labelledby="case-study-head"
-        className="scroll-mt-xl flex flex-col gap-lg"
-      >
-        <h2 id="case-study-head" className="section-head">
-          Case study
-        </h2>
-        <FeaturedSlot entry={caseStudy} />
-      </section>
-
-      <section id="work" aria-labelledby="work-head" className="scroll-mt-xl flex flex-col gap-lg">
-        <h2 id="work-head" className="section-head">
-          Work
-        </h2>
-        <WorkList />
-      </section>
-
-      <section
-        id="backlog"
-        aria-labelledby="backlog-head"
-        className="scroll-mt-xl flex flex-col gap-lg"
-      >
-        <h2 id="backlog-head" className="section-head">
-          Backlog
-        </h2>
-        {/* D-12: the section keeps its own gap-lg, and this one div carries
-            the date line and the list, so head→date and date→list are both
-            lg. Above the items, not below — BACK-02 is the mitigation the
-            user accepted in place of per-item dates, and a freshness signal
-            only mitigates the wishlist read if it is read before the list. */}
-        <div className="flex flex-col gap-lg">
-          <p className="text-label">
-            Last touched <time dateTime={lastTouched}>{formatPostDate(lastTouched, "en")}</time>
-          </p>
-          <BacklogList items={backlog} />
-        </div>
-      </section>
-
-      <section
-        id="contact"
-        aria-labelledby="contact-head"
-        className="scroll-mt-xl flex flex-col gap-lg"
-      >
-        <h2 id="contact-head" className="section-head">
-          Contact
-        </h2>
-        {channels().length > 0 ? (
-          <ContactBlock />
-        ) : (
-          // Unreachable today: GITHUB is a non-null established fact
-          // (lib/contact.ts), so channels() always returns at least one
-          // row. This branch is kept explicit rather than letting the
-          // section render a bare heading if that ever changes — D-13's
-          // lesson (Phase 5, Plan 04) is that a component kept around
-          // purely as an unreachable fallback is exactly the dead-code
-          // branch a later reader mistakes for a supported state, so this
-          // is inline copy, not a call to the interim stub component this
-          // plan deletes.
-          <div className="flex flex-col gap-md">
-            <p className="max-w-prose text-standfirst">No contact channel is available yet.</p>
-            <p className="max-w-prose text-body">
-              Email, GitHub and LinkedIn appear here as each one is added.
-            </p>
-          </div>
-        )}
-      </section>
-    </main>
+    <LandingSeam
+      primary={
+        <header className="flex flex-col gap-lg">
+          {/* Block spans keep the visual line break while preserving the
+              accessible name as “Guillem Gelabert”. */}
+          <SmearTitle as="h1" className="text-nameplate uppercase">
+            <span className="block">Guillem</span>
+            <span className="block">Gelabert</span>
+          </SmearTitle>
+          <p className="max-w-prose text-standfirst">{POSITIONING_PLACEHOLDER}</p>
+        </header>
+      }
+      secondary={
+        <section id="case-study" aria-label="Case study" className="flex flex-col gap-lg">
+          <FeaturedSlot entry={caseStudy} />
+        </section>
+      }
+    />
   );
 }

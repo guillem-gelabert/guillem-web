@@ -1,0 +1,116 @@
+.scene {
+  --edge: clamp(1rem, 3.5vw, 12rem);
+  --corner-gap: clamp(3rem, 13vw, 30rem);
+  --seam-rise: clamp(0.125rem, calc(8vw - 1.75rem), 20rem);
+  --box-width: calc(
+    (100vw - var(--edge) - var(--edge) - var(--corner-gap)) / 2
+  );
+  --box-height: calc(50dvh - var(--edge) + var(--seam-rise));
+  --box-min-width: 14rem;
+  --box-min-height: 8rem;
+  --seam-angle: 50deg;
+  --gradient-center-landscape-x: 15%;
+  --gradient-center-landscape-y: 85%;
+  --gradient-center-x: var(--gradient-center-landscape-x);
+  --gradient-center-y: var(--gradient-center-landscape-y);
+  --gradient-start: #000;
+  --gradient-end: #fff;
+  --outline-width: 1px;
+  --anchor-size: 10px;
+
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  min-height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+  background: conic-gradient(
+    from var(--seam-angle) at var(--gradient-center-x)
+      var(--gradient-center-y),
+    var(--gradient-start) 0deg,
+    var(--gradient-end) 359.96deg,
+    var(--gradient-start) 360deg
+  );
+}
+
+.box {
+  position: absolute;
+  display: flex;
+  box-sizing: border-box;
+  width: var(--box-width);
+  height: var(--box-height);
+  min-width: var(--box-min-width);
+  min-height: var(--box-min-height);
+  padding: clamp(1rem, 2vw, 2rem);
+  overflow: hidden;
+  align-items: flex-start;
+  justify-content: center;
+  background: transparent;
+}
+
+.box::before {
+  position: absolute;
+  inset: 0;
+  border: var(--outline-width) solid #fff;
+  content: "";
+  mix-blend-mode: difference;
+  pointer-events: none;
+}
+
+.content {
+  width: 100%;
+  color: #fff;
+  mix-blend-mode: difference;
+}
+
+.box::after {
+  position: absolute;
+  width: var(--anchor-size);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #fff;
+  content: "";
+  mix-blend-mode: difference;
+}
+
+.boxA {
+  top: var(--edge);
+  left: var(--edge);
+}
+
+.boxA::after {
+  right: 0;
+  bottom: 0;
+  translate: 50% 50%;
+}
+
+.boxB {
+  right: var(--edge);
+  bottom: var(--edge);
+}
+
+.boxB::after {
+  top: 0;
+  left: 0;
+  translate: -50% -50%;
+}
+
+@media (max-aspect-ratio: 1 / 1) {
+  .scene {
+    --box-width: calc(100vw - var(--edge) - var(--edge));
+    --box-height: calc(
+      (100dvh - var(--edge) - var(--edge) - var(--edge)) / 2
+    );
+  }
+
+  .boxB {
+    right: auto;
+    left: var(--edge);
+  }
+}
+
+@media (prefers-contrast: more) {
+  .box::before {
+    border-width: max(2px, var(--outline-width));
+  }
+}
