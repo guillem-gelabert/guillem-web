@@ -25,8 +25,9 @@
 .gradient {
   background: conic-gradient(
     from 0deg at 50% calc(100% - 5px),
-    #e40000,
-    #ffe100
+    #ffe100,
+    rgb(255 128 0 / 0.5),
+    #e40000
   );
 }
 
