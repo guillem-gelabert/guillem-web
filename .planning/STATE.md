@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: Working Site
 status: milestone-complete
 stopped_at: v1.0 complete — every surface ships, held at noindex by the copy gate (see .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md)
-last_updated: "2026-09-03T11:05:34+02:00"
-last_activity: 2026-09-03 - Completed quick task 260903-fdq: add controllable minimum widths and heights to the style playground boxes
+last_updated: "2026-09-03T11:10:52+02:00"
+last_activity: 2026-09-03 - Completed quick task 260903-fi1: keep the portrait gradient seam between the stacked boxes
 progress:
   total_phases: 6
   completed_phases: 6
@@ -28,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-08-29)
 Phase: 06 (CV, Contact, Photo & Discoverability) — COMPLETE
 Plan: 12 of 12
 Status: v1.0 milestone closed 2026-09-01
-Last activity: 2026-09-03 - Completed quick task 260903-fdq: add controllable minimum widths and heights to the style playground boxes
+Last activity: 2026-09-03 - Completed quick task 260903-fi1: keep the portrait gradient seam between the stacked boxes
 
 **The site is structurally complete and deliberately not indexed.** Every surface the milestone
 promised ships and is live at `guillemgelabert.com`. Five of the values those surfaces render are
@@ -167,6 +167,7 @@ migration is deferred to v2 and no migration was performed.
 | 260903-ezm | Add Leva controls for all non-typographic `/style-playground` parameters | 2026-09-03 | d453381 | [260903-ezm-add-leva-controls-to-style-playground-fo](./quick/260903-ezm-add-leva-controls-to-style-playground-fo/) |
 | 260903-fbc | Stack the `/style-playground` boxes vertically at aspect ratios of 1:1 and narrower | 2026-09-03 | d6c7bab | [260903-fbc-stack-the-style-playground-boxes-vertica](./quick/260903-fbc-stack-the-style-playground-boxes-vertica/) |
 | 260903-fdq | Add controllable minimum widths and heights to the `/style-playground` boxes | 2026-09-03 | f74996f | [260903-fdq-add-controllable-minimum-widths-and-heig](./quick/260903-fdq-add-controllable-minimum-widths-and-heig/) |
+| 260903-fi1 | Keep the portrait gradient seam between the stacked boxes by moving its conic center to their midpoint | 2026-09-03 | a696233 | [260903-fi1-keep-the-portrait-gradient-seam-between-](./quick/260903-fi1-keep-the-portrait-gradient-seam-between-/) |
 
 ## Deferred Items
 
