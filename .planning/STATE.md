@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: Working Site
 status: milestone-complete
 stopped_at: v1.0 complete — every surface ships, held at noindex by the copy gate (see .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md)
-last_updated: "2026-09-03T12:15:11+02:00"
-last_activity: 2026-09-03 - Completed quick task 260903-gy7: add desktop and mobile seam modes with rotated mobile landscape behavior and more dynamic desktop angles
+last_updated: "2026-09-03T12:22:31+02:00"
+last_activity: 2026-09-03 - Completed quick task 260903-h61: reverse the desktop seam aspect response so wider screens produce a flatter angle
 progress:
   total_phases: 6
   completed_phases: 6
@@ -28,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-08-29)
 Phase: 06 (CV, Contact, Photo & Discoverability) — COMPLETE
 Plan: 12 of 12
 Status: v1.0 milestone closed 2026-09-01
-Last activity: 2026-09-03 - Completed quick task 260903-gy7: add desktop and mobile seam modes with rotated mobile landscape behavior and more dynamic desktop angles
+Last activity: 2026-09-03 - Completed quick task 260903-h61: reverse the desktop seam aspect response so wider screens produce a flatter angle
 
 **The site is structurally complete and deliberately not indexed.** Every surface the milestone
 promised ships and is live at `guillemgelabert.com`. Five of the values those surfaces render are
@@ -174,6 +174,7 @@ migration is deferred to v2 and no migration was performed.
 | 260903-ghg | Remove Leva from the style playground while preserving its current visual defaults | 2026-09-03 | 4567f8a | [260903-ghg-remove-leva-from-the-style-playground-wh](./quick/260903-ghg-remove-leva-from-the-style-playground-wh/) |
 | 260903-gn5 | Update the main page to use the style playground design and responsive seam logic | 2026-09-03 | 6cc7c43 | [260903-gn5-update-the-main-page-to-use-the-style-pl](./quick/260903-gn5-update-the-main-page-to-use-the-style-pl/) |
 | 260903-gy7 | Add desktop and mobile seam modes with rotated mobile landscape behavior and more dynamic desktop angles | 2026-09-03 | 88cfed3 | [260903-gy7-add-desktop-and-mobile-seam-modes-with-r](./quick/260903-gy7-add-desktop-and-mobile-seam-modes-with-r/) |
+| 260903-h61 | Reverse the desktop seam aspect response so wider screens produce a flatter angle | 2026-09-03 | 39cfbdd | [260903-h61-reverse-the-desktop-seam-aspect-response](./quick/260903-h61-reverse-the-desktop-seam-aspect-response/) |
 
 ## Deferred Items
 
