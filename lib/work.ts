@@ -58,5 +58,4 @@ export const CASE_STUDY_SLUG = "the-chart-therefore-changes";
  * app/(en)/page.tsx's metadata.description, so the real sentence remains a
  * one-line change in this file when it arrives (Pitfall 6).
  */
-export const POSITIONING_PLACEHOLDER =
-  "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore.";
+export const POSITIONING_PLACEHOLDER = "Data Visualisation Journalism";

@@ -1,34 +1,100 @@
 .scene {
   --edge: clamp(1rem, 3.5vw, 12rem);
-  --corner-gap: clamp(2rem, 8vw, 18rem);
-  --seam-rise: clamp(0.125rem, calc(8vw - 1.75rem), 20rem);
-  --desktop-aspect-drift: clamp(
-    -3rem,
-    calc((100dvh - 100vw) * 0.08),
-    8rem
+  /* The viewport's own proportion as a plain number: >1 landscape, 1
+     square, <1 portrait. --nameplate-width and --aside-ratio both read it,
+     and it has to be declared before them. */
+  --viewport-ratio: tan(atan2(100vw, 100dvh));
+  /* Not an input any more — a readout. The boxes size themselves against
+     the seam, and this is the horizontal channel that is left between the
+     two columns afterwards. Nothing reads it; it stays because it names
+     the thing the composition is about. */
+  --corner-gap: calc(
+    100vw - var(--edge) - var(--edge) - var(--box-width) - var(--box-width)
   );
-  --box-width: calc(
-    (100vw - var(--edge) - var(--edge) - var(--corner-gap)) / 2
+  /* --stack-gap and --aside-padding are load-bearing, not cosmetic. The
+     positioning aside's height is set by its text, and every pixel it gains
+     pushes its bottom-right corner down the scene, where the seam's ray has
+     already moved left. At 1366x768 looser values put that corner ~10px the
+     wrong side of the ray; these put it ~20px clear without narrowing a box
+     to do it. A positioning sentence longer than the placeholder can spend
+     that margin again. */
+  --stack-gap: clamp(0.4rem, 0.9vw, 1rem);
+  --box-padding: clamp(1rem, 2vw, 2rem);
+  --aside-padding: clamp(0.5rem, 0.9vw, 1rem);
+  --aside-width: calc(var(--box-width) * 0.42);
+  /* The asides are shaped, not just sized: --viewport-ratio (above) tracks
+     the shape of the screen directly, so their aspect ratio does too — wide
+     and low on a broad desktop, squarer as the window narrows, never past
+     the two bounds. */
+  --aside-ratio: clamp(0.9, var(--viewport-ratio), 2.6);
+  /* Divided out here rather than declared as an aspect-ratio: on a flex
+     item Chrome lets the ratio outrank both height and max-height, so the
+     share ceiling below silently did nothing. min() of the two is the same
+     bargain, honoured. */
+  --aside-height: min(
+    calc(var(--aside-width) / var(--aside-ratio)),
+    calc(var(--nameplate-height) * 0.45)
   );
-  --box-height: calc(
-    45dvh - var(--edge) + var(--seam-rise) + var(--desktop-aspect-drift)
+  /* The nameplate box is a 1.16 rectangle pinned at the top-left corner,
+     and it is exactly as large as it can be while staying on the white
+     side of the seam — no ceiling, no margin, no tuned constant. Its
+     bottom-right corner sits ON the ray.
+
+     The ray runs through the scene's centre at the viewport's own slope,
+     so a point clears it while x + y/ratio stays under the value the
+     centre gives: (100vw + 100dvh/ratio)/2, which is 50vw + 50dvh/ratio.
+     Substituting the corner (edge + W, edge + W/1.16) and solving for W
+     gives the width below; the height is that over 1.16. The 0.86 holds it
+     14% off that solution — tangency was a shade too tight by eye, and this
+     is the one place to spend that, since everything else in the corner is
+     derived from this width.
+
+     --corner-gap is no longer an input to any of this. It is what falls
+     out: the horizontal space left between the two columns once each box
+     has taken all it can. */
+  /* Falls back to a plain share of the width if the calc below is not
+     honoured — dividing by a var()-derived number is legal per CSS Values
+     4, but this is the one declaration the whole composition hangs off,
+     and an unsupported value here would drop the box to nothing. */
+  --nameplate-width: 38vw;
+  --nameplate-width: calc(
+    (
+      50vw + 50dvh / var(--viewport-ratio) - var(--edge) -
+        var(--edge) / var(--viewport-ratio)
+    ) / (1 + 1 / (1.16 * var(--viewport-ratio))) * 0.86
   );
+  --nameplate-height: calc(var(--nameplate-width) / 1.16);
+  --box-width: var(--nameplate-width);
   --box-min-width: 14rem;
-  --box-min-height: 8rem;
+  --box-min-height: 6rem;
+  /* Desktop overwrites this from the hook every measure. The two phone
+     modes do not — there it is the declared design decision, set in each
+     branch below. */
   --seam-angle: 50deg;
-  --gradient-center-desktop-x: 15%;
-  --gradient-center-desktop-y: 85%;
-  --gradient-center-mobile-portrait-x: 15%;
-  --gradient-center-mobile-portrait-y: 85%;
-  --gradient-center-mobile-landscape-x: 85%;
-  --gradient-center-mobile-landscape-y: 85%;
+  /* Both offsets are measured in dvh, so the origin sits the same distance
+     from the left edge as it does from the bottom one — a square corner
+     inset that scales with height alone, rather than one that stretches
+     with the window's width. */
+  --gradient-center-desktop-x: 8dvh;
+  --gradient-center-desktop-y: 92dvh;
+  /* Tighter into the corner than the other two modes: a phone's scene is
+     tall and narrow, so the same 8dvh inset reads as much further from the
+     corner across the width than it does on a desktop. */
+  --gradient-center-mobile-portrait-x: 5dvh;
+  --gradient-center-mobile-portrait-y: 95dvh;
+  /* 15%, like the other two. This was 85% for the old mobile-landscape
+     layout, where the boxes sat the other way round; the corners are
+     arranged as they are on desktop now, so 85% only bought a mirrored
+     gradient at the orientation flip — a window 861px tall mirrors itself
+     between 861 and 862px wide. */
+  --gradient-center-mobile-landscape-x: 8dvh;
+  --gradient-center-mobile-landscape-y: 92dvh;
   --gradient-center-x: var(--gradient-center-desktop-x);
   --gradient-center-y: var(--gradient-center-desktop-y);
   --gradient-start: #000;
   --gradient-middle: #ff8000;
   --gradient-end: #fff;
-  --outline-width: 1px;
-  --anchor-size: 10px;
+  --lang-offset: clamp(1.25rem, 3vw, 3rem);
 
   position: relative;
   width: 100%;
@@ -51,28 +117,73 @@
   background-blend-mode: hard-light;
 }
 
-.box {
+/* A corner, not a box: where the pair sits and how wide it is. Its height
+   is whatever its two boxes come to, so an aside that needs another line
+   grows the corner rather than shrinking the name above it. */
+.stack {
   position: absolute;
   display: flex;
   box-sizing: border-box;
   width: var(--box-width);
-  height: var(--box-height);
+  height: auto;
   min-width: var(--box-min-width);
+  flex-direction: column;
+  gap: var(--stack-gap);
+}
+
+.box {
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  height: var(--nameplate-height);
   min-height: var(--box-min-height);
-  padding: clamp(1rem, 2vw, 2rem);
+  padding: var(--box-padding);
   overflow: hidden;
   align-items: flex-start;
   justify-content: center;
   background: transparent;
+  /* A size container, so the type inside can be sized against the box that
+     holds it (the two font-size rules below) rather than against the
+     viewport, which no longer predicts how tall this box is. Both main
+     boxes take the nameplate's height: the case study mirrors the name's
+     proportion on purpose. */
+  container-type: size;
 }
 
-.box::before {
-  position: absolute;
-  inset: 0;
-  border: var(--outline-width) solid #fff;
-  content: "";
-  mix-blend-mode: difference;
-  pointer-events: none;
+/* The asides take their height from their own aspect ratio, and the stack
+   is however tall the two of them come to. The main box's height is fixed
+   (it is the name's), so an aside whose text needs a sixth line takes it
+   from the corner, not from the nameplate — the other way round and a long
+   positioning sentence quietly shrinks the name. min-content keeps a short viewport
+   from cropping their text, and they stay out of size containment so that
+   floor can be read from the text at all. The 45% ceiling is the other end
+   of the same bargain: on a screen whose proportion would make an aside
+   taller than the box it shares the corner with, the share wins and the
+   ratio bends. */
+.aside {
+  flex: 0 0 auto;
+  width: var(--aside-width);
+  min-width: 0;
+  height: var(--aside-height);
+  min-height: min-content;
+  padding: var(--aside-padding);
+  align-items: center;
+  container-type: normal;
+}
+
+/* Staggered outwards, each to its own side. The seam cuts the scene into
+   two triangles, and a triangle has less room the further you go from its
+   base: the low end of the left one and the high end of the right one are
+   wedges. The narrow box in each stack goes there, flush with the outer
+   edge, so two rectangles fill a triangle instead of one rectangle and a
+   step. Aligning them inwards instead would push them into the seam. */
+.boxPositioning {
+  align-self: flex-start;
+}
+
+.boxCaseStudyHead {
+  align-self: flex-end;
 }
 
 .content {
@@ -81,67 +192,151 @@
   mix-blend-mode: difference;
 }
 
-.box::after {
-  position: absolute;
-  width: var(--anchor-size);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: #fff;
-  content: "";
-  mix-blend-mode: difference;
-}
-
-.boxA {
+.stackNameplate {
   top: var(--edge);
   left: var(--edge);
 }
 
-.boxA::after {
-  right: 0;
-  bottom: 0;
-  translate: 50% 50%;
-}
-
-.boxB {
+.stackCaseStudy {
   right: var(--edge);
   bottom: var(--edge);
 }
 
-.boxB::after {
-  top: 0;
-  left: 0;
-  translate: -50% -50%;
+/* EN and DE mirror each other across the top-right corner: EN sits flush
+   with the top edge and nudged in from the right, DE sits flush with the
+   right edge and nudged down from the top, by the same --lang-offset — so
+   both are the same distance from the corner point itself. difference
+   blend is the same trick .content and the anchor dots already use: it
+   reads correctly whichever side of the seam's dark/light split each one
+   happens to land on, without having to predict where that split falls. */
+.langEn,
+.langDe {
+  position: absolute;
+  color: #fff;
+  mix-blend-mode: difference;
 }
 
-@media (max-width: 64rem) and (orientation: portrait) {
+.langEn {
+  top: var(--edge);
+  right: calc(var(--edge) + var(--lang-offset));
+}
+
+.langDe {
+  top: calc(var(--edge) + var(--lang-offset));
+  right: var(--edge);
+}
+
+/* The nameplate's whole type spec, kept with the box it is measured
+   against. It used to be a .text-nameplate role in globals.css, but the
+   role had exactly one caller and it was in here, and its viewport clamp
+   could not predict a box that is a share of a share of the viewport —
+   globals declared a size that never rendered.
+
+   Height is the only measure now: two lines at line-height 0.78 come to
+   1.56em, and 1 / 1.56 is 64cqh; 67cqh runs a little past that on purpose,
+   so the block itself now overflows the box's bottom edge slightly at
+   this box's proportions. Width is left to fall where it falls — the box
+   sets overflow: visible for exactly this, so GELABERT runs past the frame
+   rather than being cropped or shrunk to fit inside it. At the box's 1.16
+   proportion it lands at about 98% of the width; a taller box spills. */
+.boxNameplate {
+  padding: 0;
+  overflow: visible;
+  align-items: flex-start;
+}
+
+.boxNameplate :global(.seam-nameplate-text) {
+  font-family: var(--font-display);
+  font-size: 67cqh;
+  font-weight: 530;
+  line-height: 0.78;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+  /* At line-height 0.78, below Humane's own 0.86em ascent+descent, the
+     browser centres the shortfall as leading above AND below the glyphs
+     rather than sitting the first line flush with the box's top edge.
+     text-box-trim removes exactly that leading, reading it from the font's
+     own metrics — the standard property for this, not a hand-measured
+     offset that breaks if the font or line-height changes. */
+  text-box-trim: trim-start;
+  text-box-edge: cap alphabetic;
+}
+
+/* The case-study headline shares its box with a standfirst, so it takes the
+   smaller of its own clamp and a share of the box it sits in. */
+.boxCaseStudy :global(.text-heading-serif) {
+  font-size: min(calc(1rem + 4vw), 17cqh);
+}
+
+/* No width breakpoint anywhere in this file: the desktop layout is one
+   continuous set of clamp() and calc() curves, and these two branches are
+   for phones, which is a question about the device rather than about how
+   many pixels wide the window is. A 900px desktop window is a desktop; it
+   used to fall through to the phone layout, and flipping its orientation
+   at the width where it crossed its own height mirrored the gradient. */
+@media (hover: none) and (pointer: coarse) and (orientation: portrait) {
   .scene {
     --box-width: calc(100vw - var(--edge) - var(--edge));
-    --box-height: calc(
-      (100dvh - var(--edge) - var(--edge) - var(--edge)) / 2
-    );
+    /* Full-bleed boxes make 0.687 of the width far too tall for a phone,
+       and a 42% aside wraps the positioning sentence to eight lines. */
+    --nameplate-height: min(calc(var(--box-width) * 0.687), 34dvh);
+    --aside-width: calc(var(--box-width) * 0.62);
     --gradient-center-x: var(--gradient-center-mobile-portrait-x);
     --gradient-center-y: var(--gradient-center-mobile-portrait-y);
+    /* Flatter than the ~22deg aiming at the gap used to give: the ray
+       leans toward the horizontal instead of climbing the screen. */
+    --seam-angle: 55deg;
   }
 
-  .boxB {
+  .stackCaseStudy {
     right: auto;
     left: var(--edge);
   }
+
+  /* Width, not height, sets the name here: GELABERT is the longer line at
+     1.78em, so 56cqw puts it on both side edges of a full-bleed box. The
+     desktop rule sizes by height instead and lets the width fall where it
+     falls, which on a phone leaves the name floating in the middle of the
+     screen. The box still has overflow: visible, so the two lines together
+     may run past its bottom — the height is a share of the viewport here,
+     not derived from the name. */
+  .boxNameplate :global(.seam-nameplate-text) {
+    font-size: 56cqw;
+  }
+
+  /* Same trade as the landscape branch below, less of it: the case study's
+     box is cut to the name's proportion here too, and the editorial gap is
+     what gives so the standfirst's last line is not cropped. */
+  .boxCaseStudy :global(section) {
+    gap: 0.75rem;
+  }
 }
 
-@media (max-width: 64rem) and (orientation: landscape) {
+@media (hover: none) and (pointer: coarse) and (orientation: landscape) {
   .scene {
     --box-width: calc(
       (100vw - var(--edge) - var(--edge) - var(--edge)) / 2
     );
-    --box-height: calc(100dvh - var(--edge) - var(--edge));
+    /* The two corners sit side by side here, so each one owns the full
+       height rather than a share of it, and the name takes what the aside
+       leaves. The aside drops its 45%-of-the-name ceiling with it — on a
+       433px-tall phone that ceiling is what pushed the stack past the
+       bottom edge. */
+    --aside-width: calc(var(--box-width) * 0.75);
+    --aside-height: calc(var(--aside-width) / var(--aside-ratio));
+    --nameplate-height: calc(
+      100dvh - var(--edge) - var(--edge) - var(--stack-gap) -
+        var(--aside-height)
+    );
     --gradient-center-x: var(--gradient-center-mobile-landscape-x);
     --gradient-center-y: var(--gradient-center-mobile-landscape-y);
+    --seam-angle: 55deg;
   }
-}
 
-@media (prefers-contrast: more) {
-  .box::before {
-    border-width: max(2px, var(--outline-width));
+  /* A phone on its side gives the case study a 173px-tall box for a
+     headline and a standfirst. The editorial gap between them is the one
+     thing in there that can give without shrinking type. */
+  .boxCaseStudy :global(section) {
+    gap: 0.5rem;
   }
 }

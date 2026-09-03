@@ -6,10 +6,10 @@ import styles from "./style-playground.module.css";
 
 export function SeamPlayground() {
   const sceneRef = useRef<HTMLElement>(null);
-  const boxARef = useRef<HTMLDivElement>(null);
-  const boxBRef = useRef<HTMLDivElement>(null);
+  const blackBoxRef = useRef<HTMLDivElement>(null);
+  const whiteBoxRef = useRef<HTMLDivElement>(null);
 
-  useSeamAlignment(sceneRef, boxARef, boxBRef);
+  useSeamAlignment(sceneRef, blackBoxRef, whiteBoxRef);
 
   return (
     <main
@@ -17,14 +17,14 @@ export function SeamPlayground() {
       className={styles.scene}
       aria-label="Conical gradient geometry study"
     >
-      <div ref={boxARef} className={`${styles.box} ${styles.boxA}`}>
+      <div ref={blackBoxRef} className={`${styles.box} ${styles.boxBlack}`}>
         <span aria-hidden="true" className={styles.boxText}>
           BLACK
         </span>
         <span className={styles.srOnly}>Transparent box reading Black</span>
       </div>
 
-      <div ref={boxBRef} className={`${styles.box} ${styles.boxB}`}>
+      <div ref={whiteBoxRef} className={`${styles.box} ${styles.boxWhite}`}>
         <span aria-hidden="true" className={styles.boxText}>
           WHITE
         </span>

@@ -38,28 +38,50 @@ export const metadata: Metadata = {
 };
 
 export default async function Landing() {
-  // A null result IS the interim state — there is no boolean to flip. This
-  // must tolerate null forever, not just this phase, so a renamed or
-  // re-drafted Phase 4 file returns the slot to interim rather than
-  // throwing.
-  const caseStudy = findBySlug(await publishedFor("en"), CASE_STUDY_SLUG);
+  // A null result IS the interim state — there is no boolean to flip, so
+  // this must tolerate null forever: a renamed or re-drafted case-study
+  // file returns the slot to its interim copy rather than throwing.
+  const featured = findBySlug(await publishedFor("en"), CASE_STUDY_SLUG);
 
   return (
     <LandingSeam
-      primary={
-        <header className="flex flex-col gap-lg">
+      nameplate={
+        <header>
           {/* Block spans keep the visual line break while preserving the
-              accessible name as “Guillem Gelabert”. */}
-          <SmearTitle as="h1" className="text-nameplate uppercase">
+              accessible name as “Guillem Gelabert”. The type spec lives in
+              landing-seam.module.css, with the box it is measured against —
+              this class is the hook, not a role in the global scale. */}
+          <SmearTitle as="h1" className="seam-nameplate-text">
             <span className="block">Guillem</span>
             <span className="block">Gelabert</span>
           </SmearTitle>
-          <p className="max-w-prose text-standfirst">{POSITIONING_PLACEHOLDER}</p>
         </header>
       }
-      secondary={
-        <section id="case-study" aria-label="Case study" className="flex flex-col gap-lg">
-          <FeaturedSlot entry={caseStudy} />
+      // Three lines on the page, one string underneath: the same constant
+      // still serves as this route's meta description, so the equality
+      // tests/build/prerender.test.ts asserts between them holds. Block
+      // spans break the line the way the nameplate's do, without putting
+      // three separate strings in the source.
+      positioning={
+        <p className="max-w-prose text-standfirst">
+          {POSITIONING_PLACEHOLDER.split(" ").map((word) => (
+            <span className="block" key={word}>
+              {word}
+            </span>
+          ))}
+        </p>
+      }
+      caseStudyHead={null}
+      // No visible section head: the box above this one stays empty, so the
+      // section is named for assistive tech by aria-label rather than by an
+      // aria-labelledby pointing at a heading that is no longer rendered.
+      caseStudy={
+        <section
+          aria-label="Case study"
+          className="flex flex-col gap-lg"
+          id="case-study"
+        >
+          <FeaturedSlot entry={featured} />
         </section>
       }
     />

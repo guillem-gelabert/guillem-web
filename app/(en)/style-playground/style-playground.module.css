@@ -85,29 +85,33 @@
   mix-blend-mode: difference;
 }
 
-.boxA {
+.boxBlack {
   top: var(--edge);
   left: var(--edge);
 }
 
-.boxA::after {
+.boxBlack::after {
   bottom: 0;
   right: 0;
   translate: 50% 50%;
 }
 
-.boxB {
+.boxWhite {
   right: var(--edge);
   bottom: var(--edge);
 }
 
-.boxB::after {
+.boxWhite::after {
   top: 0;
   left: 0;
   translate: -50% -50%;
 }
 
-@media (max-width: 64rem) and (orientation: portrait) {
+/* Device, not width — matching landing-seam.module.css and the shared
+   useSeamAlignment hook. If these branched on width while the hook branched
+   on pointer, a 900px desktop window would lay the boxes out one way and
+   aim the gradient the other. */
+@media (hover: none) and (pointer: coarse) and (orientation: portrait) {
   .scene {
     --box-width: calc(100vw - var(--edge) - var(--edge));
     --box-height: calc(
@@ -117,13 +121,13 @@
     --gradient-center-y: var(--gradient-center-mobile-portrait-y);
   }
 
-  .boxB {
+  .boxWhite {
     right: auto;
     left: var(--edge);
   }
 }
 
-@media (max-width: 64rem) and (orientation: landscape) {
+@media (hover: none) and (pointer: coarse) and (orientation: landscape) {
   .scene {
     --box-width: calc(
       (100vw - var(--edge) - var(--edge) - var(--edge)) / 2
