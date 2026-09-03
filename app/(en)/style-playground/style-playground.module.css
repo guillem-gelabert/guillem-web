@@ -7,8 +7,8 @@
   );
   --box-height: calc(50dvh - var(--edge) + var(--seam-rise));
   --seam-angle: 50deg;
-  --seam-x: 50%;
-  --seam-y: 50%;
+  --seam-x: 16%;
+  --seam-y: 100%;
 
   position: relative;
   width: 100%;
