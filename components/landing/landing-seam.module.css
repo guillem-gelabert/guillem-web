@@ -1,14 +1,12 @@
 .scene {
-  /* The corner inset the boxes sit at, and the floor beneath it is iOS
-     Safari's safe area. Without viewport-fit=cover these env() values are
-     0px and this is just the clamp; with it they become the notch and the
-     home indicator, and the boxes stay clear of both. The scene still
-     paints edge to edge — only the content is inset. */
-  --edge-base: clamp(1rem, 3.5vw, 12rem);
-  --edge: max(var(--edge-base), env(safe-area-inset-left, 0px));
-  --edge-top: max(var(--edge-base), env(safe-area-inset-top, 0px));
-  --edge-bottom: max(var(--edge-base), env(safe-area-inset-bottom, 0px));
-  --edge-right: max(var(--edge-base), env(safe-area-inset-right, 0px));
+  /* One inset on every side, deliberately ignoring iOS's safe areas: the
+     composition is meant to run under the notch and the home indicator
+     rather than be pushed clear of them. The per-side names are kept so
+     the formulas below stay explicit about which edge they mean. */
+  --edge: clamp(1rem, 3.5vw, 12rem);
+  --edge-top: var(--edge);
+  --edge-bottom: var(--edge);
+  --edge-right: var(--edge);
   /* The viewport's own proportion as a plain number: >1 landscape, 1
      square, <1 portrait. --nameplate-width and --aside-ratio both read it,
      and it has to be declared before them. */
