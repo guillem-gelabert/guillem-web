@@ -13,34 +13,10 @@
   --gradient-orange-light: hsl(30 100% 100%);
 
   position: relative;
-  width: min(72vmin, 52rem, calc(100dvh - 11rem));
+  width: min(80vmin, 52rem);
   aspect-ratio: 1;
   overflow: hidden;
   box-shadow: 0 1rem 4rem rgba(0, 0, 0, 0.4);
-}
-
-.controls {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.75rem;
-  color: #fff;
-  font: 0.75rem/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
-}
-
-.controls label {
-  display: grid;
-  gap: 0.4rem;
-}
-
-.controls select {
-  min-width: 10rem;
-  padding: 0.55rem 2rem 0.55rem 0.7rem;
-  border: 1px solid #555;
-  border-radius: 0;
-  color: #fff;
-  background: #171717;
-  font: inherit;
 }
 
 .isolate {
@@ -70,7 +46,7 @@
     var(--gradient-orange-dark),
     var(--gradient-orange-light)
   );
-  mix-blend-mode: multiply;
+  mix-blend-mode: soft-light;
 }
 
 .noise {
@@ -83,6 +59,7 @@
       #000 360deg
     ),
     url("data:image/svg+xml,%3Csvg viewBox='0 0 400 310' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E") center / 400px 310px repeat;
+  background-blend-mode: normal;
   filter: grayscale(100%) contrast(150%) brightness(700%);
 }
 
