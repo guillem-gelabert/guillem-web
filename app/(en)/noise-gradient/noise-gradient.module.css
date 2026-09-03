@@ -58,6 +58,26 @@
   accent-color: #ff1493;
 }
 
+.controls .rangeControl {
+  min-width: 12rem;
+}
+
+.rangeControl span {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.rangeControl output {
+  color: #aaa;
+}
+
+.rangeControl input {
+  width: 100%;
+  margin: 0;
+  accent-color: #ff1493;
+}
+
 .isolate {
   position: absolute;
   inset: 0;

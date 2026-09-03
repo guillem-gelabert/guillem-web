@@ -29,6 +29,8 @@ export function NoiseGradient() {
   const [backgroundMode, setBackgroundMode] = useState<BlendMode>("normal");
   const [mixMode, setMixMode] = useState<BlendMode>("soft-light");
   const [maskEnabled, setMaskEnabled] = useState(true);
+  const [contrast, setContrast] = useState(150);
+  const [brightness, setBrightness] = useState(700);
 
   return (
     <main className={styles.page}>
@@ -48,7 +50,12 @@ export function NoiseGradient() {
             className={`${styles.noise} ${maskEnabled ? "" : styles.noiseWithoutMask}`}
             data-testid="noise-background-layer"
             aria-hidden="true"
-            style={{ backgroundBlendMode: backgroundMode } as CSSProperties}
+            style={
+              {
+                backgroundBlendMode: backgroundMode,
+                filter: `grayscale(100%) contrast(${contrast}%) brightness(${brightness}%)`,
+              } as CSSProperties
+            }
           />
           <div
             className={styles.gradient}
@@ -96,6 +103,34 @@ export function NoiseGradient() {
             onChange={(event) => setMaskEnabled(event.target.checked)}
           />
           Noise mask
+        </label>
+        <label className={styles.rangeControl}>
+          <span>
+            Contrast <output>{contrast}%</output>
+          </span>
+          <input
+            aria-label="Noise contrast"
+            type="range"
+            min="100"
+            max="300"
+            step="5"
+            value={contrast}
+            onChange={(event) => setContrast(Number(event.target.value))}
+          />
+        </label>
+        <label className={styles.rangeControl}>
+          <span>
+            Brightness <output>{brightness}%</output>
+          </span>
+          <input
+            aria-label="Noise brightness"
+            type="range"
+            min="100"
+            max="1000"
+            step="25"
+            value={brightness}
+            onChange={(event) => setBrightness(Number(event.target.value))}
+          />
         </label>
       </div>
     </main>
