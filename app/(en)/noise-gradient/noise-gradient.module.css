@@ -9,8 +9,8 @@
 
 .study {
   --gradient-center-bottom-inset: 30%;
-  --gradient-black: #000;
-  --gradient-white: #fff;
+  --gradient-orange-dark: hsl(30 100% 0%);
+  --gradient-orange-light: hsl(30 100% 100%);
 
   position: relative;
   width: min(72vmin, 52rem, calc(100dvh - 11rem));
@@ -67,8 +67,8 @@
   z-index: 2;
   background: conic-gradient(
     from 0deg at 50% calc(100% - var(--gradient-center-bottom-inset)),
-    var(--gradient-white),
-    var(--gradient-black)
+    var(--gradient-orange-dark),
+    var(--gradient-orange-light)
   );
   mix-blend-mode: multiply;
 }

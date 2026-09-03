@@ -35,7 +35,7 @@ export function NoiseGradient() {
         className={styles.study}
         data-testid="noise-gradient-study"
         role="img"
-        aria-label="White-to-black conic gradient and SVG grain over an orange background"
+        aria-label="Orange conic gradient from zero to full lightness with SVG grain over an orange background"
       >
         <div className={styles.isolate} data-testid="gradient-isolate">
           <div
