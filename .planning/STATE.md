@@ -5,7 +5,7 @@ milestone_name: Working Site
 status: milestone-complete
 stopped_at: v1.0 complete — every surface ships, held at noindex by the copy gate (see .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md). Test suite is red by decision after 260903-hb4; see Blockers/Concerns
 last_updated: "2026-09-03T15:10:00+02:00"
-last_activity: 2026-09-03 - Completed quick task 260903-k4q: stack orange below separate noise and white-to-black conic layers
+last_activity: 2026-09-03 - Completed quick task 260903-k7f: express the conic as orange from 0% to 100% lightness
 progress:
   total_phases: 6
   completed_phases: 6
@@ -28,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-08-29)
 Phase: 06 (CV, Contact, Photo & Discoverability) — COMPLETE
 Plan: 12 of 12
 Status: v1.0 milestone closed 2026-09-01
-Last activity: 2026-09-03 - Completed quick task 260903-k4q: stack orange below separate noise and white-to-black conic layers
+Last activity: 2026-09-03 - Completed quick task 260903-k7f: express the conic as orange from 0% to 100% lightness
 
 **The site is structurally complete and deliberately not indexed.** Every surface the milestone
 promised ships and is live at `guillemgelabert.com`. Five of the values those surfaces render are
@@ -223,6 +223,7 @@ migration is deferred to v2 and no migration was performed.
 | 260903-k1t | Set /noise-gradient background orange and simplify the visible conic overlay to white-to-black | 2026-09-03 | cb0c168 | [260903-k1t-orange-background-white-black-conic](./quick/260903-k1t-orange-background-white-black-conic/) |
 | 260903-k2q | Put solid orange on the gradient overlay and the white-to-black conic on the SVG-noise layer | 2026-09-03 | f3b4833 | [260903-k2q-orange-overlay-white-black-noise-conic](./quick/260903-k2q-orange-overlay-white-black-noise-conic/) |
 | 260903-k4q | Stack the solid orange base below separate SVG-noise and white-to-black conic layers | 2026-09-03 | eb4f119 | [260903-k4q-stack-orange-below-noise-and-gradient](./quick/260903-k4q-stack-orange-below-noise-and-gradient/) |
+| 260903-k7f | Express the visible conic as orange from 0% to 100% lightness | 2026-09-03 | 0309d58 | [260903-k7f-orange-lightness-conic](./quick/260903-k7f-orange-lightness-conic/) |
 
 ## Deferred Items
 
@@ -247,7 +248,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 Last session: 2026-09-03T15:10:00+02:00
 Stopped at: v1.0 complete. Phase 6 closed; every surface ships; the site is deliberately noindex.
-Post-milestone design work continues as quick tasks; the latest is 260903-k4q.
+Post-milestone design work continues as quick tasks; the latest is 260903-k7f.
 Resume file: .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md
 
 The next action belongs to the user, not to an executor: fill five values, do three copy reviews,
