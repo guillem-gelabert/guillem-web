@@ -55,22 +55,17 @@ export default async function Landing() {
             <span className="block">Guillem</span>
             <span className="block">Gelabert</span>
           </SmearTitle>
+          {/* Sits with the name rather than in its own box: one line, the
+              three words spaced apart and set in caps. Still the same
+              constant, so it goes on matching this route's meta
+              description, which tests/build/prerender.test.ts asserts by
+              equality. */}
+          <p className="seam-tagline text-label uppercase">
+            {POSITIONING_PLACEHOLDER}
+          </p>
         </header>
       }
-      // Three lines on the page, one string underneath: the same constant
-      // still serves as this route's meta description, so the equality
-      // tests/build/prerender.test.ts asserts between them holds. Block
-      // spans break the line the way the nameplate's do, without putting
-      // three separate strings in the source.
-      positioning={
-        <p className="max-w-prose text-standfirst">
-          {POSITIONING_PLACEHOLDER.split(" ").map((word) => (
-            <span className="block" key={word}>
-              {word}
-            </span>
-          ))}
-        </p>
-      }
+      positioning={null}
       caseStudyHead={null}
       // No visible section head: the box above this one stays empty, so the
       // section is named for assistive tech by aria-label rather than by an

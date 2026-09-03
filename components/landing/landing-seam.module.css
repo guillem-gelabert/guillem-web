@@ -418,6 +418,15 @@
   align-items: flex-start;
 }
 
+/* Spaced apart, and held below the name rather than beside it. The
+   nameplate box lays its content out as a column so the tagline lands under
+   the two lines of the name; the tracking is what "space between" asks for
+   at this size. */
+.boxNameplate :global(.seam-tagline) {
+  margin-top: 0.75em;
+  letter-spacing: 0.35em;
+}
+
 .boxNameplate :global(.seam-nameplate-text) {
   font-family: var(--font-display);
   font-size: 67cqh;
@@ -503,7 +512,16 @@
      Where the two stacks have to share the screen the box ends up shorter
      than the name's own proportion wants, and the height term takes over so
      the name shrinks rather than running into the case study. */
-  .boxNameplate :global(.seam-nameplate-text) {
+  /* Spaced apart, and held below the name rather than beside it. The
+   nameplate box lays its content out as a column so the tagline lands under
+   the two lines of the name; the tracking is what "space between" asks for
+   at this size. */
+.boxNameplate :global(.seam-tagline) {
+  margin-top: 0.75em;
+  letter-spacing: 0.35em;
+}
+
+.boxNameplate :global(.seam-nameplate-text) {
     font-size: min(56cqw, 64cqh);
   }
 
