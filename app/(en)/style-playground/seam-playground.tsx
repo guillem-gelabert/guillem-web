@@ -141,16 +141,20 @@ export function SeamPlayground() {
 
       const deltaX = bRect.left - aRect.right;
       const deltaY = bRect.top - aRect.bottom;
+      const isPortrait = window.matchMedia(
+        "(max-aspect-ratio: 1 / 1)",
+      ).matches;
+      const directionX = isPortrait ? -deltaX : deltaX;
+      const directionY = isPortrait ? -deltaY : deltaY;
 
       // CSS conic angles start at twelve o'clock and advance clockwise. The
-      // narrow wrap seam follows the corner-to-corner direction while its
-      // origin remains independently controllable.
+      // portrait ray uses the reverse corner vector so it rises to the right.
       const angle =
-        Math.atan2(deltaX, -deltaY) * (180 / Math.PI) + angleOffset;
+        Math.atan2(directionX, -directionY) * (180 / Math.PI) + angleOffset;
 
       scene.style.setProperty("--seam-angle", `${angle}deg`);
 
-      if (window.matchMedia("(max-aspect-ratio: 1 / 1)").matches) {
+      if (isPortrait) {
         const centerX = (aRect.right + bRect.left) / 2 - sceneRect.left;
         const centerY = (aRect.bottom + bRect.top) / 2 - sceneRect.top;
 
