@@ -10,6 +10,7 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
   );
 
   const isolate = page.getByTestId("gradient-isolate");
+  const background = page.getByTestId("orange-background-layer");
   const gradient = page.getByTestId("conic-gradient-layer");
   const noise = page.getByTestId("noise-background-layer");
 
@@ -21,9 +22,12 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
     };
   });
 
-  expect(gradientStyles.backgroundImage).toBe("none");
-  expect(gradientStyles.zIndex).toBe("1");
-  await expect(gradient).toHaveCSS("background-color", "rgb(255, 128, 0)");
+  expect(gradientStyles.backgroundImage).toContain("conic-gradient");
+  expect(gradientStyles.backgroundImage).toContain("rgb(255, 255, 255)");
+  expect(gradientStyles.backgroundImage).toContain("rgb(0, 0, 0)");
+  expect(gradientStyles.zIndex).toBe("2");
+  await expect(background).toHaveCSS("background-color", "rgb(255, 128, 0)");
+  await expect(background).toHaveCSS("z-index", "0");
 
   await expect(isolate).toHaveCSS("isolation", "isolate");
   const backgroundMode = page.getByLabel("Background blend mode");
@@ -37,7 +41,7 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
     (element) => getComputedStyle(element).backgroundImage,
   );
   expect(noiseBackground).toContain("conic-gradient(at 50% 70%");
-  expect(noiseBackground).toContain("rgb(255, 255, 255)");
+  expect(noiseBackground).toContain("rgba(0, 0, 0, 0)");
   expect(noiseBackground).toContain("rgb(0, 0, 0)");
   expect(noiseBackground).not.toContain("radial-gradient");
   expect(noiseBackground).toContain("data:image/svg+xml");
@@ -48,10 +52,14 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
     "filter",
     "contrast(1.5) brightness(7)",
   );
-  await expect(noise).toHaveCSS("z-index", "0");
+  await expect(noise).toHaveCSS("z-index", "1");
   await backgroundMode.selectOption("screen");
   await expect(noise).toHaveCSS("background-blend-mode", "screen, screen");
 
   await mixMode.selectOption("overlay");
   await expect(gradient).toHaveCSS("mix-blend-mode", "overlay");
+
+  await mixMode.selectOption("normal");
+  await expect(gradient).toHaveCSS("mix-blend-mode", "normal");
+  await expect(gradient).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
 });
