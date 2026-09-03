@@ -91,9 +91,8 @@
   --gradient-center-mobile-landscape-y: 92dvh;
   --gradient-center-x: var(--gradient-center-desktop-x);
   --gradient-center-y: var(--gradient-center-desktop-y);
-  --gradient-start: #000;
-  --gradient-middle: #ff8000;
-  --gradient-end: #fff;
+  --gradient-base: #f2f2f2;
+  --gradient-colour: #ff8000;
   --lang-offset: clamp(1.25rem, 3vw, 3rem);
 
   position: relative;
@@ -102,19 +101,72 @@
   min-height: 100svh;
   overflow: hidden;
   isolation: isolate;
-  background-image:
-    url("/noise-gradient.png"),
+  background: transparent;
+}
+
+/* The grainy gradient, ported from the /noise-gradient study's three-band
+   mode. The base tone lives on this stack, not on .scene: .scene isolates,
+   and a z-index: -1 child paints behind its parent's own background, so a
+   colour declared up there would cover the whole thing. It is a layer stack rather than one background: a light base, two
+   dither fields that crunch shared turbulence into binary dots and multiply
+   down onto it, and a single colour layer on top. Building the plateaus in
+   grayscale first and colourising once is what keeps the bands one hue.
+
+   The study sweeps `from 0deg` around the element's centre. Here both arcs
+   take the scene's own --seam-angle and --gradient-center-*, so the bands
+   land where the flat conic's did and the hook still aims them. */
+.grain {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--gradient-base);
+  isolation: isolate;
+  pointer-events: none;
+}
+
+.grain > * {
+  position: absolute;
+  inset: 0;
+}
+
+.grainField {
+  --noise-texture: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 310' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='1' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  --spread: 240deg;
+
+  background:
     conic-gradient(
       from var(--seam-angle) at var(--gradient-center-x)
         var(--gradient-center-y),
-      var(--gradient-start) 0deg,
-      var(--gradient-middle) 180deg,
-      var(--gradient-end) 359.96deg,
-      var(--gradient-start) 360deg
-    );
-  background-size: 256px 256px, auto;
-  background-repeat: repeat, no-repeat;
-  background-blend-mode: hard-light;
+      rgb(255 255 255 / 0.5) calc(var(--arc-center) - var(--spread) / 2),
+      transparent calc(var(--arc-center) - var(--spread) / 2),
+      rgb(0 0 0 / 0.45) calc(var(--arc-center) - var(--spread) / 4),
+      rgb(0 0 0 / 0.54) var(--arc-center),
+      rgb(0 0 0 / 0.6) calc(var(--arc-center) + var(--spread) / 4),
+      rgb(0 0 0 / 0.71) calc(var(--arc-center) + var(--spread) / 2),
+      #000 calc(var(--arc-center) + var(--spread) / 2)
+    ),
+    var(--noise-texture) center / 400px 310px repeat,
+    #fff;
+  filter: grayscale(100%) contrast(170%) brightness(1000%);
+  mix-blend-mode: multiply;
+}
+
+/* Three tones: 0.95 / 0.41 / 0.07 — each opacity is 1 - next / previous. */
+.grainArc1 {
+  --arc-center: 120deg;
+
+  opacity: 0.568;
+}
+
+.grainArc2 {
+  --arc-center: 240deg;
+
+  opacity: 0.829;
+}
+
+.grainColour {
+  background: var(--gradient-colour);
+  mix-blend-mode: color;
 }
 
 /* A corner, not a box: where the pair sits and how wide it is. Its height
@@ -122,6 +174,7 @@
    grows the corner rather than shrinking the name above it. */
 .stack {
   position: absolute;
+  z-index: 1;
   display: flex;
   box-sizing: border-box;
   width: var(--box-width);
