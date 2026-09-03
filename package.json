@@ -19,7 +19,6 @@
     "@shikijs/rehype": "^4.4.3",
     "@tailwindcss/typography": "^0.5.20",
     "@types/mdx": "^2.0.14",
-    "leva": "^0.10.1",
     "next": "16.3.3",
     "pg": "^8.23.0",
     "react": "19.2.8",

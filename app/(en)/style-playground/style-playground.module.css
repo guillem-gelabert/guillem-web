@@ -1,7 +1,7 @@
 .scene {
-  --edge: clamp(1rem, 3.5vw, 3rem);
-  --corner-gap: clamp(3rem, 13vw, 12rem);
-  --seam-rise: clamp(0.125rem, calc(8vw - 1.75rem), 8rem);
+  --edge: clamp(1rem, 3.5vw, 12rem);
+  --corner-gap: clamp(3rem, 13vw, 30rem);
+  --seam-rise: clamp(0.125rem, calc(8vw - 1.75rem), 20rem);
   --box-width: calc(
     (100vw - var(--edge) - var(--edge) - var(--corner-gap)) / 2
   );
