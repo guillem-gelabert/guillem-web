@@ -7,8 +7,8 @@
   );
   --box-height: calc(50dvh - var(--edge) + var(--seam-rise));
   --seam-angle: 50deg;
-  --seam-x: 16%;
-  --seam-y: 100%;
+  --seam-x: 15%;
+  --seam-y: 85%;
 
   position: relative;
   width: 100%;
@@ -18,11 +18,11 @@
   isolation: isolate;
   background: conic-gradient(
     from var(--seam-angle) at var(--seam-x) var(--seam-y),
-    #f48f82 0deg,
-    #ffd5ce 179.96deg,
-    #cce3ff 180deg,
-    #78aff9 359.96deg,
-    #f48f82 360deg
+    #000 0deg,
+    #000 179.96deg,
+    #fff 180deg,
+    #fff 359.96deg,
+    #000 360deg
   );
 }
 
