@@ -26,11 +26,15 @@ const blendModes = [
 type BlendMode = (typeof blendModes)[number];
 
 export function NoiseGradient() {
-  const [backgroundMode, setBackgroundMode] = useState<BlendMode>("hue");
+  const [backgroundMode, setBackgroundMode] = useState<BlendMode>("color");
   const [mixMode, setMixMode] = useState<BlendMode>("luminosity");
-  const [maskEnabled, setMaskEnabled] = useState(false);
-  const [contrast, setContrast] = useState(150);
-  const [brightness, setBrightness] = useState(700);
+  const [contrast, setContrast] = useState(100);
+  const [brightness, setBrightness] = useState(100);
+
+  const noiseStyle = {
+    backgroundBlendMode: mixMode,
+    filter: `grayscale(100%) contrast(${contrast}%) brightness(${brightness}%)`,
+  } as CSSProperties;
 
   return (
     <main className={styles.page}>
@@ -38,7 +42,7 @@ export function NoiseGradient() {
         className={styles.study}
         data-testid="noise-gradient-study"
         role="img"
-        aria-label="Black-to-white conic gradient with SVG grain over a pink background"
+        aria-label="White and black conic noise fields colorized over a pink background"
       >
         <div className={styles.isolate} data-testid="gradient-isolate">
           <div
@@ -47,36 +51,22 @@ export function NoiseGradient() {
             aria-hidden="true"
           />
           <div
-            className={`${styles.noise} ${maskEnabled ? styles.noiseMasked : ""}`}
-            data-testid="noise-background-layer"
+            className={`${styles.noiseGradient} ${styles.noiseWhite}`}
+            data-testid="white-noise-gradient"
             aria-hidden="true"
-            style={
-              {
-                backgroundBlendMode: backgroundMode,
-                filter: `grayscale(100%) contrast(${contrast}%) brightness(${brightness}%)`,
-              } as CSSProperties
-            }
+            style={noiseStyle}
           />
           <div
-            className={styles.gradient}
-            data-testid="conic-gradient-layer"
+            className={`${styles.noiseGradient} ${styles.noiseBlack}`}
+            data-testid="black-noise-gradient"
             aria-hidden="true"
-            style={{ mixBlendMode: mixMode }}
+            style={noiseStyle}
           />
           <div
-            className={`${styles.paletteGuard} ${styles.paletteLight}`}
-            data-testid="left-palette-guard"
+            className={styles.colorLayer}
+            data-testid="pink-color-layer"
             aria-hidden="true"
-          />
-          <div
-            className={`${styles.paletteGuard} ${styles.paletteDark}`}
-            data-testid="right-palette-guard"
-            aria-hidden="true"
-          />
-          <div
-            className={`${styles.paletteGuard} ${styles.paletteCenter}`}
-            data-testid="center-pink-guard"
-            aria-hidden="true"
+            style={{ mixBlendMode: backgroundMode }}
           />
         </div>
       </div>
@@ -110,14 +100,6 @@ export function NoiseGradient() {
               </option>
             ))}
           </select>
-        </label>
-        <label className={styles.maskControl}>
-          <input
-            type="checkbox"
-            checked={maskEnabled}
-            onChange={(event) => setMaskEnabled(event.target.checked)}
-          />
-          Noise mask
         </label>
         <label className={styles.rangeControl}>
           <span>
