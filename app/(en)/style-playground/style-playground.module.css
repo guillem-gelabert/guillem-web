@@ -1,15 +1,20 @@
 .scene {
   --edge: clamp(1rem, 3.5vw, 3rem);
-  --box-size: min(
+  --anchor-size: min(
     clamp(7rem, 21vw, 18rem),
     calc(50vw - var(--edge) - 0.5rem)
   );
   --seam-rise: clamp(0.75rem, calc(12vw - 2.4rem), 18rem);
-  --box-offset: max(
+  --anchor-offset: max(
     var(--edge),
-    calc(50dvh - var(--box-size) - var(--seam-rise))
+    calc(50dvh - var(--anchor-size) - var(--seam-rise))
   );
-  --seam-angle: 105deg;
+  --corner-a-x: calc(var(--edge) + var(--anchor-size));
+  --corner-a-y: calc(100dvh - var(--anchor-offset) - var(--anchor-size));
+  --corner-b-x: calc(100vw - var(--edge) - var(--anchor-size));
+  --corner-b-y: calc(var(--anchor-offset) + var(--anchor-size));
+  --box-size: clamp(12rem, 40vw, 38rem);
+  --seam-angle: 75deg;
   --seam-x: 50%;
   --seam-y: 50%;
 
@@ -55,8 +60,8 @@
 }
 
 .boxA {
-  top: var(--box-offset);
-  left: var(--edge);
+  top: calc(var(--corner-a-y) - var(--box-size));
+  left: calc(var(--corner-a-x) - var(--box-size));
   background: #0647ed;
 }
 
@@ -67,8 +72,8 @@
 }
 
 .boxB {
-  right: var(--edge);
-  bottom: var(--box-offset);
+  top: var(--corner-b-y);
+  left: var(--corner-b-x);
   background: #e52f26;
 }
 
