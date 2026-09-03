@@ -64,6 +64,12 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
   await expect(maskToggle).toBeChecked();
   await expect(contrast).toHaveValue("150");
   await expect(brightness).toHaveValue("700");
+  await expect(contrast).toHaveAttribute("min", "0");
+  await expect(contrast).toHaveAttribute("max", "1000");
+  await expect(contrast).toHaveAttribute("step", "10");
+  await expect(brightness).toHaveAttribute("min", "0");
+  await expect(brightness).toHaveAttribute("max", "3000");
+  await expect(brightness).toHaveAttribute("step", "25");
 
   await backgroundMode.selectOption("screen");
   await expect(noise).toHaveCSS("background-blend-mode", "screen, screen");
@@ -79,12 +85,12 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
   expect(unmaskedNoiseBackground).not.toContain("conic-gradient");
   expect(unmaskedNoiseBackground).toContain("data:image/svg+xml");
 
-  await contrast.fill("220");
-  await brightness.fill("450");
+  await contrast.fill("1000");
+  await brightness.fill("3000");
   await expect(noise).toHaveCSS(
     "filter",
-    "grayscale(1) contrast(2.2) brightness(4.5)",
+    "grayscale(1) contrast(10) brightness(30)",
   );
-  await expect(page.getByText("220%", { exact: true })).toBeVisible();
-  await expect(page.getByText("450%", { exact: true })).toBeVisible();
+  await expect(page.getByText("1000%", { exact: true })).toBeVisible();
+  await expect(page.getByText("3000%", { exact: true })).toBeVisible();
 });

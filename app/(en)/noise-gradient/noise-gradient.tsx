@@ -111,9 +111,9 @@ export function NoiseGradient() {
           <input
             aria-label="Noise contrast"
             type="range"
-            min="100"
-            max="300"
-            step="5"
+            min="0"
+            max="1000"
+            step="10"
             value={contrast}
             onChange={(event) => setContrast(Number(event.target.value))}
           />
@@ -125,8 +125,8 @@ export function NoiseGradient() {
           <input
             aria-label="Noise brightness"
             type="range"
-            min="100"
-            max="1000"
+            min="0"
+            max="3000"
             step="25"
             value={brightness}
             onChange={(event) => setBrightness(Number(event.target.value))}
