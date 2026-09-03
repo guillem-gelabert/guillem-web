@@ -144,19 +144,19 @@ export function SeamPlayground() {
       const isPortrait = window.matchMedia(
         "(max-aspect-ratio: 1 / 1)",
       ).matches;
-      const directionX = isPortrait ? -deltaX : deltaX;
-      const directionY = isPortrait ? -deltaY : deltaY;
-
-      // CSS conic angles start at twelve o'clock and advance clockwise. The
-      // portrait ray uses the reverse corner vector so it rises to the right.
-      const angle =
-        Math.atan2(directionX, -directionY) * (180 / Math.PI) + angleOffset;
-
-      scene.style.setProperty("--seam-angle", `${angle}deg`);
+      let directionX = deltaX;
+      let directionY = deltaY;
 
       if (isPortrait) {
-        const centerX = (aRect.right + bRect.left) / 2 - sceneRect.left;
-        const centerY = (aRect.bottom + bRect.top) / 2 - sceneRect.top;
+        const centerX = (sceneRect.width * centerLeft) / 100;
+        const centerY = (sceneRect.height * (100 - centerBottom)) / 100;
+        const gapCenterX =
+          (aRect.right + bRect.left) / 2 - sceneRect.left;
+        const gapCenterY =
+          (aRect.bottom + bRect.top) / 2 - sceneRect.top;
+
+        directionX = gapCenterX - centerX;
+        directionY = gapCenterY - centerY;
 
         scene.style.setProperty("--gradient-center-x", `${centerX}px`);
         scene.style.setProperty("--gradient-center-y", `${centerY}px`);
@@ -164,6 +164,13 @@ export function SeamPlayground() {
         scene.style.removeProperty("--gradient-center-x");
         scene.style.removeProperty("--gradient-center-y");
       }
+
+      // CSS conic angles start at twelve o'clock and advance clockwise. In
+      // portrait, the seam points from the lower-left pivot through the gap.
+      const angle =
+        Math.atan2(directionX, -directionY) * (180 / Math.PI) + angleOffset;
+
+      scene.style.setProperty("--seam-angle", `${angle}deg`);
     };
 
     alignSeam();
@@ -174,7 +181,7 @@ export function SeamPlayground() {
     observer.observe(boxB);
 
     return () => observer.disconnect();
-  }, [angleOffset]);
+  }, [angleOffset, centerBottom, centerLeft]);
 
   return (
     <>

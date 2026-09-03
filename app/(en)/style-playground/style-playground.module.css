@@ -102,8 +102,6 @@
     --box-height: calc(
       (100dvh - var(--edge) - var(--edge) - var(--corner-gap)) / 2
     );
-    --gradient-center-x: 50%;
-    --gradient-center-y: 50%;
   }
 
   .boxB {
