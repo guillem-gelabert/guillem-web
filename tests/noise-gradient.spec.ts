@@ -20,6 +20,7 @@ test("/noise-gradient blends a noise PNG with a conic gradient", async ({ page }
   }));
 
   expect(backgrounds.gradient).toContain("conic-gradient");
+  expect(backgrounds.gradient).toContain("at 50% calc(100% - 5px)");
   expect(backgrounds.noise).toContain("noise-gradient.png");
 
   const blendMode = page.getByLabel("Blend mode");

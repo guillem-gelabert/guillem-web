@@ -23,7 +23,11 @@
 }
 
 .gradient {
-  background: conic-gradient(from 0deg, #e40000, #ffe100);
+  background: conic-gradient(
+    from 0deg at 50% calc(100% - 5px),
+    #e40000,
+    #ffe100
+  );
 }
 
 .noise {
