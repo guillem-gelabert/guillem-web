@@ -1,20 +1,12 @@
 .scene {
   --edge: clamp(1rem, 3.5vw, 3rem);
-  --anchor-size: min(
-    clamp(7rem, 21vw, 18rem),
-    calc(50vw - var(--edge) - 0.5rem)
+  --corner-gap: clamp(3rem, 13vw, 12rem);
+  --seam-rise: clamp(0.125rem, calc(8vw - 1.75rem), 8rem);
+  --box-width: calc(
+    (100vw - var(--edge) - var(--edge) - var(--corner-gap)) / 2
   );
-  --seam-rise: clamp(0.75rem, calc(12vw - 2.4rem), 18rem);
-  --anchor-offset: max(
-    var(--edge),
-    calc(50dvh - var(--anchor-size) - var(--seam-rise))
-  );
-  --corner-a-x: calc(var(--edge) + var(--anchor-size));
-  --corner-a-y: calc(100dvh - var(--anchor-offset) - var(--anchor-size));
-  --corner-b-x: calc(100vw - var(--edge) - var(--anchor-size));
-  --corner-b-y: calc(var(--anchor-offset) + var(--anchor-size));
-  --box-size: clamp(12rem, 40vw, 38rem);
-  --seam-angle: 75deg;
+  --box-height: calc(50dvh - var(--edge) + var(--seam-rise));
+  --seam-angle: 50deg;
   --seam-x: 50%;
   --seam-y: 50%;
 
@@ -38,8 +30,8 @@
   position: absolute;
   display: grid;
   place-items: center;
-  width: var(--box-size);
-  aspect-ratio: 1;
+  width: var(--box-width);
+  height: var(--box-height);
   color: #fff;
   font-family: var(--font-display);
   font-size: clamp(3.5rem, 10vw, 8rem);
@@ -60,8 +52,8 @@
 }
 
 .boxA {
-  top: calc(var(--corner-a-y) - var(--box-size));
-  left: calc(var(--corner-a-x) - var(--box-size));
+  top: var(--edge);
+  left: var(--edge);
   background: #0647ed;
 }
 
@@ -72,8 +64,8 @@
 }
 
 .boxB {
-  top: var(--corner-b-y);
-  left: var(--corner-b-x);
+  right: var(--edge);
+  bottom: var(--edge);
   background: #e52f26;
 }
 
