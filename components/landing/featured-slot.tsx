@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { PostEntry } from "@/lib/content";
 import { postPath } from "@/lib/locales";
 import { SmearTitle } from "@/components/smear-title";
-import { PostMeta } from "@/components/post-meta";
 
 type FeaturedSlotProps = {
   entry: PostEntry | null;
@@ -25,7 +24,7 @@ export function FeaturedSlot({ entry }: FeaturedSlotProps) {
             exist yet and /writing is at n=0, so there is nowhere honest
             for it to point. A link to an empty index is a circular dead
             end. */}
-        <SmearTitle as="h3" className="text-heading">
+        <SmearTitle as="h3" className="text-heading-serif">
           The case study is being written.
         </SmearTitle>
         <p className="max-w-prose text-body">
@@ -38,7 +37,7 @@ export function FeaturedSlot({ entry }: FeaturedSlotProps) {
 
   return (
     <>
-      <SmearTitle as="h3" className="text-heading">
+      <SmearTitle as="h3" className="text-heading-serif">
         {/* next/link, not a bare <a>: this is internal navigation to
             /writing/<slug>. Every other internal link in the repo uses
             Link — both indexes, both [slug] templates, all three not-found
@@ -58,26 +57,14 @@ export function FeaturedSlot({ entry }: FeaturedSlotProps) {
           {entry.frontmatter.title}
         </Link>
       </SmearTitle>
-      {/* This nested gap-md wrapper is the same shape app/(en)/writing/page.tsx
-          already uses for standfirst + PostMeta, and it is what keeps the
-          parent section's single gap-lg correct in both states. */}
-      <div className="flex flex-col gap-md">
-        <p className="max-w-prose text-standfirst">{entry.frontmatter.standfirst}</p>
-        {/* draft is NOT optional here. Omitting it made PostMeta see
-            `undefined`, so `draft === true && showDrafts()` was always
-            false and the marker never printed — while /writing, which does
-            pass it, printed "Draft" beside the identical entry. In dev
-            showDrafts() is always true, so the moment Phase 4 authors
-            content/the-chart-therefore-changes.mdx with draft: true the
-            author would have read two contradictory answers for one file
-            on two pages, on the surface where it matters most. */}
-        <PostMeta
-          locale="en"
-          date={entry.frontmatter.date}
-          switchHref={null}
-          draft={entry.frontmatter.draft}
-        />
-      </div>
+      {/* No PostMeta: the landing carries no dates. The date and the draft
+          marker still print on /writing and on the post itself, which is
+          where a reader who wants to know when this was published goes —
+          on the front page the line was the only thing between the pitch
+          and the fold. Note what this drops with it: the draft marker for
+          the featured entry. /writing is the surface that answers "is this
+          published?" now. */}
+      <p className="max-w-prose text-standfirst">{entry.frontmatter.standfirst}</p>
     </>
   );
 }
