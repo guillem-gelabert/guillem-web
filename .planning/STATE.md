@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: Working Site
 status: milestone-complete
 stopped_at: v1.0 complete — every surface ships, held at noindex by the copy gate (see .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md)
-last_updated: "2026-09-03T11:20:47+02:00"
-last_activity: 2026-09-03 - Completed quick task 260903-fqd: move the portrait conic center toward the bottom-left and make the seam more vertical
+last_updated: "2026-09-03T11:23:35+02:00"
+last_activity: 2026-09-03 - Completed quick task 260903-ft0: reduce portrait spacing between the boxes to match the viewport edge inset
 progress:
   total_phases: 6
   completed_phases: 6
@@ -28,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-08-29)
 Phase: 06 (CV, Contact, Photo & Discoverability) — COMPLETE
 Plan: 12 of 12
 Status: v1.0 milestone closed 2026-09-01
-Last activity: 2026-09-03 - Completed quick task 260903-fqd: move the portrait conic center toward the bottom-left and make the seam more vertical
+Last activity: 2026-09-03 - Completed quick task 260903-ft0: reduce portrait spacing between the boxes to match the viewport edge inset
 
 **The site is structurally complete and deliberately not indexed.** Every surface the milestone
 promised ships and is live at `guillemgelabert.com`. Five of the values those surfaces render are
@@ -170,6 +170,7 @@ migration is deferred to v2 and no migration was performed.
 | 260903-fi1 | Keep the portrait gradient seam between the stacked boxes by moving its conic center to their midpoint | 2026-09-03 | a696233 | [260903-fi1-keep-the-portrait-gradient-seam-between-](./quick/260903-fi1-keep-the-portrait-gradient-seam-between-/) |
 | 260903-fl6 | Make the portrait seam point diagonally upward and to the right | 2026-09-03 | 1e31628 | [260903-fl6-make-the-portrait-seam-point-diagonally-](./quick/260903-fl6-make-the-portrait-seam-point-diagonally-/) |
 | 260903-fqd | Move the portrait conic center toward the bottom-left and make the seam more vertical | 2026-09-03 | 16d5b25 | [260903-fqd-move-the-portrait-conic-center-toward-th](./quick/260903-fqd-move-the-portrait-conic-center-toward-th/) |
+| 260903-ft0 | Reduce portrait spacing between the boxes to match the viewport edge inset | 2026-09-03 | 1d7d971 | [260903-ft0-reduce-portrait-spacing-between-the-boxe](./quick/260903-ft0-reduce-portrait-spacing-between-the-boxe/) |
 
 ## Deferred Items
 
