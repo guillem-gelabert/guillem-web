@@ -4,7 +4,7 @@
   --seam-rise: clamp(0.125rem, calc(8vw - 1.75rem), 20rem);
   --desktop-aspect-drift: clamp(
     -3rem,
-    calc((100vw - 100dvh) * 0.08),
+    calc((100dvh - 100vw) * 0.08),
     8rem
   );
   --box-width: calc(
