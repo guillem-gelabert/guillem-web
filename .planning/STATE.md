@@ -5,7 +5,7 @@ milestone_name: Working Site
 status: milestone-complete
 stopped_at: v1.0 complete — every surface ships, held at noindex by the copy gate (see .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md). Test suite is red by decision after 260903-hb4; see Blockers/Concerns
 last_updated: "2026-09-03T15:10:00+02:00"
-last_activity: 2026-09-03 - Completed quick task 260903-jnk: apply multiply blending directly to the inline SVG noise layer
+last_activity: 2026-09-03 - Completed quick task 260903-jvh: align /noise-gradient structure with the CSS-Tricks example
 progress:
   total_phases: 6
   completed_phases: 6
@@ -28,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-08-29)
 Phase: 06 (CV, Contact, Photo & Discoverability) — COMPLETE
 Plan: 12 of 12
 Status: v1.0 milestone closed 2026-09-01
-Last activity: 2026-09-03 - Completed quick task 260903-jnk: apply multiply blending directly to the inline SVG noise layer
+Last activity: 2026-09-03 - Completed quick task 260903-jvh: align /noise-gradient structure with the CSS-Tricks example
 
 **The site is structurally complete and deliberately not indexed.** Every surface the milestone
 promised ships and is live at `guillemgelabert.com`. Five of the values those surfaces render are
@@ -216,6 +216,7 @@ migration is deferred to v2 and no migration was performed.
 | 260903-jl1 | Change /noise-gradient to an opaque black-to-yellow conic gradient via orange | 2026-09-03 | 6f4d134 | [260903-jl1-black-orange-yellow-grain](./quick/260903-jl1-black-orange-yellow-grain/) |
 | 260903-jmr | Correct /noise-gradient to an opaque black-to-white conic gradient via orange | 2026-09-03 | 81145f2 | [260903-jmr-black-orange-white-grain](./quick/260903-jmr-black-orange-white-grain/) |
 | 260903-jnk | Apply multiply blending directly to an inline SVG turbulence layer on /noise-gradient | 2026-09-03 | 53e7fa2 | [260903-jnk-svg-layer-mix-blend-mode](./quick/260903-jnk-svg-layer-mix-blend-mode/) |
+| 260903-jvh | Restructure /noise-gradient to match the CSS-Tricks isolated noise-background and blended-overlay example | 2026-09-03 | a0c9f9f | [260903-jvh-match-grainy-gradient-example](./quick/260903-jvh-match-grainy-gradient-example/) |
 
 ## Deferred Items
 
@@ -240,7 +241,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 Last session: 2026-09-03T15:10:00+02:00
 Stopped at: v1.0 complete. Phase 6 closed; every surface ships; the site is deliberately noindex.
-Post-milestone design work continues as quick tasks; the latest is 260903-jnk.
+Post-milestone design work continues as quick tasks; the latest is 260903-jvh.
 Resume file: .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md
 
 The next action belongs to the user, not to an executor: fill five values, do three copy reviews,
