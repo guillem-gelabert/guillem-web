@@ -47,7 +47,7 @@ export function NoiseGradient() {
             aria-hidden="true"
           />
           <div
-            className={`${styles.noise} ${maskEnabled ? "" : styles.noiseWithoutMask}`}
+            className={`${styles.noise} ${maskEnabled ? styles.noiseMasked : ""}`}
             data-testid="noise-background-layer"
             aria-hidden="true"
             style={

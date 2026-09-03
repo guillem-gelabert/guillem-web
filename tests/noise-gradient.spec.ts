@@ -61,7 +61,8 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
     "filter",
     "grayscale(1) contrast(1.5) brightness(7)",
   );
-  await expect(noise).toHaveCSS("z-index", "1");
+  await expect(noise).toHaveCSS("z-index", "0");
+  await expect(noise).toHaveCSS("mask-image", "none");
   await expect(maskToggle).not.toBeChecked();
   await expect(contrast).toHaveValue("150");
   await expect(brightness).toHaveValue("700");
@@ -80,12 +81,11 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
 
   await maskToggle.check();
   await expect(maskToggle).toBeChecked();
-  const maskedNoiseBackground = await noise.evaluate(
-    (element) => getComputedStyle(element).backgroundImage,
+  await expect(noise).toHaveCSS(
+    "mask-image",
+    /conic-gradient\(at 50% 70%/,
   );
-  expect(maskedNoiseBackground).toContain("conic-gradient(at 50% 70%");
-  expect(maskedNoiseBackground).toContain("data:image/svg+xml");
-  await expect(noise).toHaveCSS("background-size", "auto, 400px 310px");
+  await expect(noise).toHaveCSS("background-size", "400px 310px");
 
   await contrast.fill("1000");
   await brightness.fill("3000");
