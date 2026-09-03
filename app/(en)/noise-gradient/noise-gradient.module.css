@@ -4,13 +4,12 @@
   place-content: center;
   gap: clamp(1rem, 3vw, 2rem);
   padding: clamp(1rem, 4vw, 4rem);
-  background: #111;
+  background: #ff8000;
 }
 
 .study {
   --gradient-center-bottom-inset: 30%;
   --gradient-black: #000;
-  --gradient-orange: #ff8000;
   --gradient-white: #fff;
 
   position: relative;
@@ -62,9 +61,8 @@
   z-index: 1;
   background: conic-gradient(
     from 0deg at 50% calc(100% - var(--gradient-center-bottom-inset)),
-    var(--gradient-black),
-    var(--gradient-orange),
-    var(--gradient-white)
+    var(--gradient-white),
+    var(--gradient-black)
   );
   mix-blend-mode: multiply;
 }
