@@ -29,13 +29,11 @@ export function useSeamAlignment(
       const aRect = boxA.getBoundingClientRect();
       const bRect = boxB.getBoundingClientRect();
 
-      const deltaX = bRect.left - aRect.right;
-      const deltaY = bRect.top - aRect.bottom;
       const isMobile = window.matchMedia(MOBILE_QUERY).matches;
       const isMobileLandscape =
         isMobile && window.matchMedia(LANDSCAPE_QUERY).matches;
-      let directionX = deltaX;
-      let directionY = deltaY;
+      let directionX: number;
+      let directionY: number;
 
       if (isMobile) {
         const sceneStyles = window.getComputedStyle(scene);
@@ -63,12 +61,31 @@ export function useSeamAlignment(
         scene.style.setProperty("--gradient-center-x", `${centerX}px`);
         scene.style.setProperty("--gradient-center-y", `${centerY}px`);
       } else {
+        const sceneStyles = window.getComputedStyle(scene);
+        const centerXPercent = readPercentage(
+          sceneStyles,
+          "--gradient-center-desktop-x",
+        );
+        const centerYPercent = readPercentage(
+          sceneStyles,
+          "--gradient-center-desktop-y",
+        );
+        const centerX = (sceneRect.width * centerXPercent) / 100;
+        const centerY = (sceneRect.height * centerYPercent) / 100;
+        const gapCenterX =
+          (aRect.right + bRect.left) / 2 - sceneRect.left;
+        const gapCenterY =
+          (aRect.bottom + bRect.top) / 2 - sceneRect.top;
+
+        directionX = gapCenterX - centerX;
+        directionY = gapCenterY - centerY;
+
         scene.style.removeProperty("--gradient-center-x");
         scene.style.removeProperty("--gradient-center-y");
       }
 
-      // Desktop follows the measured corner-to-corner line. Mobile aims
-      // from its orientation-specific pivot through the center of the gap.
+      // The seam aims from its responsive pivot through the center of the
+      // measured inner-corner gap.
       // Conic angles start at twelve o'clock and advance clockwise.
       const angle = Math.atan2(directionX, -directionY) * (180 / Math.PI);
 
