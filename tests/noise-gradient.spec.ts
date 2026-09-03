@@ -6,7 +6,7 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
   await expect(page.getByTestId("noise-gradient-study")).toBeVisible();
   await expect(page.locator("main")).toHaveCSS(
     "background-color",
-    "rgb(255, 128, 0)",
+    "rgb(17, 17, 17)",
   );
 
   const isolate = page.getByTestId("gradient-isolate");
@@ -21,25 +21,24 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
     };
   });
 
-  expect(gradientStyles.backgroundImage).toContain("conic-gradient");
-  expect(gradientStyles.backgroundImage).toContain("at 50% 70%");
-  expect(gradientStyles.backgroundImage).toContain("rgb(255, 255, 255)");
-  expect(gradientStyles.backgroundImage).toContain("rgb(0, 0, 0)");
-  expect(gradientStyles.backgroundImage).not.toContain("rgb(255, 128, 0)");
+  expect(gradientStyles.backgroundImage).toBe("none");
   expect(gradientStyles.zIndex).toBe("1");
+  await expect(gradient).toHaveCSS("background-color", "rgb(255, 128, 0)");
 
   await expect(isolate).toHaveCSS("isolation", "isolate");
   const backgroundMode = page.getByLabel("Background blend mode");
   const mixMode = page.getByLabel("Mix blend mode");
 
-  await expect(backgroundMode).toHaveValue("normal");
+  await expect(backgroundMode).toHaveValue("multiply");
   await expect(mixMode).toHaveValue("multiply");
-  await expect(noise).toHaveCSS("background-blend-mode", "normal, normal");
+  await expect(noise).toHaveCSS("background-blend-mode", "multiply, multiply");
   await expect(gradient).toHaveCSS("mix-blend-mode", "multiply");
   const noiseBackground = await noise.evaluate(
     (element) => getComputedStyle(element).backgroundImage,
   );
   expect(noiseBackground).toContain("conic-gradient(at 50% 70%");
+  expect(noiseBackground).toContain("rgb(255, 255, 255)");
+  expect(noiseBackground).toContain("rgb(0, 0, 0)");
   expect(noiseBackground).not.toContain("radial-gradient");
   expect(noiseBackground).toContain("data:image/svg+xml");
   expect(noiseBackground).toContain("feTurbulence");

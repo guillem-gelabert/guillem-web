@@ -26,7 +26,7 @@ const blendModes = [
 type BlendMode = (typeof blendModes)[number];
 
 export function NoiseGradient() {
-  const [backgroundMode, setBackgroundMode] = useState<BlendMode>("normal");
+  const [backgroundMode, setBackgroundMode] = useState<BlendMode>("multiply");
   const [mixMode, setMixMode] = useState<BlendMode>("multiply");
 
   return (
@@ -35,7 +35,7 @@ export function NoiseGradient() {
         className={styles.study}
         data-testid="noise-gradient-study"
         role="img"
-        aria-label="SVG fractal noise blended with a white-to-black conical gradient"
+        aria-label="White-to-black SVG grain blended with an orange overlay"
       >
         <div className={styles.isolate} data-testid="gradient-isolate">
           <div
