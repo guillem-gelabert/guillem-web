@@ -125,6 +125,32 @@
   );
 }
 
+.paletteGuard {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: #ff1493;
+  pointer-events: none;
+}
+
+.paletteLight {
+  mix-blend-mode: screen;
+  mask-image: conic-gradient(
+    from 0deg at 50% calc(100% - var(--gradient-center-bottom-inset)),
+    transparent 0deg 180deg,
+    #000 180deg 360deg
+  );
+}
+
+.paletteDark {
+  mix-blend-mode: multiply;
+  mask-image: conic-gradient(
+    from 0deg at 50% calc(100% - var(--gradient-center-bottom-inset)),
+    #000 0deg 180deg,
+    transparent 180deg 360deg
+  );
+}
+
 @media (max-width: 34rem) {
   .study {
     width: 100%;

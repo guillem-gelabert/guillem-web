@@ -63,6 +63,16 @@ export function NoiseGradient() {
             aria-hidden="true"
             style={{ mixBlendMode: mixMode }}
           />
+          <div
+            className={`${styles.paletteGuard} ${styles.paletteLight}`}
+            data-testid="left-palette-guard"
+            aria-hidden="true"
+          />
+          <div
+            className={`${styles.paletteGuard} ${styles.paletteDark}`}
+            data-testid="right-palette-guard"
+            aria-hidden="true"
+          />
         </div>
       </div>
       <div className={styles.controls}>

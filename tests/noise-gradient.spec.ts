@@ -16,6 +16,8 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
   const maskToggle = page.getByLabel("Noise mask");
   const contrast = page.getByLabel("Noise contrast");
   const brightness = page.getByLabel("Noise brightness");
+  const leftPalette = page.getByTestId("left-palette-guard");
+  const rightPalette = page.getByTestId("right-palette-guard");
 
   const gradientStyles = await gradient.evaluate((element) => {
     const styles = getComputedStyle(element);
@@ -36,6 +38,18 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
   expect(gradientStyles.zIndex).toBe("2");
   await expect(background).toHaveCSS("background-color", "rgb(255, 20, 147)");
   await expect(background).toHaveCSS("z-index", "0");
+  await expect(leftPalette).toHaveCSS("background-color", "rgb(255, 20, 147)");
+  await expect(leftPalette).toHaveCSS("mix-blend-mode", "screen");
+  await expect(leftPalette).toHaveCSS(
+    "mask-image",
+    /conic-gradient\(at 50% 70%/,
+  );
+  await expect(rightPalette).toHaveCSS("background-color", "rgb(255, 20, 147)");
+  await expect(rightPalette).toHaveCSS("mix-blend-mode", "multiply");
+  await expect(rightPalette).toHaveCSS(
+    "mask-image",
+    /conic-gradient\(at 50% 70%/,
+  );
 
   await expect(isolate).toHaveCSS("isolation", "isolate");
   const backgroundMode = page.getByLabel("Background blend mode");
