@@ -100,7 +100,7 @@
   .scene {
     --box-width: calc(100vw - var(--edge) - var(--edge));
     --box-height: calc(
-      (100dvh - var(--edge) - var(--edge) - var(--corner-gap)) / 2
+      (100dvh - var(--edge) - var(--edge) - var(--edge)) / 2
     );
   }
 
