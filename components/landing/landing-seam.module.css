@@ -134,11 +134,19 @@
 
   position: relative;
   width: 100%;
-  height: 100dvh;
+  /* 100lvh, not 100dvh: with viewport-fit=cover the large viewport is the
+     one that spans the safe-area bands, so this is what reaches the top and
+     bottom edges of the screen. Under 100dvh the scene stopped short of
+     both and the white <body> showed through them.
+
+     It paints --gradient-shade rather than staying transparent for the same
+     reason: body is --color-paper, so any pixel the grain stack does not
+     cover reads as a white band. */
+  height: 100lvh;
   min-height: 100svh;
   overflow: hidden;
   isolation: isolate;
-  background: transparent;
+  background: var(--gradient-shade);
 }
 
 /* The grainy gradient, ported from the /noise-gradient study's five-band
@@ -411,7 +419,12 @@
     --box-width: calc(100vw - var(--edge) - var(--edge-right));
     /* Full-bleed boxes make 0.687 of the width far too tall for a phone,
        and a 42% aside wraps the positioning sentence to eight lines. */
-    --nameplate-height: min(calc(var(--box-width) * 0.687), 34dvh);
+    /* Cut to the name it holds, not to a share of the screen. The name is
+       sized by width here (56cqw below), so two lines at line-height 0.78
+       come to 2 x 0.78 x 0.56 = 0.874 of the box's width. At 34dvh the box
+       was ~26px shorter than that on a 393x852 phone and the second line
+       ran down into the positioning aside. */
+    --nameplate-height: calc(var(--box-width) * 0.874);
     --aside-width: calc(var(--box-width) * 0.62);
     --gradient-center-x: var(--gradient-center-mobile-portrait-x);
     --gradient-center-y: var(--gradient-center-mobile-portrait-y);
