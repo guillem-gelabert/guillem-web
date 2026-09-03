@@ -5,7 +5,7 @@ milestone_name: Working Site
 status: milestone-complete
 stopped_at: v1.0 complete — every surface ships, held at noindex by the copy gate (see .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md). Test suite is red by decision after 260903-hb4; see Blockers/Concerns
 last_updated: "2026-09-03T15:10:00+02:00"
-last_activity: 2026-09-03 - Completed quick task 260903-kmx: scope brightness and contrast to the SVG noise texture only
+last_activity: 2026-09-03 - Completed quick task 260903-kq9: constrain the left palette to pink-white and right palette to pink-black
 progress:
   total_phases: 6
   completed_phases: 6
@@ -28,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-08-29)
 Phase: 06 (CV, Contact, Photo & Discoverability) — COMPLETE
 Plan: 12 of 12
 Status: v1.0 milestone closed 2026-09-01
-Last activity: 2026-09-03 - Completed quick task 260903-kmx: scope brightness and contrast to the SVG noise texture only
+Last activity: 2026-09-03 - Completed quick task 260903-kq9: constrain the left palette to pink-white and right palette to pink-black
 
 **The site is structurally complete and deliberately not indexed.** Every surface the milestone
 promised ships and is live at `guillemgelabert.com`. Five of the values those surfaces render are
@@ -234,6 +234,7 @@ migration is deferred to v2 and no migration was performed.
 | 260903-kk1 | Default /noise-gradient to hue background mode, luminosity mix mode, and no noise mask | 2026-09-03 | a96d3a9 | [260903-kk1-default-hue-luminosity-no-mask](./quick/260903-kk1-default-hue-luminosity-no-mask/) |
 | 260903-klk | Keep the SVG noise frequency and size identical when toggling the conic mask | 2026-09-03 | 1e2dda7 | [260903-klk-keep-noise-frequency-across-mask-toggle](./quick/260903-klk-keep-noise-frequency-across-mask-toggle/) |
 | 260903-kmx | Scope brightness and contrast to the SVG noise texture and implement falloff as a CSS mask | 2026-09-03 | b2cdf6a | [260903-kmx-isolate-noise-intensity-filter](./quick/260903-kmx-isolate-noise-intensity-filter/) |
+| 260903-kq9 | Constrain /noise-gradient to pink-white on the left and pink-black on the right | 2026-09-03 | be9231d | [260903-kq9-constrain-left-right-palettes](./quick/260903-kq9-constrain-left-right-palettes/) |
 
 ## Deferred Items
 
@@ -258,7 +259,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 Last session: 2026-09-03T15:10:00+02:00
 Stopped at: v1.0 complete. Phase 6 closed; every surface ships; the site is deliberately noindex.
-Post-milestone design work continues as quick tasks; the latest is 260903-kmx.
+Post-milestone design work continues as quick tasks; the latest is 260903-kq9.
 Resume file: .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md
 
 The next action belongs to the user, not to an executor: fill five values, do three copy reviews,
