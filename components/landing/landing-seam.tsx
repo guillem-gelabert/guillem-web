@@ -76,14 +76,14 @@ export function LandingSeam({
             of these has a real destination yet. They are here for the
             composition; give them hrefs when the pages exist. */}
         <a
-          className={`text-label seam-lang seam-lang-en ${styles.langEn}`}
+          className={`seam-lang seam-lang-en ${styles.langEn}`}
           href="#"
           id="seam-lang-en"
         >
           EN
         </a>
         <a
-          className={`text-label seam-lang seam-lang-de ${styles.langDe}`}
+          className={`seam-lang seam-lang-de ${styles.langDe}`}
           href="#"
           id="seam-lang-de"
         >

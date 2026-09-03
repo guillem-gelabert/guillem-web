@@ -389,15 +389,52 @@
   mix-blend-mode: difference;
 }
 
-.langEn {
+/* Both sit on the top edge, straddling the point where the seam crosses
+   it, each --lang-offset to one side. Anchoring them to the seam rather
+   than to the corner is what keeps them equidistant from it as the hook
+   re-aims the angle: the crossing point is the origin's x plus its
+   distance from the top edge laid along the ray, which is what the tangent
+   of --seam-angle gives.
+
+   translate pulls each back by half its own width so the offset measures
+   from the label's centre, not its edge — otherwise the two would sit
+   equidistant only if they were the same width, and EN and DE are not. */
+.langEn,
+.langDe {
+  /* Clamped into the viewport: past roughly 62deg on a 16:9 screen the ray
+     leaves the top edge beyond 100vw and both labels would sit off-screen.
+     The bounds leave room for --lang-offset either side plus the edge. */
+  --seam-top-crossing: clamp(
+    calc(var(--edge) + var(--lang-offset)),
+    calc(
+      var(--gradient-center-x) + var(--gradient-center-y) *
+        tan(var(--seam-angle, 50deg))
+    ),
+    calc(100vw - var(--edge-right) - var(--lang-offset))
+  );
+
+  /* Humane Light, and set large enough to read as part of the composition
+     rather than as UI chrome. .text-label supplies neither: it is the body
+     face at 14px, so both are overridden here. 300 is the weight axis's
+     named Light instance. */
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 4.5rem);
+  font-weight: 300;
+  line-height: 1;
   top: var(--edge-top);
-  right: calc(var(--edge-right) + var(--lang-offset));
+}
+
+.langEn {
+  left: calc(var(--seam-top-crossing) - var(--lang-offset));
+  translate: -50% 0;
 }
 
 .langDe {
-  top: calc(var(--edge-top) + var(--lang-offset));
-  right: var(--edge-right);
+  left: calc(var(--seam-top-crossing) + var(--lang-offset));
+  translate: -50% 0;
 }
+
+
 
 /* The nameplate's whole type spec, kept with the box it is measured
    against. It used to be a .text-nameplate role in globals.css, but the
