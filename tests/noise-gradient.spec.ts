@@ -44,6 +44,38 @@ test("/noise-gradient blends a noise PNG with a conic gradient", async ({ page }
     "#e40000",
   );
 
+  const yellowAlpha = page.getByLabel("yellow alpha", { exact: true });
+  await expect(yellowAlpha).toHaveValue("100");
+  await expect(page.getByLabel("orange alpha", { exact: true })).toHaveValue(
+    "50",
+  );
+  await expect(page.getByLabel("red alpha", { exact: true })).toHaveValue(
+    "100",
+  );
+  await expect(page.locator('output[for="yellow-alpha"]')).toHaveText("100%");
+  await expect(page.locator('output[for="orange-alpha"]')).toHaveText("50%");
+  await expect(page.locator('output[for="red-alpha"]')).toHaveText("100%");
+
+  await yellowAlpha.focus();
+  await yellowAlpha.press("ArrowLeft");
+  await expect(yellowAlpha).toHaveValue("99");
+  await expect(page.locator('output[for="yellow-alpha"]')).toHaveText("99%");
+  await expect.poll(async () => {
+    return layers.gradient.evaluate(
+      (element) => getComputedStyle(element).backgroundImage,
+    );
+  }).toContain("rgba(255, 225, 0, 0.99)");
+  await expect.poll(async () => {
+    return layers.gradient.evaluate(
+      (element) => getComputedStyle(element).backgroundImage,
+    );
+  }).toContain("rgba(255, 128, 0, 0.5)");
+  await expect.poll(async () => {
+    return layers.gradient.evaluate(
+      (element) => getComputedStyle(element).backgroundImage,
+    );
+  }).toContain("rgb(228, 0, 0)");
+
   await orange.evaluate((input: HTMLInputElement) => {
     const setValue = Object.getOwnPropertyDescriptor(
       HTMLInputElement.prototype,
