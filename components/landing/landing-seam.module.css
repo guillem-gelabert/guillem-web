@@ -79,7 +79,12 @@
   /* Desktop overwrites this from the hook every measure. The two phone
      modes do not — there it is the declared design decision, set in each
      branch below. */
-  --seam-angle: 50deg;
+  /* No --seam-angle here. The hook writes it to :root so the mirrored
+     section (a sibling of this one) inherits it too, and a declaration on
+     .scene would shadow that inherited value outright — which is exactly
+     what froze the seam at this default. The fallback lives in the var()
+     call at the conic instead, where it applies only if nothing has been
+     written yet. */
   /* Both offsets are measured in dvh, so the origin sits the same distance
      from the left edge as it does from the bottom one — a square corner
      inset that scales with height alone, rather than one that stretches
@@ -227,7 +232,7 @@
 
   background:
     conic-gradient(
-      from var(--seam-angle) at var(--grain-origin),
+      from var(--seam-angle, 50deg) at var(--grain-origin),
       rgb(255 255 255 / 0.5) calc(var(--arc-center) - var(--spread) / 2),
       transparent calc(var(--arc-center) - var(--spread) / 2),
       rgb(0 0 0 / 0.45) calc(var(--arc-center) - var(--spread) / 4),
@@ -474,6 +479,9 @@
     --gradient-center-y: var(--gradient-center-mobile-portrait-y);
     /* Flatter than the ~22deg aiming at the gap used to give: the ray
        leans toward the horizontal instead of climbing the screen. */
+    /* Declared on .scene deliberately: on a phone this SHOULD beat the
+       hook, which clears its :root value in that branch precisely so this
+       one takes over. */
     --seam-angle: 55deg;
   }
 
@@ -537,6 +545,9 @@
     );
     --gradient-center-x: var(--gradient-center-mobile-landscape-x);
     --gradient-center-y: var(--gradient-center-mobile-landscape-y);
+    /* Declared on .scene deliberately: on a phone this SHOULD beat the
+       hook, which clears its :root value in that branch precisely so this
+       one takes over. */
     --seam-angle: 55deg;
   }
 
