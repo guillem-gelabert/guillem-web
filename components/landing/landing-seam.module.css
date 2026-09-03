@@ -1,8 +1,10 @@
 .scene {
-  /* One inset on every side, deliberately ignoring iOS's safe areas: the
-     composition is meant to run under the notch and the home indicator
-     rather than be pushed clear of them. The per-side names are kept so
-     the formulas below stay explicit about which edge they mean. */
+  /* The inset the BOXES sit at. Nothing about the background reads it —
+     .grain is inset: 0 and paints the full scene — so raising these pushes
+     content off an edge without letterboxing the gradient. Ignores the safe
+     areas by default: portrait is meant to run under the notch and the home
+     indicator. The landscape branch overrides that, where the notch is on
+     the side and would otherwise sit on the name. */
   --edge: clamp(1rem, 3.5vw, 12rem);
   --edge-top: var(--edge);
   --edge-bottom: var(--edge);
@@ -489,5 +491,32 @@
     --noise-tile: 200px 155px;
     --grain-origin: var(--gradient-center-mobile-landscape-x)
       var(--gradient-center-mobile-landscape-y);
+  }
+}
+
+/* A phone on its side puts the notch beside the content, not above it, so
+   here the boxes take the safe area even though the background still does
+   not. Only these four variables change: .grain is inset: 0 and reads none
+   of them, so the gradient keeps running edge to edge under the notch while
+   the name and the case study clear it. Declared after the landscape block
+   above so it wins on the same media condition. */
+@media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+  .scene {
+    --edge: max(
+      clamp(1rem, 3.5vw, 12rem),
+      env(safe-area-inset-left, 0px)
+    );
+    --edge-right: max(
+      clamp(1rem, 3.5vw, 12rem),
+      env(safe-area-inset-right, 0px)
+    );
+    --edge-top: max(
+      clamp(1rem, 3.5vw, 12rem),
+      env(safe-area-inset-top, 0px)
+    );
+    --edge-bottom: max(
+      clamp(1rem, 3.5vw, 12rem),
+      env(safe-area-inset-bottom, 0px)
+    );
   }
 }
