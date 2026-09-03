@@ -5,7 +5,7 @@ milestone_name: Working Site
 status: milestone-complete
 stopped_at: v1.0 complete — every surface ships, held at noindex by the copy gate (see .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md). Test suite is red by decision after 260903-hb4; see Blockers/Concerns
 last_updated: "2026-09-03T15:10:00+02:00"
-last_activity: 2026-09-03 - Completed quick task 260903-jzh: replace the radial noise mask with a conic mask
+last_activity: 2026-09-03 - Completed quick task 260903-k1t: set an orange background and white-to-black conic overlay
 progress:
   total_phases: 6
   completed_phases: 6
@@ -28,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-08-29)
 Phase: 06 (CV, Contact, Photo & Discoverability) — COMPLETE
 Plan: 12 of 12
 Status: v1.0 milestone closed 2026-09-01
-Last activity: 2026-09-03 - Completed quick task 260903-jzh: replace the radial noise mask with a conic mask
+Last activity: 2026-09-03 - Completed quick task 260903-k1t: set an orange background and white-to-black conic overlay
 
 **The site is structurally complete and deliberately not indexed.** Every surface the milestone
 promised ships and is live at `guillemgelabert.com`. Five of the values those surfaces render are
@@ -220,6 +220,7 @@ migration is deferred to v2 and no migration was performed.
 | 260903-jx2 | Embed an adapted version of the supplied ground-shadow SVG grain recipe on /noise-gradient | 2026-09-03 | cb9b992 | [260903-jx2-embed-adapted-ground-shadow-noise](./quick/260903-jx2-embed-adapted-ground-shadow-noise/) |
 | 260903-jy6 | Add background-blend-mode and mix-blend-mode controls to /noise-gradient | 2026-09-03 | a9083b6 | [260903-jy6-add-blend-mode-controls](./quick/260903-jy6-add-blend-mode-controls/) |
 | 260903-jzh | Remove the radial noise mask so /noise-gradient uses conic gradients only | 2026-09-03 | 6316175 | [260903-jzh-remove-radial-noise-mask](./quick/260903-jzh-remove-radial-noise-mask/) |
+| 260903-k1t | Set /noise-gradient background orange and simplify the visible conic overlay to white-to-black | 2026-09-03 | cb0c168 | [260903-k1t-orange-background-white-black-conic](./quick/260903-k1t-orange-background-white-black-conic/) |
 
 ## Deferred Items
 
@@ -244,7 +245,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 Last session: 2026-09-03T15:10:00+02:00
 Stopped at: v1.0 complete. Phase 6 closed; every surface ships; the site is deliberately noindex.
-Post-milestone design work continues as quick tasks; the latest is 260903-jzh.
+Post-milestone design work continues as quick tasks; the latest is 260903-k1t.
 Resume file: .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md
 
 The next action belongs to the user, not to an executor: fill five values, do three copy reviews,
