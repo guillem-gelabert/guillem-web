@@ -11,7 +11,7 @@
   --gradient-center-bottom-inset: 30%;
   --gradient-black: #000;
   --gradient-orange: #ff8000;
-  --gradient-yellow: #ffe100;
+  --gradient-white: #fff;
 
   position: relative;
   width: min(80vmin, 52rem);
@@ -29,7 +29,7 @@
       from 0deg at 50% calc(100% - var(--gradient-center-bottom-inset)),
       var(--gradient-black),
       var(--gradient-orange),
-      var(--gradient-yellow)
+      var(--gradient-white)
     ),
     url("/noise-gradient-noise.svg") center / 200px repeat;
   background-blend-mode: multiply;

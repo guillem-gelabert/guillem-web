@@ -7,7 +7,7 @@ export function NoiseGradient() {
         className={styles.study}
         data-testid="noise-gradient-study"
         role="img"
-        aria-label="SVG fractal noise blended with a black-to-orange-to-yellow conical gradient"
+        aria-label="SVG fractal noise blended with a black-to-orange-to-white conical gradient"
       >
         <div
           className={styles.grain}

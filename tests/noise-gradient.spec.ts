@@ -20,7 +20,7 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
   expect(grainStyles.backgroundImage).toContain("at 50% 70%");
   expect(grainStyles.backgroundImage).toContain("rgb(0, 0, 0)");
   expect(grainStyles.backgroundImage).toContain("rgb(255, 128, 0)");
-  expect(grainStyles.backgroundImage).toContain("rgb(255, 225, 0)");
+  expect(grainStyles.backgroundImage).toContain("rgb(255, 255, 255)");
   expect(grainStyles.backgroundImage).toContain("noise-gradient-noise.svg");
   expect(grainStyles.backgroundImage).not.toContain("noise-gradient.png");
   expect(grainStyles.backgroundBlendMode).toContain("multiply");
