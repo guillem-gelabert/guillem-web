@@ -8,6 +8,10 @@
 
   --color-paper: #ffffff;
   --color-ink: #000000;
+  /* The landing's canvas — the dark end of its orange ramp. A token rather
+     than a literal because it is a colour the site owns, and because every
+     hex in this file belongs in this block (prose-contract test (m)). */
+  --color-seam-canvas: #331900;
   --color-accent: #C1272D;
   --color-surface-code: rgba(0, 0, 0, 0.04);
   --color-rule: rgba(0, 0, 0, 0.12);
@@ -438,4 +442,14 @@ hr {
 body {
   background: var(--color-paper);
   color: var(--color-ink);
+}
+
+/* The landing runs edge to edge under the notch and the home indicator, and
+   on iOS the BODY's background propagates to the canvas — which paints both
+   safe-area bands whatever height the page's own elements are. So the seam
+   cannot cover the top band from inside itself: white body meant a white
+   strip above it no matter what. This is set by the landing route only, so
+   every other page keeps its paper. */
+body:has(.seam-scene) {
+  background: var(--color-seam-canvas);
 }

@@ -423,8 +423,24 @@
        sized by width here (56cqw below), so two lines at line-height 0.78
        come to 2 x 0.78 x 0.56 = 0.874 of the box's width. At 34dvh the box
        was ~26px shorter than that on a 393x852 phone and the second line
-       ran down into the positioning aside. */
-    --nameplate-height: calc(var(--box-width) * 0.874);
+       ran down into the positioning aside.
+
+       The min() is the other constraint. Both stacks are full-width in
+       portrait, so they cannot pass each other the way they do on desktop —
+       they share the height instead, and each corner gets at most half of
+       what is left once the two asides and the two gaps are accounted for.
+       Without it the name's own proportion made both stacks taller than
+       half the screen and the case study climbed into the tagline. */
+    --nameplate-height: min(
+      calc(var(--box-width) * 0.874),
+      calc(
+        (
+            100dvh - var(--edge-top) - var(--edge-bottom) -
+              var(--stack-gap) - var(--stack-gap) - var(--aside-height) -
+              var(--aside-height)
+          ) / 2
+      )
+    );
     --aside-width: calc(var(--box-width) * 0.62);
     --gradient-center-x: var(--gradient-center-mobile-portrait-x);
     --gradient-center-y: var(--gradient-center-mobile-portrait-y);
@@ -445,8 +461,14 @@
      screen. The box still has overflow: visible, so the two lines together
      may run past its bottom — the height is a share of the viewport here,
      not derived from the name. */
+  /* Width first, height as the backstop. 56cqw is what puts GELABERT on
+     both side edges of a full-bleed box, which is the look; 64cqh is the
+     most two lines at line-height 0.78 can take without leaving the box.
+     Where the two stacks have to share the screen the box ends up shorter
+     than the name's own proportion wants, and the height term takes over so
+     the name shrinks rather than running into the case study. */
   .boxNameplate :global(.seam-nameplate-text) {
-    font-size: 56cqw;
+    font-size: min(56cqw, 64cqh);
   }
 
   /* Finer grain on a phone. The same texture tiled smaller reads as
