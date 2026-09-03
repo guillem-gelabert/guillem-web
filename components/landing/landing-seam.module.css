@@ -89,8 +89,8 @@
      from the left edge as it does from the bottom one — a square corner
      inset that scales with height alone, rather than one that stretches
      with the window's width. */
-  --gradient-center-desktop-x: 8dvh;
-  --gradient-center-desktop-y: 92dvh;
+  --gradient-center-desktop-x: 16dvh;
+  --gradient-center-desktop-y: 84dvh;
   /* Tighter into the corner than the other two modes: a phone's scene is
      tall and narrow, so the same 8dvh inset reads as much further from the
      corner across the width than it does on a desktop. */
