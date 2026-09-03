@@ -196,11 +196,13 @@
   --noise-texture: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 310' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='1' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
   --noise-tile: 400px 310px;
   --spread: 144deg;
-  /* The centre is what the study's arc numbers are authored for: their
-     144deg spreads assume the radius is roughly even in every direction,
-     which a centred origin gives and a corner-anchored one does not. The
-     phone branches override this deliberately — see the note there. */
-  --grain-origin: 50% 50%;
+  /* Where the flat conic sat before the grain replaced it: the corner the
+     rest of the composition is anchored on, via the same
+     --gradient-center-x/y the hook drives. The study's arcs are authored
+     for a centred origin — their 144deg spreads assume an even radius — so
+     an off-centre one distributes the five bands unevenly by construction.
+     That is the composition's choice, not an oversight. */
+  --grain-origin: var(--gradient-center-x) var(--gradient-center-y);
 
   background:
     conic-gradient(
@@ -481,8 +483,6 @@
      which on a tall narrow screen is the point, not a defect. */
   .grainField {
     --noise-tile: 200px 155px;
-    --grain-origin: var(--gradient-center-mobile-portrait-x)
-      var(--gradient-center-mobile-portrait-y);
   }
 
   /* Same trade as the landscape branch below, less of it: the case study's
@@ -523,8 +523,6 @@
 
   .grainField {
     --noise-tile: 200px 155px;
-    --grain-origin: var(--gradient-center-mobile-landscape-x)
-      var(--gradient-center-mobile-landscape-y);
   }
 }
 
