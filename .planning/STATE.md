@@ -5,7 +5,7 @@ milestone_name: Working Site
 status: milestone-complete
 stopped_at: v1.0 complete — every surface ships, held at noindex by the copy gate (see .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md). Test suite is red by decision after 260903-hb4; see Blockers/Concerns
 last_updated: "2026-09-03T15:10:00+02:00"
-last_activity: 2026-09-03 - Completed quick task 260903-k9f: force the SVG turbulence noise to monochrome
+last_activity: 2026-09-03 - Completed quick task 260903-ka4: lock the optimal static blend and remove controls
 progress:
   total_phases: 6
   completed_phases: 6
@@ -28,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-08-29)
 Phase: 06 (CV, Contact, Photo & Discoverability) — COMPLETE
 Plan: 12 of 12
 Status: v1.0 milestone closed 2026-09-01
-Last activity: 2026-09-03 - Completed quick task 260903-k9f: force the SVG turbulence noise to monochrome
+Last activity: 2026-09-03 - Completed quick task 260903-ka4: lock the optimal static blend and remove controls
 
 **The site is structurally complete and deliberately not indexed.** Every surface the milestone
 promised ships and is live at `guillemgelabert.com`. Five of the values those surfaces render are
@@ -225,6 +225,7 @@ migration is deferred to v2 and no migration was performed.
 | 260903-k4q | Stack the solid orange base below separate SVG-noise and white-to-black conic layers | 2026-09-03 | eb4f119 | [260903-k4q-stack-orange-below-noise-and-gradient](./quick/260903-k4q-stack-orange-below-noise-and-gradient/) |
 | 260903-k7f | Express the visible conic as orange from 0% to 100% lightness | 2026-09-03 | 0309d58 | [260903-k7f-orange-lightness-conic](./quick/260903-k7f-orange-lightness-conic/) |
 | 260903-k9f | Remove colored feTurbulence speckles by forcing the SVG-noise layer to grayscale | 2026-09-03 | 537571c | [260903-k9f-force-monochrome-svg-noise](./quick/260903-k9f-force-monochrome-svg-noise/) |
+| 260903-ka4 | Lock normal/soft-light as the optimal /noise-gradient blend and remove the temporary controls | 2026-09-03 | c3818c4 | [260903-ka4-lock-optimal-blend-remove-controls](./quick/260903-ka4-lock-optimal-blend-remove-controls/) |
 
 ## Deferred Items
 
@@ -249,7 +250,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 Last session: 2026-09-03T15:10:00+02:00
 Stopped at: v1.0 complete. Phase 6 closed; every surface ships; the site is deliberately noindex.
-Post-milestone design work continues as quick tasks; the latest is 260903-k9f.
+Post-milestone design work continues as quick tasks; the latest is 260903-ka4.
 Resume file: .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md
 
 The next action belongs to the user, not to an executor: fill five values, do three copy reviews,
