@@ -47,13 +47,17 @@ export function SeamPlayground() {
       aria-label="Conical gradient geometry study"
     >
       <div ref={boxARef} className={`${styles.box} ${styles.boxA}`}>
-        <span aria-hidden="true">A</span>
-        <span className={styles.srOnly}>Blue box A</span>
+        <span aria-hidden="true" className={styles.boxText}>
+          BLACK
+        </span>
+        <span className={styles.srOnly}>Transparent box reading Black</span>
       </div>
 
       <div ref={boxBRef} className={`${styles.box} ${styles.boxB}`}>
-        <span aria-hidden="true">B</span>
-        <span className={styles.srOnly}>Red box B</span>
+        <span aria-hidden="true" className={styles.boxText}>
+          WHITE
+        </span>
+        <span className={styles.srOnly}>Transparent box reading White</span>
       </div>
     </main>
   );

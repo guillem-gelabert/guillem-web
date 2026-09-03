@@ -31,29 +31,42 @@
   place-items: center;
   width: var(--box-width);
   height: var(--box-height);
+  background: transparent;
   color: #fff;
   font-family: var(--font-display);
-  font-size: clamp(3.5rem, 10vw, 8rem);
+  font-size: clamp(6rem, 20vw, 18rem);
   font-weight: 530;
   line-height: 0.8;
   letter-spacing: 0.01em;
-  box-shadow: 0 0 0 1px rgb(0 0 0 / 14%);
+}
+
+.box::before {
+  position: absolute;
+  inset: 0;
+  border: 1px solid #fff;
+  content: "";
+  mix-blend-mode: difference;
+  pointer-events: none;
+}
+
+.boxText {
+  color: #fff;
+  mix-blend-mode: difference;
 }
 
 .box::after {
   position: absolute;
   width: clamp(0.5rem, 0.8vw, 0.75rem);
   aspect-ratio: 1;
-  border: 2px solid #fff;
   border-radius: 50%;
-  background: #111;
+  background: #fff;
   content: "";
+  mix-blend-mode: difference;
 }
 
 .boxA {
   top: var(--edge);
   left: var(--edge);
-  background: #0647ed;
 }
 
 .boxA::after {
@@ -65,7 +78,6 @@
 .boxB {
   right: var(--edge);
   bottom: var(--edge);
-  background: #e52f26;
 }
 
 .boxB::after {
@@ -87,7 +99,7 @@
 }
 
 @media (prefers-contrast: more) {
-  .box {
-    box-shadow: 0 0 0 2px #111;
+  .box::before {
+    border-width: 2px;
   }
 }
