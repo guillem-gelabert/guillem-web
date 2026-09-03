@@ -73,6 +73,11 @@ export function NoiseGradient() {
             data-testid="right-palette-guard"
             aria-hidden="true"
           />
+          <div
+            className={`${styles.paletteGuard} ${styles.paletteCenter}`}
+            data-testid="center-pink-guard"
+            aria-hidden="true"
+          />
         </div>
       </div>
       <div className={styles.controls}>

@@ -137,8 +137,9 @@
   mix-blend-mode: screen;
   mask-image: conic-gradient(
     from 0deg at 50% calc(100% - var(--gradient-center-bottom-inset)),
-    transparent 0deg 180deg,
-    #000 180deg 360deg
+    transparent 0deg 195deg,
+    #000 225deg 330deg,
+    transparent 360deg
   );
 }
 
@@ -146,8 +147,22 @@
   mix-blend-mode: multiply;
   mask-image: conic-gradient(
     from 0deg at 50% calc(100% - var(--gradient-center-bottom-inset)),
-    #000 0deg 180deg,
-    transparent 180deg 360deg
+    transparent 0deg,
+    #000 30deg 135deg,
+    transparent 165deg 360deg
+  );
+}
+
+.paletteCenter {
+  z-index: 4;
+  mix-blend-mode: normal;
+  mask-image: conic-gradient(
+    from 0deg at 50% calc(100% - var(--gradient-center-bottom-inset)),
+    #000 0deg 10deg,
+    transparent 40deg 150deg,
+    #000 172deg 188deg,
+    transparent 210deg 320deg,
+    #000 350deg 360deg
   );
 }
 
