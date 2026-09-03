@@ -1,5 +1,14 @@
 .scene {
-  --edge: clamp(1rem, 3.5vw, 12rem);
+  /* The corner inset the boxes sit at, and the floor beneath it is iOS
+     Safari's safe area. Without viewport-fit=cover these env() values are
+     0px and this is just the clamp; with it they become the notch and the
+     home indicator, and the boxes stay clear of both. The scene still
+     paints edge to edge — only the content is inset. */
+  --edge-base: clamp(1rem, 3.5vw, 12rem);
+  --edge: max(var(--edge-base), env(safe-area-inset-left, 0px));
+  --edge-top: max(var(--edge-base), env(safe-area-inset-top, 0px));
+  --edge-bottom: max(var(--edge-base), env(safe-area-inset-bottom, 0px));
+  --edge-right: max(var(--edge-base), env(safe-area-inset-right, 0px));
   /* The viewport's own proportion as a plain number: >1 landscape, 1
      square, <1 portrait. --nameplate-width and --aside-ratio both read it,
      and it has to be declared before them. */
@@ -9,7 +18,8 @@
      two columns afterwards. Nothing reads it; it stays because it names
      the thing the composition is about. */
   --corner-gap: calc(
-    100vw - var(--edge) - var(--edge) - var(--box-width) - var(--box-width)
+    100vw - var(--edge) - var(--edge-right) - var(--box-width) -
+      var(--box-width)
   );
   /* --stack-gap and --aside-padding are load-bearing, not cosmetic. The
      positioning aside's height is set by its text, and every pixel it gains
@@ -60,7 +70,7 @@
   --nameplate-width: calc(
     (
       50vw + 50dvh / var(--viewport-ratio) - var(--edge) -
-        var(--edge) / var(--viewport-ratio)
+        var(--edge-top) / var(--viewport-ratio)
     ) / (1 + 1 / (1.16 * var(--viewport-ratio))) * 0.86
   );
   --nameplate-height: calc(var(--nameplate-width) / 1.16);
@@ -104,8 +114,11 @@
   background: transparent;
 }
 
-/* The grainy gradient, ported from the /noise-gradient study's three-band
-   mode. The base is its own layer, not a background on this container: the
+/* The grainy gradient, ported from the /noise-gradient study's five-band
+   mode. Every band is the same hue at a different lightness by
+   construction: the plateaus are built in grayscale and .grainColour tints
+   the lot in one pass, so --gradient-colour is the only place the hue is
+   named. The base is its own layer, not a background on this container: the
    fields multiply against their SIBLINGS inside the isolated stack, and a
    colour on the parent is not one of them — it sits outside the group the
    blend composites within, and the fields end up multiplying against
@@ -141,8 +154,13 @@
 }
 
 .grainField {
+  /* --noise-frequency is feTurbulence's baseFrequency, spliced into the
+     data URI. It is a separate variable so the phone branches can raise it
+     without restating the whole SVG. Higher is finer: the dots get smaller
+     and denser, which is what a phone's pixel density wants. */
   --noise-texture: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 310' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='1' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  --spread: 240deg;
+  --noise-tile: 400px 310px;
+  --spread: 144deg;
 
   background:
     conic-gradient(
@@ -155,23 +173,37 @@
       rgb(0 0 0 / 0.71) calc(var(--arc-center) + var(--spread) / 2),
       #000 calc(var(--arc-center) + var(--spread) / 2)
     ),
-    var(--noise-texture) center / 400px 310px repeat,
+    var(--noise-texture) center / var(--noise-tile) repeat,
     #fff;
   filter: grayscale(100%) contrast(170%) brightness(1000%);
   mix-blend-mode: multiply;
 }
 
-/* Three tones: 0.95 / 0.41 / 0.07 — each opacity is 1 - next / previous. */
+/* Five tones: 0.95 / 0.70 / 0.41 / 0.20 / 0.07 — each opacity is
+   1 - next / previous. Four arcs make five plateaus: each one darkens
+   everything from its own centre onward, so the tones accumulate. */
 .grainArc1 {
-  --arc-center: 120deg;
+  --arc-center: 72deg;
 
-  opacity: 0.568;
+  opacity: 0.263;
 }
 
 .grainArc2 {
-  --arc-center: 240deg;
+  --arc-center: 144deg;
 
-  opacity: 0.829;
+  opacity: 0.414;
+}
+
+.grainArc3 {
+  --arc-center: 216deg;
+
+  opacity: 0.512;
+}
+
+.grainArc4 {
+  --arc-center: 288deg;
+
+  opacity: 0.65;
 }
 
 .grainColour {
@@ -256,13 +288,13 @@
 }
 
 .stackNameplate {
-  top: var(--edge);
+  top: var(--edge-top);
   left: var(--edge);
 }
 
 .stackCaseStudy {
-  right: var(--edge);
-  bottom: var(--edge);
+  right: var(--edge-right);
+  bottom: var(--edge-bottom);
 }
 
 /* EN and DE mirror each other across the top-right corner: EN sits flush
@@ -280,13 +312,13 @@
 }
 
 .langEn {
-  top: var(--edge);
-  right: calc(var(--edge) + var(--lang-offset));
+  top: var(--edge-top);
+  right: calc(var(--edge-right) + var(--lang-offset));
 }
 
 .langDe {
-  top: calc(var(--edge) + var(--lang-offset));
-  right: var(--edge);
+  top: calc(var(--edge-top) + var(--lang-offset));
+  right: var(--edge-right);
 }
 
 /* The nameplate's whole type spec, kept with the box it is measured
@@ -339,7 +371,7 @@
    at the width where it crossed its own height mirrored the gradient. */
 @media (hover: none) and (pointer: coarse) and (orientation: portrait) {
   .scene {
-    --box-width: calc(100vw - var(--edge) - var(--edge));
+    --box-width: calc(100vw - var(--edge) - var(--edge-right));
     /* Full-bleed boxes make 0.687 of the width far too tall for a phone,
        and a 42% aside wraps the positioning sentence to eight lines. */
     --nameplate-height: min(calc(var(--box-width) * 0.687), 34dvh);
@@ -367,6 +399,13 @@
     font-size: 56cqw;
   }
 
+  /* Finer grain on a phone. The same texture tiled smaller reads as
+     higher-frequency noise — denser, smaller dots — which holds up at a
+     phone's pixel density where the desktop tile looks coarse. */
+  .grainField {
+    --noise-tile: 200px 155px;
+  }
+
   /* Same trade as the landscape branch below, less of it: the case study's
      box is cut to the name's proportion here too, and the editorial gap is
      what gives so the standfirst's last line is not cropped. */
@@ -378,7 +417,7 @@
 @media (hover: none) and (pointer: coarse) and (orientation: landscape) {
   .scene {
     --box-width: calc(
-      (100vw - var(--edge) - var(--edge) - var(--edge)) / 2
+      (100vw - var(--edge) - var(--edge-right) - var(--edge)) / 2
     );
     /* The two corners sit side by side here, so each one owns the full
        height rather than a share of it, and the name takes what the aside
@@ -388,7 +427,7 @@
     --aside-width: calc(var(--box-width) * 0.75);
     --aside-height: calc(var(--aside-width) / var(--aside-ratio));
     --nameplate-height: calc(
-      100dvh - var(--edge) - var(--edge) - var(--stack-gap) -
+      100dvh - var(--edge-top) - var(--edge-bottom) - var(--stack-gap) -
         var(--aside-height)
     );
     --gradient-center-x: var(--gradient-center-mobile-landscape-x);
@@ -401,5 +440,9 @@
      thing in there that can give without shrinking type. */
   .boxCaseStudy :global(section) {
     gap: 0.5rem;
+  }
+
+  .grainField {
+    --noise-tile: 200px 155px;
   }
 }

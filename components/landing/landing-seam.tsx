@@ -48,6 +48,8 @@ export function LandingSeam({
         <div className={`seam-grain-base ${styles.grainBase}`} />
         <div className={`seam-grain-field ${styles.grainField} ${styles.grainArc1}`} />
         <div className={`seam-grain-field ${styles.grainField} ${styles.grainArc2}`} />
+        <div className={`seam-grain-field ${styles.grainField} ${styles.grainArc3}`} />
+        <div className={`seam-grain-field ${styles.grainField} ${styles.grainArc4}`} />
         <div className={`seam-grain-colour ${styles.grainColour}`} />
       </div>
 
