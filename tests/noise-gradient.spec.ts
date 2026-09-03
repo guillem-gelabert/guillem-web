@@ -26,23 +26,18 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
 
   await expect(isolate).toHaveCSS("isolation", "isolate");
   await expect(gradient).toHaveCSS("mix-blend-mode", "multiply");
-  await expect(noise).toHaveCSS(
-    "background-image",
-    /noise-gradient-noise\.svg/,
+  const noiseBackground = await noise.evaluate(
+    (element) => getComputedStyle(element).backgroundImage,
   );
+  expect(noiseBackground).toContain("radial-gradient(at 50% 70%");
+  expect(noiseBackground).toContain("data:image/svg+xml");
+  expect(noiseBackground).toContain("feTurbulence");
+  expect(noiseBackground).toContain("fractalNoise");
+  expect(noiseBackground).toContain("0.55");
   await expect(noise).toHaveCSS(
     "filter",
-    "contrast(1.45) brightness(6.5) invert(1)",
+    "contrast(1.5) brightness(7)",
   );
   await expect(noise).toHaveCSS("z-index", "0");
-
-  const noiseSvg = await page.request.get("/noise-gradient-noise.svg");
-  expect(noiseSvg.ok()).toBe(true);
-  const noiseSource = await noiseSvg.text();
-  expect(noiseSource).toContain("<feTurbulence");
-  expect(noiseSource).toContain('type="fractalNoise"');
-  expect(noiseSource).toContain('baseFrequency="0.65"');
-  expect(noiseSource).toContain('numOctaves="3"');
-  expect(noiseSource).toContain('stitchTiles="stitch"');
   await expect(page.locator("input, select, output")).toHaveCount(0);
 });
