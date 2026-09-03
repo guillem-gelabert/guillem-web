@@ -20,9 +20,9 @@ export function SeamPlayground() {
       const aRect = boxA.getBoundingClientRect();
       const bRect = boxB.getBoundingClientRect();
 
-      const startX = aRect.left - sceneRect.left;
+      const startX = aRect.right - sceneRect.left;
       const startY = aRect.bottom - sceneRect.top;
-      const endX = bRect.right - sceneRect.left;
+      const endX = bRect.left - sceneRect.left;
       const endY = bRect.top - sceneRect.top;
       const deltaX = endX - startX;
       const deltaY = endY - startY;

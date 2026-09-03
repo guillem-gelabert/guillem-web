@@ -1,12 +1,15 @@
 .scene {
   --edge: clamp(1rem, 3.5vw, 3rem);
-  --box-size: clamp(7rem, 21vw, 18rem);
+  --box-size: min(
+    clamp(7rem, 21vw, 18rem),
+    calc(50vw - var(--edge) - 0.5rem)
+  );
   --seam-rise: clamp(0.75rem, calc(12vw - 2.4rem), 18rem);
   --box-offset: max(
     var(--edge),
     calc(50dvh - var(--box-size) - var(--seam-rise))
   );
-  --seam-angle: 98deg;
+  --seam-angle: 105deg;
   --seam-x: 50%;
   --seam-y: 50%;
 
@@ -59,8 +62,8 @@
 
 .boxA::after {
   bottom: 0;
-  left: 0;
-  translate: -50% 50%;
+  right: 0;
+  translate: 50% 50%;
 }
 
 .boxB {
@@ -71,8 +74,8 @@
 
 .boxB::after {
   top: 0;
-  right: 0;
-  translate: 50% -50%;
+  left: 0;
+  translate: -50% -50%;
 }
 
 .srOnly {
