@@ -119,8 +119,8 @@ export function SeamPlayground() {
     "--seam-rise": `clamp(0.125rem, calc(${seamRise}vw - 1.75rem), 20rem)`,
     "--box-min-width": `${boxMinWidth}px`,
     "--box-min-height": `${boxMinHeight}px`,
-    "--gradient-center-x": `${centerLeft}%`,
-    "--gradient-center-y": `${100 - centerBottom}%`,
+    "--gradient-center-landscape-x": `${centerLeft}%`,
+    "--gradient-center-landscape-y": `${100 - centerBottom}%`,
     "--gradient-start": gradientStart,
     "--gradient-end": gradientEnd,
     "--outline-width": `${outlineWidth}px`,
@@ -135,6 +135,7 @@ export function SeamPlayground() {
     if (!scene || !boxA || !boxB) return;
 
     const alignSeam = () => {
+      const sceneRect = scene.getBoundingClientRect();
       const aRect = boxA.getBoundingClientRect();
       const bRect = boxB.getBoundingClientRect();
 
@@ -148,6 +149,17 @@ export function SeamPlayground() {
         Math.atan2(deltaX, -deltaY) * (180 / Math.PI) + angleOffset;
 
       scene.style.setProperty("--seam-angle", `${angle}deg`);
+
+      if (window.matchMedia("(max-aspect-ratio: 1 / 1)").matches) {
+        const centerX = (aRect.right + bRect.left) / 2 - sceneRect.left;
+        const centerY = (aRect.bottom + bRect.top) / 2 - sceneRect.top;
+
+        scene.style.setProperty("--gradient-center-x", `${centerX}px`);
+        scene.style.setProperty("--gradient-center-y", `${centerY}px`);
+      } else {
+        scene.style.removeProperty("--gradient-center-x");
+        scene.style.removeProperty("--gradient-center-y");
+      }
     };
 
     alignSeam();

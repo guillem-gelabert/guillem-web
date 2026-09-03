@@ -9,8 +9,10 @@
   --box-min-width: 14rem;
   --box-min-height: 8rem;
   --seam-angle: 50deg;
-  --gradient-center-x: 15%;
-  --gradient-center-y: 85%;
+  --gradient-center-landscape-x: 15%;
+  --gradient-center-landscape-y: 85%;
+  --gradient-center-x: var(--gradient-center-landscape-x);
+  --gradient-center-y: var(--gradient-center-landscape-y);
   --gradient-start: #000;
   --gradient-end: #fff;
   --outline-width: 1px;
@@ -100,6 +102,8 @@
     --box-height: calc(
       (100dvh - var(--edge) - var(--edge) - var(--corner-gap)) / 2
     );
+    --gradient-center-x: 50%;
+    --gradient-center-y: 50%;
   }
 
   .boxB {
