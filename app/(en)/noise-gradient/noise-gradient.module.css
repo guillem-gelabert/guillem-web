@@ -2,34 +2,127 @@
   min-height: 100dvh;
   display: grid;
   place-content: center;
+  gap: clamp(1rem, 3vw, 2rem);
   padding: clamp(1rem, 4vw, 4rem);
   background: #111;
 }
 
 .study {
-  --noise-texture: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 310' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  --gradient-center-bottom-inset: 30%;
+  --gradient-orange-dark: hsl(30 100% 0%);
+  --gradient-orange-light: hsl(30 100% 100%);
 
   position: relative;
   width: min(72vmin, 52rem, calc(100dvh - 11rem));
   aspect-ratio: 1;
   overflow: hidden;
-  background-color: #ff1493;
-  background-image:
-    linear-gradient(#ff1493, #ff1493),
-    var(--noise-texture),
-    conic-gradient(
-      from 0deg at 50% 70%,
-      #686868 0deg,
-      #000 90deg,
-      #686868 180deg,
-      #fff 270deg,
-      #686868 360deg
-    );
-  background-position: center, center, center;
-  background-size: 100% 100%, 400px 310px, 100% 100%;
-  background-repeat: no-repeat, repeat, no-repeat;
-  background-blend-mode: color, soft-light, normal;
   box-shadow: 0 1rem 4rem rgba(0, 0, 0, 0.4);
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  color: #fff;
+  font: 0.75rem/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.controls label {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.controls select {
+  min-width: 10rem;
+  padding: 0.55rem 2rem 0.55rem 0.7rem;
+  border: 1px solid #555;
+  border-radius: 0;
+  color: #fff;
+  background: #171717;
+  font: inherit;
+}
+
+.controls .maskControl {
+  display: flex;
+  align-items: center;
+  align-self: end;
+  min-height: 2.15rem;
+  gap: 0.45rem;
+}
+
+.maskControl input {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  accent-color: #ff1493;
+}
+
+.controls .rangeControl {
+  min-width: 12rem;
+}
+
+.rangeControl span {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.rangeControl output {
+  color: #aaa;
+}
+
+.rangeControl input {
+  width: 100%;
+  margin: 0;
+  accent-color: #ff1493;
+}
+
+.isolate {
+  position: absolute;
+  inset: 0;
+  isolation: isolate;
+}
+
+.background,
+.gradient,
+.noise {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.background {
+  z-index: 0;
+  background: #ff1493;
+}
+
+.gradient {
+  z-index: 2;
+  background: conic-gradient(
+    from 0deg at 50% calc(100% - var(--gradient-center-bottom-inset)),
+    var(--gradient-orange-dark),
+    var(--gradient-orange-light)
+  );
+  mix-blend-mode: soft-light;
+}
+
+.noise {
+  --noise-texture: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 310' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+
+  z-index: 0;
+  background: var(--noise-texture) center / 400px 310px repeat;
+  filter: grayscale(100%) contrast(150%) brightness(700%);
+}
+
+.noiseMasked {
+  mask-image: conic-gradient(
+    from 0deg at 50% calc(100% - var(--gradient-center-bottom-inset)),
+    #000 0deg,
+    transparent 180deg,
+    #000 360deg
+  );
 }
 
 @media (max-width: 34rem) {
