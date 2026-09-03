@@ -54,9 +54,13 @@ test("exactly two trail-carrying headings are registered", async ({ page }) => {
   expect(counts.headingAnywhere).toBe(1);
 });
 
-// Generalises tests/smear-heading.spec.ts's document.querySelector("h1") to
-// both registered headings on /.
-const TRAIL_SELECTORS = ["h1.text-display", "section#case-study h3.text-heading"];
+// The nameplate is the only element on / that carries the trail. The
+// case-study h3 was registered too until the trail was narrowed to the
+// nameplate alone; it is a plain <h3> now, so asserting a text-shadow on it
+// would fail. The h1's class is .seam-nameplate-text, not .text-display —
+// the landing's nameplate type moved into landing-seam.module.css with the
+// box it is measured against.
+const TRAIL_SELECTORS = ["h1.seam-nameplate-text"];
 
 function readShadows(page: import("@playwright/test").Page) {
   return page.evaluate((selectors) => {

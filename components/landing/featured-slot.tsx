@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { PostEntry } from "@/lib/content";
 import { postPath } from "@/lib/locales";
-import { SmearTitle } from "@/components/smear-title";
 
 type FeaturedSlotProps = {
   entry: PostEntry | null;
@@ -24,9 +23,9 @@ export function FeaturedSlot({ entry }: FeaturedSlotProps) {
             exist yet and /writing is at n=0, so there is nowhere honest
             for it to point. A link to an empty index is a circular dead
             end. */}
-        <SmearTitle as="h3" className="text-heading text-heading-serif">
+        <h3 className="text-heading text-heading-serif">
           The case study is being written.
-        </SmearTitle>
+        </h3>
         <p className="max-w-prose text-body">
           On the Mallorca piece: what was expected, what the data showed, and how the visual
           form changed in response.
@@ -37,7 +36,7 @@ export function FeaturedSlot({ entry }: FeaturedSlotProps) {
 
   return (
     <>
-      <SmearTitle as="h3" className="text-heading text-heading-serif">
+      <h3 className="text-heading text-heading-serif">
         {/* next/link, not a bare <a>: this is internal navigation to
             /writing/<slug>. Every other internal link in the repo uses
             Link — both indexes, both [slug] templates, all three not-found
@@ -51,12 +50,13 @@ export function FeaturedSlot({ entry }: FeaturedSlotProps) {
             see it here: the href is a computed expression the rule cannot
             statically resolve. A bare <a> costs the route prefetch and
             does a full document navigation, tearing down and rebuilding
-            the trail provider — on the slot's only interactive affordance
-            and the whole reason it was built ahead of the content. */}
+            the trail provider — on the slot's only interactive
+            affordance. (This heading no longer carries the trail itself:
+            it is plain, the nameplate is the one element that smears.) */}
         <Link className="link-quiet" href={postPath("en", entry.slug)}>
           {entry.frontmatter.title}
         </Link>
-      </SmearTitle>
+      </h3>
       {/* No PostMeta: the landing carries no dates. The date and the draft
           marker still print on /writing and on the post itself, which is
           where a reader who wants to know when this was published goes —
