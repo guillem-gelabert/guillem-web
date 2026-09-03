@@ -35,6 +35,11 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
   await expect(background).toHaveCSS("z-index", "0");
 
   await expect(isolate).toHaveCSS("isolation", "isolate");
+  const backgroundMode = page.getByLabel("Background blend mode");
+  const mixMode = page.getByLabel("Mix blend mode");
+
+  await expect(backgroundMode).toHaveValue("normal");
+  await expect(mixMode).toHaveValue("soft-light");
   await expect(noise).toHaveCSS("background-blend-mode", "normal, normal");
   await expect(gradient).toHaveCSS("mix-blend-mode", "soft-light");
   const noiseBackground = await noise.evaluate(
@@ -53,5 +58,10 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
     "grayscale(1) contrast(1.5) brightness(7)",
   );
   await expect(noise).toHaveCSS("z-index", "1");
-  await expect(page.locator("input, select, output")).toHaveCount(0);
+
+  await backgroundMode.selectOption("screen");
+  await expect(noise).toHaveCSS("background-blend-mode", "screen, screen");
+
+  await mixMode.selectOption("normal");
+  await expect(gradient).toHaveCSS("mix-blend-mode", "normal");
 });
