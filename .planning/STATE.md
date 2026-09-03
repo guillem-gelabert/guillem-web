@@ -5,7 +5,7 @@ milestone_name: Working Site
 status: milestone-complete
 stopped_at: v1.0 complete — every surface ships, held at noindex by the copy gate (see .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md). Test suite is red by decision after 260903-hb4; see Blockers/Concerns
 last_updated: "2026-09-03T15:10:00+02:00"
-last_activity: 2026-09-03 - Completed quick task 260903-jx2: adapt the supplied embedded SVG grain recipe for /noise-gradient
+last_activity: 2026-09-03 - Completed quick task 260903-jy6: add background and mix blend-mode controls to /noise-gradient
 progress:
   total_phases: 6
   completed_phases: 6
@@ -28,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-08-29)
 Phase: 06 (CV, Contact, Photo & Discoverability) — COMPLETE
 Plan: 12 of 12
 Status: v1.0 milestone closed 2026-09-01
-Last activity: 2026-09-03 - Completed quick task 260903-jx2: adapt the supplied embedded SVG grain recipe for /noise-gradient
+Last activity: 2026-09-03 - Completed quick task 260903-jy6: add background and mix blend-mode controls to /noise-gradient
 
 **The site is structurally complete and deliberately not indexed.** Every surface the milestone
 promised ships and is live at `guillemgelabert.com`. Five of the values those surfaces render are
@@ -218,6 +218,7 @@ migration is deferred to v2 and no migration was performed.
 | 260903-jnk | Apply multiply blending directly to an inline SVG turbulence layer on /noise-gradient | 2026-09-03 | 53e7fa2 | [260903-jnk-svg-layer-mix-blend-mode](./quick/260903-jnk-svg-layer-mix-blend-mode/) |
 | 260903-jvh | Restructure /noise-gradient to match the CSS-Tricks isolated noise-background and blended-overlay example | 2026-09-03 | a0c9f9f | [260903-jvh-match-grainy-gradient-example](./quick/260903-jvh-match-grainy-gradient-example/) |
 | 260903-jx2 | Embed an adapted version of the supplied ground-shadow SVG grain recipe on /noise-gradient | 2026-09-03 | cb9b992 | [260903-jx2-embed-adapted-ground-shadow-noise](./quick/260903-jx2-embed-adapted-ground-shadow-noise/) |
+| 260903-jy6 | Add background-blend-mode and mix-blend-mode controls to /noise-gradient | 2026-09-03 | a9083b6 | [260903-jy6-add-blend-mode-controls](./quick/260903-jy6-add-blend-mode-controls/) |
 
 ## Deferred Items
 
@@ -242,7 +243,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 Last session: 2026-09-03T15:10:00+02:00
 Stopped at: v1.0 complete. Phase 6 closed; every surface ships; the site is deliberately noindex.
-Post-milestone design work continues as quick tasks; the latest is 260903-jx2.
+Post-milestone design work continues as quick tasks; the latest is 260903-jy6.
 Resume file: .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md
 
 The next action belongs to the user, not to an executor: fill five values, do three copy reviews,
