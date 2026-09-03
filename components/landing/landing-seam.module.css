@@ -89,17 +89,45 @@
      tall and narrow, so the same 8dvh inset reads as much further from the
      corner across the width than it does on a desktop. */
   --gradient-center-mobile-portrait-x: 5dvh;
-  --gradient-center-mobile-portrait-y: 95dvh;
+  /* Held above the home indicator, not merely near the bottom. The page
+     runs under it (viewport-fit=cover), so 95dvh would leave the pivot
+     inside that band on a device with a taller inset — on a 15 Pro it
+     clears by 9px, which is coincidence rather than a margin. min() takes
+     whichever is higher up: the proportional position, or the safe-area
+     edge with room to spare. env() is 0px where there is no indicator, and
+     the 95dvh term wins there. */
+  --gradient-center-mobile-portrait-y: min(
+    95dvh,
+    calc(100dvh - env(safe-area-inset-bottom, 0px) - 2rem)
+  );
   /* 15%, like the other two. This was 85% for the old mobile-landscape
      layout, where the boxes sat the other way round; the corners are
      arranged as they are on desktop now, so 85% only bought a mirrored
      gradient at the orientation flip — a window 861px tall mirrors itself
      between 861 and 862px wide. */
   --gradient-center-mobile-landscape-x: 8dvh;
-  --gradient-center-mobile-landscape-y: 92dvh;
+  --gradient-center-mobile-landscape-y: min(
+    92dvh,
+    calc(100dvh - env(safe-area-inset-bottom, 0px) - 2rem)
+  );
   --gradient-center-x: var(--gradient-center-desktop-x);
   --gradient-center-y: var(--gradient-center-desktop-y);
-  --gradient-base: #f2f2f2;
+  /* The ramp's two ends, both orange rather than white and black. The
+     dither fields stay grayscale — they are filter: grayscale()'d, so
+     colour in their stops is discarded, and the plateaus have to be built
+     in grey for the technique to work at all. The colour goes where it
+     survives: --gradient-base under the stack, and a gradient on the
+     tinting layer instead of one flat hue.
+
+     One flat hue was the bug. mix-blend-mode: color takes hue and
+     saturation from the tinting layer but LIGHTNESS from underneath, so
+     pure white and pure black plateaus came through untinted and read as
+     grey at both ends of the ramp. Tinting with a light-to-dark orange
+     ramp, and lifting the base off pure white, gives the extremes a hue to
+     carry. */
+  --gradient-tint: #ffefe0;
+  --gradient-shade: #331900;
+  --gradient-base: var(--gradient-tint);
   --gradient-colour: #ff8000;
   --lang-offset: clamp(1.25rem, 3vw, 3rem);
 
@@ -210,7 +238,12 @@
 }
 
 .grainColour {
-  background: var(--gradient-colour);
+  background: linear-gradient(
+    to bottom right,
+    var(--gradient-tint),
+    var(--gradient-colour) 50%,
+    var(--gradient-shade)
+  );
   mix-blend-mode: color;
 }
 
