@@ -4,6 +4,14 @@ import { useEffect, type RefObject } from "react";
 
 type ElementRef = RefObject<HTMLElement | null>;
 
+const MOBILE_QUERY = "(max-width: 64rem)";
+const LANDSCAPE_QUERY = "(orientation: landscape)";
+
+function readPercentage(styles: CSSStyleDeclaration, property: string) {
+  const value = Number.parseFloat(styles.getPropertyValue(property));
+  return Number.isFinite(value) ? value : 50;
+}
+
 export function useSeamAlignment(
   sceneRef: ElementRef,
   boxARef: ElementRef,
@@ -23,19 +31,24 @@ export function useSeamAlignment(
 
       const deltaX = bRect.left - aRect.right;
       const deltaY = bRect.top - aRect.bottom;
-      const isPortrait = window.matchMedia(
-        "(max-aspect-ratio: 1 / 1)",
-      ).matches;
+      const isMobile = window.matchMedia(MOBILE_QUERY).matches;
+      const isMobileLandscape =
+        isMobile && window.matchMedia(LANDSCAPE_QUERY).matches;
       let directionX = deltaX;
       let directionY = deltaY;
 
-      if (isPortrait) {
+      if (isMobile) {
         const sceneStyles = window.getComputedStyle(scene);
-        const centerXPercent = Number.parseFloat(
-          sceneStyles.getPropertyValue("--gradient-center-landscape-x"),
+        const centerMode = isMobileLandscape
+          ? "mobile-landscape"
+          : "mobile-portrait";
+        const centerXPercent = readPercentage(
+          sceneStyles,
+          `--gradient-center-${centerMode}-x`,
         );
-        const centerYPercent = Number.parseFloat(
-          sceneStyles.getPropertyValue("--gradient-center-landscape-y"),
+        const centerYPercent = readPercentage(
+          sceneStyles,
+          `--gradient-center-${centerMode}-y`,
         );
         const centerX = (sceneRect.width * centerXPercent) / 100;
         const centerY = (sceneRect.height * centerYPercent) / 100;
@@ -54,6 +67,8 @@ export function useSeamAlignment(
         scene.style.removeProperty("--gradient-center-y");
       }
 
+      // Desktop follows the measured corner-to-corner line. Mobile aims
+      // from its orientation-specific pivot through the center of the gap.
       // Conic angles start at twelve o'clock and advance clockwise.
       const angle = Math.atan2(directionX, -directionY) * (180 / Math.PI);
 
