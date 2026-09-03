@@ -25,6 +25,7 @@
   --gradient-center-x: var(--gradient-center-desktop-x);
   --gradient-center-y: var(--gradient-center-desktop-y);
   --gradient-start: #000;
+  --gradient-middle: #ff8000;
   --gradient-end: #fff;
   --outline-width: 1px;
   --anchor-size: 10px;
@@ -35,13 +36,19 @@
   min-height: 100svh;
   overflow: hidden;
   isolation: isolate;
-  background: conic-gradient(
-    from var(--seam-angle) at var(--gradient-center-x)
-      var(--gradient-center-y),
-    var(--gradient-start) 0deg,
-    var(--gradient-end) 359.96deg,
-    var(--gradient-start) 360deg
-  );
+  background-image:
+    url("/noise-gradient.png"),
+    conic-gradient(
+      from var(--seam-angle) at var(--gradient-center-x)
+        var(--gradient-center-y),
+      var(--gradient-start) 0deg,
+      var(--gradient-middle) 180deg,
+      var(--gradient-end) 359.96deg,
+      var(--gradient-start) 360deg
+    );
+  background-size: 256px 256px, auto;
+  background-repeat: repeat, no-repeat;
+  background-blend-mode: hard-light;
 }
 
 .box {
