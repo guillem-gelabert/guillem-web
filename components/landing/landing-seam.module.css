@@ -459,9 +459,19 @@
    nameplate box lays its content out as a column so the tagline lands under
    the two lines of the name; the tracking is what "space between" asks for
    at this size. */
+/* Set to the nameplate's own measure. The name fills the box's width by
+   construction, so the tagline matches it by spanning that width too:
+   justified across three words, which distributes the space between them
+   instead of guessing at a tracking value that would only line up at one
+   viewport.
+
+   text-align-last is what does the work — without it the last (and only)
+   line of a justified block stays flush left and the justification has no
+   effect at all. */
 .boxNameplate :global(.seam-tagline) {
   margin-top: 0.75em;
-  letter-spacing: 0.35em;
+  text-align: justify;
+  text-align-last: justify;
 }
 
 .boxNameplate :global(.seam-nameplate-text) {
@@ -549,15 +559,6 @@
      Where the two stacks have to share the screen the box ends up shorter
      than the name's own proportion wants, and the height term takes over so
      the name shrinks rather than running into the case study. */
-  /* Spaced apart, and held below the name rather than beside it. The
-   nameplate box lays its content out as a column so the tagline lands under
-   the two lines of the name; the tracking is what "space between" asks for
-   at this size. */
-.boxNameplate :global(.seam-tagline) {
-  margin-top: 0.75em;
-  letter-spacing: 0.35em;
-}
-
 .boxNameplate :global(.seam-nameplate-text) {
     font-size: min(56cqw, 64cqh);
   }
