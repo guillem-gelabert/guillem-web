@@ -114,9 +114,15 @@
    down onto it, and a single colour layer on top. Building the plateaus in
    grayscale first and colourising once is what keeps the bands one hue.
 
-   The study sweeps `from 0deg` around the element's centre. Here both arcs
-   take the scene's own --seam-angle and --gradient-center-*, so the bands
-   land where the flat conic's did and the hook still aims them. */
+   The arcs are the study's, unchanged, and they are authored for an origin
+   at the element's centre: their 240deg spreads assume the radius is
+   roughly even in every direction, which is true of a square with a centred
+   origin and false of a corner-anchored one. Pinning them to
+   --gradient-center-* (8dvh from the bottom-left) squeezed three quarters
+   of the sweep into a fan a hundred pixels deep while one quarter covered
+   the page. So these keep the centred origin the numbers were written for;
+   only --seam-angle rotates them, which is safe because rotation does not
+   change the radius. */
 .grain {
   position: absolute;
   inset: 0;
@@ -140,8 +146,7 @@
 
   background:
     conic-gradient(
-      from var(--seam-angle) at var(--gradient-center-x)
-        var(--gradient-center-y),
+      from var(--seam-angle),
       rgb(255 255 255 / 0.5) calc(var(--arc-center) - var(--spread) / 2),
       transparent calc(var(--arc-center) - var(--spread) / 2),
       rgb(0 0 0 / 0.45) calc(var(--arc-center) - var(--spread) / 4),
