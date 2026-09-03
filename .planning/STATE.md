@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: Working Site
 status: milestone-complete
 stopped_at: v1.0 complete — every surface ships, held at noindex by the copy gate (see .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md)
-last_updated: "2026-09-03T10:07:19+02:00"
-last_activity: 2026-09-03 - Completed quick task 260903-e0l: move the playground seam pivot toward the bottom-left corner
+last_updated: "2026-09-03T10:12:25+02:00"
+last_activity: 2026-09-03 - Completed quick task 260903-e4l: set a monochrome playground gradient centered near the lower-left
 progress:
   total_phases: 6
   completed_phases: 6
@@ -28,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-08-29)
 Phase: 06 (CV, Contact, Photo & Discoverability) — COMPLETE
 Plan: 12 of 12
 Status: v1.0 milestone closed 2026-09-01
-Last activity: 2026-09-03 - Completed quick task 260903-e0l: move the playground seam pivot toward the bottom-left corner
+Last activity: 2026-09-03 - Completed quick task 260903-e4l: set a monochrome playground gradient centered near the lower-left
 
 **The site is structurally complete and deliberately not indexed.** Every surface the milestone
 promised ships and is live at `guillemgelabert.com`. Five of the values those surfaces render are
@@ -162,6 +162,7 @@ migration is deferred to v2 and no migration was performed.
 | 260903-dsd | Enlarge `/style-playground` boxes and mirror the seam across the vertical axis | 2026-09-03 | a1f2c7e | [260903-dsd-make-the-style-playground-boxes-substant](./quick/260903-dsd-make-the-style-playground-boxes-substant/) |
 | 260903-dwc | Enlarge and tighten the `/style-playground` boxes to match the supplied sketch | 2026-09-03 | 9d5fdf9 | [260903-dwc-make-the-style-playground-boxes-larger-a](./quick/260903-dwc-make-the-style-playground-boxes-larger-a/) |
 | 260903-e0l | Move the `/style-playground` seam pivot toward the bottom-left boundary | 2026-09-03 | f44524f | [260903-e0l-move-the-style-playground-conic-gradient](./quick/260903-e0l-move-the-style-playground-conic-gradient/) |
+| 260903-e4l | Set a black/white `/style-playground` gradient centered 15% from the left and bottom | 2026-09-03 | 82a5727 | [260903-e4l-change-the-style-playground-conic-backgr](./quick/260903-e4l-change-the-style-playground-conic-backgr/) |
 
 ## Deferred Items
 
