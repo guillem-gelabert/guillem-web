@@ -35,7 +35,8 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
   const noiseBackground = await noise.evaluate(
     (element) => getComputedStyle(element).backgroundImage,
   );
-  expect(noiseBackground).toContain("radial-gradient(at 50% 70%");
+  expect(noiseBackground).toContain("conic-gradient(at 50% 70%");
+  expect(noiseBackground).not.toContain("radial-gradient");
   expect(noiseBackground).toContain("data:image/svg+xml");
   expect(noiseBackground).toContain("feTurbulence");
   expect(noiseBackground).toContain("fractalNoise");
