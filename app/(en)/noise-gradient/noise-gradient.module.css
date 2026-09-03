@@ -17,8 +17,13 @@
   width: min(80vmin, 52rem);
   aspect-ratio: 1;
   overflow: hidden;
-  isolation: isolate;
   box-shadow: 0 1rem 4rem rgba(0, 0, 0, 0.4);
+}
+
+.isolate {
+  position: absolute;
+  inset: 0;
+  isolation: isolate;
 }
 
 .gradient,
@@ -30,19 +35,26 @@
 }
 
 .gradient {
-  z-index: 0;
+  z-index: 1;
   background: conic-gradient(
     from 0deg at 50% calc(100% - var(--gradient-center-bottom-inset)),
     var(--gradient-black),
     var(--gradient-orange),
     var(--gradient-white)
   );
+  mix-blend-mode: multiply;
 }
 
 .noise {
-  z-index: 1;
-  filter: contrast(170%) brightness(100%);
-  mix-blend-mode: multiply;
+  z-index: 0;
+  background:
+    radial-gradient(
+      circle at 50% calc(100% - var(--gradient-center-bottom-inset)),
+      #000,
+      transparent
+    ),
+    url("/noise-gradient-noise.svg") center / 200px repeat;
+  filter: contrast(145%) brightness(650%) invert(100%);
 }
 
 @media (max-width: 34rem) {

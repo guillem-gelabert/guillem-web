@@ -5,8 +5,9 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
 
   await expect(page.getByTestId("noise-gradient-study")).toBeVisible();
 
+  const isolate = page.getByTestId("gradient-isolate");
   const gradient = page.getByTestId("conic-gradient-layer");
-  const noise = page.getByTestId("svg-noise-layer");
+  const noise = page.getByTestId("noise-background-layer");
 
   const gradientStyles = await gradient.evaluate((element) => {
     const styles = getComputedStyle(element);
@@ -21,19 +22,27 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
   expect(gradientStyles.backgroundImage).toContain("rgb(0, 0, 0)");
   expect(gradientStyles.backgroundImage).toContain("rgb(255, 128, 0)");
   expect(gradientStyles.backgroundImage).toContain("rgb(255, 255, 255)");
-  expect(gradientStyles.zIndex).toBe("0");
+  expect(gradientStyles.zIndex).toBe("1");
 
-  await expect(noise).toHaveCSS("mix-blend-mode", "multiply");
+  await expect(isolate).toHaveCSS("isolation", "isolate");
+  await expect(gradient).toHaveCSS("mix-blend-mode", "multiply");
+  await expect(noise).toHaveCSS(
+    "background-image",
+    /noise-gradient-noise\.svg/,
+  );
   await expect(noise).toHaveCSS(
     "filter",
-    "contrast(1.7) brightness(1)",
+    "contrast(1.45) brightness(6.5) invert(1)",
   );
-  await expect(noise).toHaveCSS("z-index", "1");
+  await expect(noise).toHaveCSS("z-index", "0");
 
-  const turbulence = noise.locator("feTurbulence");
-  await expect(turbulence).toHaveAttribute("type", "fractalNoise");
-  await expect(turbulence).toHaveAttribute("baseFrequency", "0.65");
-  await expect(turbulence).toHaveAttribute("numOctaves", "3");
-  await expect(turbulence).toHaveAttribute("stitchTiles", "stitch");
+  const noiseSvg = await page.request.get("/noise-gradient-noise.svg");
+  expect(noiseSvg.ok()).toBe(true);
+  const noiseSource = await noiseSvg.text();
+  expect(noiseSource).toContain("<feTurbulence");
+  expect(noiseSource).toContain('type="fractalNoise"');
+  expect(noiseSource).toContain('baseFrequency="0.65"');
+  expect(noiseSource).toContain('numOctaves="3"');
+  expect(noiseSource).toContain('stitchTiles="stitch"');
   await expect(page.locator("input, select, output")).toHaveCount(0);
 });
