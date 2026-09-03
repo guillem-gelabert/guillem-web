@@ -55,7 +55,7 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
   expect(noiseBackground).toContain("0.55");
   await expect(noise).toHaveCSS(
     "filter",
-    "contrast(1.5) brightness(7)",
+    "grayscale(1) contrast(1.5) brightness(7)",
   );
   await expect(noise).toHaveCSS("z-index", "1");
   await backgroundMode.selectOption("screen");
