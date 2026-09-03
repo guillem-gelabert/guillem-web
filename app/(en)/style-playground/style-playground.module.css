@@ -7,8 +7,8 @@
   );
   --box-height: calc(50dvh - var(--edge) + var(--seam-rise));
   --seam-angle: 50deg;
-  --seam-x: 15%;
-  --seam-y: 85%;
+  --gradient-center-x: 15%;
+  --gradient-center-y: 85%;
 
   position: relative;
   width: 100%;
@@ -17,7 +17,8 @@
   overflow: hidden;
   isolation: isolate;
   background: conic-gradient(
-    from var(--seam-angle) at var(--seam-x) var(--seam-y),
+    from var(--seam-angle) at var(--gradient-center-x)
+      var(--gradient-center-y),
     #000 0deg,
     #fff 359.96deg,
     #000 360deg
