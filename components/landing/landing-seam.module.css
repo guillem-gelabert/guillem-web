@@ -375,35 +375,19 @@
   bottom: var(--edge-bottom);
 }
 
-/* EN and DE mirror each other across the top-right corner: EN sits flush
-   with the top edge and nudged in from the right, DE sits flush with the
-   right edge and nudged down from the top, by the same --lang-offset — so
-   both are the same distance from the corner point itself. difference
-   blend is the same trick .content and the anchor dots already use: it
-   reads correctly whichever side of the seam's dark/light split each one
-   happens to land on, without having to predict where that split falls. */
-.langEn,
-.langDe {
-  position: absolute;
-  color: #fff;
-  mix-blend-mode: difference;
-}
+/* One rotated container, EN over DE. Rotating by --seam-angle is what makes
+   the pair perpendicular to the seam: the ray is that angle off vertical, so
+   turning the stack by the same amount puts its baseline across it. The
+   negative is because CSS rotate is clockwise-positive while the conic's
+   angle runs the other way, and transform-origin at the top centre pivots
+   the stack about its anchor rather than letting it drift as the angle
+   moves.
 
-/* Both sit on the top edge, straddling the point where the seam crosses
-   it, each --lang-offset to one side. Anchoring them to the seam rather
-   than to the corner is what keeps them equidistant from it as the hook
-   re-aims the angle: the crossing point is the origin's x plus its
-   distance from the top edge laid along the ray, which is what the tangent
-   of --seam-angle gives.
-
-   translate pulls each back by half its own width so the offset measures
-   from the label's centre, not its edge — otherwise the two would sit
-   equidistant only if they were the same width, and EN and DE are not. */
-.langEn,
-.langDe {
-  /* Clamped into the viewport: past roughly 62deg on a 16:9 screen the ray
-     leaves the top edge beyond 100vw and both labels would sit off-screen.
-     The bounds leave room for --lang-offset either side plus the edge. */
+   The anchor is where the seam crosses the top edge: the origin's x plus
+   its distance from that edge laid along the ray, which tan() gives. It is
+   clamped into the viewport because past roughly 62deg on a 16:9 screen the
+   ray exits beyond 100vw and would carry the labels off-screen. */
+.lang {
   --seam-top-crossing: clamp(
     calc(var(--edge) + var(--lang-offset)),
     calc(
@@ -413,26 +397,34 @@
     calc(100vw - var(--edge-right) - var(--lang-offset))
   );
 
-  /* Humane Light, and set large enough to read as part of the composition
-     rather than as UI chrome. .text-label supplies neither: it is the body
-     face at 14px, so both are overridden here. 300 is the weight axis's
-     named Light instance. */
+  position: absolute;
+  top: var(--edge-top);
+  left: var(--seam-top-crossing);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15em;
+  color: #fff;
+  /* Humane's variable build, driven on its one axis. font-variation-settings
+     rather than font-weight alone so the wght coordinate is set explicitly:
+     300 is the family's named Light instance.
+
+     No width here because there is none to set — Humane ships wght only, in
+     both the 2.0 build this repo uses and the older release. An expanded
+     cut would need scaleX (which distorts the strokes) or another face. */
   font-family: var(--font-display);
   font-size: clamp(2rem, 4vw, 4.5rem);
+  font-variation-settings: "wght" 300;
   font-weight: 300;
+  letter-spacing: 0.08em;
   line-height: 1;
-  top: var(--edge-top);
-}
-
-.langEn {
-  left: calc(var(--seam-top-crossing) - var(--lang-offset));
+  mix-blend-mode: difference;
+  transform-origin: top center;
+  rotate: calc(-1 * var(--seam-angle, 50deg));
   translate: -50% 0;
 }
 
-.langDe {
-  left: calc(var(--seam-top-crossing) + var(--lang-offset));
-  translate: -50% 0;
-}
+
 
 
 
