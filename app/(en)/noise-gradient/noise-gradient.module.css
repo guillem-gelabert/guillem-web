@@ -21,19 +21,28 @@
   box-shadow: 0 1rem 4rem rgba(0, 0, 0, 0.4);
 }
 
-.grain {
+.gradient,
+.noise {
   position: absolute;
   inset: 0;
-  background:
-    conic-gradient(
-      from 0deg at 50% calc(100% - var(--gradient-center-bottom-inset)),
-      var(--gradient-black),
-      var(--gradient-orange),
-      var(--gradient-white)
-    ),
-    url("/noise-gradient-noise.svg") center / 200px repeat;
-  background-blend-mode: multiply;
+  width: 100%;
+  height: 100%;
+}
+
+.gradient {
+  z-index: 0;
+  background: conic-gradient(
+    from 0deg at 50% calc(100% - var(--gradient-center-bottom-inset)),
+    var(--gradient-black),
+    var(--gradient-orange),
+    var(--gradient-white)
+  );
+}
+
+.noise {
+  z-index: 1;
   filter: contrast(170%) brightness(100%);
+  mix-blend-mode: multiply;
 }
 
 @media (max-width: 34rem) {

@@ -5,32 +5,35 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
 
   await expect(page.getByTestId("noise-gradient-study")).toBeVisible();
 
-  const grain = page.getByTestId("grainy-conic-gradient");
+  const gradient = page.getByTestId("conic-gradient-layer");
+  const noise = page.getByTestId("svg-noise-layer");
 
-  const grainStyles = await grain.evaluate((element) => {
+  const gradientStyles = await gradient.evaluate((element) => {
     const styles = getComputedStyle(element);
     return {
-      backgroundBlendMode: styles.backgroundBlendMode,
       backgroundImage: styles.backgroundImage,
-      filter: styles.filter,
+      zIndex: styles.zIndex,
     };
   });
 
-  expect(grainStyles.backgroundImage).toContain("conic-gradient");
-  expect(grainStyles.backgroundImage).toContain("at 50% 70%");
-  expect(grainStyles.backgroundImage).toContain("rgb(0, 0, 0)");
-  expect(grainStyles.backgroundImage).toContain("rgb(255, 128, 0)");
-  expect(grainStyles.backgroundImage).toContain("rgb(255, 255, 255)");
-  expect(grainStyles.backgroundImage).toContain("noise-gradient-noise.svg");
-  expect(grainStyles.backgroundImage).not.toContain("noise-gradient.png");
-  expect(grainStyles.backgroundBlendMode).toContain("multiply");
-  expect(grainStyles.filter).toBe("contrast(1.7) brightness(1)");
+  expect(gradientStyles.backgroundImage).toContain("conic-gradient");
+  expect(gradientStyles.backgroundImage).toContain("at 50% 70%");
+  expect(gradientStyles.backgroundImage).toContain("rgb(0, 0, 0)");
+  expect(gradientStyles.backgroundImage).toContain("rgb(255, 128, 0)");
+  expect(gradientStyles.backgroundImage).toContain("rgb(255, 255, 255)");
+  expect(gradientStyles.zIndex).toBe("0");
 
-  const noiseSvg = await page.request.get("/noise-gradient-noise.svg");
-  expect(noiseSvg.ok()).toBe(true);
-  const noiseSource = await noiseSvg.text();
-  expect(noiseSource).toContain("<feTurbulence");
-  expect(noiseSource).toContain('type="fractalNoise"');
-  expect(noiseSource).toContain('stitchTiles="stitch"');
+  await expect(noise).toHaveCSS("mix-blend-mode", "multiply");
+  await expect(noise).toHaveCSS(
+    "filter",
+    "contrast(1.7) brightness(1)",
+  );
+  await expect(noise).toHaveCSS("z-index", "1");
+
+  const turbulence = noise.locator("feTurbulence");
+  await expect(turbulence).toHaveAttribute("type", "fractalNoise");
+  await expect(turbulence).toHaveAttribute("baseFrequency", "0.65");
+  await expect(turbulence).toHaveAttribute("numOctaves", "3");
+  await expect(turbulence).toHaveAttribute("stitchTiles", "stitch");
   await expect(page.locator("input, select, output")).toHaveCount(0);
 });
