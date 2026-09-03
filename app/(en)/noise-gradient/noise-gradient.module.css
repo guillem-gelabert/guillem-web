@@ -1,0 +1,71 @@
+.page {
+  min-height: 100dvh;
+  display: grid;
+  place-content: center;
+  gap: clamp(1rem, 3vw, 2rem);
+  padding: clamp(1rem, 4vw, 4rem);
+  background: #111;
+}
+
+.study {
+  position: relative;
+  width: min(80vmin, 52rem);
+  aspect-ratio: 1;
+  overflow: hidden;
+  isolation: isolate;
+  box-shadow: 0 1rem 4rem rgba(0, 0, 0, 0.4);
+}
+
+.gradient,
+.noise {
+  position: absolute;
+  inset: 0;
+}
+
+.gradient {
+  background: conic-gradient(from 0deg, #e40000, #ffe100);
+}
+
+.noise {
+  background: url("/noise-gradient.png") center / 256px repeat;
+}
+
+.control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.control select {
+  min-width: 10rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid currentColor;
+  border-radius: 0;
+  color: inherit;
+  background: #111;
+  font: inherit;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.control select:focus-visible {
+  outline: 2px solid #ffe100;
+  outline-offset: 3px;
+}
+
+@media (max-width: 34rem) {
+  .study {
+    width: 100%;
+  }
+
+  .control {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
