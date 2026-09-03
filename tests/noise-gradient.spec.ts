@@ -41,16 +41,14 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
   const backgroundMode = page.getByLabel("Background blend mode");
   const mixMode = page.getByLabel("Mix blend mode");
 
-  await expect(backgroundMode).toHaveValue("normal");
-  await expect(mixMode).toHaveValue("soft-light");
-  await expect(noise).toHaveCSS("background-blend-mode", "normal, normal");
-  await expect(gradient).toHaveCSS("mix-blend-mode", "soft-light");
+  await expect(backgroundMode).toHaveValue("hue");
+  await expect(mixMode).toHaveValue("luminosity");
+  await expect(noise).toHaveCSS("background-blend-mode", "hue");
+  await expect(gradient).toHaveCSS("mix-blend-mode", "luminosity");
   const noiseBackground = await noise.evaluate(
     (element) => getComputedStyle(element).backgroundImage,
   );
-  expect(noiseBackground).toContain("conic-gradient(at 50% 70%");
-  expect(noiseBackground).toContain("rgba(0, 0, 0, 0)");
-  expect(noiseBackground).toContain("rgb(0, 0, 0)");
+  expect(noiseBackground).not.toContain("conic-gradient");
   expect(noiseBackground).not.toContain("radial-gradient");
   expect(noiseBackground).toContain("data:image/svg+xml");
   expect(noiseBackground).toContain("feTurbulence");
@@ -61,7 +59,7 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
     "grayscale(1) contrast(1.5) brightness(7)",
   );
   await expect(noise).toHaveCSS("z-index", "1");
-  await expect(maskToggle).toBeChecked();
+  await expect(maskToggle).not.toBeChecked();
   await expect(contrast).toHaveValue("150");
   await expect(brightness).toHaveValue("700");
   await expect(contrast).toHaveAttribute("min", "0");
@@ -72,18 +70,18 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
   await expect(brightness).toHaveAttribute("step", "25");
 
   await backgroundMode.selectOption("screen");
-  await expect(noise).toHaveCSS("background-blend-mode", "screen, screen");
+  await expect(noise).toHaveCSS("background-blend-mode", "screen");
 
   await mixMode.selectOption("normal");
   await expect(gradient).toHaveCSS("mix-blend-mode", "normal");
 
-  await maskToggle.uncheck();
-  await expect(maskToggle).not.toBeChecked();
-  const unmaskedNoiseBackground = await noise.evaluate(
+  await maskToggle.check();
+  await expect(maskToggle).toBeChecked();
+  const maskedNoiseBackground = await noise.evaluate(
     (element) => getComputedStyle(element).backgroundImage,
   );
-  expect(unmaskedNoiseBackground).not.toContain("conic-gradient");
-  expect(unmaskedNoiseBackground).toContain("data:image/svg+xml");
+  expect(maskedNoiseBackground).toContain("conic-gradient(at 50% 70%");
+  expect(maskedNoiseBackground).toContain("data:image/svg+xml");
 
   await contrast.fill("1000");
   await brightness.fill("3000");

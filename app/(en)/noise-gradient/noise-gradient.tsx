@@ -26,9 +26,9 @@ const blendModes = [
 type BlendMode = (typeof blendModes)[number];
 
 export function NoiseGradient() {
-  const [backgroundMode, setBackgroundMode] = useState<BlendMode>("normal");
-  const [mixMode, setMixMode] = useState<BlendMode>("soft-light");
-  const [maskEnabled, setMaskEnabled] = useState(true);
+  const [backgroundMode, setBackgroundMode] = useState<BlendMode>("hue");
+  const [mixMode, setMixMode] = useState<BlendMode>("luminosity");
+  const [maskEnabled, setMaskEnabled] = useState(false);
   const [contrast, setContrast] = useState(150);
   const [brightness, setBrightness] = useState(700);
 
