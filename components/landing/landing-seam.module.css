@@ -1,6 +1,6 @@
 .scene {
   --edge: clamp(1rem, 3.5vw, 12rem);
-  --corner-gap: clamp(3rem, 13vw, 30rem);
+  --corner-gap: clamp(2rem, 8vw, 18rem);
   --seam-rise: clamp(0.125rem, calc(8vw - 1.75rem), 20rem);
   --desktop-aspect-drift: clamp(
     -3rem,
@@ -11,7 +11,7 @@
     (100vw - var(--edge) - var(--edge) - var(--corner-gap)) / 2
   );
   --box-height: calc(
-    50dvh - var(--edge) + var(--seam-rise) + var(--desktop-aspect-drift)
+    45dvh - var(--edge) + var(--seam-rise) + var(--desktop-aspect-drift)
   );
   --box-min-width: 14rem;
   --box-min-height: 8rem;
