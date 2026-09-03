@@ -9,9 +9,9 @@
 
 .study {
   --gradient-center-bottom-inset: 30%;
+  --gradient-black: #000;
+  --gradient-orange: #ff8000;
   --gradient-yellow: #ffe100;
-  --gradient-orange: rgb(255 128 0 / 0.5);
-  --gradient-red: #e40000;
 
   position: relative;
   width: min(80vmin, 52rem);
@@ -27,13 +27,13 @@
   background:
     conic-gradient(
       from 0deg at 50% calc(100% - var(--gradient-center-bottom-inset)),
-      var(--gradient-yellow),
+      var(--gradient-black),
       var(--gradient-orange),
-      var(--gradient-red)
+      var(--gradient-yellow)
     ),
     url("/noise-gradient-noise.svg") center / 200px repeat;
   background-blend-mode: multiply;
-  filter: contrast(170%) brightness(1000%);
+  filter: contrast(170%) brightness(100%);
 }
 
 @media (max-width: 34rem) {

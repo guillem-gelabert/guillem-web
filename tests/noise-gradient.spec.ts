@@ -18,15 +18,13 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
 
   expect(grainStyles.backgroundImage).toContain("conic-gradient");
   expect(grainStyles.backgroundImage).toContain("at 50% 70%");
+  expect(grainStyles.backgroundImage).toContain("rgb(0, 0, 0)");
+  expect(grainStyles.backgroundImage).toContain("rgb(255, 128, 0)");
   expect(grainStyles.backgroundImage).toContain("rgb(255, 225, 0)");
-  expect(grainStyles.backgroundImage).toContain(
-    "rgba(255, 128, 0, 0.5)",
-  );
-  expect(grainStyles.backgroundImage).toContain("rgb(228, 0, 0)");
   expect(grainStyles.backgroundImage).toContain("noise-gradient-noise.svg");
   expect(grainStyles.backgroundImage).not.toContain("noise-gradient.png");
   expect(grainStyles.backgroundBlendMode).toContain("multiply");
-  expect(grainStyles.filter).toBe("contrast(1.7) brightness(10)");
+  expect(grainStyles.filter).toBe("contrast(1.7) brightness(1)");
 
   const noiseSvg = await page.request.get("/noise-gradient-noise.svg");
   expect(noiseSvg.ok()).toBe(true);
