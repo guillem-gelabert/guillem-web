@@ -375,13 +375,18 @@
   bottom: var(--edge-bottom);
 }
 
-/* One rotated container, EN over DE. Rotating by --seam-angle is what makes
-   the pair perpendicular to the seam: the ray is that angle off vertical, so
-   turning the stack by the same amount puts its baseline across it. The
-   negative is because CSS rotate is clockwise-positive while the conic's
-   angle runs the other way, and transform-origin at the top centre pivots
-   the stack about its anchor rather than letting it drift as the angle
-   moves.
+/* One rotated container, EN over DE, turned so the pair reads across the
+   seam rather than along it.
+
+   The rotation is +--seam-angle, not negated. Working in standard maths
+   degrees: the ray points (90 - S) off the x axis, and rotating the
+   container by R puts its baselines at -R, so perpendicular needs
+   -R = (90 - S) + 90, giving R = S. Negating it instead lands the labels
+   nearly PARALLEL to the seam — 10deg apart at S=50 — which is what the
+   first attempt did.
+
+   transform-origin at the top centre pivots the stack about its anchor
+   rather than letting it drift as the hook re-aims.
 
    The anchor is where the seam crosses the top edge: the origin's x plus
    its distance from that edge laid along the ray, which tan() gives. It is
@@ -420,7 +425,7 @@
   line-height: 1;
   mix-blend-mode: difference;
   transform-origin: top center;
-  rotate: calc(-1 * var(--seam-angle, 50deg));
+  rotate: var(--seam-angle, 50deg);
   translate: -50% 0;
 }
 
