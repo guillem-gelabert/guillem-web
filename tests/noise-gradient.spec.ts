@@ -13,6 +13,7 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
   const background = page.getByTestId("pink-background-layer");
   const gradient = page.getByTestId("conic-gradient-layer");
   const noise = page.getByTestId("noise-background-layer");
+  const maskToggle = page.getByLabel("Noise mask");
 
   const gradientStyles = await gradient.evaluate((element) => {
     const styles = getComputedStyle(element);
@@ -58,10 +59,19 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
     "grayscale(1) contrast(1.5) brightness(7)",
   );
   await expect(noise).toHaveCSS("z-index", "1");
+  await expect(maskToggle).toBeChecked();
 
   await backgroundMode.selectOption("screen");
   await expect(noise).toHaveCSS("background-blend-mode", "screen, screen");
 
   await mixMode.selectOption("normal");
   await expect(gradient).toHaveCSS("mix-blend-mode", "normal");
+
+  await maskToggle.uncheck();
+  await expect(maskToggle).not.toBeChecked();
+  const unmaskedNoiseBackground = await noise.evaluate(
+    (element) => getComputedStyle(element).backgroundImage,
+  );
+  expect(unmaskedNoiseBackground).not.toContain("conic-gradient");
+  expect(unmaskedNoiseBackground).toContain("data:image/svg+xml");
 });

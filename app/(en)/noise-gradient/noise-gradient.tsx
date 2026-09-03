@@ -28,6 +28,7 @@ type BlendMode = (typeof blendModes)[number];
 export function NoiseGradient() {
   const [backgroundMode, setBackgroundMode] = useState<BlendMode>("normal");
   const [mixMode, setMixMode] = useState<BlendMode>("soft-light");
+  const [maskEnabled, setMaskEnabled] = useState(true);
 
   return (
     <main className={styles.page}>
@@ -44,7 +45,7 @@ export function NoiseGradient() {
             aria-hidden="true"
           />
           <div
-            className={styles.noise}
+            className={`${styles.noise} ${maskEnabled ? "" : styles.noiseWithoutMask}`}
             data-testid="noise-background-layer"
             aria-hidden="true"
             style={{ backgroundBlendMode: backgroundMode } as CSSProperties}
@@ -87,6 +88,14 @@ export function NoiseGradient() {
               </option>
             ))}
           </select>
+        </label>
+        <label className={styles.maskControl}>
+          <input
+            type="checkbox"
+            checked={maskEnabled}
+            onChange={(event) => setMaskEnabled(event.target.checked)}
+          />
+          Noise mask
         </label>
       </div>
     </main>
