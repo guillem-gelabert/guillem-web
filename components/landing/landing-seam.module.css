@@ -105,9 +105,11 @@
 }
 
 /* The grainy gradient, ported from the /noise-gradient study's three-band
-   mode. The base tone lives on this stack, not on .scene: .scene isolates,
-   and a z-index: -1 child paints behind its parent's own background, so a
-   colour declared up there would cover the whole thing. It is a layer stack rather than one background: a light base, two
+   mode. The base is its own layer, not a background on this container: the
+   fields multiply against their SIBLINGS inside the isolated stack, and a
+   colour on the parent is not one of them — it sits outside the group the
+   blend composites within, and the fields end up multiplying against
+   nothing. It is a layer stack rather than one background: a light base, two
    dither fields that crunch shared turbulence into binary dots and multiply
    down onto it, and a single colour layer on top. Building the plateaus in
    grayscale first and colourising once is what keeps the bands one hue.
@@ -119,9 +121,12 @@
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: var(--gradient-base);
   isolation: isolate;
   pointer-events: none;
+}
+
+.grainBase {
+  background: var(--gradient-base);
 }
 
 .grain > * {

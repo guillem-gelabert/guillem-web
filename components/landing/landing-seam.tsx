@@ -45,6 +45,7 @@ export function LandingSeam({
       {/* The grainy gradient's layers. Behind everything (z-index: -1) and
           inert, so the boxes above it are untouched by its blend modes. */}
       <div className={`seam-grain ${styles.grain}`} aria-hidden="true">
+        <div className={`seam-grain-base ${styles.grainBase}`} />
         <div className={`seam-grain-field ${styles.grainField} ${styles.grainArc1}`} />
         <div className={`seam-grain-field ${styles.grainField} ${styles.grainArc2}`} />
         <div className={`seam-grain-colour ${styles.grainColour}`} />
