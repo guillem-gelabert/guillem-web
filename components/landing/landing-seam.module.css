@@ -177,6 +177,20 @@
    the page. So these keep the centred origin the numbers were written for;
    only --seam-angle rotates them, which is safe because rotation does not
    change the radius. */
+/* The second section, flipped along the x axis. scaleY(-1) mirrors the
+   whole grain stack including the noise, which is what makes it read as a
+   reflection of the first rather than a repeat of it.
+
+   Only the gradient is flipped, never content — this section holds none.
+   And --seam-angle has to be restated: the hook writes it as an inline
+   style on the first scene, which this one is a sibling of, not a child of,
+   so it would otherwise fall back to the stylesheet's 50deg default while
+   the first tracked the boxes. Reading it off the first scene is what keeps
+   the two seams parallel. */
+.sceneMirrored {
+  transform: scaleY(-1);
+}
+
 .grain {
   position: absolute;
   inset: 0;

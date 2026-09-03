@@ -35,69 +35,104 @@ export function LandingSeam({
 
   useSeamAlignment(sceneRef, seamStartRef, seamEndRef);
 
+  // Rendered once per section. Both get the same four layers; the mirrored
+  // section flips them with a transform, so nothing differs here.
+  const grain = (
+    <div className={`seam-grain ${styles.grain}`} aria-hidden="true">
+      <div className={`seam-grain-base ${styles.grainBase}`} />
+      <div
+        className={`seam-grain-field ${styles.grainField} ${styles.grainArc1}`}
+      />
+      <div
+        className={`seam-grain-field ${styles.grainField} ${styles.grainArc2}`}
+      />
+      <div
+        className={`seam-grain-field ${styles.grainField} ${styles.grainArc3}`}
+      />
+      <div
+        className={`seam-grain-field ${styles.grainField} ${styles.grainArc4}`}
+      />
+      <div className={`seam-grain-colour ${styles.grainColour}`} />
+    </div>
+  );
+
   const stack = `seam-stack ${styles.stack}`;
   const box = `seam-box ${styles.box}`;
   const aside = `seam-box seam-aside ${styles.box} ${styles.aside}`;
   const content = `seam-content ${styles.content}`;
 
   return (
-    <main ref={sceneRef} id="seam-scene" className={`seam-scene ${styles.scene}`}>
-      {/* The grainy gradient's layers. Behind everything (z-index: -1) and
-          inert, so the boxes above it are untouched by its blend modes. */}
-      <div className={`seam-grain ${styles.grain}`} aria-hidden="true">
-        <div className={`seam-grain-base ${styles.grainBase}`} />
-        <div className={`seam-grain-field ${styles.grainField} ${styles.grainArc1}`} />
-        <div className={`seam-grain-field ${styles.grainField} ${styles.grainArc2}`} />
-        <div className={`seam-grain-field ${styles.grainField} ${styles.grainArc3}`} />
-        <div className={`seam-grain-field ${styles.grainField} ${styles.grainArc4}`} />
-        <div className={`seam-grain-colour ${styles.grainColour}`} />
-      </div>
-
-      <div
-        id="seam-stack-nameplate"
-        className={`${stack} seam-stack-nameplate ${styles.stackNameplate}`}
+    <main>
+      <section
+        ref={sceneRef}
+        id="seam-scene"
+        className={`seam-scene ${styles.scene}`}
       >
-        <div
-          id="seam-nameplate"
-          ref={seamStartRef}
-          className={`${box} seam-box-nameplate ${styles.boxNameplate}`}
-        >
-          <div className={`${content} seam-content-nameplate`}>{nameplate}</div>
-        </div>
+        {grain}
 
         <div
-          id="seam-positioning"
-          className={`${aside} seam-box-positioning ${styles.boxPositioning}`}
+          id="seam-stack-nameplate"
+          className={`${stack} seam-stack-nameplate ${styles.stackNameplate}`}
         >
-          <div className={`${content} seam-content-positioning`}>
-            {positioning}
+          <div
+            id="seam-nameplate"
+            ref={seamStartRef}
+            className={`${box} seam-box-nameplate ${styles.boxNameplate}`}
+          >
+            <div className={`${content} seam-content-nameplate`}>
+              {nameplate}
+            </div>
+          </div>
+
+          <div
+            id="seam-positioning"
+            className={`${aside} seam-box-positioning ${styles.boxPositioning}`}
+          >
+            <div className={`${content} seam-content-positioning`}>
+              {positioning}
+            </div>
           </div>
         </div>
-      </div>
 
-      <div
-        id="seam-stack-case-study"
-        className={`${stack} seam-stack-case-study ${styles.stackCaseStudy}`}
+        <div
+          id="seam-stack-case-study"
+          className={`${stack} seam-stack-case-study ${styles.stackCaseStudy}`}
+        >
+          <div
+            id="seam-case-study-head"
+            className={`${aside} seam-box-case-study-head ${styles.boxCaseStudyHead}`}
+          >
+            <div className={`${content} seam-content-case-study-head`}>
+              {caseStudyHead}
+            </div>
+          </div>
+
+          <div
+            id="seam-case-study"
+            ref={seamEndRef}
+            className={`${box} seam-box-case-study ${styles.boxCaseStudy}`}
+          >
+            <div className={`${content} seam-content-case-study`}>
+              {caseStudy}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* The same gradient again, mirrored along the x axis. Content-free
+          and aria-hidden: it is the composition continuing past the fold,
+          not a second landing, so it adds no landmark and repeats nothing
+          to a screen reader. The flip is a transform on the section rather
+          than a second set of arc values, so the two stay in step — the
+          hook writes --seam-angle to the first scene and this inherits it
+          through the shared stylesheet. */}
+      <section
+        aria-hidden="true"
+        className={`seam-scene seam-scene-mirrored ${styles.scene} ${styles.sceneMirrored}`}
+        id="seam-scene-mirrored"
       >
-        <div
-          id="seam-case-study-head"
-          className={`${aside} seam-box-case-study-head ${styles.boxCaseStudyHead}`}
-        >
-          <div className={`${content} seam-content-case-study-head`}>
-            {caseStudyHead}
-          </div>
-        </div>
-
-        <div
-          id="seam-case-study"
-          ref={seamEndRef}
-          className={`${box} seam-box-case-study ${styles.boxCaseStudy}`}
-        >
-          <div className={`${content} seam-content-case-study`}>
-            {caseStudy}
-          </div>
-        </div>
-      </div>
+        {grain}
+      </section>
     </main>
   );
 }

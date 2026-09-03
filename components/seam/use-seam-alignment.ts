@@ -88,7 +88,11 @@ export function useSeamAlignment(
         scene.style.setProperty("--gradient-center-x", `${centerX}px`);
         scene.style.setProperty("--gradient-center-y", `${centerY}px`);
         // Hand the angle back to the stylesheet's own declaration.
-        scene.style.removeProperty("--seam-angle");
+        // On :root, not the scene: the mirrored section is the scene's
+        // SIBLING, so an inline value here would never reach it and its
+        // seam would sit at the stylesheet's default while this one
+        // tracked the boxes.
+        document.documentElement.style.removeProperty("--seam-angle");
         return;
       }
 
@@ -119,7 +123,7 @@ export function useSeamAlignment(
         Math.atan2(gapCenterX - centerX, -(gapCenterY - centerY)) *
         (180 / Math.PI);
 
-      scene.style.setProperty("--seam-angle", `${angle}deg`);
+      document.documentElement.style.setProperty("--seam-angle", `${angle}deg`);
     };
 
     alignSeam();
@@ -129,6 +133,12 @@ export function useSeamAlignment(
     observer.observe(seamStart);
     observer.observe(seamEnd);
 
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      // --seam-angle lives on :root now, so it outlives this component
+      // unless it is cleared here. A stale value would be inherited by
+      // whatever renders next.
+      document.documentElement.style.removeProperty("--seam-angle");
+    };
   }, [seamStartRef, seamEndRef, sceneRef]);
 }
