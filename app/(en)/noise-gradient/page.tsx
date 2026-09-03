@@ -3,7 +3,8 @@ import { NoiseGradient } from "./noise-gradient";
 
 export const metadata: Metadata = {
   title: "Noise gradient",
-  description: "A monochrome-noise and conical-gradient blend-mode study.",
+  description:
+    "A single-colour conic study: a three- or five-tone ramp from light tint to dark shade, joined by noise-dithered transitions.",
   robots: { index: false },
 };
 

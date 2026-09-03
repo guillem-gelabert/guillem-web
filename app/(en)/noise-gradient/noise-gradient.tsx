@@ -1,36 +1,31 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
+import { useState } from "react";
 
 import styles from "./noise-gradient.module.css";
 
-const blendModes = [
-  "normal",
-  "multiply",
-  "screen",
-  "overlay",
-  "darken",
-  "lighten",
-  "color-dodge",
-  "color-burn",
-  "hard-light",
-  "soft-light",
-  "difference",
-  "exclusion",
-  "hue",
-  "saturation",
-  "color",
-  "luminosity",
-] as const;
+const bandModes = {
+  five: {
+    label: "5 bands",
+    stack: "stackFive",
+    arcs: ["arcFive1", "arcFive2", "arcFive3", "arcFive4"],
+    tones: "five tones",
+  },
+  three: {
+    label: "3 bands",
+    stack: "stackThree",
+    arcs: ["arcThree1", "arcThree2"],
+    tones: "three tones",
+  },
+} as const;
 
-type BlendMode = (typeof blendModes)[number];
+type BandMode = keyof typeof bandModes;
+
+const modeKeys = Object.keys(bandModes) as BandMode[];
 
 export function NoiseGradient() {
-  const [backgroundMode, setBackgroundMode] = useState<BlendMode>("hue");
-  const [mixMode, setMixMode] = useState<BlendMode>("luminosity");
-  const [maskEnabled, setMaskEnabled] = useState(false);
-  const [contrast, setContrast] = useState(150);
-  const [brightness, setBrightness] = useState(700);
+  const [mode, setMode] = useState<BandMode>("five");
+  const { stack, arcs, tones } = bandModes[mode];
 
   return (
     <main className={styles.page}>
@@ -38,100 +33,34 @@ export function NoiseGradient() {
         className={styles.study}
         data-testid="noise-gradient-study"
         role="img"
-        aria-label="Black-to-white conic gradient with SVG grain over a pink background"
+        aria-label={`Clockwise conic sweep through ${tones} of one pink, from near-white tint to near-black shade, joined by noise-dithered transitions`}
       >
-        <div className={styles.isolate} data-testid="gradient-isolate">
-          <div
-            className={styles.background}
-            data-testid="pink-background-layer"
-            aria-hidden="true"
-          />
-          <div
-            className={`${styles.noise} ${maskEnabled ? styles.noiseMasked : ""}`}
-            data-testid="noise-background-layer"
-            aria-hidden="true"
-            style={
-              {
-                backgroundBlendMode: backgroundMode,
-                filter: `grayscale(100%) contrast(${contrast}%) brightness(${brightness}%)`,
-              } as CSSProperties
-            }
-          />
-          <div
-            className={styles.gradient}
-            data-testid="conic-gradient-layer"
-            aria-hidden="true"
-            style={{ mixBlendMode: mixMode }}
-          />
+        <div className={`${styles.stack} ${styles[stack]}`}>
+          <div className={styles.base} data-testid="base-layer" aria-hidden="true" />
+          {arcs.map((arc, index) => (
+            <div
+              key={arc}
+              className={`${styles.field} ${styles[arc]}`}
+              data-testid={`dither-field-${index + 1}`}
+              aria-hidden="true"
+            />
+          ))}
+          <div className={styles.colour} data-testid="colour-layer" aria-hidden="true" />
         </div>
       </div>
-      <div className={styles.controls}>
-        <label>
-          Background mode
-          <select
-            aria-label="Background blend mode"
-            value={backgroundMode}
-            onChange={(event) =>
-              setBackgroundMode(event.target.value as BlendMode)
-            }
-          >
-            {blendModes.map((mode) => (
-              <option key={mode} value={mode}>
-                {mode}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Mix mode
-          <select
-            aria-label="Mix blend mode"
-            value={mixMode}
-            onChange={(event) => setMixMode(event.target.value as BlendMode)}
-          >
-            {blendModes.map((mode) => (
-              <option key={mode} value={mode}>
-                {mode}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className={styles.maskControl}>
-          <input
-            type="checkbox"
-            checked={maskEnabled}
-            onChange={(event) => setMaskEnabled(event.target.checked)}
-          />
-          Noise mask
-        </label>
-        <label className={styles.rangeControl}>
-          <span>
-            Contrast <output>{contrast}%</output>
-          </span>
-          <input
-            aria-label="Noise contrast"
-            type="range"
-            min="0"
-            max="1000"
-            step="10"
-            value={contrast}
-            onChange={(event) => setContrast(Number(event.target.value))}
-          />
-        </label>
-        <label className={styles.rangeControl}>
-          <span>
-            Brightness <output>{brightness}%</output>
-          </span>
-          <input
-            aria-label="Noise brightness"
-            type="range"
-            min="0"
-            max="3000"
-            step="25"
-            value={brightness}
-            onChange={(event) => setBrightness(Number(event.target.value))}
-          />
-        </label>
+      <div className={styles.controls} role="radiogroup" aria-label="Bands">
+        {modeKeys.map((key) => (
+          <label key={key}>
+            <input
+              type="radio"
+              name="bands"
+              value={key}
+              checked={mode === key}
+              onChange={() => setMode(key)}
+            />
+            {bandModes[key].label}
+          </label>
+        ))}
       </div>
     </main>
   );
