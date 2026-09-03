@@ -10,7 +10,7 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
   );
 
   const isolate = page.getByTestId("gradient-isolate");
-  const background = page.getByTestId("orange-background-layer");
+  const background = page.getByTestId("pink-background-layer");
   const gradient = page.getByTestId("conic-gradient-layer");
   const noise = page.getByTestId("noise-background-layer");
 
@@ -31,7 +31,7 @@ test("/noise-gradient renders an SVG-turbulence grainy gradient", async ({ page 
     gradientStyles.backgroundImage.indexOf("rgb(255, 255, 255)"),
   );
   expect(gradientStyles.zIndex).toBe("2");
-  await expect(background).toHaveCSS("background-color", "rgb(255, 128, 0)");
+  await expect(background).toHaveCSS("background-color", "rgb(255, 20, 147)");
   await expect(background).toHaveCSS("z-index", "0");
 
   await expect(isolate).toHaveCSS("isolation", "isolate");
