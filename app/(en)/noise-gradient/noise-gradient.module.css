@@ -126,6 +126,9 @@
 
 .noiseWithoutMask {
   background-image: var(--noise-texture);
+  background-position: center;
+  background-size: 400px 310px;
+  background-repeat: repeat;
 }
 
 @media (max-width: 34rem) {
