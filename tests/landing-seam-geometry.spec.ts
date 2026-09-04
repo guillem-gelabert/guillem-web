@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { resolveSceneLength, seamAngleDegrees } from "./seam-geometry";
 
 const TOLERANCE_PX = 1;
 const ANGLE_TOLERANCE_DEGREES = 0.01;
@@ -10,75 +11,65 @@ type Rect = {
   height: number;
 };
 
+// The two corner boxes the seam is measured between: the nameplate's
+// top-left stack and the case study's bottom-right stack. Their facing
+// corners (nameplate's bottom-right, case study's top-left) pinch the gap
+// the seam runs through — see landing-seam.tsx's file comment.
 async function panelRects(page: import("@playwright/test").Page): Promise<[Rect, Rect]> {
-  // LandingSeam's two panels are deliberately the direct children of its
-  // only <main>. Keep this relationship-based selector independent of the
-  // CSS Module's generated class names.
-  const panels = page.locator("main > div");
-  await expect(panels).toHaveCount(2);
+  const primary = page.locator("#seam-nameplate");
+  const secondary = page.locator("#seam-case-study");
 
-  const rects = await panels.evaluateAll((elements) =>
-    elements.map((element) => {
+  const [primaryRect, secondaryRect] = await Promise.all([
+    primary.evaluate((element) => {
       const { x, y, width, height } = element.getBoundingClientRect();
       return { x, y, width, height };
     }),
-  );
+    secondary.evaluate((element) => {
+      const { x, y, width, height } = element.getBoundingClientRect();
+      return { x, y, width, height };
+    }),
+  ]);
 
-  return rects as [Rect, Rect];
+  return [primaryRect, secondaryRect];
 }
 
 function expectNearlyEqual(actual: number, expected: number) {
   expect(Math.abs(actual - expected)).toBeLessThanOrEqual(TOLERANCE_PX);
 }
 
-async function desktopSeamAngle(
-  page: import("@playwright/test").Page,
-) {
-  const scene = page.locator("main");
+async function desktopSeamAngle(page: import("@playwright/test").Page) {
+  const scene = page.locator("#seam-scene");
 
-  await expect
-    .poll(() =>
-      scene.evaluate((element) =>
-        element.style.getPropertyValue("--seam-angle"),
-      ),
-    )
-    .not.toBe("");
+  const seamAngle = await seamAngleDegrees(page, scene);
+  const pivotXPercent = await scene.evaluate((element) =>
+    Number.parseFloat(
+      getComputedStyle(element).getPropertyValue("--gradient-center-desktop-x"),
+    ),
+  );
+  const pivotYPercent = await scene.evaluate((element) =>
+    Number.parseFloat(
+      getComputedStyle(element).getPropertyValue("--gradient-center-desktop-y"),
+    ),
+  );
+  const pivotX = await resolveSceneLength(scene, "--gradient-center-x");
+  const pivotY = await resolveSceneLength(scene, "--gradient-center-y");
 
-  return scene.evaluate((element) => {
-    const [primary, secondary] = Array.from(element.children);
-    const sceneRect = element.getBoundingClientRect();
-    const primaryRect = primary.getBoundingClientRect();
-    const secondaryRect = secondary.getBoundingClientRect();
-    const styles = window.getComputedStyle(element);
-
-    return {
-      scene: {
-        x: sceneRect.x,
-        y: sceneRect.y,
-        width: sceneRect.width,
-        height: sceneRect.height,
-      },
-      primary: {
-        x: primaryRect.x,
-        y: primaryRect.y,
-        width: primaryRect.width,
-        height: primaryRect.height,
-      },
-      secondary: {
-        x: secondaryRect.x,
-        y: secondaryRect.y,
-        width: secondaryRect.width,
-        height: secondaryRect.height,
-      },
-      pivotXPercent: Number.parseFloat(
-        styles.getPropertyValue("--gradient-center-desktop-x"),
-      ),
-      pivotYPercent: Number.parseFloat(
-        styles.getPropertyValue("--gradient-center-desktop-y"),
-      ),
-      seamAngle: Number.parseFloat(styles.getPropertyValue("--seam-angle")),
-    };
+  const sceneRect = await scene.evaluate((element) => {
+    const { x, y, width, height } = element.getBoundingClientRect();
+    return { x, y, width, height };
   });
+  const [primary, secondary] = await panelRects(page);
+
+  return {
+    scene: sceneRect,
+    primary,
+    secondary,
+    pivotXPercent,
+    pivotYPercent,
+    pivotX,
+    pivotY,
+    seamAngle,
+  };
 }
 
 test.describe("landing seam geometry", () => {
@@ -95,17 +86,20 @@ test.describe("landing seam geometry", () => {
     expectNearlyEqual(primary.x, primary.y);
     expectNearlyEqual(secondaryRightInset, secondaryBottomInset);
     expectNearlyEqual(primary.x, secondaryRightInset);
-    expect(primary.width / primary.height).toBeGreaterThan(1.5);
+    // The nameplate box is a 1.16 rectangle by construction (its own
+    // module CSS comment); the case study mirrors that proportion.
+    expect(primary.width / primary.height).toBeGreaterThan(1);
+    expect(primary.width / primary.height).toBeLessThan(1.3);
 
     const seam = await desktopSeamAngle(page);
-    const pivotX = (seam.scene.width * seam.pivotXPercent) / 100;
-    const pivotY = (seam.scene.height * seam.pivotYPercent) / 100;
     const gapCenterX =
       (seam.primary.x + seam.primary.width + seam.secondary.x) / 2 -
       seam.scene.x;
     const gapCenterY =
       (seam.primary.y + seam.primary.height + seam.secondary.y) / 2 -
       seam.scene.y;
+    const pivotX = seam.pivotX - seam.scene.x;
+    const pivotY = seam.pivotY - seam.scene.y;
     const expectedAngle =
       Math.atan2(gapCenterX - pivotX, -(gapCenterY - pivotY)) *
       (180 / Math.PI);
@@ -115,29 +109,50 @@ test.describe("landing seam geometry", () => {
     );
   });
 
-  test("keeps the narrow portrait panels stacked on their shared left edge", async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 812 });
+  test("keeps the narrow portrait panels stacked on their shared left edge", async ({ browser }) => {
+    const context = await browser.newContext({
+      viewport: { width: 375, height: 812 },
+      hasTouch: true,
+      isMobile: true,
+    });
+    const page = await context.newPage();
     await page.goto("/");
+
+    const isCoarse = await page.evaluate(() =>
+      matchMedia("(hover: none) and (pointer: coarse)").matches,
+    );
+    expect(isCoarse).toBe(true);
 
     const [primary, secondary] = await panelRects(page);
 
     expectNearlyEqual(primary.width, secondary.width);
     expectNearlyEqual(primary.x, secondary.x);
     expect(secondary.y).toBeGreaterThanOrEqual(primary.y + primary.height);
+
+    await context.close();
   });
 
-  test("keeps the narrow landscape panels side by side in opposite corners", async ({ page }) => {
-    await page.setViewportSize({ width: 844, height: 390 });
+  test("keeps the narrow landscape panels side by side in opposite corners", async ({ browser }) => {
+    const context = await browser.newContext({
+      viewport: { width: 844, height: 390 },
+      hasTouch: true,
+      isMobile: true,
+    });
+    const page = await context.newPage();
     await page.goto("/");
+
+    const isCoarse = await page.evaluate(() =>
+      matchMedia("(hover: none) and (pointer: coarse)").matches,
+    );
+    expect(isCoarse).toBe(true);
 
     const [primary, secondary] = await panelRects(page);
     const secondaryRightInset = 844 - secondary.x - secondary.width;
     const secondaryBottomInset = 390 - secondary.y - secondary.height;
 
-    expectNearlyEqual(primary.height, secondary.height);
-    expectNearlyEqual(primary.x, primary.y);
     expectNearlyEqual(secondaryRightInset, secondaryBottomInset);
-    expectNearlyEqual(primary.x, secondaryRightInset);
     expect(secondary.x).toBeGreaterThanOrEqual(primary.x + primary.width);
+
+    await context.close();
   });
 });

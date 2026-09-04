@@ -135,7 +135,6 @@
   --gradient-shade: #331900;
   --gradient-base: var(--gradient-tint);
   --gradient-colour: #ff8000;
-  --lang-offset: clamp(1.25rem, 3vw, 3rem);
 
   position: relative;
   width: 100%;
@@ -375,8 +374,9 @@
   bottom: var(--edge-bottom);
 }
 
-/* One rotated container, EN over DE, turned so the pair reads across the
-   seam rather than along it.
+/* One rotated container, EN over DE, centred ON the seam so it splits the
+   two labels evenly, turned so the pair reads across the seam rather than
+   along it.
 
    The rotation is --seam-angle minus 90. In screen coordinates (y down,
    CSS rotate clockwise) an unrotated column flows (0, 1) and a rotation R
@@ -388,26 +388,52 @@
    two are 90deg apart, and measuring the baseline instead is what produced
    two wrong answers here: -S first, then +S, which was parallel.
 
-   transform-origin at the top centre pivots the stack about its anchor
-   rather than letting it drift as the hook re-aims.
+   The centre, not the top, is placed ON the ray: transform-origin: center
+   plus translate: -50% -50% put the geometric centre of the box at
+   (left, top), and translate is unaffected by transform-origin (it is
+   T(origin) . translate . rotate . T(-origin) — a pure translation
+   commutes with the origin shifts). The earlier version anchored the TOP
+   edge instead, which put both labels on the same side of the seam.
 
-   The anchor is where the seam crosses the top edge: the origin's x plus
-   its distance from that edge laid along the ray, which tan() gives. It is
-   clamped into the viewport because past roughly 62deg on a 16:9 screen the
-   ray exits beyond 100vw and would carry the labels off-screen. */
+   w and h are pinned in em rather than measured, so this stays pure CSS:
+   EN in Humane Light at 0.08em tracking is 0.5em wide (trailing
+   letter-spacing included; DE is narrower), and two lines at line-height 1
+   plus the 0.15em gap are 2.15em tall, exactly. Rotated by S - 90, the
+   axis-aligned half-extents of that w x h box are:
+     half-x = (w sin S + h cos S) / 2
+     half-y = (w cos S + h sin S) / 2
+
+   The centre can slide along the ray (C = P + t . (sin S, -cos S)) until
+   its half-extents come within --edge of a window edge. S is always in
+   (0deg, 90deg) here — the pivot sits bottom-left, the ray climbs to the
+   upper right — so only the right and the top edges can ever bind; t is
+   the smaller of the two distances that would touch them. 100vw rather
+   than a scene-relative unit: this value feeds both left (a share of
+   width) and top (a share of height), and a single --t cannot be a percent
+   of two different things. */
 .lang {
-  --seam-top-crossing: clamp(
-    calc(var(--edge) + var(--lang-offset)),
+  --w: 0.5em;
+  --h: 2.15em;
+  --sin: sin(var(--seam-angle, 50deg));
+  --cos: cos(var(--seam-angle, 50deg));
+  --half-x: calc((var(--w) * var(--sin) + var(--h) * var(--cos)) / 2);
+  --half-y: calc((var(--w) * var(--cos) + var(--h) * var(--sin)) / 2);
+  --t: min(
     calc(
-      var(--gradient-center-x) + var(--gradient-center-y) *
-        tan(var(--seam-angle, 50deg))
+      (100vw - var(--edge-right) - var(--half-x) - var(--gradient-center-x)) /
+        var(--sin)
     ),
-    calc(100vw - var(--edge-right) - var(--lang-offset))
+    calc(
+      (var(--gradient-center-y) - var(--edge-top) - var(--half-y)) /
+        var(--cos)
+    )
   );
 
   position: absolute;
-  top: var(--edge-top);
-  left: var(--seam-top-crossing);
+  top: calc(var(--gradient-center-y) - var(--t) * var(--cos));
+  left: calc(var(--gradient-center-x) + var(--t) * var(--sin));
+  width: var(--w);
+  height: var(--h);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -427,9 +453,9 @@
   letter-spacing: 0.08em;
   line-height: 1;
   mix-blend-mode: difference;
-  transform-origin: top center;
+  transform-origin: center;
   rotate: calc(var(--seam-angle, 50deg) - 90deg);
-  translate: -50% 0;
+  translate: -50% -50%;
 }
 
 
