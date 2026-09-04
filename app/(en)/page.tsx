@@ -1,84 +1,35 @@
 import type { Metadata } from "next";
-import { findBySlug, publishedFor } from "@/lib/content";
-import { CASE_STUDY_SLUG, POSITIONING_PLACEHOLDER } from "@/lib/work";
-import { SmearTitle } from "@/components/smear-title";
-import { FeaturedSlot } from "@/components/landing/featured-slot";
-import { LandingSeam } from "@/components/landing/landing-seam";
-
-// This route carries no client directive. Phase 1 marked whole pages as
-// Client Components to reach the scroll-trail hook; doing that here would
-// make the metadata export below illegal and make `await publishedFor("en")`
-// impossible, because the featured slot's state is resolved from the
-// filesystem at build time. SmearTitle is the one client leaf that carries
-// the trail instead.
+import { ObfuscatedEmailLink } from "@/components/contact-block";
+import { EMAIL } from "@/lib/contact";
+import { POSITIONING_PLACEHOLDER, WORK } from "@/lib/work";
 
 export const metadata: Metadata = {
-  // Plan 06-07: deliberately no `title` here. Under the factory's
-  // title.template ("%s — Guillem Gelabert"), any string this route
-  // supplied would render doubled for the landing specifically — "Guillem
-  // Gelabert — Guillem Gelabert". Leaving `title` undeclared inherits the
-  // layout's title.default (SITE_NAME) instead, which renders the bare
-  // name once — the correct <title> for the site root.
-  // HOME-01 (Pitfall 6): one source for the positioning sentence. When the
-  // user's real sentence replaces POSITIONING_PLACEHOLDER in lib/work.ts,
-  // both the rendered <p> and this share-preview description update from
-  // the same one-line edit. The site origin base and the noindex directive
-  // are deliberately absent from this export — both are inherited from
-  // app/(en)/layout.tsx, and that directive's field name must stay confined
-  // to the two root layouts (Phase 6's FIND-02 flips it in exactly two
-  // places).
   description: POSITIONING_PLACEHOLDER,
   alternates: { canonical: "/" },
-  // No `languages` alternate: the landing is English-only in v1
-  // (03-UI-SPEC.md § Localisation), so there is no German twin to declare.
-  // No `openGraph` override either: the site root's own path already IS
-  // rootMetadata("en")'s default og:url (lib/metadata.ts), so the factory's
-  // inherited value is already correct here — unlike /cv, /writing and
-  // /texte, which call lib/metadata.ts's routeOpenGraph for their own path.
 };
 
-export default async function Landing() {
-  // A null result IS the interim state — there is no boolean to flip, so
-  // this must tolerate null forever: a renamed or re-drafted case-study
-  // file returns the slot to its interim copy rather than throwing.
-  const featured = findBySlug(await publishedFor("en"), CASE_STUDY_SLUG);
-
+export default function Landing() {
   return (
-    <LandingSeam
-      nameplate={
-        <header>
-          {/* Block spans keep the visual line break while preserving the
-              accessible name as “Guillem Gelabert”. The type spec lives in
-              landing-seam.module.css, with the box it is measured against —
-              this class is the hook, not a role in the global scale. */}
-          <SmearTitle as="h1" className="seam-nameplate-text">
-            <span className="block">Guillem</span>
-            <span className="block">Gelabert</span>
-          </SmearTitle>
-          {/* Sits with the name rather than in its own box: one line, the
-              three words spaced apart and set in caps. Still the same
-              constant, so it goes on matching this route's meta
-              description, which tests/build/prerender.test.ts asserts by
-              equality. */}
-          <p className="seam-tagline text-label uppercase">
-            {POSITIONING_PLACEHOLDER}
-          </p>
-        </header>
-      }
-      positioning={null}
-      caseStudyHead={null}
-      // No visible section head: the box above this one stays empty, so the
-      // section is named for assistive tech by aria-label rather than by an
-      // aria-labelledby pointing at a heading that is no longer rendered.
-      caseStudy={
-        <section
-          aria-label="Case study"
-          className="flex flex-col gap-lg"
-          id="case-study"
-        >
-          <FeaturedSlot entry={featured} />
-        </section>
-      }
-    />
+    <main className="mx-auto flex min-h-screen w-full max-w-[80rem] flex-col gap-2xl px-md py-xl sm:px-xl sm:py-2xl">
+      <header className="flex flex-col gap-sm">
+        <h1 className="text-display">Guillem Gelabert</h1>
+        <p className="text-standfirst">{POSITIONING_PLACEHOLDER}</p>
+      </header>
+
+      <ul role="list" className="flex list-none flex-col gap-xl">
+        {WORK.map((work) => (
+          <li key={work.href} className="flex flex-col gap-sm">
+            <a className="text-heading link-quiet inline-flex min-h-6 items-center" href={work.href}>
+              {work.title}
+            </a>
+            <p className="text-body max-w-prose">{work.annotation}</p>
+          </li>
+        ))}
+      </ul>
+
+      <p className="text-body">
+        <ObfuscatedEmailLink address={EMAIL} tone="body" />
+      </p>
+    </main>
   );
 }

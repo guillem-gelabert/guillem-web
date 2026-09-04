@@ -15,23 +15,8 @@
  * accidentally deliver mail to a stranger.
  */
 
-/**
- * [PLACEHOLDER] — PROF-03, launch gate G4, held at noindex by G14
- * (lib/placeholder.ts).
- *
- * example.com is reserved by RFC 2606 precisely so that documentation and
- * placeholders cannot collide with a real domain: it has no MX record and
- * can never accept mail. That is the entire reason it is used here rather
- * than a plausible-looking address — a wrong-but-deliverable address on a
- * live contact block sends a stranger someone else's job enquiries, which
- * is a worse failure than an empty row.
- *
- * A current-employer address is on record in this environment and is still
- * deliberately NOT used: a current-employer address is the wrong channel
- * for a job hunt and is not the user's to publish here by inference
- * (06-CONTEXT.md's no-fabrication rule).
- */
-export const EMAIL: string | null = "lorem.ipsum@example.com";
+/** The public address confirmed by the authenticated Railway owner identity. */
+export const EMAIL = "gelabert.guillem+github@gmail.com";
 
 /**
  * [PLACEHOLDER] — PROF-05, launch gate G5, held at noindex by G14.

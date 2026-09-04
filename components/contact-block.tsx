@@ -48,17 +48,33 @@ function entityEncode(value: string): string {
   return value.replace(/@/g, "&#64;").replace(/\./g, "&#46;");
 }
 
-function EmailRow({ address }: { address: string }) {
+export function ObfuscatedEmailLink({
+  address,
+  tone = "label",
+}: {
+  address: string;
+  tone?: "body" | "label";
+}) {
   const encoded = entityEncode(address);
+  const className =
+    tone === "body"
+      ? "text-body link-quiet inline-block break-all py-xs"
+      : VALUE_LINK_CLASSNAME;
 
+  return (
+    <span
+      dangerouslySetInnerHTML={{
+        __html: `<a class="${className}" href="mailto:${encoded}">${encoded}</a>`,
+      }}
+    />
+  );
+}
+
+function EmailRow({ address }: { address: string }) {
   return (
     <li className="flex flex-col gap-xs">
       <p className="text-label">Email</p>
-      <span
-        dangerouslySetInnerHTML={{
-          __html: `<a class="${VALUE_LINK_CLASSNAME}" href="mailto:${encoded}">${encoded}</a>`,
-        }}
-      />
+      <ObfuscatedEmailLink address={address} />
     </li>
   );
 }

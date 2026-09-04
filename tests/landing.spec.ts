@@ -1,756 +1,100 @@
 import { expect, test } from "@playwright/test";
-import { BANNED_MARKERS } from "../lib/placeholder";
-
-// Covers HOME-01, HOME-03, HOME-04, WORK-01, WORK-02 and the CASE-03 slot's
-// structure — the eleven rows 03-VALIDATION.md's requirement->test map
-// assigns to this file, the single largest Wave 0 gap in the phase.
-//
-// Three assertion-shape lessons this file is built around:
-// (i) Computed values are read from a real render, never assumed. Phase 1's
-//     tests/viewport.spec.ts had to assert the nameplate's real clamp()
-//     output — 139.2px at 1440px — where the plan's own text assumed
-//     "≈180px near-ceiling". Every measured value below (target sizes, the
-//     separator colour, scroll-margin-top) is read the same way: from
-//     getBoundingClientRect()/getComputedStyle() against a real render, not
-//     derived from the plan's or the UI-SPEC's arithmetic.
-// (ii) Copy that depends on draft visibility is NOT asserted here. This spec
-//     runs against `npm run dev`, where showDrafts() is always true (dev is
-//     NODE_ENV=development), so the featured slot's interim strings would
-//     read as "published" the moment a future phase authors the case study
-//     as draft: true in dev, while production still renders "interim" — a
-//     spec asserting that copy would go red with no Phase 3 file changed.
-//     That split lives in tests/build/prerender.test.ts, which reads real
-//     `next build` output instead (Pitfall 2).
-// (iii) "A title appears on /" is not a meaningful assertion on its own: `/`
-//     already inherits a title and a description from app/(en)/layout.tsx,
-//     so that assertion would have passed before this phase's change and
-//     proven nothing (03-RESEARCH.md C-2). Every assertion below reads a
-//     specific value this phase is responsible for, not merely presence.
+import { EMAIL } from "../lib/contact";
+import { POSITIONING_PLACEHOLDER, WORK } from "../lib/work";
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => document.fonts.ready);
 });
 
-// ---------------------------------------------------------------------------
-// Task 1: HOME-03 (the navigation surface) and HOME-01 (the positioning
-// sentence)
-// ---------------------------------------------------------------------------
+test("the homepage renders only the requested content, in order", async ({ page }) => {
+  await expect(page.locator("main")).toHaveCount(1);
+  await expect(page.locator("h1")).toHaveCount(1);
+  await expect(page.locator("h1")).toHaveText("Guillem Gelabert");
 
-test("(a) nav[aria-label=Sections] holds exactly 5 links, in reader-importance order", async ({
-  page,
-}) => {
-  const nav = page.locator('nav[aria-label="Sections"]');
-  await expect(nav).toHaveCount(1);
-
-  const links = nav.locator("a");
-  await expect(links).toHaveCount(5);
-
-  const hrefs = await links.evaluateAll((els) => els.map((el) => el.getAttribute("href")));
-  // Reader-importance order, not page order: Writing sits second because it
-  // is the only route here that already holds shipped content. A sixth link
-  // to #case-study is deliberately absent — that section sits immediately
-  // beneath this nav, and a link to what the reader is already looking at
-  // is noise, not navigation.
-  expect(hrefs).toEqual(["#work", "/writing", "#backlog", "/cv", "#contact"]);
-
-  const labels = await links.evaluateAll((els) =>
-    els.map((el) => (el.textContent ?? "").trim()),
-  );
-  expect(labels).toEqual(["Work", "Writing", "Backlog", "CV", "Contact"]);
-});
-
-test("(b) every nav link clears the WCAG 2.5.8 24px target-size floor", async ({ page }) => {
-  const links = page.locator('nav[aria-label="Sections"] a');
-  await expect(links).toHaveCount(5);
-
-  const heights = await links.evaluateAll((els) =>
-    els.map((el) => el.getBoundingClientRect().height),
-  );
-  // Measured, not assumed: a Label-role link's line box is 18.2px, under the
-  // 24px floor. py-xs (4px) takes it to 26.2px — a 2.2px margin small enough
-  // that a dropped py-xs would fail here and nowhere else, so the assertion
-  // reads the real box rather than trusting the class list is present.
-  for (const height of heights) {
-    expect(height).toBeGreaterThanOrEqual(24);
-  }
-});
-
-test("(c) every section[id] anchors at scroll-margin-top: 32px, in fixed order", async ({
-  page,
-}) => {
-  const sections = page.locator("section[id]");
-  await expect(sections).toHaveCount(4);
-
-  const ids = await sections.evaluateAll((els) => els.map((el) => el.id));
-  expect(ids).toEqual(["case-study", "work", "backlog", "contact"]);
-
-  // scroll-mt-xl exists so an anchor jump does not park the section head
-  // flush against the viewport edge.
-  const scrollMargins = await sections.evaluateAll((els) =>
-    els.map((el) => getComputedStyle(el).scrollMarginTop),
-  );
-  for (const margin of scrollMargins) {
-    expect(margin).toBe("32px");
-  }
-});
-
-test("(d) no smooth scrolling on the document", async ({ page }) => {
-  // Two concrete reasons from the Motion Contract: smooth scrolling is
-  // motion that would need its own reduced-motion branch, and it fires a
-  // long burst of scroll events, each of which advances the trail's
-  // trailHue — a single anchor click would spin the hue through a large arc.
-  const scrollBehavior = await page.evaluate(
-    () => getComputedStyle(document.documentElement).scrollBehavior,
-  );
-  expect(scrollBehavior).not.toBe("smooth");
-});
-
-test("(e) exactly one h1, reading Guillem Gelabert, carrying text-display", async ({ page }) => {
-  const h1 = page.locator("h1");
-  await expect(h1).toHaveCount(1);
-  await expect(h1).toHaveText("Guillem Gelabert");
-  await expect(h1).toHaveClass(/text-display/);
-});
-
-test("(f) the positioning sentence renders once at computed font-weight 530", async ({
-  page,
-}) => {
-  const standfirst = page.locator("header p.text-standfirst");
-  await expect(standfirst).toHaveCount(1);
-
-  const fontWeight = await standfirst.evaluate((el) => getComputedStyle(el).fontWeight);
-  expect(fontWeight).toBe("530");
-});
-
-test("(g) the one-source property: meta[name=description] equals the rendered positioning <p>", async ({
-  page,
-}) => {
-  // This is the phase's most important assertion, and the reason it is
-  // shaped this way is not obvious. Pitfall 6: the user eventually writes
-  // the positioning sentence into the <p>, and the <meta name="description">
-  // could still say "Developer." — which is what Slack, LinkedIn and
-  // eventually Google quote once Phase 6 flips FIND-02. Asserting EQUALITY
-  // rather than a literal string proves the property that matters: it keeps
-  // passing when the user's real sentence lands, and it fails the moment the
-  // two drift. The literal-value assertion against production HTML belongs
-  // in tests/build/prerender.test.ts (Plan 03-08) — do NOT hardcode the
-  // current placeholder word here.
-  const metaContent = await page
-    .locator('meta[name="description"]')
-    .getAttribute("content");
-  const standfirstText = await page.locator("header p.text-standfirst").innerText();
-  expect(metaContent).toBe(standfirstText.trim());
-});
-
-// ---------------------------------------------------------------------------
-// Task 2: WORK-01, WORK-02 and HOME-04 — the work list's structure,
-// destinations and non-card treatment
-// ---------------------------------------------------------------------------
-
-test("(h) #work holds exactly one ol[role=list] with exactly 2 li", async ({ page }) => {
-  const work = page.locator("section#work");
-  const list = work.locator('ol[role="list"]');
-  await expect(list).toHaveCount(1);
-
-  // role="list" is not redundant: Safari drops list semantics when
-  // list-style: none is applied, so the role restores what the CSS removes.
-  await expect(list).toHaveAttribute("role", "list");
-
-  const items = list.locator("> li");
-  await expect(items).toHaveCount(2);
-});
-
-test("(i) both work-list rows point at the two locked D-06 destinations, same tab", async ({
-  page,
-}) => {
-  const items = page.locator("section#work ol[role='list'] > li");
-  await expect(items).toHaveCount(2);
-
-  for (let i = 0; i < 2; i++) {
-    await expect(items.nth(i).locator("a")).toHaveCount(1);
-  }
-
-  const hrefs = await items.locator("a").evaluateAll((els) => els.map((el) => el.getAttribute("href")));
-  // Hosting is per-project with no uniform pattern (one is an apex
-  // subdomain, the other a separate domain), so these are asserted as
-  // literals rather than derived from a rule (D-06).
-  expect(hrefs).toEqual([
-    "https://ib-gdp.guillemgelabert.com/everyone-in-mallorca-agrees-on-one-thing",
-    "https://watchpeopledie.live",
+  const visibleLines = (await page.locator("main").innerText())
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  expect(visibleLines).toEqual([
+    "Guillem Gelabert",
+    POSITIONING_PLACEHOLDER,
+    WORK[0].title,
+    WORK[0].annotation,
+    WORK[1].title,
+    WORK[1].annotation,
+    EMAIL,
   ]);
 
-  // Same-tab links create no window.opener, so there is no reverse-
-  // tabnabbing surface, and adding a new-window attribute later would
-  // require the accompanying hardening attribute to be considered.
-  const targets = await items.locator("a").evaluateAll((els) =>
-    els.map((el) => el.getAttribute("target")),
+  await expect(page.locator("main nav, main section, main button, main img, main svg")).toHaveCount(0);
+});
+
+test("the visible descriptor exactly matches the meta description", async ({ page }) => {
+  const descriptor = page.locator("main header p");
+  await expect(descriptor).toHaveText(POSITIONING_PLACEHOLDER);
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+    "content",
+    POSITIONING_PLACEHOLDER,
   );
-  expect(targets).toEqual([null, null]);
 });
 
-test("(j) the private repo stays private: the only github.com link is the contact profile, no repo name in rendered text", async ({
+test("the semantic work list renders the two source-bound links and descriptions", async ({
   page,
 }) => {
-  // 2026-09-01 (plan 06-08): narrowed, not deleted. Plan 06-04 gave #contact
-  // a real GitHub PROFILE link (lib/contact.ts's GITHUB, a fact established
-  // from `git remote -v`, never gated) — the blanket "zero github.com
-  // anywhere" ban this test used to assert is exactly what T-06-22..T-06-27's
-  // threat model predicted it would break, in the way it predicted. The
-  // private REPOSITORY still never appears; only the public PROFILE link
-  // does, and there is exactly one of it.
-  const githubLinks = page.locator('a[href*="github.com"]');
-  await expect(githubLinks).toHaveCount(1);
-  await expect(githubLinks).toHaveAttribute("href", "https://github.com/guillem-gelabert");
+  const items = page.locator('main ul[role="list"] > li');
+  await expect(items).toHaveCount(WORK.length);
 
-  const bodyText = await page.locator("body").innerText();
-  // The repo is private and the entry titles are the pieces' published
-  // headlines, never repository names (D-06).
-  expect(bodyText).not.toContain("ib-gdp-evolution");
-});
-
-test("(k) each row's annotation is a single non-empty line, and its host label names the row's real destination", async ({
-  page,
-}) => {
-  const items = page.locator("section#work ol[role='list'] > li");
-  await expect(items).toHaveCount(2);
-
-  for (let i = 0; i < 2; i++) {
-    const row = items.nth(i);
-    const annotation = row.locator("p.text-body");
-    await expect(annotation).toHaveCount(1);
-    const annotationText = await annotation.innerText();
-    expect(annotationText.trim().length).toBeGreaterThan(0);
-    expect(annotationText).not.toContain("\n");
-
-    // The host line is derived, inside the browser, from the row's own <a>
-    // — proving the outbound marker names the real destination rather than
-    // a stale copy, not merely that some string with two dots is present.
-    const hostText = await row.evaluate((el) => {
-      const link = el.querySelector("a");
-      const labels = el.querySelectorAll("p.text-label");
-      const hostLabel = labels[labels.length - 1];
-      return {
-        expected: link ? new URL(link.getAttribute("href") as string).hostname : null,
-        rendered: (hostLabel?.textContent ?? "").trim(),
-      };
-    });
-    expect(hostText.rendered).toBe(hostText.expected);
+  for (const [index, work] of WORK.entries()) {
+    const item = items.nth(index);
+    const link = item.locator("a");
+    await expect(link).toHaveText(work.title);
+    await expect(link).toHaveAttribute("href", work.href);
+    await expect(link).not.toHaveAttribute("target", "_blank");
+    await expect(item.locator("p")).toHaveText(work.annotation);
   }
 });
 
-test("(l) the ordinals are aria-hidden and read 01, 02", async ({ page }) => {
-  const items = page.locator("section#work ol[role='list'] > li");
-  await expect(items).toHaveCount(2);
+test("the only remaining contact affordance is one readable obfuscated email link", async ({
+  page,
+}) => {
+  const links = page.locator("main a");
+  await expect(links).toHaveCount(3);
 
-  // The <ol> already conveys order and count to assistive technology; a
-  // visible "01" read aloud as "zero one" is noise.
-  const ordinals = await items.evaluateAll((els) =>
-    els.map((el) => {
-      const p = el.querySelector("p.text-label");
-      return { text: (p?.textContent ?? "").trim(), ariaHidden: p?.getAttribute("aria-hidden") };
-    }),
-  );
-  expect(ordinals[0]).toEqual({ text: "01", ariaHidden: "true" });
-  expect(ordinals[1]).toEqual({ text: "02", ariaHidden: "true" });
+  const mail = page.locator(`main a[href="mailto:${EMAIL}"]`);
+  await expect(mail).toHaveCount(1);
+  await expect(mail).toHaveText(EMAIL);
+  await expect(mail).toBeVisible();
 });
 
-test("(m) HOME-04: the work list and its first row are not a card", async ({ page }) => {
-  const list = page.locator("section#work ol[role='list']");
-  const firstItem = page.locator("section#work ol[role='list'] > li").first();
+test("all links are keyboard focusable and meet the 24px target floor", async ({ page }) => {
+  const links = page.locator("main a");
+  await expect(links).toHaveCount(3);
 
-  for (const locator of [list, firstItem]) {
-    const style = await locator.evaluate((el) => {
-      const s = getComputedStyle(el);
-      return {
-        borderTopWidth: s.borderTopWidth,
-        borderRightWidth: s.borderRightWidth,
-        borderBottomWidth: s.borderBottomWidth,
-        borderLeftWidth: s.borderLeftWidth,
-        boxShadow: s.boxShadow,
-        borderRadius: s.borderRadius,
-        backgroundColor: s.backgroundColor,
-      };
-    });
-    expect(style.borderTopWidth).toBe("0px");
-    expect(style.borderRightWidth).toBe("0px");
-    expect(style.borderBottomWidth).toBe("0px");
-    expect(style.borderLeftWidth).toBe("0px");
-    expect(style.boxShadow).toBe("none");
-    expect(style.borderRadius).toBe("0px");
-    expect(["rgba(0, 0, 0, 0)", "transparent", "rgb(255, 255, 255)"]).toContain(
-      style.backgroundColor,
-    );
+  for (let index = 0; index < 3; index += 1) {
+    await page.keyboard.press("Tab");
+    await expect(links.nth(index)).toBeFocused();
+  }
+
+  const boxes = await links.evaluateAll((elements) =>
+    elements.map((element) => element.getBoundingClientRect()),
+  );
+  for (const box of boxes) {
+    expect(box.height).toBeGreaterThanOrEqual(24);
   }
 });
 
-test("(n) HOME-04: the second row's separator is the hairline, not a fourth rule weight", async ({
-  page,
-}) => {
-  const secondItem = page.locator("section#work ol[role='list'] > li").nth(1);
+for (const viewport of [
+  { name: "phone", width: 320, height: 640 },
+  { name: "desktop", width: 1440, height: 900 },
+]) {
+  test(`the homepage has no horizontal overflow at ${viewport.name} width`, async ({ page }) => {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await page.reload();
 
-  const style = await secondItem.evaluate((el) => {
-    const s = getComputedStyle(el);
-    return {
-      borderTopWidth: s.borderTopWidth,
-      borderTopStyle: s.borderTopStyle,
-      borderTopColor: s.borderTopColor,
-      borderRightWidth: s.borderRightWidth,
-      borderBottomWidth: s.borderBottomWidth,
-      borderLeftWidth: s.borderLeftWidth,
-    };
+    const dimensions = await page.evaluate(() => ({
+      clientWidth: document.documentElement.clientWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+    }));
+    expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
   });
-
-  // Tailwind v4's preflight emits `border: 0 solid` with no colour, so
-  // border-t without border-rule falls through to currentColor — full-ink
-  // black, 8x darker than --color-rule, and a fourth rule weight the Prose
-  // Contract forbids (WR-06 recurring). A toHaveCount() assertion cannot see
-  // this; only the computed colour can.
-  expect(style.borderTopWidth).toBe("1px");
-  expect(style.borderTopStyle).toBe("solid");
-  expect(style.borderTopColor).toBe("rgba(0, 0, 0, 0.12)");
-  expect(style.borderRightWidth).toBe("0px");
-  expect(style.borderBottomWidth).toBe("0px");
-  expect(style.borderLeftWidth).toBe("0px");
-});
-
-test("(o) the work list is a single column at the default viewport", async ({ page }) => {
-  const items = page.locator("section#work ol[role='list'] > li");
-  await expect(items).toHaveCount(2);
-
-  const boxes = await items.evaluateAll((els) =>
-    els.map((el) => el.getBoundingClientRect()),
-  );
-  expect(boxes[0].x).toBe(boxes[1].x);
-  expect(boxes[1].y).toBeGreaterThan(boxes[0].y);
-});
-
-// ---------------------------------------------------------------------------
-// Task 3: the CASE-03 slot structure (state-agnostic), the heading outline,
-// and the no-placeholder-words rule
-// ---------------------------------------------------------------------------
-
-test("(p) the featured slot renders exactly one section head and one heading, state-agnostically", async ({
-  page,
-}) => {
-  // Deliberately NOT asserting either the interim heading sentence or the
-  // interim body paragraph's wording here, and NOT asserting whether the
-  // <h3> contains an <a>. Every Playwright spec in this repo
-  // runs against `npm run dev`, where showDrafts() returns true, so the
-  // moment a future phase creates the case-study MDX file with draft: true
-  // — the normal way to author — findBySlug starts returning an entry in
-  // dev only, and the slot renders its PUBLISHED state in dev while
-  // production still renders INTERIM. A copy assertion here would turn red
-  // during that authoring with no Phase 3 file changed. The interim copy is
-  // asserted against real production HTML in tests/build/prerender.test.ts
-  // instead. What is asserted here is true in BOTH states: one section head,
-  // one Heading-role <h3>, same roles, same order.
-  const caseStudy = page.locator("section#case-study");
-  await expect(caseStudy).toHaveCount(1);
-  await expect(caseStudy.locator("h2.section-head")).toHaveCount(1);
-  await expect(caseStudy.locator("h3.text-heading")).toHaveCount(1);
-});
-
-test("(q) all four section heads render in order with the structural 1px full-ink rule", async ({
-  page,
-}) => {
-  const heads = page.locator("section[id] > h2.section-head");
-  await expect(heads).toHaveCount(4);
-
-  const texts = await heads.allTextContents();
-  expect(texts.map((t) => t.trim())).toEqual(["Case study", "Work", "Backlog", "Contact"]);
-
-  const styles = await heads.evaluateAll((els) =>
-    els.map((el) => {
-      const s = getComputedStyle(el);
-      return {
-        borderBottomWidth: s.borderBottomWidth,
-        borderBottomStyle: s.borderBottomStyle,
-        borderBottomColor: s.borderBottomColor,
-      };
-    }),
-  );
-  // The "1px full ink = structural" weight, distinct from the work-list
-  // separator's rgba(0, 0, 0, 0.12). Two rule weights on this page, no
-  // third.
-  for (const style of styles) {
-    expect(style.borderBottomWidth).toBe("1px");
-    expect(style.borderBottomStyle).toBe("solid");
-    expect(style.borderBottomColor).toBe("rgb(0, 0, 0)");
-  }
-});
-
-test("(r) the heading outline is h1=1, h2=4, h3=6, h4/h5/h6=0, and every aria-labelledby resolves", async ({
-  page,
-}) => {
-  const counts = await page.evaluate(() => ({
-    h1: document.querySelectorAll("h1").length,
-    h2: document.querySelectorAll("h2").length,
-    h3: document.querySelectorAll("h3").length,
-    h4: document.querySelectorAll("h4").length,
-    h5: document.querySelectorAll("h5").length,
-    h6: document.querySelectorAll("h6").length,
-  }));
-  // The <h3> rendering far larger than its <h2> is deliberate, not an
-  // inversion to fix: semantics follow structure, visual weight follows
-  // editorial hierarchy. An <h2> in the featured slot would put two <h2>s
-  // inside section#case-study and silently break the outline
-  // aria-labelledby depends on.
-  //
-  // 2026-08-31: h3 moved from 3 to 6 because Phase 5 replaced the backlog
-  // stub's single p.text-standfirst with three h3.text-standfirst item
-  // names (lib/backlog.tsx / components/landing/backlog-list.tsx). <h3>
-  // was chosen deliberately over <p>: D-11 names exactly three
-  // subtractions from the work list's grammar (ordinal, host line, link)
-  // and element type is not a fourth one — downgrading to <p> would cost
-  // screen-reader users a navigable outline in a section that is
-  // otherwise pure prose.
-  expect(counts).toEqual({ h1: 1, h2: 4, h3: 6, h4: 0, h5: 0, h6: 0 });
-
-  const labelledBy = await page.evaluate(() =>
-    Array.from(document.querySelectorAll("section[id]")).map((section) => {
-      const labelId = section.getAttribute("aria-labelledby");
-      const h2 = section.querySelector("h2");
-      return { labelId, h2Id: h2?.id ?? null };
-    }),
-  );
-  for (const { labelId, h2Id } of labelledBy) {
-    expect(labelId).toBe(h2Id);
-  }
-});
-
-test("(s) D-02: nothing on / reads as unfinished", async ({ page }) => {
-  // D-08 calls for a clearly-marked placeholder and D-02 for deliberately
-  // typeset content; they resolve exactly one way — the placeholder is
-  // marked in the source, not on the screen. A rendered
-  // "[positioning sentence goes here]" on a live URL during a job hunt is
-  // what D-02 exists to prevent (Pitfall 7).
-  const bodyText = (await page.locator("body").innerText()).toLowerCase();
-  for (const word of BANNED_MARKERS) {
-    expect(bodyText).not.toContain(word);
-  }
-});
-
-test("(t) no card idiom anywhere on the page: no button, no img, no svg, no rounded corners, no shadow", async ({
-  page,
-}) => {
-  // This phase ships no form, no toggle, no icon and no image
-  // (PROF-02 is Phase 6). Scoped to <main> because Next.js's dev-mode
-  // overlay injects its own "Open Next.js Dev Tools" <button> into a
-  // <nextjs-portal> shadow root appended to <body> on every route in every
-  // dev-server render — a framework artifact Playwright's shadow-piercing
-  // locator finds regardless of what this phase ships, absent from any
-  // production build. Scoping to <main> asserts what this phase actually
-  // controls rather than the dev server's own tooling.
-  await expect(page.locator("main button")).toHaveCount(0);
-  await expect(page.locator("img")).toHaveCount(0);
-  await expect(page.locator("main svg")).toHaveCount(0);
-
-  const boxStyles = await page.evaluate(() => {
-    const els = Array.from(document.querySelectorAll("main section, main div"));
-    return els.map((el) => {
-      const s = getComputedStyle(el);
-      return { borderRadius: s.borderRadius, boxShadow: s.boxShadow };
-    });
-  });
-  for (const style of boxStyles) {
-    expect(style.borderRadius).toBe("0px");
-    expect(style.boxShadow).toBe("none");
-  }
-});
-
-test("(u) #contact renders the real channel block: zero stub copy, the github.com profile link, and no target=_blank anywhere on the page", async ({
-  page,
-}) => {
-  // 2026-09-01 (plan 06-08): the interim stub component this comment used to
-  // describe no longer exists — plan 06-04 deleted it once #contact became
-  // its last call site, following Phase 5's D-13 precedent that an ended
-  // interim state means the component is deleted, not orphaned as an
-  // unreachable branch. #contact now renders ContactBlock
-  // (components/contact-block.tsx) reading lib/contact.ts's real channels()
-  // output; with EMAIL and LINKEDIN both null (the shipped state) that is
-  // GitHub alone. This test proves that real block, not the interim stub it
-  // replaced — production truth for the stub-copy strings' absence belongs
-  // to plan 06-09's tests/build/prerender.test.ts.
-  const section = page.locator("section#contact");
-  const list = section.locator('ol[role="list"]');
-  await expect(list).toHaveCount(1);
-
-  const bodyText = await page.locator("body").innerText();
-  expect(bodyText).not.toContain("No contact details here yet.");
-  expect(bodyText).not.toContain("Email, GitHub and LinkedIn are being added.");
-
-  const githubLink = section.locator('a[href="https://github.com/guillem-gelabert"]');
-  await expect(githubLink).toHaveCount(1);
-
-  // tests/build/prerender.test.ts:542 covers the built HTML; this is the
-  // dev-tier companion — no reverse-tabnabbing surface anywhere on /.
-  await expect(page.locator('a[target="_blank"]')).toHaveCount(0);
-
-  // The type budget on screen (Pitfall 1), scoped to the contact block —
-  // #contact is a new prose-adjacent surface plan 06-04 added, and a stray
-  // <strong> here would render at 700 (Tailwind v4 preflight's
-  // b,strong{font-weight:bolder}, compiled, not in app/globals.css) with
-  // every source-level budget gate green. Mirrors (x)'s identical sweep
-  // over #backlog.
-  const typeBudget = await section.evaluate((el) => {
-    const withDirectText = Array.from(el.querySelectorAll("*")).filter((node) =>
-      Array.from(node.childNodes).some(
-        (child) =>
-          child.nodeType === Node.TEXT_NODE && (child.textContent ?? "").trim().length > 0,
-      ),
-    );
-    return withDirectText.map((node) => getComputedStyle(node).fontWeight);
-  });
-  expect(typeBudget.length).toBeGreaterThan(0);
-  for (const fontWeight of typeBudget) {
-    expect(["400", "530"]).toContain(fontWeight);
-  }
-});
-
-// ---------------------------------------------------------------------------
-// Plan 05-03: BACK-01's structure and D-11's three subtractions (v);
-// BACK-02's placement (w) — real-render proof that a source-level gate
-// structurally cannot make (see (x) below for the type-budget and
-// separator half of that same point).
-// ---------------------------------------------------------------------------
-
-test("(v) BACK-01: the backlog is three rows of name and description, with the work list's affordances subtracted", async ({
-  page,
-}) => {
-  const backlog = page.locator("section#backlog");
-  const list = backlog.locator("ul[role='list']");
-  await expect(list).toHaveCount(1);
-  // A <ul>, not an <ol>: the backlog is unranked (D-11.1).
-  await expect(backlog.locator("ol")).toHaveCount(0);
-
-  const items = list.locator("> li");
-  await expect(items).toHaveCount(3);
-
-  // Each row is exactly one h3.text-standfirst (the name) then one
-  // p.max-w-prose.text-body (the description), in that order and with no
-  // third child — the work list's row grammar (D-10) minus its ordinal and
-  // host-line rows.
-  const rowShapes = await items.evaluateAll((els) =>
-    els.map((el) => ({
-      childTags: Array.from(el.children).map((child) => child.tagName.toLowerCase()),
-      standfirstCount: el.querySelectorAll("h3.text-standfirst").length,
-      bodyCount: el.querySelectorAll("p.max-w-prose.text-body").length,
-    })),
-  );
-  for (const row of rowShapes) {
-    expect(row.childTags).toEqual(["h3", "p"]);
-    expect(row.standfirstCount).toBe(1);
-    expect(row.bodyCount).toBe(1);
-  }
-
-  // D-11.1, no ordinals: the work list's aria-hidden "01"/"02" p.text-label
-  // row is absent, and no rendered line in the list is a bare two-digit
-  // ordinal.
-  await expect(list.locator("p.text-label")).toHaveCount(0);
-  const ulWholeText = await list.evaluate((el) => el.textContent ?? "");
-  expect(ulWholeText).not.toMatch(/^\s*0\d\s*$/);
-
-  // D-11.2, no host line: the same p.text-label count of 0 above already
-  // covers it structurally. Additionally, no standalone rendered line
-  // inside the list reads like a bare hostname (e.g. "example.com") — the
-  // backlog items go nowhere, so there is no destination to name.
-  const standaloneLines = await list.evaluate((el) =>
-    (el.textContent ?? "")
-      .split("\n")
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0),
-  );
-  for (const line of standaloneLines) {
-    expect(line).not.toMatch(/\.[a-z]{2,}\b/);
-  }
-
-  // D-11.3, the name is not a link: zero anchors anywhere in the section —
-  // not merely "the h3 has no <a>". v1 ships no inline .link either, and a
-  // stray one would be a decision, not a detail.
-  await expect(backlog.locator("a")).toHaveCount(0);
-
-  // The three item names, in order. Sourced from lib/backlog.tsx's BACKLOG
-  // array (D-04: array order is editorial order); stated here as a literal
-  // rather than imported, since Playwright must not import the .tsx
-  // content module.
-  const names = await items.locator("h3.text-standfirst").allTextContents();
-  expect(names).toEqual([
-    "A data portrait of the Swiss commodity trade",
-    "The house names of Zürich",
-    "The Pudding, read as a corpus",
-  ]);
-});
-
-test("(w) BACK-02: the section date is one Label line carrying a <time>, above the first item", async ({
-  page,
-}) => {
-  const backlog = page.locator("section#backlog");
-  const dateLine = backlog.locator("p.text-label");
-  await expect(dateLine).toHaveCount(1);
-
-  // Not a descendant of the <ul> — it sits above the list, in the shared
-  // date/list <div> (D-12).
-  const isInsideList = await dateLine.evaluate((el) => el.closest("ul") !== null);
-  expect(isInsideList).toBe(false);
-
-  const time = dateLine.locator("time");
-  await expect(time).toHaveCount(1);
-
-  // Browsers ASCII-lowercase attribute names while parsing HTML, so
-  // getAttribute("datetime") resolves even though React emits the JSX prop
-  // as dateTime (camelCase) in the raw source — 05-RESEARCH.md Pitfall 2.
-  const datetimeAttr = await time.getAttribute("datetime");
-  expect(datetimeAttr).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-
-  // textContent, not innerText: .text-label computes text-transform:
-  // uppercase, and innerText returns the RENDERED text (post-transform) —
-  // "LAST TOUCHED 31 AUGUST 2026" — which would make a literal-casing
-  // startsWith assertion fail even though the source and DOM text are
-  // correct. Measured this session. textContent reads the un-transformed
-  // string, which is what "Last touched " actually names.
-  const lineText = await dateLine.evaluate((el) => el.textContent ?? "");
-  expect(lineText.startsWith("Last touched ")).toBe(true);
-
-  const timeText = await time.evaluate((el) => el.textContent ?? "");
-  expect(timeText.trim().length).toBeGreaterThan(0);
-  // An absolute date: a four-digit year and a month name, not a relative
-  // string.
-  expect(timeText).toMatch(/\d{4}/);
-  expect(timeText).toMatch(/[A-Za-z]{3,}/);
-  expect(timeText).not.toMatch(/\bago\b|\byesterday\b|\btoday\b/i);
-
-  // Placement, geometrically, not by DOM order. BACK-02 is the mitigation
-  // the user accepted in place of per-item dates, and a freshness signal
-  // read only AFTER the list has mitigated nothing — the requirement is
-  // "above", and only the rendered box proves it.
-  const firstItem = backlog.locator("ul[role='list'] > li").first();
-  const dateY = await dateLine.evaluate((el) => el.getBoundingClientRect().y);
-  const firstItemY = await firstItem.evaluate((el) => el.getBoundingClientRect().y);
-  expect(dateY).toBeLessThan(firstItemY);
-
-  const textTransform = await dateLine.evaluate((el) => getComputedStyle(el).textTransform);
-  expect(textTransform).toBe("uppercase");
-});
-
-test("(x) the measured separator, the measured geometry, and the type budget on screen", async ({
-  page,
-}) => {
-  const backlog = page.locator("section#backlog");
-  const items = backlog.locator("ul[role='list'] > li");
-  await expect(items).toHaveCount(3);
-
-  // The separator (Pitfall 7 / WR-06 recurring), mirroring (n) at :277-305
-  // exactly. Tailwind v4's preflight emits `border: 0 solid` with no
-  // colour, so border-t without border-rule falls through to currentColor
-  // — full-ink black, 8x darker than --color-rule, and a fourth rule
-  // weight the Prose Contract forbids. toHaveCount() cannot see this; only
-  // the computed colour can.
-  const rowBorders = await items.evaluateAll((els) =>
-    els.map((el) => {
-      const s = getComputedStyle(el);
-      return {
-        borderTopWidth: s.borderTopWidth,
-        borderTopStyle: s.borderTopStyle,
-        borderTopColor: s.borderTopColor,
-        borderRightWidth: s.borderRightWidth,
-        borderBottomWidth: s.borderBottomWidth,
-        borderLeftWidth: s.borderLeftWidth,
-      };
-    }),
-  );
-  expect(rowBorders[0].borderTopWidth).toBe("0px");
-  for (const row of [rowBorders[1], rowBorders[2]]) {
-    expect(row.borderTopWidth).toBe("1px");
-    expect(row.borderTopStyle).toBe("solid");
-    expect(row.borderTopColor).toBe("rgba(0, 0, 0, 0.12)");
-    expect(row.borderRightWidth).toBe("0px");
-    expect(row.borderBottomWidth).toBe("0px");
-    expect(row.borderLeftWidth).toBe("0px");
-  }
-
-  // The not-a-card property, mirroring (m) at :250-275: the <ul> itself
-  // carries no border, no shadow, no radius.
-  const list = backlog.locator("ul[role='list']");
-  const listBox = await list.evaluate((el) => {
-    const s = getComputedStyle(el);
-    return {
-      borderTopWidth: s.borderTopWidth,
-      borderRightWidth: s.borderRightWidth,
-      borderBottomWidth: s.borderBottomWidth,
-      borderLeftWidth: s.borderLeftWidth,
-      boxShadow: s.boxShadow,
-      borderRadius: s.borderRadius,
-    };
-  });
-  expect(listBox.borderTopWidth).toBe("0px");
-  expect(listBox.borderRightWidth).toBe("0px");
-  expect(listBox.borderBottomWidth).toBe("0px");
-  expect(listBox.borderLeftWidth).toBe("0px");
-  expect(listBox.boxShadow).toBe("none");
-  expect(listBox.borderRadius).toBe("0px");
-
-  // The geometry (D-10, D-12). Measured this session: ul rowGap 32px
-  // (gap-xl), li rowGap 8px (gap-sm), the date/list <div> and the
-  // <section> both 24px (gap-lg) — head->date and date->list are both lg,
-  // per D-12, with no new token.
-  const ulRowGap = await list.evaluate((el) => getComputedStyle(el).rowGap);
-  expect(ulRowGap).toBe("32px");
-
-  const liRowGaps = await items.evaluateAll((els) =>
-    els.map((el) => getComputedStyle(el).rowGap),
-  );
-  for (const gap of liRowGaps) {
-    expect(gap).toBe("8px");
-  }
-
-  const dateListDiv = backlog.locator("div.flex.flex-col.gap-lg");
-  const dateListDivRowGap = await dateListDiv.evaluate((el) => getComputedStyle(el).rowGap);
-  expect(dateListDivRowGap).toBe("24px");
-
-  const sectionRowGap = await backlog.evaluate((el) => getComputedStyle(el).rowGap);
-  expect(sectionRowGap).toBe("24px");
-
-  // Each description's max-width equals the measured resolution of 65ch —
-  // read from the render and compared against a work-list p.max-w-prose
-  // measured in the SAME run, proving the backlog reuses the shipped
-  // measure rather than a new one, without hardcoding a font-dependent
-  // px number.
-  const backlogMaxWidths = await backlog
-    .locator("p.max-w-prose.text-body")
-    .evaluateAll((els) => els.map((el) => getComputedStyle(el).maxWidth));
-  const workMaxWidth = await page
-    .locator("section#work p.max-w-prose")
-    .first()
-    .evaluate((el) => getComputedStyle(el).maxWidth);
-  for (const maxWidth of backlogMaxWidths) {
-    expect(maxWidth).toBe(workMaxWidth);
-  }
-
-  // The type budget on screen (Pitfall 1) — the assertion no source gate
-  // can make. tests/unit/prose-contract.test.ts reads app/globals.css from
-  // disk, and Tailwind v4's preflight ships b,strong{font-weight:bolder}
-  // in the COMPILED CSS, not in that file. A <strong> in a backlog
-  // description therefore renders at 700 — a third weight on screen —
-  // with the entire source budget green. This is the only place that
-  // catches it. If a future description genuinely needs <strong>, the fix
-  // is one budget-legal line (.text-body strong { font-weight: 530 }) —
-  // not weakening this assertion.
-  const typeBudget = await backlog.evaluate((el) => {
-    const withDirectText = Array.from(el.querySelectorAll("*")).filter((node) =>
-      Array.from(node.childNodes).some(
-        (child) =>
-          child.nodeType === Node.TEXT_NODE && (child.textContent ?? "").trim().length > 0,
-      ),
-    );
-    return withDirectText.map((node) => {
-      const s = getComputedStyle(node);
-      return { fontWeight: s.fontWeight, fontSize: s.fontSize };
-    });
-  });
-  expect(typeBudget.length).toBeGreaterThan(0);
-  for (const { fontWeight, fontSize } of typeBudget) {
-    expect(["400", "530"]).toContain(fontWeight);
-    expect(["14px", "18px"]).toContain(fontSize);
-  }
-});
+}

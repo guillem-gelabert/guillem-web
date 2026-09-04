@@ -3,15 +3,11 @@ import { test } from "node:test";
 import { readFile, readdir } from "node:fs/promises";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { POSITIONING_PLACEHOLDER } from "../../lib/work.ts";
-import { formatPostDate, indexPath, notFoundPath, postPath, UI } from "../../lib/locales.ts";
-// PROF-04: the established (not user-supplied) GitHub profile fact — see
-// lib/contact.ts's own comment for why it is never gated by the launch gate.
-// Imported here (not retyped) so the private-repo test and the launch-gate
-// test below can assert against it by equality, the same technique
-// POSITIONING_PLACEHOLDER already uses.
-// EMAIL: [USER-SUPPLIED], launch gate G4, null is the shipped state.
-import { EMAIL, GITHUB } from "../../lib/contact.ts";
+import { POSITIONING_PLACEHOLDER, WORK } from "../../lib/work.ts";
+import { indexPath, notFoundPath, postPath, UI } from "../../lib/locales.ts";
+// EMAIL is imported rather than retyped so raw-HTML assertions cannot drift
+// from the address rendered by the reusable obfuscated link.
+import { EMAIL } from "../../lib/contact.ts";
 // EXPERIENCE/PORTRAIT: [USER-SUPPLIED], launch gates G3/G6, empty/null is
 // the shipped state. CV_STUB_BODY: the copy /cv already ships while
 // EXPERIENCE is empty (not user-supplied — established stub text).
@@ -46,7 +42,6 @@ import type { Locale, PostEntry, PostFrontmatter } from "../../lib/content.ts";
 // module is .tsx, and node --test cannot import a .tsx file
 // (ERR_UNKNOWN_FILE_EXTENSION — 05-RESEARCH.md Q1 §A), so this imports the
 // shared source-reader instead of the module itself.
-import { LAST_TOUCHED as BACKLOG_LAST_TOUCHED, backlogSource } from "../unit/backlog-source.ts";
 
 // Covers WRIT-01 (SC5) / D-11: the production half of "a draft prerenders
 // nowhere and appears in no index". tests/draft-visibility.spec.ts (Playwright)
@@ -416,10 +411,6 @@ test("Phase 1's routes still prerender after the route-group restructure, and Ph
 // them, rather than retyped inline where they could silently drift —
 // content/the-chart-therefore-changes.mdx front-matter's `title` and
 // `standfirst` fields, verbatim.
-const CASE_STUDY_TITLE = "The Chart Therefore Changes";
-const CASE_STUDY_STANDFIRST =
-  "I began this project expecting to confirm that tourism had stopped paying off for the Balearics. The data forced a different kind of honesty: not a different verdict, but a different chart.";
-
 // CASE-01: the six rehype-slug ids in CASE-02's locked order — the same
 // list tests/case-study.spec.ts's EN_SECTION_IDS asserts in the dev-tier
 // DOM, restated here so the production build is checked independently.
@@ -593,290 +584,57 @@ test("/cv's production HTML carries its own title and its own canonical", async 
   assert.equal(new URL(match![1]).pathname, "/cv");
 });
 
-test("the featured slot ships the published case study's own title and standfirst in production (HOME-02)", async () => {
+test("/'s production HTML contains only the requested identity, work, and email surface", async () => {
   const routes = await getRoutes();
   const root = routes.get("")!;
+  const mainMatch = root.match(/<main\b[\s\S]*?<\/main>/);
+  assert.ok(mainMatch, "/ must render one semantic main element");
+  const main = mainMatch![0];
 
-  // This assertion belongs HERE and not in Playwright: Playwright runs
-  // against `npm run dev`, where showDrafts() is always true, and could not
-  // have distinguished the slot's interim state from its published one
-  // during Phase 4 authoring (Pitfall 2). Now that
-  // content/the-chart-therefore-changes.mdx ships draft: false,
-  // findBySlug(await publishedFor("en"), CASE_STUDY_SLUG) resolves in a
-  // production build too — no code in lib/work.ts or
-  // components/landing/featured-slot.tsx changed to make this happen, the
-  // slot was already written to branch on it.
-  assert.ok(root.includes(CASE_STUDY_TITLE), "the featured slot must render the post's own title");
-  assert.ok(
-    root.includes(CASE_STUDY_STANDFIRST),
-    "the featured slot must render the post's own standfirst — the entry's annotation copy IS the standfirst, so it links into the case study instead of duplicating it (Roadmap SC4)",
-  );
-  // Checked via a substring of the retired interim headline rather than the
-  // full sentence verbatim — "case study is being written" is a fragment of
-  // that headline, so absence of the shorter fragment is a STRICTLY
-  // STRONGER guarantee that the full interim sentence is gone (and keeps
-  // this file from re-quoting a sentence that no longer ships, now that
-  // components/landing/featured-slot.tsx's interim branch is dead code in
-  // production).
-  assert.equal(
-    root.includes("case study is being written"),
-    false,
-    "the interim headline must not survive publication",
-  );
-  assert.equal(
-    root.includes(
-      "On the Mallorca piece: what was expected, what the data showed, and how the visual form changed in response.",
-    ),
-    false,
-    "the interim body sentence must not survive publication",
-  );
-});
+  assert.equal((main.match(/<main\b/g) ?? []).length, 1, "/ must render exactly one main");
+  assert.equal((main.match(/<h1\b/g) ?? []).length, 1, "/ must render exactly one h1");
+  assert.ok(main.includes(">Guillem Gelabert</h1>"));
+  assert.ok(main.includes(POSITIONING_PLACEHOLDER));
+  assert.equal((main.match(/<li\b/g) ?? []).length, WORK.length);
 
-test("the featured headline is a link to the case study and the slot's only link (CASE-03)", async () => {
-  const routes = await getRoutes();
-  const root = routes.get("")!;
-
-  // Extract the h3.text-heading block specifically, not a whole-document
-  // anchor count, which would be defeated by the nav — same technique the
-  // interim version of this test used.
-  const match = root.match(/<h3[^>]*class="[^"]*text-heading[^"]*"[^>]*>[\s\S]*?<\/h3>/);
-  assert.ok(match, "the featured h3.text-heading block must be present");
-
-  const links = match![0].match(/<a\b[^>]*>/g) ?? [];
-  assert.equal(
-    links.length,
-    1,
-    'the featured headline must contain exactly one link — a second would be the "Read the case study" affordance the contract exists to prevent',
-  );
-  assert.ok(
-    links[0].includes('href="/writing/the-chart-therefore-changes"'),
-    'the featured headline\'s href must be postPath("en", CASE_STUDY_SLUG)',
-  );
-});
-
-test("both closed stubs' deleted copy — contact and backlog alike — is absent from production, and no marker word leaks in", async () => {
-  const routes = await getRoutes();
-  const root = routes.get("")!;
-
-  // NARROWED 2026-09-01 (Phase 6, Plan 04/09): the contact stub closed.
-  // components/landing/section-stub.tsx is deleted (D-13's precedent
-  // applied a second time) and app/(en)/page.tsx's #contact section now
-  // renders ContactBlock's real channels. Both of the contact stub's
-  // strings move from a "must render" assertion (this test's prior form)
-  // into the "must NOT render" loop below, alongside the backlog stub's —
-  // D-13's own reasoning: the difference between "not rendered" and "not
-  // present" is exactly the dead-code branch a later reader would
-  // otherwise mistake for a supported state. This inversion proves
-  // absence, not merely that dev never showed it (dev always shows
-  // drafts, but neither stub's copy was ever draft-gated — both were
-  // simply deleted from the render tree).
-  for (const removedStub of [
-    "No contact details here yet.",
-    "Email, GitHub and LinkedIn are being added.",
-    "Nothing listed here yet.",
-    "The current work is being written up.",
-  ]) {
-    assert.equal(
-      root.includes(removedStub),
-      false,
-      `/ must NOT render the deleted stub copy "${removedStub}"`,
-    );
+  for (const work of WORK) {
+    assert.ok(main.includes('href="' + work.href + '"'), "/ must link to " + work.href);
+    assert.ok(main.includes(work.title), "/ must render " + work.title);
+    assert.ok(main.includes(work.annotation), "/ must render the description for " + work.title);
   }
 
-  for (const banned of BANNED_MARKERS) {
-    assert.doesNotMatch(
-      root,
-      new RegExp(banned, "i"),
-      `/ must not render the marker word "${banned}"`,
-    );
-  }
-});
-
-/**
- * D-10: the prerendered markup is clean and sliceable — slice from the
- * opening <section id="backlog"> tag to the next </section>, asserting
- * both indices are found so a shifted section boundary fails loud rather
- * than silently scoping to the wrong (or zero-length) substring.
- */
-function backlogSectionOf(root: string): string {
-  const start = root.indexOf('<section id="backlog"');
-  assert.notEqual(start, -1, 'root HTML must contain <section id="backlog">');
-  const end = root.indexOf("</section>", start);
-  assert.notEqual(end, -1, "the backlog <section> must close with </section>");
-  return root.slice(start, end);
-}
-
-test("the private repository stays private in production — the blanket github.com ban is narrowed to the profile root (PROF-04)", async () => {
-  const routes = await getRoutes();
-  const root = routes.get("")!;
-
-  // D-06: the ib-gdp-evolution GitHub repository is private and must never
-  // be linked to as source. Both work-list entries link to their own
-  // independently-hosted domain, same tab, no target="_blank".
-  assert.ok(root.includes("https://ib-gdp.guillemgelabert.com/everyone-in-mallorca-agrees-on-one-thing"));
-  assert.ok(root.includes("https://watchpeopledie.live"));
-
-  // NARROWED 2026-09-01 (Phase 6, Plan 04/09): PROF-04 deliberately breaks
-  // the blanket github.com ban — the #contact section now renders the real
-  // GitHub profile link (lib/contact.ts's GITHUB, an established fact, not
-  // user-supplied). The ban is narrowed, not deleted: every github.com href
-  // on / must equal the profile root exactly, with no repository path
-  // segment beyond it — which is what would leak a private repo's name via
-  // a link rather than via the literal string check below.
-  const githubHrefs = [...root.matchAll(/href="([^"]*github\.com[^"]*)"/gi)].map((m) => m[1]);
-  assert.ok(githubHrefs.length > 0, "/ must render at least one github.com link (PROF-04)");
-  for (const href of githubHrefs) {
-    assert.equal(
-      href,
-      GITHUB,
-      `every github.com href on / must be the profile root, not a repository path — found "${href}"`,
-    );
-  }
-
-  // Untouched by the narrowing above — both still hold and both are the
-  // point of the test.
-  assert.equal(root.includes("ib-gdp-evolution"), false);
-  assert.doesNotMatch(root, /target="_blank"/);
-});
-
-test("launch gate: /cv is still interim and three copy items are still unreviewed — the contact stub closed on 2026-09-01", async () => {
-  const routes = await getRoutes();
-  const root = routes.get("")!;
-
-  // If /cv, or any of the three unreviewed copy items below, is still open
-  // when Phase 6 goes to flip the robots flag, Phase 6 is blocked. This
-  // test passing today is the record of which surface is still interim
-  // (/cv's own interim body is asserted by tests/cv.spec.ts); when the
-  // user fills it, THIS test is the thing that must be updated, which is
-  // where the gate gets noticed rather than forgotten.
-  //
-  // NARROWED 2026-08-31 (Phase 4, Plan 5): the featured slot closed. It was
-  // the third interim surface this gate covered — content/the-chart-therefore-changes.mdx
-  // published with draft: false, /writing left n=0, and the slot now ships
-  // its real title/standfirst with a real link (asserted by the two tests
-  // above). Removing the interim headline's assertion from this
-  // assertion IS the gate mechanism working: an interim state ended, and
-  // the test that proved it was interim was updated rather than silently
-  // left passing on a state that no longer exists.
-  //
-  // NARROWED 2026-08-31 (Phase 5, Plan 04): the backlog leg closed too.
-  // lib/backlog.tsx ships three real items and a section date;
-  // app/(en)/page.tsx no longer mounts SectionStub at #backlog; the two
-  // backlog stub strings are asserted ABSENT from production HTML by the
-  // stub-copy test above, not merely unrendered in dev. Removing the
-  // interim assertion from THIS test IS the gate mechanism working, same
-  // as Phase 4's narrowing above.
-  //
-  // NARROWED 2026-09-01 (Phase 6, Plan 04/09): the contact stub closed too.
-  // components/contact-block.tsx renders lib/contact.ts's real channels;
-  // the interim stub component is deleted (D-13's precedent applied a
-  // third time). "No contact details here yet." is removed from this
-  // assertion — that string is asserted ABSENT (not present) by the
-  // stub-copy test above, which is the gate mechanism working exactly as
-  // it did for the two prior narrowings. In its place, a POSITIVE
-  // assertion: the contact leg actually closed, not merely stopped being
-  // asserted, is proven by / rendering the real GitHub profile URL below —
-  // the evidence, not an inference from an assertion's own absence.
-  //
-  // One interim surface remains — /cv (tests/cv.spec.ts, and this file's
-  // G3/G6 tests below). THREE copy items remain unreviewed and all three
-  // still block Phase 6's FIND-02 robots flip:
-  //   1. HOME-01 — the positioning sentence still ships as
-  //      POSITIONING_PLACEHOLDER in lib/work.ts (asserted elsewhere in
-  //      this file).
-  //   2. The user's editorial pass over both case studies has not
-  //      happened (carried from Phase 4) — no automated test can assert
-  //      "a human read this"; the record lives in
-  //      .planning/phases/05-backlog/launch-gate.md.
-  //   3. The backlog item copy is drafted from repository evidence and
-  //      unreviewed by the author — asserted directly below via the
-  //      COPY_REVIEWED source-scrape, D-14's second tripwire channel (the
-  //      first is the same constant, independently re-asserted at the
-  //      repo tier by tests/unit/backlog.test.ts). WHEN THE ASSERTION
-  //      BELOW FAILS: the author's editorial pass has happened — narrow
-  //      this gate again, do not delete it.
-  assert.ok(
-    root.includes(GITHUB),
-    "/ must render the real GitHub profile URL — the evidence the contact leg actually closed",
-  );
-  assert.match(
-    backlogSource,
-    /export const COPY_REVIEWED = false/,
-    "lib/backlog.tsx's COPY_REVIEWED must still read false — if this fails, the author's " +
-      "editorial pass over the backlog copy has happened; narrow this gate, do not delete it",
-  );
-});
-
-test("BACK-01/BACK-02: the backlog section renders three real items and a source-bound date in production", async () => {
-  const routes = await getRoutes();
-  const root = routes.get("")!;
-  const section = backlogSectionOf(root);
-
-  // BACK-01: exactly three rows, each with its own heading, all three item
-  // names as shipped in lib/backlog.tsx (D-04's editorial order is proven
-  // by Playwright's (v); this tier only needs presence).
-  assert.equal((section.match(/<li\b/g) ?? []).length, 3, "the backlog must render exactly three <li>");
-  assert.equal((section.match(/<h3\b/g) ?? []).length, 3, "the backlog must render exactly three <h3>");
-  for (const name of [
+  for (const retired of [
+    "The Chart Therefore Changes",
     "A data portrait of the Swiss commodity trade",
     "The house names of Zürich",
     "The Pudding, read as a corpus",
+    "https://github.com/guillem-gelabert",
+    "linkedin.com",
+    'href="/cv"',
+    'href="/writing"',
+    'href="#backlog"',
+    'href="#contact"',
   ]) {
-    assert.ok(section.includes(name), `the backlog must render the item name "${name}"`);
+    assert.equal(main.includes(retired), false, "/ must not render retired homepage content " + retired);
   }
 
-  // BACK-02, the date by equality against source (the POSITIONING_PLACEHOLDER
-  // technique applied to a .tsx module via the shared source-reader) —
-  // never a retyped literal, so this test cannot drift from lib/backlog.tsx.
-  //
-  // Pitfall 2, measured in this repo's shipped build: React 19.2.8 emits
-  // the JSX prop name verbatim in the raw prerendered file — dateTime,
-  // camelCase — not the lowercase "datetime" a browser produces after HTML
-  // parsing. An `includes('datetime="...")` check here would silently
-  // never match; match dateTime (camelCase) instead.
-  const dateMatch = section.match(/dateTime="(\d{4}-\d{2}-\d{2})"/);
-  assert.ok(
-    dateMatch,
-    'the backlog section must carry a <time dateTime="YYYY-MM-DD"> (camelCase — Pitfall 2)',
-  );
-  assert.equal(
-    dateMatch![1],
-    BACKLOG_LAST_TOUCHED,
-    "the rendered date must equal lib/backlog.tsx's own LAST_TOUCHED by equality, not a retyped copy",
-  );
+  assert.doesNotMatch(main, /<nav\b|<section\b|<img\b|<svg\b|<button\b/);
+});
 
-  // The rendered date TEXT proves formatPostDate is the one and only
-  // formatter — no second one was written for this section.
-  assert.ok(
-    section.includes(formatPostDate(BACKLOG_LAST_TOUCHED, "en")),
-    'the backlog date line must render formatPostDate(LAST_TOUCHED, "en")\'s output',
-  );
+test("/'s raw HTML has exactly two HTTP links and one correctly entity-obfuscated mail link", async () => {
+  const routes = await getRoutes();
+  const root = routes.get("")!;
+  const main = root.match(/<main\b[\s\S]*?<\/main>/)![0];
+  const hrefs = [...main.matchAll(/<a\b[^>]*href="([^"]+)"[^>]*>/g)].map((match) => match[1]);
 
-  // The copy rule: work.test.ts:56-58's banned-tool-token list, mirrored
-  // here (not imported — this file does not reach into lib/work.ts) and
-  // applied to the section's TEXT ONLY, tags stripped first, so a class
-  // name or attribute cannot satisfy or defeat the check.
-  const sectionText = section.replace(/<[^>]+>/g, " ");
-  const bannedTokens = ["React", "Next", "D3", "TypeScript", "JavaScript", "Svelte", "WebGL", "Python"];
-  const bannedPhrases = ["built with", "powered by"];
-  for (const token of bannedTokens) {
-    assert.doesNotMatch(
-      sectionText,
-      new RegExp(`\\b${token}\\b`, "iu"),
-      `the backlog must not name the tool "${token}"`,
-    );
-  }
-  for (const phrase of bannedPhrases) {
-    assert.equal(
-      sectionText.toLowerCase().includes(phrase),
-      false,
-      `the backlog must not contain the phrase "${phrase}"`,
-    );
-  }
-
-  // D-07: none of the three items has a public artifact in v1 — zero
-  // links in the backlog is a decision, not an oversight.
-  assert.doesNotMatch(section, /<a\b/, "the backlog section must contain zero <a> elements in v1");
+  assert.deepEqual(hrefs.slice(0, 2), WORK.map((work) => work.href));
+  assert.equal(hrefs.length, 3, "/ must render only the two work links and one email link");
+  assert.match(hrefs[2], /^mailto:/);
+  assert.ok(root.includes("&#64;"), "/ must carry the entity-encoded @");
+  assert.ok(root.includes("&#46;"), "/ must carry the entity-encoded .");
+  assert.equal(root.includes("&amp;#"), false, "/ must not double-escape email entities");
+  assert.equal(root.includes(EMAIL), false, "/ must not carry the bare email address");
+  assert.doesNotMatch(main, /target="_blank"/);
 });
 
 test("CASE-01: /writing/the-chart-therefore-changes prerenders with its six section marks and three figures", async () => {
@@ -1293,7 +1051,7 @@ test("/writing and /texte still emit hreflang alternates including x-default; /,
 // invisible; a skipped one is a standing instruction with a name attached,
 // and `npm run test:build`'s own output becomes a readable gate report.
 
-test("G4 (email): the double-escape signature never appears anywhere, and no mailto: link exists yet", async () => {
+test("G4 (email): entities never double-escape and mail links stay on the two contact surfaces", async () => {
   const routes = await getRoutes();
 
   // Pitfall 3: React escapes `&` in both text nodes and attribute values,
