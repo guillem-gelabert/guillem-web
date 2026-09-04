@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: Working Site
 status: milestone-complete
 stopped_at: v1.0 complete — every surface ships, held at noindex by the copy gate (see .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md). Test suite is red by decision after 260903-hb4; see Blockers/Concerns
-last_updated: "2026-09-03T16:49:18+02:00"
-last_activity: 2026-09-03 - Completed quick task 260903-nbd: simplify staged noise-gradient implementation and tests
+last_updated: "2026-09-04T11:24:00+02:00"
+last_activity: 2026-09-04 - Completed quick task 260904-f24: publish ultra-minimal production landing and preserve Railway staging
 progress:
   total_phases: 6
   completed_phases: 6
@@ -28,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-08-29)
 Phase: 06 (CV, Contact, Photo & Discoverability) — COMPLETE
 Plan: 12 of 12
 Status: v1.0 milestone closed 2026-09-01
-Last activity: 2026-09-03 - Completed quick task 260903-nbd: simplify staged noise-gradient implementation and tests
+Last activity: 2026-09-04 - Completed quick task 260904-f24: publish ultra-minimal production landing and preserve Railway staging
 
 **The site is structurally complete and deliberately not indexed.** Every surface the milestone
 promised ships and is live at `guillemgelabert.com`. Five of the values those surfaces render are
@@ -239,6 +239,7 @@ migration is deferred to v2 and no migration was performed.
 | 260903-kyf | Replace palette guards with separate black and white monochrome noise-gradient elements over pink | 2026-09-03 | f6d0635 | [260903-kyf-replace-palette-guards-with-two-separate](./quick/260903-kyf-replace-palette-guards-with-two-separate/) |
 | 260903-lcq | Restore the exact pre-palette /noise-gradient implementation from b2cdf6a | 2026-09-03 | 7c0849e | [260903-lcq-restore-the-exact-pre-palette-noise-grad](./quick/260903-lcq-restore-the-exact-pre-palette-noise-grad/) |
 | 260903-nbd | Simplify staged noise-gradient implementation and tests by trimming redundant comments, making visual sampling deterministic, and removing overlapping implementation assertions | 2026-09-03 | fac5511 | [260903-nbd-simplify-staged-noise-gradient-implement](./quick/260903-nbd-simplify-staged-noise-gradient-implement/) |
+| 260904-f24 | Publish an ultra-minimal production landing and preserve a Railway staging deployment | 2026-09-04 | d4538f4 | [260904-f24-update-the-production-site-to-an-ultra-m](./quick/260904-f24-update-the-production-site-to-an-ultra-m/) |
 
 ## Deferred Items
 
