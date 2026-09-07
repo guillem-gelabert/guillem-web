@@ -350,6 +350,17 @@
    wedges. The narrow box in each stack goes there, flush with the outer
    edge, so two rectangles fill a triangle instead of one rectangle and a
    step. Aligning them inwards instead would push them into the seam. */
+/* An aside with nothing in it takes no space. Both are optional slots —
+   the landing currently passes positioning={null} and caseStudyHead={null}
+   — and .aside has a height and a min-height: min-content, so an empty one
+   still occupied a band of its stack and of the height the nameplate is
+   measured against. :empty is exact here: the slot renders <div
+   class="seam-content-*"> with the prop inside, so the wrapper below is
+   childless precisely when the prop is null. */
+.box:has(> .content:empty) {
+  display: none;
+}
+
 .boxPositioning {
   align-self: flex-start;
 }
@@ -546,16 +557,19 @@
        what is left once the two asides and the two gaps are accounted for.
        Without it the name's own proportion made both stacks taller than
        half the screen and the case study climbed into the tagline. */
-    --nameplate-height: min(
-      calc(var(--box-width) * 0.874),
-      calc(
-        (
-            100dvh - var(--edge-top) - var(--edge-bottom) -
-              var(--stack-gap) - var(--stack-gap) - var(--aside-height) -
-              var(--aside-height)
-          ) / 2
-      )
-    );
+    /* 0.874 IS the name's own proportion (two lines at line-height 0.78,
+       sized 56cqw: 2 x 0.78 x 0.56), so a box at exactly this height is
+       one the name fills to both side edges — that is the full-width look,
+       and it is what this height is for.
+
+       No min() against a share of the screen any more. That share is what
+       broke it: the term reserved two --aside-height's, the landing renders
+       neither aside (positioning={null}, caseStudyHead={null}), and the
+       box came out shorter than the name's proportion — so 64cqh won the
+       font-size min() below and the name pulled in from both edges. An
+       empty .aside is display: none now (see the rule after this block),
+       so the two stacks already have the height the asides were holding. */
+    --nameplate-height: calc(var(--box-width) * 0.874);
     --aside-width: calc(var(--box-width) * 0.62);
     --gradient-center-x: var(--gradient-center-mobile-portrait-x);
     --gradient-center-y: var(--gradient-center-mobile-portrait-y);
@@ -621,16 +635,37 @@
        bottom edge. */
     --aside-width: calc(var(--box-width) * 0.75);
     --aside-height: calc(var(--aside-width) / var(--aside-ratio));
-    --nameplate-height: calc(
-      100dvh - var(--edge-top) - var(--edge-bottom) - var(--stack-gap) -
-        var(--aside-height)
-    );
+    /* Full height: the whole scene less the top and bottom edges. The
+       --stack-gap and --aside-height terms are gone because the aside they
+       accounted for is display: none when its slot is empty, which it is
+       on the landing — subtracting for a box that is not there is what
+       kept the name short of the bottom edge. The stack is a flex column,
+       so if a real positioning line is passed later it takes its own
+       height back from this box rather than overflowing the scene.
+
+       Landscape is the mirror of portrait: there the name fills the width
+       and the height follows, here it fills the height and the width
+       follows (the font-size rule below sizes by cqh and lets the measure
+       fall where it falls). --edge-top/--edge-bottom are still respected —
+       full height means filling what the padding leaves, not ignoring it. */
+    --nameplate-height: calc(100dvh - var(--edge-top) - var(--edge-bottom));
     --gradient-center-x: var(--gradient-center-mobile-landscape-x);
     --gradient-center-y: var(--gradient-center-mobile-landscape-y);
     /* Declared on .scene deliberately: on a phone this SHOULD beat the
        hook, which clears its :root value in that branch precisely so this
        one takes over. */
     --seam-angle: 55deg;
+  }
+
+  /* Height sets the name here, mirroring portrait's 56cqw. Two lines at
+     line-height 0.78 come to 1.56em, so 64cqh is the largest size that
+     still sits inside the box — which is now the full height between the
+     two edges, so the name fills it top to bottom. The width term is the
+     backstop: the box is half the scene wide in landscape, and GELABERT at
+     1.78em would run into the case-study column next to it before the
+     height ever bound, so whichever is smaller wins. */
+  .boxNameplate :global(.seam-nameplate-text) {
+    font-size: min(64cqh, 56cqw);
   }
 
   /* A phone on its side gives the case study a 173px-tall box for a

@@ -70,12 +70,17 @@ test.describe("landing language switch geometry — desktop", () => {
       expect(Math.min(topMargin, rightMargin)).toBeLessThanOrEqual(TOLERANCE_PX);
 
       // Clear of the case-study head aside (conservative: bounding boxes).
+      // The slot is optional: the landing passes caseStudyHead={null}, and an
+      // empty .box is display: none, so there is no box to collide with. A
+      // missing box means the clearance holds vacuously, not that the layout
+      // is broken — only assert it when the aside is actually rendered.
       const asideBox = await caseStudyHead.boundingBox();
-      if (!asideBox) throw new Error("aside box missing");
-      const clearOfAside =
-        langBox.y + langBox.height <= asideBox.y ||
-        langBox.x + langBox.width <= asideBox.x;
-      expect(clearOfAside).toBe(true);
+      if (asideBox) {
+        const clearOfAside =
+          langBox.y + langBox.height <= asideBox.y ||
+          langBox.x + langBox.width <= asideBox.x;
+        expect(clearOfAside).toBe(true);
+      }
     });
   }
 });

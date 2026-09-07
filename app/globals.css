@@ -444,12 +444,18 @@ body {
   color: var(--color-ink);
 }
 
-/* The landing runs edge to edge under the notch and the home indicator, and
-   on iOS the BODY's background propagates to the canvas — which paints both
-   safe-area bands whatever height the page's own elements are. So the seam
-   cannot cover the top band from inside itself: white body meant a white
-   strip above it no matter what. This is set by the landing route only, so
-   every other page keeps its paper. */
+/* The landing runs edge to edge under the notch and the home indicator.
+   On iOS the BODY's background propagates to the canvas, so a white body
+   meant a white strip above the seam — which is what --color-seam-canvas
+   was added to cover.
+
+   It has to be `transparent`, not a colour. Any opaque canvas here is also
+   what iOS Safari samples to tint its own status-bar chrome, so #331900
+   painted a brown band across the top of the screen instead of letting the
+   seam show through. Transparent leaves the canvas unpainted, which is the
+   browser's default: the status bar takes whatever the page itself renders
+   under it, and .grainBase (inset: 0 on a 100lvh scene) is already that.
+   Set by the landing route only, so every other page keeps its paper. */
 body:has(.seam-scene) {
-  background: var(--color-seam-canvas);
+  background: transparent;
 }
