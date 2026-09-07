@@ -11,7 +11,11 @@
   /* The landing's canvas — the dark end of its orange ramp. A token rather
      than a literal because it is a colour the site owns, and because every
      hex in this file belongs in this block (prose-contract test (m)). */
-  --color-seam-canvas: #331900;
+  /* The colour the grain stack paints at the very top of the scene,
+     sampled from the rendered page rather than picked from the ramp — this
+     is what body:has(.seam-scene) hands to the iOS canvas so the safe-area
+     band and the overscroll match the seam instead of banding against it. */
+  --color-seam-canvas: #1d0e00;
   --color-accent: #C1272D;
   --color-surface-code: rgba(0, 0, 0, 0.04);
   --color-rule: rgba(0, 0, 0, 0.12);
@@ -444,18 +448,25 @@ body {
   color: var(--color-ink);
 }
 
-/* The landing runs edge to edge under the notch and the home indicator.
-   On iOS the BODY's background propagates to the canvas, so a white body
-   meant a white strip above the seam — which is what --color-seam-canvas
-   was added to cover.
+/* The landing runs edge to edge under the notch and the home indicator, and
+   on iOS the BODY's background propagates to the canvas — which paints the
+   safe-area bands, and whatever the page overscrolls into, whatever height
+   the page's own elements are. So the seam cannot cover the top band from
+   inside itself.
 
-   It has to be `transparent`, not a colour. Any opaque canvas here is also
-   what iOS Safari samples to tint its own status-bar chrome, so #331900
-   painted a brown band across the top of the screen instead of letting the
-   seam show through. Transparent leaves the canvas unpainted, which is the
-   browser's default: the status bar takes whatever the page itself renders
-   under it, and .grainBase (inset: 0 on a 100lvh scene) is already that.
+   It has to be an opaque colour. `transparent` is not the fix: it leaves
+   the canvas unpainted, and unpainted is WHITE, so the notch band and the
+   rubber-band overscroll both came back white — the very band this rule
+   exists to remove. (The page is two 100lvh scenes tall, so it always
+   scrolls and overscroll is always reachable.)
+
+   The colour has to be the one the seam actually paints at its top edge,
+   or the band reads as a stripe of the wrong brown rather than as more of
+   the page. #331900 was --gradient-shade, the darkest stop, which is not
+   what lands at y=0: the grain stack there measures #1d0e00. That mismatch
+   is what showed as a brown band across the status bar.
+
    Set by the landing route only, so every other page keeps its paper. */
 body:has(.seam-scene) {
-  background: transparent;
+  background: var(--color-seam-canvas);
 }
