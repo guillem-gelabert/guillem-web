@@ -59,8 +59,14 @@ export default async function Landing() {
               three words spaced apart and set in caps. Still the same
               constant, so it goes on matching this route's meta
               description, which tests/build/prerender.test.ts asserts by
-              equality. */}
-          <p className="seam-tagline text-label uppercase">
+              equality.
+
+              Not .text-label any more. That class is the site's 14px
+              Newsreader caption, and every one of its declarations except
+              the casing is now overridden in landing-seam.module.css —
+              keeping it would leave a rule that looks load-bearing and
+              isn't. */}
+          <p className="seam-tagline uppercase">
             {POSITIONING_PLACEHOLDER}
           </p>
         </header>

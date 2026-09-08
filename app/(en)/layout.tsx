@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { humane } from "../fonts/humane";
 import { newsreader } from "../fonts/newsreader";
 import { ibmPlexMono } from "../fonts/ibm-plex-mono";
+import { jost } from "../fonts/jost";
 import { SmearHeadingProvider } from "@/components/smear-heading/smear-heading-provider";
 import { rootMetadata } from "@/lib/metadata";
 import "../globals.css";
@@ -44,7 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`${humane.variable} ${newsreader.variable} ${ibmPlexMono.variable}`}
+      className={`${humane.variable} ${newsreader.variable} ${ibmPlexMono.variable} ${jost.variable}`}
     >
       <body>
         <SmearHeadingProvider>{children}</SmearHeadingProvider>

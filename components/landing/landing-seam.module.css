@@ -494,9 +494,9 @@
 
 /* Spaced apart, and held below the name rather than beside it. The
    nameplate box lays its content out as a column so the tagline lands under
-   the two lines of the name; the tracking is what "space between" asks for
-   at this size. */
-/* Set to the nameplate's own measure. The name fills the box's width by
+   the two lines of the name.
+
+   Set to the nameplate's own measure. The name fills the box's width by
    construction, so the tagline matches it by spanning that width too:
    justified across three words, which distributes the space between them
    instead of guessing at a tracking value that would only line up at one
@@ -504,9 +504,53 @@
 
    text-align-last is what does the work — without it the last (and only)
    line of a justified block stays flush left and the justification has no
-   effect at all. */
+   effect at all.
+
+   The three words are separated by that justification alone — no bullet, no
+   rule, no hyphen. Which means the size has to carry the line on its own:
+   at .text-label's fixed 14px the words sat as three small marks under a
+   name several hundred px tall, and the gaps read as broken rather than
+   deliberate. The size below is a share of the same box the name is
+   measured against, so the two scale together instead of drifting apart
+   between viewports.
+
+   Thin, because the weight has to stay under the name's: a caption to it,
+   not a second voice competing with it.
+
+   The extended look is letter-spacing, not a width axis. Jost ships a
+   weight axis and nothing else (app/fonts/jost.ts), so there is no `wdth`
+   to widen the letterforms with — tracking moves the letters apart
+   instead. Worth being honest about in the one place that sets it, because
+   the two are not the same effect and this file cannot fake the other one.
+
+   Size and tracking are one decision, and the constraint that sets both is
+   that three words have to stay on ONE line. A justified line that wraps
+   is worse than an unjustified one — the orphan ("JOURNALISM" alone) takes
+   the full measure's worth of stretch in the line above it, so the gaps
+   blow out to something like six spaces wide and the block reads as broken
+   text rather than as spacing. Tracking spends the same budget the word
+   gaps need: every 0.01em added here is width taken away from the slack
+   that makes the justification read as deliberate.
+
+   Jost is a narrower face than the size alone suggests, so 3.6cqw — the
+   value that fitted the wider one this line was first set in — left the
+   words small under a name several hundred px tall and ~70px of air in
+   each gap. 4.4cqw spends most of that surplus on the type instead, and
+   still leaves ~37px a gap at the tightest box the tests below cover.
+
+   text-wrap: nowrap is the guard, not the mechanism. The numbers hold at
+   the viewports they were measured at; nowrap is what makes the single
+   line true at every OTHER one too, and it turns a wrap into a visible
+   overflow — something you would catch — instead of a silent blow-out of
+   the justification. */
 .boxNameplate :global(.seam-tagline) {
-  margin-top: 0.75em;
+  margin-top: 1.1em;
+  font-family: var(--font-geometric);
+  font-size: 4.4cqw;
+  line-height: 1.15;
+  font-weight: 300;
+  letter-spacing: 0.14em;
+  text-wrap: nowrap;
   text-align: justify;
   text-align-last: justify;
 }

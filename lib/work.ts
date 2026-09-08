@@ -45,4 +45,4 @@ export const WORK: readonly [WorkEntry, WorkEntry] = [
 export const CASE_STUDY_SLUG = "the-chart-therefore-changes";
 
 /** One source for the landing's visible descriptor and metadata description. */
-export const POSITIONING_PLACEHOLDER = "Data - Visualisation - Journalism";
+export const POSITIONING_PLACEHOLDER = "Data Visualisation Journalism";

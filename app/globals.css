@@ -5,6 +5,8 @@
   --font-display: var(--font-humane), Impact, sans-serif;
   --font-body: var(--font-newsreader), serif;
   --font-mono: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  /* Landing tagline only. Geometric — see app/fonts/jost.ts. */
+  --font-geometric: var(--font-jost), ui-sans-serif, sans-serif;
 
   --color-paper: #ffffff;
   --color-ink: #000000;
