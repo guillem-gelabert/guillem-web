@@ -35,24 +35,15 @@ export function LandingSeam({
 
   useSeamAlignment(sceneRef, seamStartRef, seamEndRef);
 
-  // Rendered once per section. Both get the same four layers; the mirrored
-  // section flips them with a transform, so nothing differs here.
+  // Rendered once per section: the paper, and the ink the dither cuts
+  // into. It was six layers — four turbulence fields multiplying into
+  // five plateaus, plus a tinting pass — and the ramp those built now
+  // arrives whole in the PNG. The mirrored section flips them with a
+  // transform, so nothing differs here.
   const grain = (
     <div className={`seam-grain ${styles.grain}`} aria-hidden="true">
       <div className={`seam-grain-base ${styles.grainBase}`} />
-      <div
-        className={`seam-grain-field ${styles.grainField} ${styles.grainArc1}`}
-      />
-      <div
-        className={`seam-grain-field ${styles.grainField} ${styles.grainArc2}`}
-      />
-      <div
-        className={`seam-grain-field ${styles.grainField} ${styles.grainArc3}`}
-      />
-      <div
-        className={`seam-grain-field ${styles.grainField} ${styles.grainArc4}`}
-      />
-      <div className={`seam-grain-colour ${styles.grainColour}`} />
+      <div className={`seam-grain-field ${styles.grainField}`} />
     </div>
   );
 
@@ -125,6 +116,11 @@ export function LandingSeam({
             ref={seamEndRef}
             className={`${box} seam-box-case-study ${styles.boxCaseStudy}`}
           >
+            {/* Behind the copy, above the dither. It is a sibling rather
+                than a background on the box because the box is a size
+                container the text is measured against — a border-radius
+                there would round the text's own clipping box too. */}
+            <div className={`seam-circle ${styles.circle}`} aria-hidden="true" />
             <div className={`${content} seam-content-case-study`}>
               {caseStudy}
             </div>

@@ -118,79 +118,115 @@
   );
   --gradient-center-x: var(--gradient-center-desktop-x);
   --gradient-center-y: var(--gradient-center-desktop-y);
-  /* The ramp's two ends, both orange rather than white and black. The
-     dither fields stay grayscale — they are filter: grayscale()'d, so
-     colour in their stops is discarded, and the plateaus have to be built
-     in grey for the technique to work at all. The colour goes where it
-     survives: --gradient-base under the stack, and a gradient on the
-     tinting layer instead of one flat hue.
+  /* Two colours do the work, paper and ink, the way a riso print has
+     them: --gradient-base is the paper the whole scene sits on, and
+     --gradient-shade is the ink the dither punches holes in. Every tone
+     between them is a dot density in the PNG, not a colour here — which
+     is why there is no mid-hue in the stack.
 
-     One flat hue was the bug. mix-blend-mode: color takes hue and
+     Neutral grey, and a deliberately SOFT ink. Both are chosen against
+     the contrast they produce rather than by eye: paper against ink is
+     6.66:1, down from 14.59:1 when this was cream on near-black, which
+     is the reduction asked for — and still clear of WCAG AA's 4.5:1 for
+     the 14px standfirst, which has to hold on either ground. Pushing the
+     ink lighter than this starts trading that away (#6b6b6b is 4.76:1,
+     with no margin left for a lighter paper).
+
+     Equal R/G/B on purpose: no hue at all. The dither is the only thing
+     with any structure in this composition, so any cast in the two ends
+     shows up as a tint across the whole field rather than as a colour
+     you chose.
+
+     Nothing here is transparent. Riso ink is down or it is not, so the
+     dark half is lightened by moving the INK, never by lowering the
+     layer's alpha — an alpha would let the paper through the dots and
+     turn them grey, which is the exact look the bitmap conversion exists
+     to avoid.
+
+     The blend-mode workaround these tokens used to encode is gone with
+     the feTurbulence fields. mix-blend-mode: color took hue and
      saturation from the tinting layer but LIGHTNESS from underneath, so
      pure white and pure black plateaus came through untinted and read as
-     grey at both ends of the ramp. Tinting with a light-to-dark orange
-     ramp, and lifting the base off pure white, gives the extremes a hue to
-     carry. */
-  --gradient-tint: #ffefe0;
-  --gradient-shade: #331900;
+     grey; the light-to-dark orange tinting ramp existed to give the
+     extremes a hue to carry. Painting the ink instead of blending it
+     makes that structural rather than compensated.
+
+     --gradient-colour was the middle of that ramp and nothing reads it
+     now. It stays as the name of the composition's hue — the one value a
+     re-colouring starts from — and is the only token here that is still
+     warm, so it is also the reminder of what this used to be. */
+  --gradient-tint: #f2f2f2;
+  --gradient-shade: #555555;
   --gradient-base: var(--gradient-tint);
   --gradient-colour: #ff8000;
 
   position: relative;
   width: 100%;
-  /* 100lvh, not 100dvh: with viewport-fit=cover the large viewport is the
-     one that spans the safe-area bands, so this is what reaches the top and
-     bottom edges of the screen. Under 100dvh the scene stopped short of
-     both and the white <body> showed through them.
+  /* 100dvh, matching #scroll-root's own height (app/globals.css): the
+     document is locked and #scroll-root is the scroller, so the screen the
+     scene has to fill is the scroller's box, not the large viewport.
 
-     It paints --gradient-shade rather than staying transparent for the same
-     reason: body is --color-paper, so any pixel the grain stack does not
-     cover reads as a white band. */
-  height: 100lvh;
-  min-height: 100svh;
+     It was 100lvh, for a scrolling document under viewport-fit=cover, where
+     the large viewport was what reached past the safe-area bands. Left at
+     100lvh inside a 100dvh scroller each scene overflows by the height of
+     those bands, so the seam no longer lands on the fold. The bands are now
+     covered by <body>'s own paper rather than by the scene stretching under
+     them. */
+  height: 100dvh;
+  min-height: 100dvh;
   overflow: hidden;
-  /* Deliberately NOT isolated, and deliberately unpainted. .content blends
-     with mix-blend-mode: difference, which composites against whatever has
-     already painted in its stacking context — the grain stack. Isolating
-     here, or painting a background here, gives it that instead: a flat
-     near-black, and difference against near-black returns near-white, which
-     is why the name came out solid white. The white-band problem this was
-     added for is solved by .grainBase covering the scene instead. */
+  /* Deliberately unpainted: .grainBase covers the scene, including the
+     safe-area bands the composition runs under, so a background here
+     would only be a second opaque layer nothing can see.
+
+     It used to matter far more than that. .content carried
+     mix-blend-mode: difference, which composites against whatever has
+     already painted in its stacking context, so painting or isolating
+     here handed it a flat near-black to blend against and the name came
+     out solid white. No copy blends any more — every element states its
+     colour — so this is now simple tidiness rather than a trap. */
   background: none;
 }
 
-/* The grainy gradient, ported from the /noise-gradient study's five-band
-   mode. Every band is the same hue at a different lightness by
-   construction: the plateaus are built in grayscale and .grainColour tints
-   the lot in one pass, so --gradient-colour is the only place the hue is
-   named. The base is its own layer, not a background on this container: the
-   fields multiply against their SIBLINGS inside the isolated stack, and a
-   colour on the parent is not one of them — it sits outside the group the
-   blend composites within, and the fields end up multiplying against
-   nothing. It is a layer stack rather than one background: a light base, two
-   dither fields that crunch shared turbulence into binary dots and multiply
-   down onto it, and a single colour layer on top. Building the plateaus in
-   grayscale first and colourising once is what keeps the bands one hue.
+/* The grainy gradient. The ramp and its dither both live in one 1-bit
+   PNG (public/seam-dither-*.png): an Angle gradient in Photoshop, tone
+   corrected, then Image > Mode > Bitmap with Diffusion Dither, so every
+   pixel is pure black or pure white and tone is carried by dot density
+   alone. That is what makes it read as riso rather than as grain over
+   grey — riso ink is either down or it is not.
 
-   The arcs are the study's, unchanged, and they are authored for an origin
-   at the element's centre: their 240deg spreads assume the radius is
-   roughly even in every direction, which is true of a square with a centred
-   origin and false of a corner-anchored one. Pinning them to
-   --gradient-center-* (8dvh from the bottom-left) squeezed three quarters
-   of the sweep into a fan a hundred pixels deep while one quarter covered
-   the page. So these keep the centred origin the numbers were written for;
-   only --seam-angle rotates them, which is safe because rotation does not
-   change the radius. */
+   It replaces a stack of four feTurbulence fields that multiplied binary
+   dots into five plateaus. Two things go with them. The measured dot
+   density that construction needed (feTurbulence renders in linearRGB
+   unless pinned to sRGB, and the dot count had to be measured rather
+   than eyeballed) is now fixed in the export. And the mix-blend-mode:
+   color trick that tinted them is gone: that blend takes lightness from
+   underneath, so pure white and pure black plateaus came through
+   untinted, which is what the light-to-dark orange tinting ramp was
+   working around. Here the ink is PAINTED, not blended — .grainField is
+   a flat --gradient-shade masked by the dither — so both extremes carry
+   the hue by construction rather than by compensation.
+
+   Rotation is the whole reason the ramp is an Angle gradient and the
+   seam sits at twelve o'clock in the file: --seam-angle is degrees
+   clockwise from twelve, the same origin conic-gradient() used, so the
+   hook needs no offset and rotate() is a compositor-only transform. The
+   square has to reach the far corner of the viewport at EVERY angle, so
+   it is sized on the diagonal (250vmax) about the pivot, not on the box.
+
+   image-rendering: pixelated is load-bearing. The dither is one dot per
+   image pixel; resampling it smoothly averages dots back into the grey
+   the bitmap conversion existed to destroy. */
 /* The second section, flipped along the x axis. scaleY(-1) mirrors the
-   whole grain stack including the noise, which is what makes it read as a
-   reflection of the first rather than a repeat of it.
+   whole grain stack including the dither, which is what makes it read as
+   a reflection of the first rather than a repeat of it.
 
    Only the gradient is flipped, never content — this section holds none.
    And --seam-angle has to be restated: the hook writes it as an inline
-   style on the first scene, which this one is a sibling of, not a child of,
-   so it would otherwise fall back to the stylesheet's 50deg default while
-   the first tracked the boxes. Reading it off the first scene is what keeps
-   the two seams parallel. */
+   style on the first scene, which this one is a sibling of, not a child
+   of, so it would otherwise fall back to the stylesheet's 50deg default
+   while the first tracked the boxes. Reading it off the first scene is
+   what keeps the two seams parallel. */
 .sceneMirrored {
   transform: scaleY(-1);
 }
@@ -198,12 +234,13 @@
 .grain {
   position: absolute;
   inset: 0;
-  isolation: isolate;
   pointer-events: none;
 }
 
 /* Also the scene's backstop: .scene paints nothing, so this is what covers
-   the safe-area bands the composition runs under. */
+   the safe-area bands the composition runs under. It is the paper the ink
+   sits on — every white pixel of the dither is this colour showing
+   through. */
 .grainBase {
   background: var(--gradient-base);
 }
@@ -213,74 +250,66 @@
   inset: 0;
 }
 
+/* The ink. A flat fill the dither punches holes in, so the mask is the
+   only thing deciding coverage.
+
+   THE ELEMENT IS THE SQUARE, and that is the load-bearing part. A mask
+   is clipped to its element's box, so an inset: 0 layer — viewport
+   shaped, viewport sized — cannot hold a mask big enough to still cover
+   the far corner once rotated: the overhang is simply cut off, and the
+   ink survives only where the two boxes happen to overlap. So this layer
+   overrides the inset: 0 it inherits from `.grain > *` and becomes a
+   --dither-size square centred on the pivot instead. The mask then fills
+   it edge to edge (mask-size: 100%), the square's own centre IS the
+   pivot, and rotation about that centre is exactly the rotation the seam
+   needs.
+
+   .grain (inset: 0) and .scene (overflow: hidden) are what keep the
+   overhang from becoming scrollable: the square is absolutely positioned
+   inside a box that clips. */
 .grainField {
-  /* --noise-frequency is feTurbulence's baseFrequency, spliced into the
-     data URI. It is a separate variable so the phone branches can raise it
-     without restating the whole SVG. Higher is finer: the dots get smaller
-     and denser, which is what a phone's pixel density wants. */
-  --noise-texture: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 310' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='1' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  --noise-tile: 400px 310px;
-  --spread: 144deg;
-  /* Where the flat conic sat before the grain replaced it: the corner the
-     rest of the composition is anchored on, via the same
-     --gradient-center-x/y the hook drives. The study's arcs are authored
-     for a centred origin — their 144deg spreads assume an even radius — so
-     an off-centre one distributes the five bands unevenly by construction.
-     That is the composition's choice, not an oversight. */
-  --grain-origin: var(--gradient-center-x) var(--gradient-center-y);
+  /* Sized on the diagonal so the square still reaches the far corner at
+     every rotation. The pivot sits near a corner, so the radius it has to
+     cover is the full viewport diagonal — hence a side of 2x that, with
+     headroom. vmax, not vw/vh: the diagonal is bounded by the longer
+     side, and this has to hold at the aspect ratios the phone branches
+     see. */
+  --dither-size: 250vmax;
+  --dither-image: url("/seam-dither-desktop.png");
 
-  background:
-    conic-gradient(
-      from var(--seam-angle, 50deg) at var(--grain-origin),
-      rgb(255 255 255 / 0.5) calc(var(--arc-center) - var(--spread) / 2),
-      transparent calc(var(--arc-center) - var(--spread) / 2),
-      rgb(0 0 0 / 0.45) calc(var(--arc-center) - var(--spread) / 4),
-      rgb(0 0 0 / 0.54) var(--arc-center),
-      rgb(0 0 0 / 0.6) calc(var(--arc-center) + var(--spread) / 4),
-      rgb(0 0 0 / 0.71) calc(var(--arc-center) + var(--spread) / 2),
-      #000 calc(var(--arc-center) + var(--spread) / 2)
-    ),
-    var(--noise-texture) center / var(--noise-tile) repeat,
-    #fff;
-  filter: grayscale(100%) contrast(170%) brightness(1000%);
-  mix-blend-mode: multiply;
-}
+  /* Centre the square on the pivot: place its top-left half a side up
+     and left of the pivot, and let width/height do the rest. inset: auto
+     first, to drop the inherited inset: 0 — left/top alone would still
+     be fighting right/bottom. */
+  inset: auto;
+  left: var(--gradient-center-x);
+  top: var(--gradient-center-y);
+  width: var(--dither-size);
+  height: var(--dither-size);
+  margin-left: calc(var(--dither-size) / -2);
+  margin-top: calc(var(--dither-size) / -2);
 
-/* Five tones: 0.95 / 0.70 / 0.41 / 0.20 / 0.07 — each opacity is
-   1 - next / previous. Four arcs make five plateaus: each one darkens
-   everything from its own centre onward, so the tones accumulate. */
-.grainArc1 {
-  --arc-center: 72deg;
+  background: var(--gradient-shade);
 
-  opacity: 0.263;
-}
+  /* The mask fills the square, so the file's centre lands on the pivot
+     and its twelve-o'clock seam points straight up before rotation. */
+  mask-image: var(--dither-image);
+  mask-mode: luminance;
+  mask-repeat: no-repeat;
+  mask-size: 100% 100%;
+  mask-position: center;
+  -webkit-mask-image: var(--dither-image);
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  -webkit-mask-position: center;
 
-.grainArc2 {
-  --arc-center: 144deg;
+  image-rendering: pixelated;
 
-  opacity: 0.414;
-}
-
-.grainArc3 {
-  --arc-center: 216deg;
-
-  opacity: 0.512;
-}
-
-.grainArc4 {
-  --arc-center: 288deg;
-
-  opacity: 0.65;
-}
-
-.grainColour {
-  background: linear-gradient(
-    to bottom right,
-    var(--gradient-tint),
-    var(--gradient-colour) 50%,
-    var(--gradient-shade)
-  );
-  mix-blend-mode: color;
+  /* Rotates the layer's painted RESULT — the ink and the mask that cuts
+     it, together — about the square's centre, which is the pivot. A
+     compositor-only transform: no repaint, no re-rasterising the mask. */
+  transform: rotate(var(--seam-angle, 50deg));
+  transform-origin: center;
 }
 
 /* A corner, not a box: where the pair sits and how wide it is. Its height
@@ -369,10 +398,35 @@
   align-self: flex-end;
 }
 
+/* No blend modes anywhere in this composition. Copy states its colour,
+   and the colour is chosen for the ground the element's box sits on.
+
+   difference used to do this automatically — one white fill reading dark
+   on paper and light on ink, whichever side it landed on. It is gone
+   because it stopped being free: against real dither dots the blend
+   inverts at the STROKE WIDTH rather than across the letterform, so
+   anything smaller than the name came out as speckle, and every fix for
+   that was a second gradient layer to blend against instead. Stating two
+   colours is the smaller thing.
+
+   What it costs is the automatic flip, so the colour is now a fact about
+   the layout: white for copy on the ink side, black for copy on the paper
+   side. The case-study corner is the ink side on desktop, which is where
+   nearly all the small copy lives, so white is the default here and
+   .seam-tagline overrides. Two elements whose boxes STRADDLE the seam
+   cannot be served by either value — see the note on .seam-tagline.
+
+   Pure #fff and #000, NOT the --gradient-* pair the background is built
+   from. The background is deliberately soft now — 6.66:1 between its two
+   ends — and type drawn in those same two values would inherit that
+   softness on top of the contrast the grounds already cost it. Full black
+   and full white are the two values that stay legible against a field
+   whose own contrast has been dialled down, and they buy back what the
+   lighter ink gave away: #fff on the grey ink is 7.5:1, #000 on the grey
+   paper 17.6:1. Type is the one thing here not made of the two inks. */
 .content {
   width: 100%;
   color: #fff;
-  mix-blend-mode: difference;
 }
 
 .stackNameplate {
@@ -449,7 +503,6 @@
   flex-direction: column;
   align-items: center;
   gap: 0.15em;
-  color: #fff;
   /* Humane's variable build, driven on its one axis. font-variation-settings
      rather than font-weight alone so the wght coordinate is set explicitly:
      300 is the family's named Light instance.
@@ -463,10 +516,23 @@
   font-weight: 300;
   letter-spacing: 0.08em;
   line-height: 1;
-  mix-blend-mode: difference;
   transform-origin: center;
   rotate: calc(var(--seam-angle, 50deg) - 90deg);
   translate: -50% -50%;
+}
+
+/* The pair is centred ON the seam and rotated across it, so the two labels
+   land on opposite grounds by construction — that IS the design of this
+   control. It is also why the blend is not missed here: the split is not
+   a hazard to work around but the thing being drawn, and because EN and DE
+   are separate elements each can simply name the colour of the ground it
+   sits on. Paper above the seam, ink below it. */
+.lang :global(.seam-lang-en) {
+  color: #000;
+}
+
+.lang :global(.seam-lang-de) {
+  color: #fff;
 }
 
 
@@ -543,7 +609,28 @@
    line true at every OTHER one too, and it turns a wrap into a visible
    overflow — something you would catch — instead of a silent blow-out of
    the justification. */
+/* Black, because the line begins on the paper side — but it does not stay
+   there. Measured at 1440x900 the box's left corners are on paper and its
+   right corners on ink, so JOURNALISM crosses into the ink field where
+   black on grey is 2.82:1 and stops reading.
+   
+   A white halo is what carries it across. Four offsets rather than a
+   blur: a blurred shadow on 22px letterforms at weight 300 reads as a
+   glow and thickens the strokes, while hard 1px copies at the diagonals
+   draw a clean outline that only shows where it has to — over the paper
+   it is white on near-white and invisible, over the ink it is the
+   contrast. Opaque, no alpha, so it does not tint the dots underneath.
+
+   This is a legibility floor, not a substitute for the layout. The line
+   still crosses the seam, and if the tagline ever grows or the pivot
+   moves, keeping it clear of the ink is the better fix. */
 .boxNameplate :global(.seam-tagline) {
+  color: #000;
+  text-shadow:
+    1px 1px 0 #fff,
+    -1px 1px 0 #fff,
+    1px -1px 0 #fff,
+    -1px -1px 0 #fff;
   margin-top: 1.1em;
   font-family: var(--font-geometric);
   font-size: 4.4cqw;
@@ -555,7 +642,14 @@
   text-align-last: justify;
 }
 
+/* Paper side on every viewport measured (its four corners all fall there
+   at 1440x900 and on a phone), so it is black. It is the one element that
+   genuinely LOSES something with the blend gone: at 500px the dither
+   averaged inside the letterform, and differencing turned that into
+   texture in the glyph. A flat fill is a flat fill — the dots now stop at
+   the edge of the letter instead of running through it. */
 .boxNameplate :global(.seam-nameplate-text) {
+  color: #000;
   font-family: var(--font-display);
   font-size: 67cqh;
   font-weight: 530;
@@ -570,6 +664,99 @@
      offset that breaks if the font or line-height changes. */
   text-box-trim: trim-start;
   text-box-edge: cap alphabetic;
+}
+
+/* The one box whose content is allowed outside it: the circle behind the
+   case study is sized on the box's diagonal, so it is larger than the box
+   by construction. Everything else here still clips. */
+.boxCaseStudy {
+  overflow: visible;
+}
+
+/* The copy has to be POSITIONED to sit above the circle. Paint order puts
+   positioned elements over non-positioned ones whatever the DOM says, so
+   an absolutely-positioned circle beats a static sibling that comes after
+   it — the circle covered the headline outright. position: relative with
+   no offsets moves nothing and only enters it into the same ordering.
+
+   It is also inset from the box's full width, because a circle is not a
+   rectangle: a line set to the box's measure reaches the disc's edge
+   where the disc has already curved away, and the first and last words
+   hang outside it. A rectangle inscribed in a circle of diameter d is
+   d/sqrt(2) on a side — about 0.707 — and the copy here is taller than
+   it is wide, so the width is the constraint. 78% is that bound plus a
+   little slack, since the headline's first line is the only one that
+   actually runs the full measure. */
+.boxCaseStudy > .content {
+  position: relative;
+  width: 78%;
+  margin-inline: auto;
+}
+
+/* The case study sits in a circle, on a soft colour field of its own.
+
+   It is the one warm thing in a composition that is otherwise two greys
+   and a dither, which is the point: the grey seam is the ground, and this
+   is the object placed on it. The circle is a square box with a 50%
+   radius rather than a shape — the text inside stays a normal flow
+   rectangle, so nothing has to be fitted to a curve.
+
+   The gradient is three overlapping radial washes, not one linear ramp.
+   A ramp reads as a direction and would compete with the seam's own
+   diagonal; overlapping washes have no axis, so the colour drifts rather
+   than pointing. Each is placed off-centre and generously sized so their
+   soft edges cross inside the circle, and none reaches full saturation —
+   the whole field stays close enough in value that white text holds
+   across all of it.
+
+   Sized on the box's DIAGONAL, not its shorter side. A circle that
+   contains a rectangle has to clear that rectangle's diagonal, and the
+   case-study box is wide (514x443 at 1440x900) — a circle inscribed in
+   its shorter side is 443px across and the 456px-wide text simply spills
+   out of it. Hypot of the two sides via tan(atan2()), the same trick
+   --viewport-ratio uses on .scene, so it tracks the box at any size.
+
+   It therefore overflows the box, which is deliberate and is why .box's
+   own overflow: hidden is lifted for this one. The circle is the object
+   the composition places on the seam; the box is only where its text is
+   measured. */
+.circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  /* 100cqw and 100cqh as a right triangle's legs: hypot = w / cos(atan2(h, w)). */
+  --diagonal: calc(100cqw / cos(atan2(100cqh, 100cqw)));
+  /* Capped at the box's own width plus a small bleed. The diagonal is what
+     a circle needs to CONTAIN the box, and on a wide desktop box that is
+     the right size — but the phone box is tall and narrow, where the
+     diagonal is nearly its height and the circle swallowed the name above
+     it and ran off three edges. min() takes the diagonal where it is
+     modest and the width where it is not, so the circle stays a disc
+     roughly the width of its column on every viewport. */
+  --size: min(var(--diagonal), 112cqw);
+
+  width: var(--size);
+  height: var(--size);
+  translate: -50% -50%;
+  border-radius: 50%;
+  background-color: #4a4a72;
+  background-image:
+    radial-gradient(
+      circle at 22% 24%,
+      rgb(120 148 214 / 0.85),
+      rgb(120 148 214 / 0) 62%
+    ),
+    radial-gradient(
+      circle at 78% 30%,
+      rgb(198 132 190 / 0.78),
+      rgb(198 132 190 / 0) 58%
+    ),
+    radial-gradient(
+      circle at 50% 84%,
+      rgb(122 190 186 / 0.72),
+      rgb(122 190 186 / 0) 64%
+    );
+  pointer-events: none;
 }
 
 /* The case-study headline shares its box with a standfirst, so it takes the
@@ -647,16 +834,13 @@
     font-size: min(56cqw, 64cqh);
   }
 
-  /* Finer grain on a phone. The same texture tiled smaller reads as
-     higher-frequency noise — denser, smaller dots — which holds up at a
-     phone's pixel density where the desktop tile looks coarse.
-
-     The origin also goes back to the corner the rest of the composition is
-     anchored on. It costs the even radius the arc numbers assume, so the
-     bands bunch toward the bottom-left and stretch toward the top-right —
-     which on a tall narrow screen is the point, not a defect. */
+  /* The half-size export, so a phone downloads 167KB instead of 652KB.
+     Dot size is unchanged by the swap: both files carry the same ramp at
+     one dot per pixel, and --dither-size is a viewport length, so half
+     the pixels over a smaller viewport lands at much the same dots per
+     CSS pixel. The saving is bandwidth, not appearance. */
   .grainField {
-    --noise-tile: 200px 155px;
+    --dither-image: url("/seam-dither-mobile.png");
   }
 
   /* Same trade as the landscape branch below, less of it: the case study's
@@ -720,7 +904,7 @@
   }
 
   .grainField {
-    --noise-tile: 200px 155px;
+    --dither-image: url("/seam-dither-mobile.png");
   }
 }
 

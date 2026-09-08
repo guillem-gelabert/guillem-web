@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import ReactDOM from "react-dom";
 import { findBySlug, publishedFor } from "@/lib/content";
 import { CASE_STUDY_SLUG, POSITIONING_PLACEHOLDER } from "@/lib/work";
 import { SmearTitle } from "@/components/smear-title";
@@ -38,6 +39,21 @@ export const metadata: Metadata = {
 };
 
 export default async function Landing() {
+  // The seam's dither mask is the composition, not decoration, and CSS
+  // only discovers it after the stylesheet parses — a mask-image inside a
+  // custom property is invisible to the preload scanner. Hoisting it into
+  // a <link rel="preload"> in the document head starts the download with
+  // the HTML instead. Declared here rather than in LandingSeam because
+  // that component is "use client": ReactDOM.preload there would run
+  // after hydration, which is later than the CSS would have found it
+  // anyway. Only the desktop file is preloaded — a phone matching the
+  // media branch would otherwise fetch both and pay for the larger one it
+  // never paints.
+  ReactDOM.preload("/seam-dither-desktop.png", {
+    as: "image",
+    media: "not all and (hover: none) and (pointer: coarse)",
+  });
+
   // A null result IS the interim state — there is no boolean to flip, so
   // this must tolerate null forever: a renamed or re-drafted case-study
   // file returns the slot to its interim copy rather than throwing.
