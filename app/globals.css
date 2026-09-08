@@ -10,14 +10,6 @@
 
   --color-paper: #ffffff;
   --color-ink: #000000;
-  /* The landing's canvas — the dark end of its orange ramp. A token rather
-     than a literal because it is a colour the site owns, and because every
-     hex in this file belongs in this block (prose-contract test (m)). */
-  /* The colour the grain stack paints at the very top of the scene,
-     sampled from the rendered page rather than picked from the ramp — this
-     is what body:has(.seam-scene) hands to the iOS canvas so the safe-area
-     band and the overscroll match the seam instead of banding against it. */
-  --color-seam-canvas: #1d0e00;
   --color-accent: #C1272D;
   --color-surface-code: rgba(0, 0, 0, 0.04);
   --color-rule: rgba(0, 0, 0, 0.12);
@@ -450,25 +442,43 @@ body {
   color: var(--color-ink);
 }
 
-/* The landing runs edge to edge under the notch and the home indicator, and
-   on iOS the BODY's background propagates to the canvas — which paints the
-   safe-area bands, and whatever the page overscrolls into, whatever height
-   the page's own elements are. So the seam cannot cover the top band from
-   inside itself.
+/* App-shell: the document does NOT scroll — #scroll-root does.
+   ------------------------------------------------------------------------
+   iOS Safari composites the SCROLLING DOCUMENT's pixels behind the
+   translucent status bar, and `position: fixed` elements do not count. At
+   scrollY === 0 the strip shows the root background colour; once the
+   document has scrolled at all it shows real page pixels. The landing is
+   two 100lvh scenes tall, so it always scrolls, so the seam's gradient
+   always bled into the strip.
 
-   It has to be an opaque colour. `transparent` is not the fix: it leaves
-   the canvas unpainted, and unpainted is WHITE, so the notch band and the
-   rubber-band overscroll both came back white — the very band this rule
-   exists to remove. (The page is two 100lvh scenes tall, so it always
-   scrolls and overscroll is always reachable.)
+   Naming a colour cannot fix that, and this rule used to try: it handed
+   <body> the shade the grain stack paints at y=0 so the band would at least
+   match. That is the wrong end of the problem — the strip is not showing
+   <body> once scrolled, and an opaque colour there fights a strip that is
+   meant to show the page through glass. `theme-color` is not a lever
+   either; iOS 26 ignores it.
 
-   The colour has to be the one the seam actually paints at its top edge,
-   or the band reads as a stripe of the wrong brown rather than as more of
-   the page. #331900 was --gradient-shade, the darkest stop, which is not
-   what lands at y=0: the grain stack there measures #1d0e00. That mismatch
-   is what showed as a brown band across the status bar.
+   Locking the document removes the scrolling pixels altogether, so the
+   strips show the solid <body> background — the paper below, on every
+   route. Which is also what makes the landing read the way most sites do
+   behind the URL bar, rather than as a painted band.
 
-   Set by the landing route only, so every other page keeps its paper. */
-body:has(.seam-scene) {
-  background: var(--color-seam-canvas);
+   The pair to this is components/smear-heading/scroll-root.ts:
+   `window.scrollY` is permanently 0 under this rule, and everything that
+   reads a scroll position goes through that module instead. Setting one
+   without the other silently breaks every smear heading. */
+html,
+body {
+  height: 100dvh;
+  overflow: hidden;
+  /* No rubber-band, so nothing can reveal the canvas behind the page. */
+  overscroll-behavior: none;
+}
+
+#scroll-root {
+  height: 100dvh;
+  overflow-y: auto;
+  overflow-x: clip;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
 }

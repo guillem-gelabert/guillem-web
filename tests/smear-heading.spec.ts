@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { readOverflow, scrollBy } from "./scroll-root";
 
 // Covers HOME-06: a visitor scrolling sees headings trail behind the scroll
 // position with a stacked-text-shadow smear that settles when scrolling stops.
@@ -20,10 +21,9 @@ test("type specimen overflows the viewport so a visitor can actually scroll it",
   await page.goto("/type");
   await page.evaluate(() => document.fonts.ready);
 
-  const { scrollHeight, viewportHeight } = await page.evaluate(() => ({
-    scrollHeight: document.documentElement.scrollHeight,
-    viewportHeight: window.innerHeight,
-  }));
+  // #scroll-root, not the document — the app-shell keeps the document at
+  // exactly one viewport on every route (app/globals.css).
+  const { scrollHeight, viewportHeight } = await readOverflow(page);
 
   // Comfortably more than one screen — not merely a pixel over.
   expect(scrollHeight).toBeGreaterThan(viewportHeight * 1.5);
@@ -60,7 +60,7 @@ test("heading grows a multi-layer text-shadow mid-scroll and settles back to 'no
   // position and its target, giving the smoothing loop time to render a
   // clearly multi-layer shadow before it starts settling. No forced-height
   // element is injected — the page scrolls on its own content.
-  await page.evaluate(() => window.scrollBy(0, 1200));
+  await scrollBy(page, 1200);
 
   // Poll the real state via expect.poll() rather than sampling a fixed
   // number of times inside a fixed window. The original 10-attempt/16ms

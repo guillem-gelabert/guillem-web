@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { PORTRAIT } from "../lib/cv";
+import { readOverflow, scrollBy, scrollToBottom } from "./scroll-root";
 
 // Covers HOME-06 as a Phase 3 regression: Phase 1 shipped the smear trail
 // against a specimen route (/type), and / is now the first real page
@@ -21,10 +22,10 @@ test("/ genuinely scrolls", async ({ page }) => {
   // This used to be false — the Phase 1 holding page was name-only and had
   // nothing to scroll. Without this guard the rest of this file could pass
   // while a visitor saw nothing to trail at all.
-  const { scrollHeight, viewportHeight } = await page.evaluate(() => ({
-    scrollHeight: document.documentElement.scrollHeight,
-    viewportHeight: window.innerHeight,
-  }));
+  // Measured on #scroll-root, not the document: the app-shell locks the
+  // document at 100dvh so its scrollHeight is one viewport by construction
+  // (app/globals.css). The scroller is what a visitor actually scrolls.
+  const { scrollHeight, viewportHeight } = await readOverflow(page);
   expect(scrollHeight).toBeGreaterThan(viewportHeight);
 });
 
@@ -89,7 +90,7 @@ test("both headings smear mid-scroll and settle to none", async ({ page }) => {
     expect(shadow).toBe("none");
   }
 
-  await page.evaluate(() => window.scrollBy(0, 1200));
+  await scrollBy(page, 1200);
 
   // Poll the live DOM via expect.poll() rather than sampling a fixed number
   // of times inside a fixed window (see tests/smear-heading.spec.ts's
@@ -137,7 +138,7 @@ test("Newsreader does not trail", async ({ page }) => {
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(200);
 
-  await page.evaluate(() => window.scrollBy(0, 1200));
+  await scrollBy(page, 1200);
   await page.waitForTimeout(200);
 
   // This is the assertion that catches a future change registering the
@@ -180,7 +181,7 @@ test("under reduced-motion emulation, both headings stay none across a full scro
     expect(shadow).toBe("none");
   }
 
-  await page.evaluate(() => window.scrollBy(0, 1200));
+  await scrollBy(page, 1200);
   for (let step = 0; step < 10; step++) {
     await page.waitForTimeout(16);
     const samples = await readShadows(page);
@@ -190,7 +191,7 @@ test("under reduced-motion emulation, both headings stay none across a full scro
   }
 
   // Scroll again, all the way to the bottom, and confirm again.
-  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await scrollToBottom(page);
   for (let step = 0; step < 10; step++) {
     await page.waitForTimeout(16);
     const samples = await readShadows(page);

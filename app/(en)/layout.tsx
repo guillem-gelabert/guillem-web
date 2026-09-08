@@ -48,7 +48,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${humane.variable} ${newsreader.variable} ${ibmPlexMono.variable} ${jost.variable}`}
     >
       <body>
-        <SmearHeadingProvider>{children}</SmearHeadingProvider>
+        {/* #scroll-root, not <body>, is the scroller — app/globals.css locks
+            the document so iOS Safari has no scrolling pixels to composite
+            behind the translucent status bar. The id is the contract;
+            components/smear-heading/scroll-root.ts reads scroll position
+            from it. */}
+        <div id="scroll-root">
+          <SmearHeadingProvider>{children}</SmearHeadingProvider>
+        </div>
       </body>
     </html>
   );

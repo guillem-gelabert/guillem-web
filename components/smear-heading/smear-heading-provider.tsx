@@ -9,6 +9,7 @@ import {
   useRef,
 } from "react";
 import { usePrefersReducedMotion } from "./use-prefers-reduced-motion";
+import { getScrollY } from "./scroll-root";
 
 // Constants ported verbatim from text_trail_demo/index.html:324-327,362.
 const MAX_TRAIL = 280;
@@ -130,7 +131,7 @@ export function SmearHeadingProvider({
     function frame(time: number) {
       const elapsed = Math.min(time - (previousTime || time), 40);
       const smoothing = 1 - Math.exp(-elapsed * 0.009);
-      const scrollY = window.scrollY;
+      const scrollY = getScrollY();
       let anyActive = false;
 
       for (const [el, state] of registry) {
@@ -244,8 +245,19 @@ export function SmearHeadingProvider({
       }
     }
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("scrollend", finishScrolling, { passive: true });
+    // On `document` in the capture phase, not on `window`: the scroller is
+    // now #scroll-root (see scroll-root.ts), and scroll events do not bubble
+    // — but they do run capture, so this catches the inner scroller without
+    // depending on it being mounted when this effect runs. It still catches
+    // the document's own scroll on routes that have no #scroll-root.
+    document.addEventListener("scroll", handleScroll, {
+      capture: true,
+      passive: true,
+    });
+    document.addEventListener("scrollend", finishScrolling, {
+      capture: true,
+      passive: true,
+    });
     window.addEventListener("pointerdown", handlePointerDown, {
       passive: true,
     });
@@ -255,8 +267,12 @@ export function SmearHeadingProvider({
     });
 
     return () => {
-      window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("scrollend", finishScrolling);
+      document.removeEventListener("scroll", handleScroll, {
+        capture: true,
+      });
+      document.removeEventListener("scrollend", finishScrolling, {
+        capture: true,
+      });
       window.removeEventListener("pointerdown", handlePointerDown);
       window.removeEventListener("pointerup", handlePointerUp);
       window.removeEventListener("pointercancel", handlePointerUp);
@@ -268,7 +284,7 @@ export function SmearHeadingProvider({
   const register = useCallback((el: HTMLElement, documentTop: number) => {
     registryRef.current.set(el, {
       documentTop,
-      lagY: documentTop - window.scrollY,
+      lagY: documentTop - getScrollY(),
     });
   }, []);
 

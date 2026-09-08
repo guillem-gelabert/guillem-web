@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { scrollBy } from "./scroll-root";
 
 // Covers BUILD-05: a visitor with prefers-reduced-motion set is never shown
 // motion that ignores it — the heading trail's start()-equivalent gate must
@@ -47,7 +48,10 @@ test("heading text-shadow stays 'none' throughout a full scroll under reduced-mo
   // a single before/after check could miss a transient shadow mid-scroll.
   const samples: (string | null)[] = [];
   for (let step = 0; step < 5; step++) {
-    await page.evaluate((y) => window.scrollBy(0, y), 200);
+    // Via #scroll-root: window.scrollBy moves nothing under the app-shell,
+    // which would make this whole assertion vacuous — a no-op scroll can
+    // never produce a smear, so the test would pass without testing.
+    await scrollBy(page, 200);
     // Give the (never-scheduled) rAF loop a chance to run if it incorrectly
     // started, and let scroll/scrollend listeners fire.
     await page.waitForTimeout(50);
