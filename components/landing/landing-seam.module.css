@@ -174,7 +174,27 @@
      them. */
   height: 100dvh;
   min-height: 100dvh;
-  overflow: hidden;
+  /* Was overflow: hidden, which clipped the disc's trail flat at the fold —
+     the disc sits low in this scene and the smear runs up to MAX_TRAIL
+     (280px) past it.
+     
+     clip on x, visible on y: the pair is legal in exactly this combination
+     (`visible` would compute to `auto` next to `hidden`/`scroll`/`auto` and
+     turn the scene into a scroll container, but not next to `clip`), and it
+     is the same pattern #scroll-root already uses in app/globals.css. The x
+     axis still has to be clipped — a poster-scale nameplate at a 320px
+     viewport is what would otherwise give the page a horizontal scrollbar,
+     which tests/landing.spec.ts and tests/landing-viewport.spec.ts both
+     measure. Nothing else in here overflows vertically: .grain is inset: 0,
+     and every .box clips its own content except the case study's. */
+  overflow-x: clip;
+  overflow-y: visible;
+  /* Above the mirrored scene below it. Both are siblings and the mirrored
+     one comes later in the DOM, so without this it paints over whatever of
+     the trail escapes the fold — which is the other half of the same clip:
+     lifting the overflow alone just moved the problem from a hard edge to
+     being covered. */
+  z-index: 1;
   /* Deliberately unpainted: .grainBase covers the scene, including the
      safe-area bands the composition runs under, so a background here
      would only be a second opaque layer nothing can see.
@@ -228,6 +248,9 @@
    while the first tracked the boxes. Reading it off the first scene is
    what keeps the two seams parallel. */
 .sceneMirrored {
+  /* Under the first scene, so the disc's trail crosses the fold on top of
+     it rather than behind it. */
+  z-index: 0;
   transform: scaleY(-1);
 }
 
@@ -235,6 +258,19 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
+  /* The clip for the dither field, and it has to live HERE rather than on
+     .scene. .grainField is 250vmax square — a rotated field sized to cover
+     the scene at any seam angle — and its box is 4868px tall at 1440x900,
+     roughly five times the scene. .scene used to be overflow: hidden and
+     absorbed that; it is overflow-y: visible now, so the disc's trail can
+     cross the fold, and the field went with it: its box started
+     contributing to #scroll-root's scrollable area and the page grew from
+     1800px to 3478px — 1678px of empty scroll below the composition.
+     
+     Clipping it on .grain instead is exactly the old behaviour for the
+     field (this element is inset: 0, so its box IS the scene's) while
+     leaving the scene itself open for the trail. */
+  overflow: hidden;
 }
 
 /* Also the scene's backstop: .scene paints nothing, so this is what covers
@@ -640,6 +676,15 @@
   text-wrap: nowrap;
   text-align: justify;
   text-align-last: justify;
+  /* Optical alignment, not metric. The line is justified to the
+     nameplate's measure, so its two ends sit flush with the box — but
+     GUILLEM's G is round and GELABERT's T ends in a flat stem with the
+     letter's own side bearing after it, so a flush edge reads as
+     over-hanging on the left and short on the right. These two nudge the
+     line back to where the eye puts the name's edges. Asymmetric on
+     purpose: the round G needs less than the T's bearing does. */
+  padding-left: 0.3rem;
+  padding-right: 0.6rem;
 }
 
 /* Paper side on every viewport measured (its four corners all fall there
@@ -691,78 +736,257 @@
   position: relative;
   width: 78%;
   margin-inline: auto;
+  /* Full height, so this div's TOP edge stays on the box's content-box top
+     — which is what makes the `top: 50cqh` anchor on the disc and the arc
+     correct. The copy inside is centred with justify-content on the
+     section, not by centring this box; centring this one would move that
+     top edge and take both absolute anchors with it. */
+  height: 100%;
 }
 
-/* The case study sits in a circle, on a soft colour field of its own.
+/* Vertically centred on the disc. The headline used to be the first item in
+   this stack and set its top; it is on an arc around the disc now, so what
+   is left — the standfirst and the second title — would otherwise sit at
+   the top of the box with the disc's middle empty beneath them. */
+.boxCaseStudy > .content > :global(section) {
+  height: 100%;
+  justify-content: center;
+}
 
-   It is the one warm thing in a composition that is otherwise two greys
-   and a dither, which is the point: the grey seam is the ground, and this
-   is the object placed on it. The circle is a square box with a 50%
-   radius rather than a shape — the text inside stays a normal flow
-   rectangle, so nothing has to be fitted to a curve.
+/* The story sits on a flat red disc.
 
-   The gradient is three overlapping radial washes, not one linear ramp.
-   A ramp reads as a direction and would compete with the seam's own
-   diagonal; overlapping washes have no axis, so the colour drifts rather
-   than pointing. Each is placed off-centre and generously sized so their
-   soft edges cross inside the circle, and none reaches full saturation —
-   the whole field stays close enough in value that white text holds
-   across all of it.
+   It is the one colour in a composition that is otherwise two greys and a
+   dither, which is the point: the grey seam is the ground, and this is the
+   object placed on it. The circle is a square box with a 50% radius rather
+   than a shape — the text stays a normal flow rectangle, so nothing has to
+   be fitted to a curve.
 
-   Sized on the box's DIAGONAL, not its shorter side. A circle that
-   contains a rectangle has to clear that rectangle's diagonal, and the
-   case-study box is wide (514x443 at 1440x900) — a circle inscribed in
-   its shorter side is 443px across and the 456px-wide text simply spills
-   out of it. Hypot of the two sides via tan(atan2()), the same trick
-   --viewport-ratio uses on .scene, so it tracks the box at any size.
+   FLAT, and that is now the whole colour story. It was a violet base under
+   three overlapping radial washes, placed off-centre so the field drifted
+   without pointing anywhere. One ink replaces all four: riso ink is down or
+   it is not, which is the rule the seam's own dither already follows, and a
+   drifting field was the one thing in this composition that was neither
+   paper, ink, nor type.
 
-   It therefore overflows the box, which is deliberate and is why .box's
-   own overflow: hidden is lifted for this one. The circle is the object
-   the composition places on the seam; the box is only where its text is
-   measured. */
-.circle {
+   #B3121B, and deliberately NOT --color-accent (#C1272D). The accent is
+   reserved to focus and hover — tests/design-budget.spec.ts's (accent) case
+   sweeps every computed backgroundColor inside <main> for exactly that value
+   — so a disc painted in it would break the reservation rather than use the
+   palette. This red is its own value, and it is chosen against contrast
+   rather than by eye: white on it is 6.96:1, clear of WCAG AA's 4.5:1 for
+   the 14px second title, which is the smallest type that sits on it.
+
+   Sized to the box's CONTENT box: min(100cqw, 100cqh) is the largest disc
+   that crosses none of the four padding edges. It used to be sized on the
+   box's diagonal instead — the circle a rectangle has to be inscribed IN —
+   and it therefore overflowed the box on every side, which is why .box's
+   own overflow: hidden is still lifted for this one. The copy is no longer
+   fitted inside the disc, so the disc no longer has to contain it: the type
+   overhangs it and the chart is masked to it. */
+/* Declared on the BOX, not on .circle, because two elements are the disc
+   now: the red field and the capture that covers it. One value, so they
+   cannot drift apart — and the capture's mask is then its own box's
+   border-radius rather than a shape measured against a sibling.
+
+   cq units on a container-type: size box are its CONTENT box, so this is
+   already inside the padding — 385px on a 443px-tall box at 1440x900. */
+.boxCaseStudy {
+  --disc-size: min(100cqw, 100cqh);
+}
+
+/* The capture and the arc heading are both taken out of the copy's flow and
+   centred on the box's content box. Their containing block is .content
+   (which carries position: relative so the copy paints over the picture),
+   so the vertical anchor is compensated — see the note below. */
+.boxCaseStudy :global(.seam-shot),
+.boxCaseStudy :global(.seam-arc) {
   position: absolute;
-  top: 50%;
+  top: 50cqh;
   left: 50%;
-  /* 100cqw and 100cqh as a right triangle's legs: hypot = w / cos(atan2(h, w)). */
-  --diagonal: calc(100cqw / cos(atan2(100cqh, 100cqw)));
-  /* Capped at the box's own width plus a small bleed. The diagonal is what
-     a circle needs to CONTAIN the box, and on a wide desktop box that is
-     the right size — but the phone box is tall and narrow, where the
-     diagonal is nearly its height and the circle swallowed the name above
-     it and ran off three edges. min() takes the diagonal where it is
-     modest and the width where it is not, so the circle stays a disc
-     roughly the width of its column on every viewport. */
-  --size: min(var(--diagonal), 112cqw);
-
-  width: var(--size);
-  height: var(--size);
   translate: -50% -50%;
+}
+
+.boxCaseStudy :global(.seam-shot) {
+  width: var(--disc-size);
+  height: var(--disc-size);
+  max-width: none;
   border-radius: 50%;
-  background-color: #4a4a72;
-  background-image:
-    radial-gradient(
-      circle at 22% 24%,
-      rgb(120 148 214 / 0.85),
-      rgb(120 148 214 / 0) 62%
-    ),
-    radial-gradient(
-      circle at 78% 30%,
-      rgb(198 132 190 / 0.78),
-      rgb(198 132 190 / 0) 58%
-    ),
-    radial-gradient(
-      circle at 50% 84%,
-      rgb(122 190 186 / 0.72),
-      rgb(122 190 186 / 0) 64%
-    );
+}
+
+/* The headline's box is the disc plus the ring of type around it, so it is
+   --arc-scale times the disc. Everything inside is drawn in the SVG's 200
+   fixed user units, which means the type scales with the disc rather than
+   with the viewport: 1.28 is what leaves 14% of the disc's width on each
+   side for the glyphs to sit in. */
+.boxCaseStudy :global(.seam-arc) {
+  --arc-scale: 1.28;
+
+  width: calc(var(--disc-size) * var(--arc-scale));
+  height: calc(var(--disc-size) * var(--arc-scale));
+  /* Its own box is the disc plus the ring, so it sits OVER the disc and
+     would take its clicks. Everything here is transparent to the pointer
+     and the two things that should be clickable opt back in below: the
+     ::after (exactly the disc) and the glyphs themselves. Putting
+     pointer-events: auto on the <a> instead is what made the whole 1.28x
+     square a link, corners included — the SVG fills that box. */
+  pointer-events: none;
+  margin: 0;
+}
+
+.boxCaseStudy :global(.seam-arc) a,
+.boxCaseStudy :global(.seam-arc-svg) {
   pointer-events: none;
 }
 
-/* The case-study headline shares its box with a standfirst, so it takes the
-   smaller of its own clamp and a share of the box it sits in. */
+/* The glyphs, and only where they are painted: SVG text hit-tests against
+   its fill, so the gaps between letters are not part of the target. */
+.boxCaseStudy :global(.seam-arc-svg) text {
+  pointer-events: auto;
+}
+
+.boxCaseStudy :global(.seam-arc-svg) {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* The trail is a box-shadow on the picture, and this element sits over
+     it — overflow must not clip it, and nothing here needs clipping. */
+  overflow: visible;
+}
+
+/* 15 user units of a 200-unit viewBox: at 1440x900 the element renders at
+   493px, so the scale is 2.465 and this sets to 37px. fill, not color —
+   SVG text is painted, not inked. */
+.boxCaseStudy :global(.seam-arc-svg) text {
+  font-size: 15px;
+  font-weight: 530;
+  letter-spacing: 0.035em;
+  fill: #fff;
+}
+
+/* The whole disc is the link.
+   ONE link, not a second one wrapping the picture: this stretches the
+   headline's own anchor over the disc with a ::after, so the accessible
+   tree still has a single link to the story named by its headline. A second
+   <a> around the picture would read as two links to the same place, and
+   giving the picture the link instead would name it by its alt text.
+
+   Anchored at 50%/50% rather than the 50cqh the two elements above need:
+   its containing block is the positioned .seam-arc, which is already
+   centred on the disc, so the disc's centre is simply this box's centre.
+
+   border-radius here is not cosmetic — it is the hit area, so the corners
+   outside the disc stay unclickable. */
+.boxCaseStudy :global(.seam-arc) a::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--disc-size);
+  height: var(--disc-size);
+  translate: -50% -50%;
+  border-radius: 50%;
+  pointer-events: auto;
+}
+
+/* The story headline shares its box with a standfirst, a chart and a second
+   title, so it takes the smaller of its own clamp and a share of the box it
+   sits in.
+
+   The share was 17cqh, back when the slot held a headline and one line of
+   copy and nothing else. Four things now stack in this box, and at 17cqh
+   (75px on a 1440x900 desktop) the headline alone wrapped to three lines and
+   took two thirds of the height before the chart had any.
+
+   9cqh is measured, at 1440x900 and at 393x852, and the number that matters
+   is the MEASURE rather than the height: at 9cqh the headline sets to 34.7px
+   on a desktop, which puts "Everyone in Mallorca" on one line and "Knows It"
+   on the second. 11cqh (42.4px) broke the same 29 characters over three
+   lines with "It" alone on the last — an orphan, and 49px of the height the
+   chart wanted. Note cqh here is the box's CONTENT box (385px at 1440x900,
+   not the box's own 443): .box declares container-type: size, and its
+   padding is outside the query size. */
 .boxCaseStudy :global(.text-heading-serif) {
-  font-size: min(calc(1rem + 4vw), 17cqh);
+  font-size: min(calc(1rem + 4vw), 9cqh);
+}
+
+/* The capture covers the whole disc.
+
+   It is not in the copy's flow any more, and that is what makes the mask
+   free: the image's own box IS the disc's box (both read --disc-size above
+   and are centred on the same point), so border-radius: 50% on the image
+   clips the picture to exactly the disc. That replaces
+   components/seam/use-shot-mask.ts, which existed only because a chart in
+   normal flow has no way to know where a positioned sibling is — measuring
+   the offset in JS was the price of keeping it in flow, and covering the
+   disc means not paying it.
+
+   object-fit: cover, so the disc is filled edge to edge with no letterbox.
+   The asset is 2.195:1 and the box is square, so cover scales to the
+   height and crops the width: what shows is the middle of the chart's
+   range, enlarged. The whole chart is one click away — this is the disc's
+   surface, not the figure.
+
+   pointer-events: none so the picture does not take clicks off the copy
+   sitting over it; the headline's link is the only affordance in this box. */
+/* The anchoring the two rules above depend on.
+   The containing block is NOT the box — it is .content, which carries
+   position: relative so the copy paints over the picture. So:
+     left: 50%  is .content's own centre, which IS the box's centre —
+                .content is 78% wide with margin-inline: auto.
+     top: 50cqh is the box's content-box mid-height measured from
+                .content's top edge, which sits exactly on that content
+                box's top (the box is a flex container with
+                align-items: flex-start). A percentage would resolve
+                against .content's height, which is the copy's height and
+                has nothing to do with the disc.
+   Getting this wrong is not subtle: with top: 50% the picture landed
+   100px above the disc and 29px narrower than it.
+
+   max-width is in the shared rule for the picture's sake: Tailwind v4
+   preflight ships `img { max-width: 100%; height: auto }`, which would cap
+   the width at .content's 78% and hand the height back to the aspect ratio
+   — a 356x385 ellipse instead of a 385px circle.
+
+   object-fit: cover fills the disc edge to edge with no letterbox. A
+   non-square asset is therefore cropped to the square first and then to the
+   circle, which is why the asset wants to be 1:1 with nothing important in
+   its corners. */
+.boxCaseStudy :global(.seam-shot) {
+  object-fit: cover;
+  /* Load-bearing, not tidiness: the picture is a positioned element that
+     comes AFTER the headline in DOM order, so it paints above the headline's
+     stretched ::after and was taking every click on the disc itself —
+     elementFromPoint at the disc's centre returned the IMG. With this, the
+     clicks fall through to the hit area beneath. */
+  pointer-events: none;
+}
+
+/* Above the disc-wide hit area, or the overlay would swallow its clicks —
+   it sits inside the disc and comes earlier in paint order. */
+.boxCaseStudy :global(.seam-second) {
+  position: relative;
+  z-index: 1;
+}
+
+/* The second piece: one line, at the small end of the scale. It is the only
+   thing in this box that is not the featured story, so a gap is what
+   separates them — there is no rule, and there is no room for one inside a
+   circle.
+
+   That gap is the LINK's padding, not a margin on the paragraph, and the
+   padding is there for a reason a margin could not serve: at 14px
+   (.text-label) the anchor's box was 14px tall, and
+   tests/landing.spec.ts's 24px floor is WCAG 2.5.8's minimum target size.
+   A block anchor takes the 18.2px line box, and 3px top and bottom brings
+   it to 24.2px.
+
+   So the two jobs are done by one declaration. The paragraph carried
+   margin-block-start: var(--stack-gap) while the anchor was inline; keeping
+   both would have spent ~12px of a box that had 4px of slack left on a
+   393x852 phone. */
+.boxCaseStudy :global(.seam-second) a {
+  display: block;
+  padding-block: 3px;
 }
 
 /* No width breakpoint anywhere in this file: the desktop layout is one
@@ -845,9 +1069,16 @@
 
   /* Same trade as the landscape branch below, less of it: the case study's
      box is cut to the name's proportion here too, and the editorial gap is
-     what gives so the standfirst's last line is not cropped. */
+     what gives so the standfirst's last line is not cropped.
+
+     These two branches used to read 0.75rem and 0.5rem, cutting a gap-lg
+     (24px) base. The slot is four elements now and the base is gap-sm
+     (8px), so those same values were INFLATING the gap on the two tightest
+     boxes in the composition — the direction this override exists to go
+     is down. 0.25rem is measured: at 0.375rem the four elements came to
+     286px in a 284px content box on a 393x852 phone. */
   .boxCaseStudy :global(section) {
-    gap: 0.75rem;
+    gap: 0.25rem;
   }
 }
 
@@ -897,10 +1128,11 @@
   }
 
   /* A phone on its side gives the case study a 173px-tall box for a
-     headline and a standfirst. The editorial gap between them is the one
-     thing in there that can give without shrinking type. */
+     headline, a standfirst, a chart and a second title. The editorial gap
+     between them is the one thing in there that can give without shrinking
+     type — see the portrait branch's note on the direction this goes. */
   .boxCaseStudy :global(section) {
-    gap: 0.5rem;
+    gap: 0.25rem;
   }
 
   .grainField {

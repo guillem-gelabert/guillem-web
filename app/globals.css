@@ -326,10 +326,13 @@ hr {
 }
 
 /* Only the family differs. Humane is the nameplate's typeface now, not a
-   general display face: components/landing/featured-slot.tsx is the one
-   caller, for the case-study headline, which sits beside "GUILLEM GELABERT"
-   on the landing and needs its own scale (hence reusing .text-heading's
-   numbers, not .text-body's) without competing for the one Humane voice.
+   general display face: components/landing/story-slot.tsx is the one
+   rendered caller, for the story headline, which sits beside
+   "GUILLEM GELABERT" on the landing and needs its own scale (hence reusing
+   .text-heading's numbers, not .text-body's) without competing for the one
+   Humane voice. (components/landing/featured-slot.tsx carries it too, but
+   the landing no longer renders that component — the case studies are
+   deferred.)
 
    A modifier, not a role: it carries the one declaration that differs and
    is written alongside .text-heading in the markup, rather than riding in

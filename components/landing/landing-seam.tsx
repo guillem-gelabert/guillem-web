@@ -116,11 +116,13 @@ export function LandingSeam({
             ref={seamEndRef}
             className={`${box} seam-box-case-study ${styles.boxCaseStudy}`}
           >
-            {/* Behind the copy, above the dither. It is a sibling rather
-                than a background on the box because the box is a size
-                container the text is measured against — a border-radius
-                there would round the text's own clipping box too. */}
-            <div className={`seam-circle ${styles.circle}`} aria-hidden="true" />
+            {/* No disc element here any more. It was a flat red circle
+                behind the copy, and before that a violet field under three
+                radial washes; the capture covers the whole disc now, so the
+                picture IS the circle and an empty div behind it would paint
+                nothing. The geometry both used lives on the box as
+                --disc-size (landing-seam.module.css), which the capture and
+                the link's hit area still share. */}
             <div className={`${content} seam-content-case-study`}>
               {caseStudy}
             </div>

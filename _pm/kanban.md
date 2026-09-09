@@ -70,6 +70,57 @@ duplicate `.planning/`'s detail. Update the three lists below when a phase or pl
 
 - (none)
 
+## Done since v1.0
+
+- **Landing: the story replaces the case study** (2026-09-09) — the landing slot showed
+  `components/landing/featured-slot.tsx`'s interim copy ("The case study is being written"), a
+  promise rather than a piece of work. It now shows what is published.
+
+  The bottom-right corner is one object: a **disc** that is the story's own thumbnail, masked to a
+  circle (`object-fit: cover` + `border-radius: 50%`), sized `min(100cqw, 100cqh)` of the box's
+  content box so it crosses none of the padding edges. The **headline rings it from outside** on an
+  SVG `textPath` — the only `<svg>` the site ships, and the one sanctioned exception to the
+  zero-icons rule, because there is no CSS for type on a curve and a picture of the words would
+  stop being text. **The whole disc is the link**, via a stretched `::after` on the headline's own
+  anchor, so the accessible tree still holds one link named by its headline. The **disc carries the
+  scroll trail** — the shared driver in `smear-heading-provider.tsx` now writes either
+  `text-shadow` or `box-shadow`, and because `box-shadow` respects `border-radius` a round element
+  smears as a trail of circles. The headline itself stays flat.
+
+  `lib/work.ts` gained a `shot` field (`WorkShot | null`) and is the one source for the disc and
+  for *Watch People Die Live*, which sits under it as a second title link. **The case studies are
+  deferred, not dropped**: `featured-slot.tsx`, `CASE_STUDY_SLUG` and both case-study MDX files all
+  stay put, and `/writing/the-chart-therefore-changes` still ships — only the landing stopped
+  resolving them, so the route is no longer async and reads nothing from `content/`.
+
+  Three things found by measuring rather than by looking. The second link was a **14px-tall target**
+  (under WCAG 2.5.8's 24px floor), now a block anchor whose 3px padding does that job and the
+  visual separation in one declaration. The picture was **swallowing every click** on the disc —
+  it is a positioned element after the headline in DOM order, so it painted over the hit area;
+  `pointer-events: none` on it and on the arc's own box, with only the disc's `::after` and the
+  glyphs' own fill opting back in. And the trail was **clipped flat at the fold**: the scene's
+  `overflow: hidden` became `overflow-x: clip` + `overflow-y: visible` (the one legal pairing, and
+  the pattern `#scroll-root` already uses), plus a `z-index` so the mirrored scene below cannot
+  paint over what escapes. That lift then leaked the thing the scene's clip was really holding:
+  `.seam-grain-field` is `250vmax` square — 4868px tall at 1440x900 — and its box started counting
+  toward the scroller, growing the page from 1800px to 3478px, i.e. 1678px of empty scroll under
+  the composition. The clip belongs on `.grain` (which is `inset: 0`, so its box IS the scene's),
+  where it holds the field without closing the scene to the trail. `tests/landing-trail.spec.ts`
+  now asserts the page is exactly as tall as its two scenes; "taller than one viewport" was green
+  throughout.
+
+  **Test debt paid down as a side effect**, not by choice: six Playwright tests were **failing on
+  HEAD** before any of this, all describing the pre-seam landing — a work list, an obfuscated
+  email, `zero <section>/<img>` in `<main>`, an `h1.text-display` the nameplate no longer carries,
+  a `h2.section-head`/`#work` sweep resolving to `null`. Retargeted at what the seam actually
+  ships. 23 Playwright failures down to 17, no regressions in any tier.
+
+  **Two things still open.** The copy over the disc is white on a light chart and unreadable — the
+  thumbnail is being remade (square, 1600x1600, important content inside the inscribed circle,
+  since the mask hides the corners). And the copy overhangs the disc onto the seam's light paper
+  side on phones, where white type disappears; it predates this change and this change shrank it at
+  every narrow viewport measured, but it is not fixed.
+
 ## Next
 
 - **v1.0 is complete.** The next action is the user's, not an executor's: fill the five values, do

@@ -1,5 +1,21 @@
 import { expect, test } from "@playwright/test";
 import { seamAngleDegrees } from "./seam-geometry";
+import { allBlocks, valuesOf } from "./unit/css-source.ts";
+
+// The accent, read from app/globals.css's @theme block rather than
+// hardcoded — D-4.4 §3's rule, and the same parser and derivation
+// tests/design-budget.spec.ts already uses. It is needed here only to
+// assert what the disc's red is NOT.
+const themeBlock = allBlocks.find((b) => b.selector === "@theme");
+if (!themeBlock) {
+  throw new Error("landing-background.spec.ts: expected an @theme block in app/globals.css");
+}
+const [accentHex] = valuesOf("--color-accent", [themeBlock]);
+if (!accentHex) {
+  throw new Error("landing-background.spec.ts: expected --color-accent inside @theme");
+}
+const clean = accentHex.replace("#", "");
+const ACCENT_RGB = `rgb(${parseInt(clean.slice(0, 2), 16)}, ${parseInt(clean.slice(2, 4), 16)}, ${parseInt(clean.slice(4, 6), 16)})`;
 
 // What this file guards is the seam's CONSTRUCTION, not its geometry —
 // tests/landing-seam-geometry.spec.ts owns where the ray points and which
@@ -170,38 +186,79 @@ test.describe("landing background", () => {
       PAPER,
     );
 
-    // The case study sits in a circle — the one warm, coloured thing in a
-    // composition that is otherwise two greys and a dither.
-    const circle = await page.locator(".seam-circle").evaluate((element) => {
+    // The story sits on a disc, and the CAPTURE is that disc now.
+    //
+    // This block used to read .seam-circle, a dedicated element behind the
+    // copy: first a violet field under three overlapping radial washes,
+    // then one flat red. Both are gone — the picture covers the whole disc,
+    // so a coloured element behind it would paint nothing and the element
+    // was removed rather than left as an invisible placeholder. What the
+    // assertions are for survives the move: the disc has to be ACTUALLY
+    // round and actually sized off its size-container.
+    const disc = await page.locator(".seam-shot").evaluate((element) => {
       const styles = window.getComputedStyle(element);
       const rect = element.getBoundingClientRect();
+      const box = element.closest(".seam-box-case-study")!;
+      const boxStyles = window.getComputedStyle(box);
+      const boxRect = box.getBoundingClientRect();
+      const pad = (side: string) => Number.parseFloat(boxStyles.getPropertyValue(`padding-${side}`));
       return {
         radius: styles.borderRadius,
         width: Math.round(rect.width),
         height: Math.round(rect.height),
         image: styles.backgroundImage,
+        fit: styles.objectFit,
         position: styles.position,
+        // The box's CONTENT box — what cq units resolve against, and the
+        // square the disc must fit inside.
+        contentWidth: Math.round(boxRect.width - pad("left") - pad("right")),
+        contentHeight: Math.round(boxRect.height - pad("top") - pad("bottom")),
+        centreOffsetX: Math.round(
+          rect.left + rect.width / 2 - (boxRect.left + pad("left") + (boxRect.width - pad("left") - pad("right")) / 2),
+        ),
+        centreOffsetY: Math.round(
+          rect.top + rect.height / 2 - (boxRect.top + pad("top") + (boxRect.height - pad("top") - pad("bottom")) / 2),
+        ),
       };
     });
     // Actually round, and actually a circle: equal sides plus a 50%
     // radius. It is sized in cq units off a container-type: size box, so a
-    // non-square result means the sizing lost its container.
-    expect(circle.radius).toBe("50%");
-    expect(circle.width).toBe(circle.height);
-    expect(circle.width).toBeGreaterThan(0);
+    // non-square result means the sizing lost its container — which is
+    // exactly what happened once, when preflight's img{max-width:100%}
+    // capped the width to the copy column and left a 356x385 ellipse.
+    expect(disc.radius).toBe("50%");
+    expect(disc.width).toBe(disc.height);
+    expect(disc.width).toBeGreaterThan(0);
+    // cover, or a 2.195:1 asset letterboxes inside the circle instead of
+    // filling it.
+    expect(disc.fit).toBe("cover");
 
-    // Three overlapping radial washes, not one linear ramp. A ramp reads
-    // as a direction and would compete with the seam's own diagonal;
-    // overlapping washes have no axis, so the colour drifts instead of
-    // pointing.
-    expect(circle.image.match(/radial-gradient/g)).toHaveLength(3);
-    expect(circle.image).not.toContain("linear-gradient");
+    // Respects the box's padding: min(100cqw, 100cqh) is the largest disc
+    // that crosses none of the four padding edges. It used to be sized on
+    // the box's DIAGONAL and deliberately overflowed on every side.
+    expect(disc.width).toBe(Math.min(disc.contentWidth, disc.contentHeight));
+
+    // And centred on that content box. The picture's containing block is
+    // .content, not the box, so its two anchors are compensated
+    // (left: 50%, top: 50cqh) — a regression there moved it 100px off
+    // without changing its size, which only a centre check catches.
+    expect(Math.abs(disc.centreOffsetX)).toBeLessThanOrEqual(1);
+    expect(Math.abs(disc.centreOffsetY)).toBeLessThanOrEqual(1);
+
+    // No gradient anywhere in the composition's one coloured object. The
+    // washes are what this asserted the presence of; now nothing paints a
+    // background here at all, the picture is the surface.
+    expect(disc.image).toBe("none");
+    // ACCENT_RGB is still read from @theme (top of file) so this file keeps
+    // failing loudly if --color-accent is ever what paints the disc:
+    // design-budget.spec.ts's (accent) case reserves it to focus and hover.
+    expect(disc.image).not.toContain(ACCENT_RGB);
 
     // The copy has to paint ABOVE it. Positioned elements beat
     // non-positioned ones whatever the DOM order says, so a static
     // .content sibling after an absolute circle is covered by it — which
     // is exactly what happened. Both being positioned is what fixes it.
-    expect(circle.position).toBe("absolute");
+    expect(disc.position).toBe("absolute");
     await expect(
       page.locator(".seam-box-case-study > .seam-content"),
     ).toHaveCSS("position", "relative");

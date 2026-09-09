@@ -1,17 +1,20 @@
 import type { Metadata } from "next";
 import ReactDOM from "react-dom";
-import { findBySlug, publishedFor } from "@/lib/content";
-import { CASE_STUDY_SLUG, POSITIONING_PLACEHOLDER } from "@/lib/work";
+import { POSITIONING_PLACEHOLDER } from "@/lib/work";
 import { SmearTitle } from "@/components/smear-title";
-import { FeaturedSlot } from "@/components/landing/featured-slot";
+import { StorySlot } from "@/components/landing/story-slot";
 import { LandingSeam } from "@/components/landing/landing-seam";
 
 // This route carries no client directive. Phase 1 marked whole pages as
 // Client Components to reach the scroll-trail hook; doing that here would
-// make the metadata export below illegal and make `await publishedFor("en")`
-// impossible, because the featured slot's state is resolved from the
-// filesystem at build time. SmearTitle is the one client leaf that carries
-// the trail instead.
+// make the metadata export below illegal. SmearTitle is the one client leaf
+// that carries the trail instead.
+//
+// It is no longer async either, and reads nothing from content/. It used to
+// resolve the case study out of the filesystem at build time
+// (findBySlug(await publishedFor("en"), CASE_STUDY_SLUG)) to decide which
+// half of the featured slot to render; the case studies are deferred, so the
+// slot renders lib/work.ts's published pieces, which are a constant.
 
 export const metadata: Metadata = {
   // Plan 06-07: deliberately no `title` here. Under the factory's
@@ -38,7 +41,7 @@ export const metadata: Metadata = {
   // /texte, which call lib/metadata.ts's routeOpenGraph for their own path.
 };
 
-export default async function Landing() {
+export default function Landing() {
   // The seam's dither mask is the composition, not decoration, and CSS
   // only discovers it after the stylesheet parses — a mask-image inside a
   // custom property is invisible to the preload scanner. Hoisting it into
@@ -53,11 +56,6 @@ export default async function Landing() {
     as: "image",
     media: "not all and (hover: none) and (pointer: coarse)",
   });
-
-  // A null result IS the interim state — there is no boolean to flip, so
-  // this must tolerate null forever: a renamed or re-drafted case-study
-  // file returns the slot to its interim copy rather than throwing.
-  const featured = findBySlug(await publishedFor("en"), CASE_STUDY_SLUG);
 
   return (
     <LandingSeam
@@ -92,13 +90,16 @@ export default async function Landing() {
       // No visible section head: the box above this one stays empty, so the
       // section is named for assistive tech by aria-label rather than by an
       // aria-labelledby pointing at a heading that is no longer rendered.
+      // Still the `caseStudy` slot: that prop names the CORNER of the
+      // composition (the seam is measured between the nameplate's
+      // bottom-right and this box's top-left), not what is printed in it.
       caseStudy={
         <section
-          aria-label="Case study"
-          className="flex flex-col gap-lg"
-          id="case-study"
+          aria-label="Selected work"
+          className="flex flex-col gap-sm"
+          id="story"
         >
-          <FeaturedSlot entry={featured} />
+          <StorySlot />
         </section>
       }
     />

@@ -165,10 +165,33 @@ for (const route of ROUTES) {
 // --- Icons: zero <svg>, zero <use> ----------------------------------------
 
 for (const route of ROUTES) {
-  test(`(icons) zero <svg> and zero <use> anywhere in the rendered DOM on ${route}`, async ({ page }) => {
+  test(`(icons) no icon <svg> and zero <use> anywhere in the rendered DOM on ${route}`, async ({ page }) => {
     await page.goto(route);
-    const count = await page.evaluate(() => document.querySelectorAll("svg, use").length);
-    expect(count, `expected zero <svg>/<use> on ${route}, found ${count}`).toBe(0);
+    const svg = await page.evaluate(() =>
+      Array.from(document.querySelectorAll("svg")).map((el) => el.getAttribute("class") ?? ""),
+    );
+    const uses = await page.evaluate(() => document.querySelectorAll("use, symbol").length);
+
+    // <use> and <symbol> are the icon-system tells, and they stay at zero
+    // everywhere: this site ships no icon set and no sprite sheet.
+    expect(uses, `expected zero <use>/<symbol> on ${route}, found ${uses}`).toBe(0);
+
+    // The <svg> half was zero on every route, and is now zero on every
+    // route BUT the landing, where exactly one is permitted: the story
+    // headline is set on a circular path around the disc, and there is no
+    // CSS for type on a curve — textPath is the only way to draw it, and it
+    // keeps the headline real text (selectable, in the accessible tree, and
+    // still the link) where a pre-rendered image of the words would not.
+    //
+    // Narrowed rather than deleted, and narrowed by CLASS rather than by
+    // count: what this assertion is for is catching a decorative glyph or
+    // an icon library arriving as an <svg>, and an allowance of "one svg"
+    // would let any single icon through. Only the arc may be there.
+    const allowed = route === "/" ? ["seam-arc-svg"] : [];
+    expect(
+      svg,
+      `unexpected <svg> on ${route}: this site ships no icons, and the only sanctioned <svg> is the landing's arc headline`,
+    ).toEqual(allowed);
   });
 }
 

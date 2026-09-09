@@ -14,6 +14,13 @@ import { getScrollY } from "./scroll-root";
 // Constants ported verbatim from text_trail_demo/index.html:324-327,362.
 const MAX_TRAIL = 280;
 const MAX_SHADOWS = 240;
+// The box-shadow cap. 240 layers of a 385px filled circle is ~28 million
+// shadow pixels a frame where 240 glyph shadows are a small fraction of
+// that, and the trail's own construction makes most of them invisible: the
+// layers are evenly spaced along the offset, so past a few dozen each new
+// one lands within a pixel of its neighbour. 48 holds the same smear at a
+// fraction of the fill.
+const MAX_DISC_SHADOWS = 48;
 const SCROLL_STOP_DELAY = 120; // ms, debounce before treating scroll as "stopped"
 const HUE_SPEED = 110; // degrees per second of scroll activity (:326)
 const INITIAL_HUE = 345; // (:362)
@@ -34,13 +41,25 @@ function trailColor(): string {
   return `hsl(${hue} 100% 50%)`;
 }
 
+// Which CSS property the trail is stacked into. text-shadow smears
+// glyphs; box-shadow smears the element's own box and, because it respects
+// border-radius, smears a border-radius: 50% element as a trail of circles.
+// The layer syntax is identical for both — `0 <offset>px 0 <colour>` — so
+// the draw loop is the same and only the property name differs.
+export type TrailProperty = "textShadow" | "boxShadow";
+
 interface HeadingState {
   documentTop: number;
   lagY: number;
+  property: TrailProperty;
 }
 
 interface SmearHeadingRegistry {
-  register: (el: HTMLElement, documentTop: number) => void;
+  register: (
+    el: HTMLElement,
+    documentTop: number,
+    property?: TrailProperty,
+  ) => void;
   unregister: (el: HTMLElement) => void;
 }
 
@@ -79,8 +98,8 @@ export function SmearHeadingProvider({
     if (prefersReducedMotion) {
       // T-01-11 mitigation: a live OS-level toggle mid-session must clear any
       // in-flight trail immediately, not just gate future frames.
-      for (const el of registryRef.current.keys()) {
-        el.style.textShadow = "none";
+      for (const [el, state] of registryRef.current) {
+        el.style[state.property] = "none";
       }
     }
   }, [prefersReducedMotion]);
@@ -107,22 +126,28 @@ export function SmearHeadingProvider({
       targetY: number,
       lagY: number,
       strength: number,
+      property: TrailProperty,
     ) {
       const difference = lagY - targetY;
       if (strength <= 0) {
-        el.style.textShadow = "none";
+        el.style[property] = "none";
         return;
       }
 
       const distance = Math.abs(difference);
-      const layers = Math.min(MAX_SHADOWS, Math.max(2, Math.ceil(distance * 2)));
+      // box-shadow layers are whole filled discs rather than glyph
+      // silhouettes, so the same 240 layers cover orders of magnitude more
+      // pixels. MAX_DISC_SHADOWS is the cap for that case — measured, not
+      // guessed: see the note by the constant.
+      const cap = property === "boxShadow" ? MAX_DISC_SHADOWS : MAX_SHADOWS;
+      const layers = Math.min(cap, Math.max(2, Math.ceil(distance * 2)));
       const color = trailColor();
       const shadows: string[] = [];
       for (let index = layers; index >= 1; index--) {
         const t = index / layers;
         shadows.push(`0 ${difference * t}px 0 ${color}`);
       }
-      el.style.textShadow = shadows.join(",");
+      el.style[property] = shadows.join(",");
     }
 
     // frame(), ported from :827-874. Same exponential smoothing, trail
@@ -147,11 +172,11 @@ export function SmearHeadingProvider({
         const strength = Math.min(1, distance / 3);
 
         if (distance > 0.15) {
-          draw(el, targetY, state.lagY, strength);
+          draw(el, targetY, state.lagY, strength, state.property);
           anyActive = true;
         } else {
           state.lagY = targetY;
-          draw(el, targetY, state.lagY, 0);
+          draw(el, targetY, state.lagY, 0, state.property);
         }
       }
 
@@ -281,16 +306,27 @@ export function SmearHeadingProvider({
     };
   }, []);
 
-  const register = useCallback((el: HTMLElement, documentTop: number) => {
-    registryRef.current.set(el, {
-      documentTop,
-      lagY: documentTop - getScrollY(),
-    });
-  }, []);
+  const register = useCallback(
+    (
+      el: HTMLElement,
+      documentTop: number,
+      property: TrailProperty = "textShadow",
+    ) => {
+      registryRef.current.set(el, {
+        documentTop,
+        lagY: documentTop - getScrollY(),
+        property,
+      });
+    },
+    [],
+  );
 
   const unregister = useCallback((el: HTMLElement) => {
+    const state = registryRef.current.get(el);
     registryRef.current.delete(el);
-    el.style.textShadow = "none";
+    // Clear the property this element was actually registered with, or a
+    // box-shadow trail would be left painted on unmount.
+    el.style[state?.property ?? "textShadow"] = "none";
   }, []);
 
   const contextValue = useMemo(

@@ -27,49 +27,88 @@ test("/ genuinely scrolls", async ({ page }) => {
   // (app/globals.css). The scroller is what a visitor actually scrolls.
   const { scrollHeight, viewportHeight } = await readOverflow(page);
   expect(scrollHeight).toBeGreaterThan(viewportHeight);
+
+  // And scrolls exactly as far as the composition is tall: the two scenes
+  // and nothing after them.
+  //
+  // "Greater than one viewport" alone is far too loose to be a guard. The
+  // scene has to be overflow-y: visible so the disc's trail can cross the
+  // fold, and .seam-grain-field is 250vmax square — 4868px tall at
+  // 1440x900, five times its scene. The moment that clip moved, the
+  // field's box started counting toward the scroller and the page grew
+  // from 1800px to 3478px: 1678px of empty scroll below the composition,
+  // with the assertion above still green. The clip lives on .grain now
+  // (inset: 0, so its box IS the scene's), and this is what says so.
+  const scenes = await page.evaluate(() =>
+    Array.from(document.querySelectorAll("section.seam-scene")).reduce(
+      (total, el) => total + el.getBoundingClientRect().height,
+      0,
+    ),
+  );
+  expect(scenes).toBeGreaterThan(0);
+  expect(Math.abs(scrollHeight - scenes)).toBeLessThanOrEqual(2);
 });
 
-test("exactly two trail-carrying headings are registered", async ({ page }) => {
+test("exactly two elements are registered with the trail — one text, one box", async ({
+  page,
+}) => {
   await page.goto("/");
   await page.evaluate(() => document.fonts.ready);
 
-  // Humane gets the trail, Newsreader never does — a 240-layer stacked
-  // shadow on a 14px uppercase section head would be visual noise at
-  // reading scale. Cost is linear in *registered* headings, not visible
-  // ones (03-RESEARCH.md § C-3), so capping the landing at two is what
-  // keeps it bounded. No viewport guard is to be added: research measured
-  // draw() at the 240-layer clamp costing 0.40ms at two headings against an
-  // 8.33ms budget, and the shipped 5-heading /type holds 120fps.
+  // Cost is linear in *registered* elements, not visible ones
+  // (03-RESEARCH.md § C-3), so capping the landing at two is what keeps it
+  // bounded. No viewport guard is to be added: research measured draw() at
+  // the 240-layer clamp costing 0.40ms at two headings against an 8.33ms
+  // budget, and the shipped 5-heading /type holds 120fps.
+  //
+  // The two are no longer both headings, which is why this was retitled.
+  // The nameplate smears its glyphs (text-shadow); the story's disc smears
+  // its own box (box-shadow, which follows its border-radius, so a round
+  // element smears as a trail of circles). The story HEADLINE does not
+  // smear at all — it is set on an arc around that disc and stays flat.
+  //
+  // .seam-nameplate-text, not .text-display: the landing's nameplate type
+  // moved into landing-seam.module.css with the box it is measured against,
+  // and this test had gone on counting the class it used to carry — so it
+  // asserted one h1.text-display on a page that has none and was failing on
+  // HEAD before any of this changed.
   const counts = await page.evaluate(() => ({
-    display: document.querySelectorAll("h1.text-display").length,
-    heading: document.querySelectorAll("section#case-study h3.text-heading").length,
-    displayAnywhere: document.querySelectorAll(".text-display").length,
-    headingAnywhere: document.querySelectorAll(".text-heading").length,
+    nameplate: document.querySelectorAll("h1.seam-nameplate-text").length,
+    disc: document.querySelectorAll("#story .seam-shot").length,
+    nameplateAnywhere: document.querySelectorAll(".seam-nameplate-text").length,
+    discAnywhere: document.querySelectorAll(".seam-shot").length,
   }));
 
-  expect(counts.display).toBe(1);
-  expect(counts.heading).toBe(1);
-  // No .text-display or .text-heading element exists anywhere else on the
-  // page beyond the two counted above.
-  expect(counts.displayAnywhere).toBe(1);
-  expect(counts.headingAnywhere).toBe(1);
+  expect(counts.nameplate).toBe(1);
+  expect(counts.disc).toBe(1);
+  // Neither class appears anywhere else on the page.
+  expect(counts.nameplateAnywhere).toBe(1);
+  expect(counts.discAnywhere).toBe(1);
 });
 
-// The nameplate is the only element on / that carries the trail. The
-// case-study h3 was registered too until the trail was narrowed to the
-// nameplate alone; it is a plain <h3> now, so asserting a text-shadow on it
-// would fail. The h1's class is .seam-nameplate-text, not .text-display —
-// the landing's nameplate type moved into landing-seam.module.css with the
-// box it is measured against.
-const TRAIL_SELECTORS = ["h1.seam-nameplate-text"];
+// The two registered elements, each with the property its trail is stacked
+// into. The story headline was briefly in this list; it is not any more —
+// the trail moved to the disc and the headline is flat.
+//
+// The h1's class is .seam-nameplate-text, not .text-display: the landing's
+// nameplate type moved into landing-seam.module.css with the box it is
+// measured against.
+const TRAIL_TARGETS = [
+  { selector: "h1.seam-nameplate-text", property: "textShadow" },
+  { selector: "#story .seam-shot", property: "boxShadow" },
+] as const;
 
 function readShadows(page: import("@playwright/test").Page) {
-  return page.evaluate((selectors) => {
-    return selectors.map((selector) => {
+  return page.evaluate((targets) => {
+    return targets.map(({ selector, property }) => {
       const el = document.querySelector(selector);
-      return el ? getComputedStyle(el).textShadow : null;
+      if (!el) return null;
+      // Read the property this element's trail is actually written to: the
+      // disc's text-shadow is always "none" and would make every assertion
+      // below pass vacuously.
+      return getComputedStyle(el)[property as "textShadow" | "boxShadow"];
     });
-  }, TRAIL_SELECTORS);
+  }, TRAIL_TARGETS as unknown as { selector: string; property: string }[]);
 }
 
 // Count actual shadow layers, not commas. getComputedStyle normalises the
@@ -79,7 +118,7 @@ function readShadows(page: import("@playwright/test").Page) {
 const countLayers = (shadow: string | null) =>
   shadow ? (shadow.match(/rgba?\(/g) ?? []).length : 0;
 
-test("both headings smear mid-scroll and settle to none", async ({ page }) => {
+test("both trail targets smear mid-scroll and settle to none", async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(200);
@@ -106,7 +145,7 @@ test("both headings smear mid-scroll and settle to none", async ({ page }) => {
         return Math.min(...shadows.map(countLayers));
       },
       {
-        message: "expected both headings' text-shadow to grow past 10 layers mid-scroll",
+        message: "expected both trail targets' shadow to grow past 10 layers mid-scroll",
         timeout: 5000,
       },
     )
@@ -126,7 +165,7 @@ test("both headings smear mid-scroll and settle to none", async ({ page }) => {
         return shadows.every((shadow) => shadow === "none");
       },
       {
-        message: "expected both headings' text-shadow to settle back to 'none'",
+        message: "expected both trail targets' shadow to settle back to 'none'",
         timeout: 5000,
       },
     )
@@ -143,27 +182,46 @@ test("Newsreader does not trail", async ({ page }) => {
 
   // This is the assertion that catches a future change registering the
   // wrong headings.
+  // Retargeted at the elements this page actually has. All three it used to
+  // read — h2.section-head, #work h3.text-standfirst and the Sections nav —
+  // belong to the pre-seam landing and resolved to null here, so every
+  // assertion compared null against "none" and the test was failing on HEAD.
+  //
+  // What it is FOR still holds and is what it now measures: the trail is
+  // registered on the two display headings and on nothing else, so the
+  // small copy sharing their boxes must stay flat. The story headline is
+  // deliberately not in this list any more — it carries the trail now.
   const shadows = await page.evaluate(() => {
-    const sectionHead = document.querySelector("h2.section-head");
-    const workTitle = document.querySelector("#work h3.text-standfirst");
-    const navLink = document.querySelector('nav[aria-label="Sections"] a');
+    const read = (selector: string) => {
+      const el = document.querySelector(selector);
+      return el ? getComputedStyle(el).textShadow : null;
+    };
     return {
-      sectionHead: sectionHead ? getComputedStyle(sectionHead).textShadow : null,
-      workTitle: workTitle ? getComputedStyle(workTitle).textShadow : null,
-      navLink: navLink ? getComputedStyle(navLink).textShadow : null,
+      // The arc headline. It carried the trail for one revision and does
+      // not any more — the disc does — so this is the assertion that
+      // catches it being registered again by accident. Both the <h3> and
+      // the SVG <text> that actually paints the glyphs are checked: a
+      // text-shadow on the heading would inherit into the SVG.
+      arcHeading: read("section#story h3.seam-arc"),
+      arcGlyphs: read("section#story .seam-arc-svg text"),
+      standfirst: read("section#story p.text-standfirst"),
+      second: read("section#story p.seam-second a"),
+      langLabel: read(".seam-lang a"),
     };
   });
 
-  expect(shadows.sectionHead).toBe("none");
-  expect(shadows.workTitle).toBe("none");
-  expect(shadows.navLink).toBe("none");
+  expect(shadows.arcHeading).toBe("none");
+  expect(shadows.arcGlyphs).toBe("none");
+  expect(shadows.standfirst).toBe("none");
+  expect(shadows.second).toBe("none");
+  expect(shadows.langLabel).toBe("none");
 });
 
 // Covers BUILD-05 as a Phase 3 regression: a visitor with
 // prefers-reduced-motion set is never shown motion that ignores it, on the
 // landing view specifically (tests/reduced-motion.spec.ts covers the same
 // contract on the /type calibration route).
-test("under reduced-motion emulation, both headings stay none across a full scroll", async ({
+test("under reduced-motion emulation, both trail targets stay none across a full scroll", async ({
   page,
 }) => {
   // page.emulateMedia BEFORE page.goto is load-bearing: the app reads

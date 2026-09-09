@@ -72,21 +72,36 @@ for (const viewport of VIEWPORTS) {
       expect(fontSize as number).toBeLessThan(expected + TOLERANCE_PX);
     });
 
-    test(`the featured headline tracks the Heading curve at ${viewport.width}px`, async ({
+    test(`the story headline stays under the Heading curve at ${viewport.width}px`, async ({
       page,
     }) => {
       const fontSize = await page.evaluate(() => {
-        const h3 = document.querySelector("section#case-study h3.text-heading");
+        const h3 = document.querySelector("section#story h3.text-heading");
         return h3 ? parseFloat(getComputedStyle(h3).fontSize) : null;
       });
       expect(fontSize).not.toBeNull();
 
-      // This role DOES reach its 72px ceiling by 1440px — the opposite of
-      // the Display curve above — so the two assertions are deliberately
-      // not symmetric.
-      const expected = clampPx(2, 1, 4, 4.5, viewport.width);
-      expect(fontSize as number).toBeGreaterThan(expected - TOLERANCE_PX);
-      expect(fontSize as number).toBeLessThan(expected + TOLERANCE_PX);
+      // This test used to assert the headline SAT ON the Heading curve,
+      // within tolerance, at both viewports. That premise is gone, and it
+      // was already only half true: landing-seam.module.css has always
+      // sized this headline as min(the Heading clamp, a share of its box),
+      // and the share has won at 1440px since the seam shipped — the 1440px
+      // variant of this test was failing on HEAD before the slot changed at
+      // all. The share is 9cqh now (it was 17cqh), because the headline
+      // shares its box with a standfirst, a chart and a second title, so
+      // the share wins at 375px too.
+      //
+      // So the assertion is the contract that is actually true: the box's
+      // share may take the headline DOWN from the Heading curve, never up
+      // past it. That still catches the failure this test exists for — a
+      // headline running away past the role's ceiling — and it no longer
+      // encodes which of the two terms happens to win at a given width.
+      const ceiling = clampPx(2, 1, 4, 4.5, viewport.width);
+      expect(fontSize as number).toBeLessThan(ceiling + TOLERANCE_PX);
+      // And a floor, so "smaller than the ceiling" cannot be satisfied by a
+      // headline that has collapsed. 16px is the body text's own size: this
+      // is a headline, so it is never smaller than running copy.
+      expect(fontSize as number).toBeGreaterThanOrEqual(16);
     });
 
     test(`the work list is one column at ${viewport.width}px`, async ({ page }) => {

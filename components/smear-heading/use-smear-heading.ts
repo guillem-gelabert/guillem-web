@@ -1,7 +1,10 @@
 "use client";
 
 import { useLayoutEffect, useRef } from "react";
-import { useSmearHeadingRegistry } from "./smear-heading-provider";
+import {
+  useSmearHeadingRegistry,
+  type TrailProperty,
+} from "./smear-heading-provider";
 import { getScrollY } from "./scroll-root";
 
 /**
@@ -18,7 +21,11 @@ import { getScrollY } from "./scroll-root";
  * No inline `text-shadow` is ever set from server-rendered markup (Pitfall 5)
  * — this hook only ever writes to the DOM after mount.
  */
-export function useSmearHeading<T extends HTMLElement>() {
+export function useSmearHeading<T extends HTMLElement>(
+  // Defaults to the text trail this hook was written for. The disc passes
+  // "boxShadow" so the thumbnail smears as circles rather than glyphs.
+  property: TrailProperty = "textShadow",
+) {
   const ref = useRef<T | null>(null);
   const { register, unregister } = useSmearHeadingRegistry();
 
@@ -37,14 +44,14 @@ export function useSmearHeading<T extends HTMLElement>() {
       // never scrolls, so window.scrollY is always 0 and this would register
       // every heading at its viewport position instead of its document
       // position. The provider's frame loop reads the same helper.
-      register(current, rect.top + getScrollY());
+      register(current, rect.top + getScrollY(), property);
     });
 
     return () => {
       cancelled = true;
       unregister(el);
     };
-  }, [register, unregister]);
+  }, [register, unregister, property]);
 
   return ref;
 }
