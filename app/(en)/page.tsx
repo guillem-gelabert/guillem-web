@@ -3,6 +3,7 @@ import ReactDOM from "react-dom";
 import { POSITIONING_PLACEHOLDER } from "@/lib/work";
 import { SmearTitle } from "@/components/smear-title";
 import { StorySlot } from "@/components/landing/story-slot";
+import { MoreWork } from "@/components/landing/more-work";
 import { LandingSeam } from "@/components/landing/landing-seam";
 
 // This route carries no client directive. Phase 1 marked whole pages as
@@ -49,13 +50,13 @@ export default function Landing() {
   // the HTML instead. Declared here rather than in LandingSeam because
   // that component is "use client": ReactDOM.preload there would run
   // after hydration, which is later than the CSS would have found it
-  // anyway. Only the desktop file is preloaded — a phone matching the
-  // media branch would otherwise fetch both and pay for the larger one it
-  // never paints.
-  ReactDOM.preload("/seam-dither-desktop.png", {
-    as: "image",
-    media: "not all and (hover: none) and (pointer: coarse)",
-  });
+  // anyway. No media condition: this is the one file every device masks
+  // with. It used to exclude phones, which were handed a half-size export
+  // by the stylesheet's coarse-pointer branches and would otherwise have
+  // fetched both; that export is gone (its dots read as the desktop's
+  // zoomed in — see .grainField in landing-seam.module.css), so a phone
+  // now wants this download started as early as the desktop does.
+  ReactDOM.preload("/seam-dither-desktop.png", { as: "image" });
 
   return (
     <LandingSeam
@@ -76,7 +77,7 @@ export default function Landing() {
               equality.
 
               Not .text-label any more. That class is the site's 14px
-              Newsreader caption, and every one of its declarations except
+              caption in the body face, and every one of its declarations except
               the casing is now overridden in landing-seam.module.css —
               keeping it would leave a rule that looks load-bearing and
               isn't. */}
@@ -102,6 +103,10 @@ export default function Landing() {
           <StorySlot />
         </section>
       }
+      // Every piece after the first, on the mirrored scene below the fold.
+      // The section names itself (aria-label, in landing-seam.tsx); this
+      // slot is the list alone.
+      more={<MoreWork />}
     />
   );
 }

@@ -9,6 +9,8 @@ type LandingSeamProps = {
   positioning: ReactNode;
   caseStudyHead: ReactNode;
   caseStudy: ReactNode;
+  /** Everything after the hero, rendered in the mirrored scene below the fold. */
+  more: ReactNode;
 };
 
 // Every element below carries a plain, unhashed class as well as its CSS
@@ -28,6 +30,7 @@ export function LandingSeam({
   positioning,
   caseStudyHead,
   caseStudy,
+  more,
 }: LandingSeamProps) {
   const sceneRef = useRef<HTMLElement>(null);
   const seamStartRef = useRef<HTMLDivElement>(null);
@@ -130,19 +133,26 @@ export function LandingSeam({
         </div>
       </section>
 
-      {/* The same gradient again, mirrored along the x axis. Content-free
-          and aria-hidden: it is the composition continuing past the fold,
-          not a second landing, so it adds no landmark and repeats nothing
-          to a screen reader. The flip is a transform on the section rather
-          than a second set of arc values, so the two stay in step — the
-          hook writes --seam-angle to the first scene and this inherits it
-          through the shared stylesheet. */}
+      {/* The same gradient again, mirrored along the x axis, with the rest
+          of the work on it. It used to be content-free and aria-hidden —
+          the composition continuing past the fold and nothing more. It is
+          a landmark now, named the way #story is (aria-label, no rendered
+          heading), holding every published piece after the hero as a pair
+          of a circle and a square (components/landing/more-work.tsx).
+
+          The flip is on the GRAIN, not on the section: a scaleY(-1) on the
+          section would turn the pairs upside down with the background. The
+          angle is still shared — the hook writes --seam-angle to :root and
+          both grains read it — so the two seams stay parallel. */}
       <section
-        aria-hidden="true"
+        aria-label="More work"
         className={`seam-scene seam-scene-mirrored ${styles.scene} ${styles.sceneMirrored}`}
         id="seam-scene-mirrored"
       >
         {grain}
+        <div id="seam-more" className={`seam-more ${styles.more}`}>
+          {more}
+        </div>
       </section>
     </main>
   );

@@ -163,7 +163,7 @@ test("(d) no fourth rule weight: border/outline widths are 1px or 2px with a var
   assert.ok(checkedAny, "expected at least one border/outline declaration in the link contract");
 });
 
-test("(e) .link-quiet has no underline at rest and gains one on hover/focus", () => {
+test("(e) .link-quiet stays neutral at rest and on hover", () => {
   const restBlock = allBlocks.find((b) => b.selector === ".link-quiet");
   assert.ok(restBlock, "expected a .link-quiet rest-state block");
   const restDecls = declarationsOf(restBlock!);
@@ -190,8 +190,30 @@ test("(e) .link-quiet has no underline at rest and gains one on hover/focus", ()
       value.includes("underline"),
   );
   assert.ok(
-    hoverHasUnderline,
-    ".link-quiet's :hover/:focus-visible state must declare an underline — removing it must fail this test",
+    !hoverHasUnderline,
+    ".link-quiet's :hover state must not add an underline",
+  );
+  const hoverHasAccent = hoverDecls.some(
+    ([prop, value]) => prop === "color" && value === "var(--color-accent)",
+  );
+  assert.ok(!hoverHasAccent, ".link-quiet's :hover state must not use the accent colour");
+
+  const standardHover = allBlocks.find((block) => block.selector === ".link:hover");
+  assert.ok(standardHover, "expected a .link:hover block");
+  assert.ok(
+    !declarationsOf(standardHover!).some(
+      ([prop, value]) => prop === "color" && value === "var(--color-accent)",
+    ),
+    ".link's :hover state must not use the accent colour",
+  );
+
+  const proseHover = allBlocks.find((block) => block.selector === ".prose-site a:hover");
+  assert.ok(proseHover, "expected a .prose-site a:hover block");
+  assert.ok(
+    !declarationsOf(proseHover!).some(
+      ([prop, value]) => prop === "color" && value === "var(--color-accent)",
+    ),
+    "prose links must not use the accent colour on hover",
   );
 });
 

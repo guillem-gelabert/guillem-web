@@ -189,8 +189,8 @@ test("A2: both /writing and /texte carry exactly one site-root back link to /", 
 });
 
 // Amendment A3: the site-root back link and the entry headline link both
-// take link-quiet, giving them the accent hover/focus contract every other
-// non-prose link on the shipped site now carries. The back link's measured
+// take link-quiet, giving them the neutral hover and visible focus contract
+// every other non-prose link on the shipped site now carries. The back link's measured
 // height (not the arithmetic) proves it clears WCAG 2.5.8's 24px floor —
 // 03-VALIDATION.md measures the Label-role line box at 18.2px and the
 // inline-block py-xs box at 26.2px.

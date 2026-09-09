@@ -61,7 +61,7 @@ export default function TypeSpecimen() {
       <section className="flex max-w-prose flex-col gap-sm">
         <p className="text-label">Body</p>
         <p className="text-body">
-          Newsreader, regular weight, eighteen pixels, line height 1.6. This is
+          Jost, regular weight, eighteen pixels, line height 1.6. This is
           the register the reading load sits in — the case study, the writing,
           the CV. It is deliberately not the display face: the display face
           carries structure, this one carries argument.
@@ -115,7 +115,7 @@ export default function TypeSpecimen() {
       <section className="flex max-w-prose flex-col gap-sm">
         <p className="text-label">Label</p>
         <p className="text-body">
-          The label role is Newsreader at fourteen pixels, uppercase, tracked at
+          The label role is Jost at fourteen pixels, uppercase, tracked at
           0.04em. Every grey caption on this page is one — it marks what is
           being shown without competing with it.
         </p>
@@ -136,13 +136,9 @@ export default function TypeSpecimen() {
           Guillem Gelabert
         </Link>
         <p className="max-w-prose text-body">
-          Neither is coloured at rest. Both classes move to the accent colour
-          on hover and on focus; .link-quiet adds its underline back on
-          hover so the affordance is never colour-only; both show a 2px
-          accent focus ring on :focus-visible; and under prefers-reduced-motion:
-          reduce the colour and underline change still happens — only the
-          120ms transition is removed, because the state change is not
-          motion.
+          Neither changes colour or decoration on hover. Both show a 2px
+          accent focus ring on :focus-visible; the colour transition is
+          disabled under prefers-reduced-motion: reduce.
         </p>
       </section>
     </main>

@@ -49,17 +49,15 @@ test("/ genuinely scrolls", async ({ page }) => {
   expect(Math.abs(scrollHeight - scenes)).toBeLessThanOrEqual(2);
 });
 
-test("exactly two elements are registered with the trail — one text, one box", async ({
+test("the landing retains its two trail-capable targets — one text, one box", async ({
   page,
 }) => {
   await page.goto("/");
   await page.evaluate(() => document.fonts.ready);
 
-  // Cost is linear in *registered* elements, not visible ones
-  // (03-RESEARCH.md § C-3), so capping the landing at two is what keeps it
-  // bounded. No viewport guard is to be added: research measured draw() at
-  // the 240-layer clamp costing 0.40ms at two headings against an 8.33ms
-  // budget, and the shipped 5-heading /type holds 120fps.
+  // These are retained so the effect can return without changing landing
+  // markup. TRAIL_ENABLED is false in the shared provider, so neither is
+  // currently registered or animated.
   //
   // The two are no longer both headings, which is why this was retitled.
   // The nameplate smears its glyphs (text-shadow); the story's disc smears
@@ -111,19 +109,12 @@ function readShadows(page: import("@playwright/test").Page) {
   }, TRAIL_TARGETS as unknown as { selector: string; property: string }[]);
 }
 
-// Count actual shadow layers, not commas. getComputedStyle normalises the
-// trail hue to rgb(r, g, b), which carries two commas of its own, so a
-// naive split(",") reports 3 for a single layer and any "> 1" assertion
-// passes trivially. Count the colour functions instead — one per layer.
-const countLayers = (shadow: string | null) =>
-  shadow ? (shadow.match(/rgba?\(/g) ?? []).length : 0;
-
-test("both trail targets smear mid-scroll and settle to none", async ({ page }) => {
+test("both retained trail targets stay plain throughout a full scroll", async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(200);
 
-  // Baseline: no scroll has happened yet, so no trail has ever been drawn.
+  // Baseline: no shadow is present before scrolling.
   const baseline = await readShadows(page);
   for (const shadow of baseline) {
     expect(shadow).toBe("none");
@@ -131,48 +122,15 @@ test("both trail targets smear mid-scroll and settle to none", async ({ page }) 
 
   await scrollBy(page, 1200);
 
-  // Poll the live DOM via expect.poll() rather than sampling a fixed number
-  // of times inside a fixed window (see tests/smear-heading.spec.ts's
-  // header comment for why a tight fixed-attempt loop flakes under
-  // parallel workers). Each poll tick is still ONE page.evaluate reading
-  // both headings (readShadows), not two round trips; the minimum of the
-  // two layer counts is what's polled, so the assertion only resolves once
-  // BOTH headings have independently cleared the threshold.
-  await expect
-    .poll(
-      async () => {
-        const shadows = await readShadows(page);
-        return Math.min(...shadows.map(countLayers));
-      },
-      {
-        message: "expected both trail targets' shadow to grow past 10 layers mid-scroll",
-        timeout: 5000,
-      },
-    )
-    .toBeGreaterThan(10);
-  // The ported formula is layers = min(240, max(2, ceil(distance * 2))), and
-  // a 1200px jump puts distance at the MAX_TRAIL clamp, so this should be
-  // deep as soon as it appears at all.
-
-  // Poll for settling back to 'none' the same way — one page.evaluate per
-  // sample, resolves once both headings read 'none'. The exponential
-  // smoothing's convergence is CPU-time-bound, not wall-clock-bound, so a
-  // fixed wait-then-check can undershoot under load.
-  await expect
-    .poll(
-      async () => {
-        const shadows = await readShadows(page);
-        return shadows.every((shadow) => shadow === "none");
-      },
-      {
-        message: "expected both trail targets' shadow to settle back to 'none'",
-        timeout: 5000,
-      },
-    )
-    .toBe(true);
+  for (let sample = 0; sample < 10; sample += 1) {
+    await page.waitForTimeout(50);
+    for (const shadow of await readShadows(page)) {
+      expect(shadow).toBe("none");
+    }
+  }
 });
 
-test("Newsreader does not trail", async ({ page }) => {
+test("the body face does not trail", async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(200);
@@ -205,7 +163,9 @@ test("Newsreader does not trail", async ({ page }) => {
       arcHeading: read("section#story h3.seam-arc"),
       arcGlyphs: read("section#story .seam-arc-svg text"),
       standfirst: read("section#story p.text-standfirst"),
-      second: read("section#story p.seam-second a"),
+      // The second piece's link, now a pair below the fold rather than a
+      // line under the disc. Same rule: small copy stays flat.
+      pairLink: read("#seam-scene-mirrored .seam-pair a"),
       langLabel: read(".seam-lang a"),
     };
   });
@@ -213,7 +173,7 @@ test("Newsreader does not trail", async ({ page }) => {
   expect(shadows.arcHeading).toBe("none");
   expect(shadows.arcGlyphs).toBe("none");
   expect(shadows.standfirst).toBe("none");
-  expect(shadows.second).toBe("none");
+  expect(shadows.pairLink).toBe("none");
   expect(shadows.langLabel).toBe("none");
 });
 
@@ -259,29 +219,28 @@ test("under reduced-motion emulation, both trail targets stay none across a full
   }
 });
 
-test("under reduced-motion emulation, a nav link keeps its colour state change but loses its transition", async ({
+test("under reduced-motion emulation, a work link stays neutral and loses its transition", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   await page.evaluate(() => document.fonts.ready);
 
-  // The state change is not motion — under prefers-reduced-motion: reduce a
-  // link still changes to accent and still gains its hover underline; only
-  // the transition is removed. .link/.link-quiet's transition declaration
-  // lives entirely inside @media (prefers-reduced-motion: no-preference),
-  // so under "reduce" a nav link's computed transition-duration falls back
-  // to the CSS initial value, 0s, while its rest colour is unchanged.
-  const navLink = page.locator('nav[aria-label="Sections"] a').first();
-  const restColor = await navLink.evaluate((el) => getComputedStyle(el).color);
-  const transitionDuration = await navLink.evaluate(
+  // Hover is neutral in every motion preference. .link/.link-quiet's
+  // transition declaration lives entirely inside @media
+  // (prefers-reduced-motion: no-preference), so under "reduce" a work link's
+  // computed transition-duration falls back to 0s while its rest colour is
+  // unchanged.
+  const workLink = page.locator(".seam-pair-link").first();
+  const restColor = await workLink.evaluate((el) => getComputedStyle(el).color);
+  const transitionDuration = await workLink.evaluate(
     (el) => getComputedStyle(el).transitionDuration,
   );
 
   expect(transitionDuration).toBe("0s");
-  // rgb(0, 0, 0) — color: inherit from --color-ink, unchanged by the
+  // White — color: inherit from the work square, unchanged by the
   // reduced-motion emulation.
-  expect(restColor).toBe("rgb(0, 0, 0)");
+  expect(restColor).toBe("rgb(255, 255, 255)");
 });
 
 // ---------------------------------------------------------------------------

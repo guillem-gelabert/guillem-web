@@ -33,7 +33,7 @@ export function WorkList() {
             </h3>
             <p className="max-w-prose text-body">{entry.annotation}</p>
             {/* The outbound marker. Not an arrow glyph or icon (this site
-                ships zero icons, and U+2197 is not a character Newsreader
+                ships zero icons, and U+2197 is not a character the body face
                 can be relied on to carry) — the host line names where the
                 link goes. Same tab: no new-window attribute, and therefore
                 no rel attribute — with no new window there is no

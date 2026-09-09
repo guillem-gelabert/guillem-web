@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: Working Site
 status: milestone-complete
 stopped_at: v1.0 complete — every surface ships, held at noindex by the copy gate (see .planning/phases/06-cv-contact-photo-discoverability/HANDOFF-user-supplied.md). Test suite is red by decision after 260903-hb4; see Blockers/Concerns
-last_updated: "2026-09-04T11:24:00+02:00"
-last_activity: 2026-09-04 - Completed quick task 260904-f24: publish ultra-minimal production landing and preserve Railway staging
+last_updated: "2026-09-09T00:00:00+02:00"
+last_activity: 2026-09-09 - Refined the landing's More Work pair, project treatment, and interaction assets
 progress:
   total_phases: 6
   completed_phases: 6
@@ -28,7 +28,7 @@ See: `.planning/PROJECT.md` (updated 2026-08-29)
 Phase: 06 (CV, Contact, Photo & Discoverability) — COMPLETE
 Plan: 12 of 12
 Status: v1.0 milestone closed 2026-09-01
-Last activity: 2026-09-04 - Completed quick task 260904-f24: publish ultra-minimal production landing and preserve Railway staging
+Last activity: 2026-09-09 - Refined the landing's More Work pair, project treatment, and interaction assets
 
 **The site is structurally complete and deliberately not indexed.** Every surface the milestone
 promised ships and is live at `guillemgelabert.com`. Five of the values those surfaces render are
@@ -114,6 +114,11 @@ Recent decisions affecting current work:
 - [post-v1.0]: BacklogItem.description is a plain string, no longer a ReactNode. No shipped description ever used the JSX the type was chosen for; a JSON body cannot carry a ReactNode; and rendering caller-supplied markup would be a real injection surface where rendering text is not. lib/backlog.tsx keeps its .tsx path regardless — three test readers scrape it by literal path
 - [quick-260903-hb4]: The landing's featured slot no longer renders PostMeta, which retires the draft marker on `/`. Phase 3 wired `draft={entry.frontmatter.draft}` through precisely so `/` and `/writing` could not print contradictory answers for one file; they cannot contradict now because `/` no longer answers. `/writing` is the single surface that answers "is this published?" from here. The date went with it by intent — it was the only thing between the pitch and the fold
 - [quick-260903-hb4]: The featured headline moved to `.text-heading-serif`, the class `6cc7c43` had already added to app/globals.css and left with no caller. Same clamp, weight and tracking as `.text-heading`; only the family differs, so the case-study headline stops competing with the "GUILLEM GELABERT" nameplate directly above it for the one Humane voice
+- [post-v1.0, 2026-09-09]: The reading face moved from Newsreader to variable Jost, including its true italic file; this unifies labels, prose, and the landing’s compact project type. The language switch stays in Humane’s sole `wght` axis at 200 with tighter tracking, making it materially lighter and narrower without geometric distortion.
+- [post-v1.0, 2026-09-09]: More Work is a fixed equal circle-and-square pair: the square uses a 1:1 aspect ratio and the internal gap is the same token as the surrounding gutter. The latest work, “Everyone in Mallorca Knows It”, occupies the featured square; the real-time defunction predictive model occupies the circular globe panel.
+- [post-v1.0, 2026-09-09]: The globe begins as a monochrome dither and crossfades to its full-colour source when either item in the project pair is hovered. Project links stay neutral on hover; red is now reserved for keyboard focus indicators. The heading trail remains in source but is disabled globally via `TRAIL_ENABLED`.
+- [post-v1.0, 2026-09-09]: Two 1254px, two-colour Floyd–Steinberg sphere overlays were added for compositing over arbitrary thumbnails: `sphere-shadow-diffusion.png` is intended for `darken`, and `sphere-highlight-diffusion.png` for `lighten`/`screen`. Both exclude a floor shadow.
+- [post-v1.0, 2026-09-09]: The landing grain uses its full-resolution desktop dither on touch devices as well as desktops; the lower-resolution mobile export was removed because it changed the apparent dot scale rather than preserving it.
 
 ### Pending Todos
 

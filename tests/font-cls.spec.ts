@@ -1,7 +1,9 @@
 import { expect, test } from "@playwright/test";
 
 // Covers BUILD-06: fonts are self-hosted (Humane via next/font/local,
-// display: 'optional'; Newsreader via next/font/google, display: 'swap')
+// display: 'optional'; Jost, the body face, via next/font/google, also
+// display: 'optional' — it was Newsreader with display: 'swap' until
+// 2026-09-09)
 // and the page must not shift layout as they load.
 //
 // Measured directly via a real PerformanceObserver over the font-load
@@ -10,7 +12,7 @@ import { expect, test } from "@playwright/test";
 // indicate a real font-load shift, not measurement noise.
 //
 // Parameterised over ["/", "/writing/fixture"] rather than duplicated: this
-// phase adds a second Newsreader file (the italic, `style: ['normal',
+// phase adds a second body-face file (the italic, `style: ['normal',
 // 'italic']`) and IBM Plex Mono to /writing/fixture, a route that also
 // renders a fixture full of `pre` blocks — RESEARCH Assumption A5 names this
 // the phase's most plausible silent regression against BUILD-06, so the

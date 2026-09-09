@@ -14,10 +14,14 @@ import { test } from "node:test";
 const { WORK, CASE_STUDY_SLUG, POSITIONING_PLACEHOLDER } = await import("../../lib/work.ts");
 const { BANNED_MARKERS } = await import("../../lib/placeholder.ts");
 
-test("WORK has exactly 2 entries, each with four non-empty string fields", () => {
+// Six string fields now, not four. domain and contentType are the two tags
+// the "More work" pairs print under the annotation (components/landing/
+// more-work.tsx); they are required rather than optional because a pair
+// with one tag missing would render a gap where the grammar promises two.
+test("WORK has exactly 2 entries, each with six non-empty string fields", () => {
   assert.equal(WORK.length, 2);
   for (const entry of WORK) {
-    for (const key of ["title", "annotation", "href", "host"] as const) {
+    for (const key of ["title", "annotation", "href", "host", "domain", "contentType"] as const) {
       assert.equal(typeof entry[key], "string");
       assert.ok(entry[key].length > 0, `${key} must be non-empty`);
     }
@@ -39,6 +43,11 @@ test("every shot is either null or fully declared, with real intrinsic pixels", 
     assert.ok(Number.isInteger(entry.shot.width) && entry.shot.width > 0);
     assert.ok(Number.isInteger(entry.shot.height) && entry.shot.height > 0);
     assert.ok(entry.shot.alt.length > 0, "alt must be non-empty — the chart carries the claim");
+    if (entry.shot.reveal) {
+      assert.match(entry.shot.reveal.src, /^\/[\w./-]+\.png$/, "reveal src must be a root-relative .png path");
+      assert.ok(Number.isInteger(entry.shot.reveal.width) && entry.shot.reveal.width > 0);
+      assert.ok(Number.isInteger(entry.shot.reveal.height) && entry.shot.reveal.height > 0);
+    }
     // The alt describes what the chart SHOWS. Repeating the title would
     // make a screen reader read the same words twice, once from the link
     // above it and once from the image.
@@ -64,6 +73,12 @@ test("every declared shot names a committed file whose PNG header matches its pi
     // trusting a build step, and no image library to do it.
     assert.equal(bytes.readUInt32BE(16), entry.shot.width, `${entry.shot.src}: width`);
     assert.equal(bytes.readUInt32BE(20), entry.shot.height, `${entry.shot.src}: height`);
+    if (entry.shot.reveal) {
+      const revealFile = path.join(import.meta.dirname, "..", "..", "public", entry.shot.reveal.src);
+      const revealBytes = readFileSync(revealFile);
+      assert.equal(revealBytes.readUInt32BE(16), entry.shot.reveal.width, `${entry.shot.reveal.src}: width`);
+      assert.equal(revealBytes.readUInt32BE(20), entry.shot.reveal.height, `${entry.shot.reveal.src}: height`);
+    }
   }
 });
 
@@ -102,6 +117,37 @@ test("no entry links to or names the private ib-gdp-evolution repo", () => {
   }
 });
 
+test("every body is exactly two non-empty single-line paragraphs", () => {
+  for (const entry of WORK) {
+    assert.equal(entry.body.length, 2);
+    for (const paragraph of entry.body) {
+      assert.equal(typeof paragraph, "string");
+      assert.ok(paragraph.length > 0, "a body paragraph must be non-empty");
+      assert.ok(!/[\n\r]/.test(paragraph), "a body paragraph is one block, no line breaks");
+    }
+  }
+});
+
+test("every stack entry is a non-empty tag; the stack may be empty", () => {
+  for (const entry of WORK) {
+    assert.ok(Array.isArray(entry.stack));
+    for (const tool of entry.stack) {
+      assert.equal(typeof tool, "string");
+      assert.ok(tool.length > 0);
+    }
+  }
+});
+
+test("every tag is one short phrase — no sentence punctuation, no line breaks", () => {
+  for (const entry of WORK) {
+    for (const tag of [entry.domain, entry.contentType, ...entry.stack]) {
+      // A dot INSIDE a tag is a name (three.js); one at the end is a sentence.
+      assert.ok(!/[\n\r]/.test(tag) && !/\.$/.test(tag), `tag must not end in a full stop or carry a line break: "${tag}"`);
+      assert.ok(tag.split(/\s+/).length <= 3, `tag must be at most three words: "${tag}"`);
+    }
+  }
+});
+
 test("every annotation is a single line", () => {
   for (const entry of WORK) {
     assert.ok(!entry.annotation.includes("\n"));
@@ -114,18 +160,22 @@ test("no annotation names a tool, language or framework (WORK-02, D-09)", () => 
   const bannedPhrases = ["built with", "powered by"];
 
   for (const entry of WORK) {
-    for (const token of bannedTokens) {
-      const pattern = new RegExp("\\b" + token + "\\b", "iu");
-      assert.ok(
-        !pattern.test(entry.annotation),
-        `annotation must not name a tool (WORK-02, D-09): found "${token}" in "${entry.annotation}"`,
-      );
-    }
-    for (const phrase of bannedPhrases) {
-      assert.ok(
-        !entry.annotation.toLowerCase().includes(phrase),
-        `annotation must not name a tool (WORK-02, D-09): found "${phrase}" in "${entry.annotation}"`,
-      );
+    // The body paragraphs are swept with the annotation: the copy describes
+    // the piece, and the stack field is the one place a tool is named.
+    for (const copy of [entry.annotation, ...entry.body]) {
+      for (const token of bannedTokens) {
+        const pattern = new RegExp("\\b" + token + "\\b", "iu");
+        assert.ok(
+          !pattern.test(copy),
+          `copy must not name a tool (WORK-02, D-09): found "${token}" in "${copy}"`,
+        );
+      }
+      for (const phrase of bannedPhrases) {
+        assert.ok(
+          !copy.toLowerCase().includes(phrase),
+          `copy must not name a tool (WORK-02, D-09): found "${phrase}" in "${copy}"`,
+        );
+      }
     }
   }
 });

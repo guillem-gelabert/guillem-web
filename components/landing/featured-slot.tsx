@@ -23,7 +23,7 @@ export function FeaturedSlot({ entry }: FeaturedSlotProps) {
             exist yet and /writing is at n=0, so there is nowhere honest
             for it to point. A link to an empty index is a circular dead
             end. */}
-        <h3 className="text-heading text-heading-serif">
+        <h3 className="text-heading text-heading-body">
           The case study is being written.
         </h3>
         <p className="max-w-prose text-body">
@@ -36,7 +36,7 @@ export function FeaturedSlot({ entry }: FeaturedSlotProps) {
 
   return (
     <>
-      <h3 className="text-heading text-heading-serif">
+      <h3 className="text-heading text-heading-body">
         {/* next/link, not a bare <a>: this is internal navigation to
             /writing/<slug>. Every other internal link in the repo uses
             Link — both indexes, both [slug] templates, all three not-found

@@ -25,6 +25,12 @@ const SCROLL_STOP_DELAY = 120; // ms, debounce before treating scroll as "stoppe
 const HUE_SPEED = 110; // degrees per second of scroll activity (:326)
 const INITIAL_HUE = 345; // (:362)
 
+// Kept as a shared switch rather than removing the provider, hook, or client
+// leaves. Re-enable by changing this one value when the trail is wanted
+// again; while false, no elements register and the driver attaches no input
+// listeners or animation frames anywhere in the site.
+export const TRAIL_ENABLED = false;
+
 // The heading's own glyphs stay ink (--color-ink, pure black); the hue cycles
 // on the trail *behind* them, so the smear reads as a moving colour field the
 // black letterforms sit on. This restores the source's trailColor() cycling
@@ -109,6 +115,8 @@ export function SmearHeadingProvider({
   // holdInput()/releaseInput()/finishScrolling() (:827-1063), generalized
   // from one `activeEffect` to `for (const [el, state] of registry)`.
   useLayoutEffect(() => {
+    if (!TRAIL_ENABLED) return;
+
     const registry = registryRef.current;
     let animationFrame = 0;
     let previousTime = 0;
@@ -312,6 +320,13 @@ export function SmearHeadingProvider({
       documentTop: number,
       property: TrailProperty = "textShadow",
     ) => {
+      if (!TRAIL_ENABLED) {
+        // A component can remain mounted from a prior enabled build during
+        // hot reload; explicitly clear the property rather than relying on
+        // a repaint to make the old trail disappear.
+        el.style[property] = "none";
+        return;
+      }
       registryRef.current.set(el, {
         documentTop,
         lagY: documentTop - getScrollY(),

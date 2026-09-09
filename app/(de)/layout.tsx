@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { humane } from "../fonts/humane";
-import { newsreader } from "../fonts/newsreader";
+import { jost } from "../fonts/jost";
 import { ibmPlexMono } from "../fonts/ibm-plex-mono";
 import { SmearHeadingProvider } from "@/components/smear-heading/smear-heading-provider";
 import { rootMetadata } from "@/lib/metadata";
@@ -54,7 +54,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="de"
-      className={`${humane.variable} ${newsreader.variable} ${ibmPlexMono.variable}`}
+      className={`${humane.variable} ${jost.variable} ${ibmPlexMono.variable}`}
     >
       <body>
         {/* #scroll-root, not <body>, is the scroller — app/globals.css locks

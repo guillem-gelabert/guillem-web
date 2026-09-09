@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { humane } from "./fonts/humane";
-import { newsreader } from "./fonts/newsreader";
+import { jost } from "./fonts/jost";
 import { ibmPlexMono } from "./fonts/ibm-plex-mono";
 import { SmearHeadingProvider } from "@/components/smear-heading/smear-heading-provider";
 import { SmearTitle } from "@/components/smear-title";
@@ -65,7 +65,7 @@ export default function GlobalNotFound() {
   return (
     <html
       lang="en"
-      className={`${humane.variable} ${newsreader.variable} ${ibmPlexMono.variable}`}
+      className={`${humane.variable} ${jost.variable} ${ibmPlexMono.variable}`}
     >
       <body>
         <SmearHeadingProvider>

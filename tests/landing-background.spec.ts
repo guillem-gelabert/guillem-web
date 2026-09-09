@@ -41,6 +41,8 @@ const ACCENT_RGB = `rgb(${parseInt(clean.slice(0, 2), 16)}, ${parseInt(clean.sli
 // something plausible, which is exactly why it needs asserting.
 
 const DITHER_DESKTOP = "seam-dither-desktop.png";
+// The half-size export a phone used to be handed. Kept as a name only so the
+// phone test below can assert it is never requested again.
 const DITHER_MOBILE = "seam-dither-mobile.png";
 
 // The paper and the ink, from .scene's --gradient-base and
@@ -251,7 +253,7 @@ test.describe("landing background", () => {
     expect(disc.image).toBe("none");
     // ACCENT_RGB is still read from @theme (top of file) so this file keeps
     // failing loudly if --color-accent is ever what paints the disc:
-    // design-budget.spec.ts's (accent) case reserves it to focus and hover.
+    // design-budget.spec.ts's (accent) case reserves it to focus.
     expect(disc.image).not.toContain(ACCENT_RGB);
 
     // The copy has to paint ABOVE it. Positioned elements beat
@@ -325,16 +327,21 @@ test.describe("landing background", () => {
     await expect(page.locator(".seam-lang-de")).toHaveCSS("color", WHITE);
   });
 
-  test("hands a phone the half-size export and nothing larger", async ({
+  test("hands a phone the same full-resolution export as the desktop", async ({
     page,
   }) => {
-    // The desktop file is 652KB and the phone one 163KB. Dot size barely
-    // moves between them — both carry the same ramp at one dot per pixel,
-    // and --dither-size is a viewport length — so the swap buys bandwidth,
-    // not appearance. Which makes "the big one was never requested" the
-    // only thing worth asserting, and it cannot be read off a computed
-    // style: a stale <link rel="preload"> or a second declaration would
-    // fetch it while the mask correctly used the small one.
+    // A phone used to get seam-dither-mobile.png, a 1300px export, on the
+    // reasoning that --dither-size is a viewport length so half the pixels
+    // over a smaller viewport would come to the same dots per CSS pixel.
+    // They did not: the field is 2130px square on a 393x852 phone against
+    // 3600px at 1440x900, so the halved file put ~240 dots across the
+    // screen where the desktop has ~1040, and the grain read as the same
+    // picture zoomed in. Both devices now mask with the one 2600px file
+    // (see .grainField's note in landing-seam.module.css for the
+    // angular-size arithmetic), and this asserts the small one is never
+    // fetched — which cannot be read off a computed style: a stale
+    // declaration in one phone branch would request it while the other
+    // correctly used the large one.
     // The stylesheet's phone branches key off (hover: none) and
     // (pointer: coarse) — a device test, not a width one, matching
     // use-seam-alignment.ts's MOBILE_QUERY. The default context reports a
@@ -362,13 +369,11 @@ test.describe("landing background", () => {
       .locator(".seam-grain-field")
       .first()
       .evaluate((element) => window.getComputedStyle(element).maskImage);
-    expect(maskImage).toContain(DITHER_MOBILE);
+    expect(maskImage).toContain(DITHER_DESKTOP);
 
     await phone.waitForLoadState("networkidle");
-    expect(phoneRequests.some((url) => url.includes(DITHER_MOBILE))).toBe(true);
-    expect(phoneRequests.some((url) => url.includes(DITHER_DESKTOP))).toBe(
-      false,
-    );
+    expect(phoneRequests.some((url) => url.includes(DITHER_DESKTOP))).toBe(true);
+    expect(phoneRequests.some((url) => url.includes(DITHER_MOBILE))).toBe(false);
 
     await touch.close();
   });

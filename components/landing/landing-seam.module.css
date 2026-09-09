@@ -237,20 +237,32 @@
    image-rendering: pixelated is load-bearing. The dither is one dot per
    image pixel; resampling it smoothly averages dots back into the grey
    the bitmap conversion existed to destroy. */
-/* The second section, flipped along the x axis. scaleY(-1) mirrors the
-   whole grain stack including the dither, which is what makes it read as
-   a reflection of the first rather than a repeat of it.
+/* The second section. Its GRAIN is flipped along the x axis, below:
+   scaleY(-1) mirrors the whole grain stack including the dither, which is
+   what makes it read as a reflection of the first rather than a repeat of
+   it.
 
-   Only the gradient is flipped, never content — this section holds none.
-   And --seam-angle has to be restated: the hook writes it as an inline
-   style on the first scene, which this one is a sibling of, not a child
-   of, so it would otherwise fall back to the stylesheet's 50deg default
-   while the first tracked the boxes. Reading it off the first scene is
-   what keeps the two seams parallel. */
+   The flip used to be on the section itself, when the section held nothing
+   but the grain. It holds the "More work" pairs now (.more, at the end of
+   this file), and a transform here would print them upside down — so the
+   section carries no transform and the grain carries the whole of it.
+   --seam-angle needs no restating: the hook writes it to :root, and both
+   grains inherit it from there, which is what keeps the two seams parallel. */
 .sceneMirrored {
   /* Under the first scene, so the disc's trail crosses the fold on top of
      it rather than behind it. */
   z-index: 0;
+  /* A screen tall, and taller if the pairs need it. .scene fixes height
+     at 100dvh for the fold; this one holds copy — two paragraphs a pair —
+     and on a phone that copy runs past one screen. The grain is inset: 0,
+     so it covers whatever height this comes to. On a desktop the pairs fit
+     and this is exactly 100dvh, which tests/landing-trail.spec.ts's
+     two-scenes page height still relies on. */
+  height: auto;
+  min-height: 100dvh;
+}
+
+.sceneMirrored .grain {
   transform: scaleY(-1);
 }
 
@@ -311,6 +323,20 @@
      side, and this has to hold at the aspect ratios the phone branches
      see. */
   --dither-size: 250vmax;
+  /* One file for every device. There was a half-size export
+     (seam-dither-mobile.png, 1300px) for phones, on the reasoning that
+     --dither-size is a viewport length so half the pixels over a smaller
+     viewport would land at much the same dots per CSS pixel. It did not:
+     the square is 2130px on a 393x852 phone and 3600px at 1440x900, so
+     the halved file gave 1.64 CSS px per dot against the desktop's 1.38,
+     and across the width of the screen that is ~240 dots against ~1040.
+     The grain read as the same picture zoomed in.
+
+     What the eye compares is the angle a dot subtends, and this file
+     matches it: 2600px over the phone's square is 0.82 CSS px per dot,
+     2.5 device px at DPR 3, 0.14mm on a 460ppi panel held at 30cm — the
+     same ~5e-4 rad as 2.8 device px on a 220ppi desktop at 60cm. The
+     price is the download: 652KB on a phone instead of 167KB. */
   --dither-image: url("/seam-dither-desktop.png");
 
   /* Centre the square on the pivot: place its top-left half a side up
@@ -497,7 +523,7 @@
    edge instead, which put both labels on the same side of the seam.
 
    w and h are pinned in em rather than measured, so this stays pure CSS:
-   EN in Humane Light at 0.08em tracking is 0.5em wide (trailing
+   EN in Humane at weight 200 and 0.04em tracking is within the 0.5em slot (trailing
    letter-spacing included; DE is narrower), and two lines at line-height 1
    plus the 0.15em gap are 2.15em tall, exactly. Rotated by S - 90, the
    axis-aligned half-extents of that w x h box are:
@@ -539,18 +565,14 @@
   flex-direction: column;
   align-items: center;
   gap: 0.15em;
-  /* Humane's variable build, driven on its one axis. font-variation-settings
-     rather than font-weight alone so the wght coordinate is set explicitly:
-     300 is the family's named Light instance.
-
-     No width here because there is none to set — Humane ships wght only, in
-     both the 2.0 build this repo uses and the older release. An expanded
-     cut would need scaleX (which distorts the strokes) or another face. */
+  /* Humane ships only the wght variable axis. Use its lighter coordinate
+     explicitly, then tighten tracking to make the label narrower without
+     distorting its glyphs with scaleX. */
   font-family: var(--font-display);
   font-size: clamp(2rem, 4vw, 4.5rem);
-  font-variation-settings: "wght" 300;
-  font-weight: 300;
-  letter-spacing: 0.08em;
+  font-variation-settings: "wght" 200;
+  font-weight: 200;
+  letter-spacing: 0.04em;
   line-height: 1;
   transform-origin: center;
   rotate: calc(var(--seam-angle, 50deg) - 90deg);
@@ -769,7 +791,7 @@
    paper, ink, nor type.
 
    #B3121B, and deliberately NOT --color-accent (#C1272D). The accent is
-   reserved to focus and hover — tests/design-budget.spec.ts's (accent) case
+   reserved to focus — tests/design-budget.spec.ts's (accent) case
    sweeps every computed backgroundColor inside <main> for exactly that value
    — so a disc painted in it would break the reservation rather than use the
    palette. This red is its own value, and it is chosen against contrast
@@ -853,13 +875,27 @@
   overflow: visible;
 }
 
-/* 15 user units of a 200-unit viewBox: at 1440x900 the element renders at
-   493px, so the scale is 2.465 and this sets to 37px. fill, not color —
-   SVG text is painted, not inked. */
+/* 12 user units of a 200-unit viewBox: at 1440x900 the element renders at
+   493px, so the scale is 2.465 and this sets to ~30px. fill, not color —
+   SVG text is painted, not inked.
+
+   Light and uppercase, the tagline's register rather than the standfirst's.
+   It was 15 units at weight 530 in mixed case, which took 85% of the top
+   half's arc (216 of 254.5 user units, measured with getComputedTextLength
+   against the path's getTotalLength). Caps run wider and light Jost wants
+   more air between them, so the size comes down to keep the line on the
+   arc: at 12 units with 0.08em tracking — the language switch's tracking —
+   it is 222 units, 87%. 14 units would already be 98% and 15 would overrun.
+   The measure is in user units, so it is the same share at every viewport.
+
+   text-transform on SVG <text> is honoured by every engine this site
+   targets; the DOM keeps the published title in its own case, which is
+   what the link is named by. */
 .boxCaseStudy :global(.seam-arc-svg) text {
-  font-size: 15px;
-  font-weight: 530;
-  letter-spacing: 0.035em;
+  font-size: 12px;
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   fill: #fff;
 }
 
@@ -905,7 +941,7 @@
    chart wanted. Note cqh here is the box's CONTENT box (385px at 1440x900,
    not the box's own 443): .box declares container-type: size, and its
    padding is outside the query size. */
-.boxCaseStudy :global(.text-heading-serif) {
+.boxCaseStudy :global(.text-heading-body) {
   font-size: min(calc(1rem + 4vw), 9cqh);
 }
 
@@ -961,32 +997,82 @@
   pointer-events: none;
 }
 
-/* Above the disc-wide hit area, or the overlay would swallow its clicks —
-   it sits inside the disc and comes earlier in paint order. */
-.boxCaseStudy :global(.seam-second) {
+/* The "More work" box in the mirrored scene: the whole scene inside the
+   four insets, laid out as a grid of pairs from the top-left. The pairs'
+   own shape lives in more-work.module.css, which reads the custom
+   properties set here and decides nothing about the scene.
+
+   The grid spans BOTH grounds — at 1440x900 the first pair already
+   straddles the seam — so the square cannot be painted in either of them:
+   a paper square on paper or an ink square on ink loses its edge wherever
+   it lands on the matching side. Pure black with white type instead, the
+   same call the copy makes (see .content): the two values that are not
+   made of the two inks and hold against either. The empty circle takes the
+   same fill until a thumbnail lands.
+
+   Columns: from the width AND from the count, with no breakpoint. auto-fill
+   lays as many tracks as fit a minimum column, so the column count is set
+   entirely by that minimum, which is clamp(FLOOR, IDEAL, 100%):
+
+     IDEAL is --pair-ideal, 36rem on a desktop — the column a pair reads
+     well in. That alone gives 1 column under ~640px of content width, 2 at
+     1366 and 1440, 3 at 1920, 4 from ~2400.
+
+     FLOOR is the larger of two shares of the width. 22% forbids a fifth
+     column whatever the width (five at 22% are 110% before any gap; 25%
+     would have done it too, except that four at 25% plus three gaps overran
+     a 2560px window by 47px and fell back to three). And the width less the
+     gaps, divided by --pair-count, forbids more columns than there are
+     PAIRS — one piece is one column and takes the whole box, two are two,
+     and so on up to the four the first share allows. --pair-count is an
+     inline style the component writes from WORK's length, so a third piece
+     changes this without an edit here.
+
+   The pair's own side is then half its column — see more-work.module.css —
+   capped at --pair-max-side, the box's height. A single pair in a 1440px
+   window is 663px on a side, which fits a 900px screen and would not fit a
+   600px one; the cap is what keeps a lone pair above the fold in a short
+   window, at the price of not reaching its column's right edge there. */
+.more {
+  --pair-gap: var(--stack-gap);
+  --pair-shape-gap: var(--edge);
+  --pair-padding: var(--aside-padding);
+  --pair-fill: #000;
+  --pair-type: #fff;
+  --pair-ideal: 36rem;
+  --pair-max-side: calc(100dvh - var(--edge-top) - var(--edge-bottom));
+  --pair-direction: row;
+  --pair-per-row: 2;
+
+  /* In flow, not absolute: the scene's height follows this box (see
+     .sceneMirrored), which an absolutely positioned box cannot give it.
+     The four insets are padding here rather than inset offsets; the grid
+     inside starts at exactly the same point. */
   position: relative;
-  z-index: 1;
+  box-sizing: border-box;
+  padding: var(--edge-top) var(--edge-right) var(--edge-bottom) var(--edge);
 }
 
-/* The second piece: one line, at the small end of the scale. It is the only
-   thing in this box that is not the featured story, so a gap is what
-   separates them — there is no rule, and there is no room for one inside a
-   circle.
-
-   That gap is the LINK's padding, not a margin on the paragraph, and the
-   padding is there for a reason a margin could not serve: at 14px
-   (.text-label) the anchor's box was 14px tall, and
-   tests/landing.spec.ts's 24px floor is WCAG 2.5.8's minimum target size.
-   A block anchor takes the 18.2px line box, and 3px top and bottom brings
-   it to 24.2px.
-
-   So the two jobs are done by one declaration. The paragraph carried
-   margin-block-start: var(--stack-gap) while the anchor was inline; keeping
-   both would have spent ~12px of a box that had 4px of slack left on a
-   393x852 phone. */
-.boxCaseStudy :global(.seam-second) a {
-  display: block;
-  padding-block: 3px;
+/* Declared on the LIST, not on .more, and that is load-bearing. A custom
+   property's var() references are substituted on the element that declares
+   it, and --pair-count is an inline style on the <ol> — declared here on
+   .more it would read the fallback, never the count, and lay one column
+   for any number of pairs. On the list the two meet. */
+.more :global(.seam-more-list) {
+  --pair-columns: repeat(
+    auto-fill,
+    minmax(
+      clamp(
+        max(
+          22%,
+          calc((100% - (var(--pair-count, 1) - 1) * var(--pair-gap)) / var(--pair-count, 1))
+        ),
+        var(--pair-ideal),
+        100%
+      ),
+      1fr
+    )
+  );
 }
 
 /* No width breakpoint anywhere in this file: the desktop layout is one
@@ -1058,15 +1144,6 @@
     font-size: min(56cqw, 64cqh);
   }
 
-  /* The half-size export, so a phone downloads 167KB instead of 652KB.
-     Dot size is unchanged by the swap: both files carry the same ramp at
-     one dot per pixel, and --dither-size is a viewport length, so half
-     the pixels over a smaller viewport lands at much the same dots per
-     CSS pixel. The saving is bandwidth, not appearance. */
-  .grainField {
-    --dither-image: url("/seam-dither-mobile.png");
-  }
-
   /* Same trade as the landscape branch below, less of it: the case study's
      box is cut to the name's proportion here too, and the editorial gap is
      what gives so the standfirst's last line is not cropped.
@@ -1135,8 +1212,13 @@
     gap: 0.25rem;
   }
 
-  .grainField {
-    --dither-image: url("/seam-dither-mobile.png");
+  /* The ideal column is half the box rather than 36rem: 812px of content
+     width is one 36rem column, and one column here is a pair 400px on a
+     side in a scene 390px tall. Halved, the pair is ~193px. Still subject
+     to the count — one piece is still one column, and --pair-max-side then
+     holds that lone pair to the height. */
+  .more {
+    --pair-ideal: calc((100% - var(--pair-gap)) / 2);
   }
 }
 
@@ -1166,5 +1248,24 @@
       clamp(1rem, 3.5vw, 12rem),
       env(safe-area-inset-bottom, 0px)
     );
+  }
+
+  /* No language switch on a phone. Both links still point at "#" — there
+     is no German landing to go to — and on a 393px screen the pair sits
+     over the name's corner with nothing to offer. display: none rather
+     than visibility: it takes the two anchors out of the tab order and
+     the accessibility tree as well as off the screen. Comes back with the
+     desktop layout, where it is centred on the seam by the .lang rule
+     above. */
+  .lang {
+    display: none;
+  }
+
+  /* A pair stands on a phone: circle over square, each the full width of
+     the column. Side by side, half a phone's width is 174px; stacked, each
+     shape gets the full 361px side and keeps its 1:1 geometry. */
+  .more {
+    --pair-direction: column;
+    --pair-per-row: 1;
   }
 }

@@ -17,11 +17,11 @@ import { expect, test } from "@playwright/test";
 // and corrected in app/globals.css before this spec was written:
 //   - .prose-site blockquote declared no font-family/font-size/line-height
 //     and rendered in the browser's default sans-serif at 16px, not
-//     Newsreader 18px/1.6. Fixed by adding the three declarations.
+//     the body face at 18px/1.6. Fixed by adding the three declarations.
 //   - .prose-site itself declared no Body-role default, so ul/ol list items
 //     and <Aside> body text (neither of which has its own font rule) fell
 //     back to the same 16px default. Fixed by putting the Body role
-//     (Newsreader, 18px, 400, 1.6) on .prose-site itself, which every more
+//     (body face, 18px, 400, 1.6) on .prose-site itself, which every more
 //     specific selector (h2/h3/th/td/code/pre) already overrides.
 //   - .prose-site table declared no font-size, so <table>/<thead>/<tbody>/
 //     <tr> (which carry no visible text themselves — all text lives in
@@ -83,12 +83,12 @@ test.beforeEach(async ({ page }) => {
   await page.evaluate(() => document.fonts.ready);
 });
 
-test("paragraph computes to Newsreader 18px/400 with the real 1.6 line-height in pixels", async ({
+test("paragraph computes to Jost 18px/400 with the real 1.6 line-height in pixels", async ({
   page,
 }) => {
   const { p } = await readTypography(page);
   expect(p).not.toBeNull();
-  expect(p!.fontFamily).toContain("Newsreader");
+  expect(p!.fontFamily).toContain("Jost");
   expect(p!.fontSize).toBe("18px");
   expect(p!.fontWeight).toBe("400");
   // Computed pixel value of line-height: 1.6 at 18px, not the authored "1.6".
@@ -125,14 +125,14 @@ test("strong renders at weight 530, not 600 or 700", async ({ page }) => {
   expect(strong!.fontWeight).toBe("530");
 });
 
-test("em renders italic at weight 400 in Newsreader — proof the loader's added italic actually loaded", async ({
+test("em renders italic at weight 400 in Jost — proof the loader's italic actually loaded", async ({
   page,
 }) => {
   const { em } = await readTypography(page);
   expect(em).not.toBeNull();
   expect(em!.fontStyle).toBe("italic");
   expect(em!.fontWeight).toBe("400");
-  expect(em!.fontFamily).toContain("Newsreader");
+  expect(em!.fontFamily).toContain("Jost");
 });
 
 test("blockquote is italic Body role between two hairlines with no left bar", async ({

@@ -37,9 +37,22 @@ test("the homepage renders only the requested content, in order", async ({ page 
     "GUILLEM",
     "GELABERT",
     POSITIONING_PLACEHOLDER.toUpperCase(),
-    WORK[0].title,
+    // The arc headline is uppercased in CSS (text-transform on the SVG
+    // text), so innerText reports caps while the DOM — and the link's
+    // accessible name — keep the published title's own case.
+    WORK[0].title.toUpperCase(),
     WORK[0].annotation,
-    WORK[1].title.toUpperCase(),
+    // Then the mirrored scene: every piece after the first as a pair —
+    // title, annotation, and the two tags, which .text-label sets in caps.
+    // title, the two body paragraphs, then the tags (domain, content type,
+    // stack), which the square sets in caps.
+    ...WORK.slice(1).flatMap((entry) => [
+      entry.title,
+      ...entry.body,
+      entry.domain.toUpperCase(),
+      entry.contentType.toUpperCase(),
+      ...entry.stack.map((tool) => tool.toUpperCase()),
+    ]),
   ]);
 });
 
@@ -55,25 +68,25 @@ test("the visible descriptor exactly matches the meta description", async ({ pag
   );
 });
 
-test("the story slot links both pieces, titles only, and shows the first one's chart", async ({
+test("the story slot links the first piece, title only, and shows its chart", async ({
   page,
 }) => {
   const slot = page.locator("section#story");
   await expect(slot).toHaveCount(1);
 
-  // Every entry in WORK reaches the page, and the title is the only link
-  // on its row — the annotation is not linked and neither is the chart.
-  for (const entry of WORK) {
-    const link = slot.locator(`a[href="${entry.href}"]`);
-    await expect(link).toHaveCount(1);
-    await expect(link).toHaveText(entry.title);
-    // Same tab: no target, and therefore no rel to check.
-    await expect(link).not.toHaveAttribute("target", "_blank");
-  }
-  await expect(slot.locator("a")).toHaveCount(WORK.length);
+  // The hero holds the FIRST entry and nothing else — the rest are pairs in
+  // the mirrored scene (tests/landing-more.spec.ts). The title is the only
+  // link in the slot: the annotation is not linked and neither is the chart.
+  const [hero] = WORK;
+  const link = slot.locator(`a[href="${hero.href}"]`);
+  await expect(link).toHaveCount(1);
+  await expect(link).toHaveText(hero.title);
+  // Same tab: no target, and therefore no rel to check.
+  await expect(link).not.toHaveAttribute("target", "_blank");
+  await expect(slot.locator("a")).toHaveCount(1);
 
-  // One <img> per declared shot, and no <img> for a null one.
-  const declared = WORK.filter((entry) => entry.shot !== null);
+  // One <img> for a declared shot, and none for a null one.
+  const declared = [hero].filter((entry) => entry.shot !== null);
   const shots = slot.locator("img");
   await expect(shots).toHaveCount(declared.length);
 
@@ -129,9 +142,10 @@ test("the chart is the disc — wider than the copy column, inside the box", asy
 });
 
 test("all links are keyboard focusable and meet the 24px target floor", async ({ page }) => {
-  // Four now, not three: the two language placeholders on the seam, then
-  // the two story titles. The mailto link this used to count is not on the
-  // seam landing at all — /cv and the contact block own it.
+  // The two language placeholders on the seam, then one link per piece:
+  // the hero's arc headline in the first scene and a pair's title in the
+  // mirrored one. The mailto link this used to count is not on the seam
+  // landing at all — /cv and the contact block own it.
   const links = page.locator("main a");
   const count = 2 + WORK.length;
   await expect(links).toHaveCount(count);

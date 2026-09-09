@@ -3,9 +3,14 @@
 
 @theme {
   --font-display: var(--font-humane), Impact, sans-serif;
-  --font-body: var(--font-newsreader), serif;
+  /* Jost, since 2026-09-09. Newsreader held this from Phase 1; the serif
+     went by decision, not by a test — see app/fonts/jost.ts. */
+  --font-body: var(--font-jost), ui-sans-serif, sans-serif;
   --font-mono: var(--font-ibm-plex-mono), ui-monospace, monospace;
-  /* Landing tagline only. Geometric — see app/fonts/jost.ts. */
+  /* The same face as --font-body now. Kept as its own name because the
+     landing tagline's rule reads it and because the two are different
+     DECISIONS — the tagline was set in Jost when the body was a serif, and
+     would stay Jost if the body changed again. */
   --font-geometric: var(--font-jost), ui-sans-serif, sans-serif;
 
   --color-paper: #ffffff;
@@ -77,7 +82,11 @@
   text-decoration-color: currentColor;
 }
 
-.prose-site a:hover,
+.prose-site a:hover {
+  color: inherit;
+  text-decoration-color: currentColor;
+}
+
 .prose-site a:focus-visible {
   color: var(--color-accent);
   text-decoration-color: var(--color-accent);
@@ -340,7 +349,9 @@ hr {
    tests/unit/prose-contract.test.ts pin that shape from both ends — each
    role class owns exactly one block, and each clamp() curve is declared in
    exactly one place. Grouping satisfies neither. */
-.text-heading-serif {
+/* Named for the face it selects, not for that face's classification: it
+   was .text-heading-serif while --font-body was Newsreader. */
+.text-heading-body {
   font-family: var(--font-body);
 }
 
@@ -369,12 +380,12 @@ hr {
 
 /* Link and section-head contract (03-UI-SPEC.md) — Tailwind v4's preflight
    resets `a { color: inherit; text-decoration: inherit }`, so every
-   non-prose link on the shipped site has no accent hover and only the
+   non-prose link on the shipped site has a neutral hover and only the
    browser-default focus ring. These three classes close that. Every
    declaration below is a value already shipped in this file: .section-head
    is .prose-site h2 minus its two prose margins (the surrounding flex gap
    owns spacing on the landing); .link is .prose-site a verbatim; .link-quiet
-   is .link with the rest underline removed and restored on hover/focus. */
+   is .link with its rest underline removed. */
 
 .section-head {
   font-family: var(--font-body);
@@ -395,7 +406,11 @@ hr {
   text-decoration-color: currentColor;
 }
 
-.link:hover,
+.link:hover {
+  color: inherit;
+  text-decoration-color: currentColor;
+}
+
 .link:focus-visible {
   color: var(--color-accent);
   text-decoration-color: var(--color-accent);
@@ -405,20 +420,21 @@ hr {
    requires a non-colour distinction for links WITHIN a block of text; none
    of .link-quiet's uses sit inside a block of text (a poster-scale
    headline, a list-entry title, a nav item, a standalone back link), so
-   position and role already identify them. The hover state below adds the
-   underline back, so the affordance is never colour-only. */
+   position and role already identify them. Hover stays visually neutral;
+   keyboard focus is signalled by the shared outline below. */
 .link-quiet {
   color: inherit;
   text-decoration: none;
 }
 
-.link-quiet:hover,
+.link-quiet:hover {
+  color: inherit;
+  text-decoration: none;
+}
+
 .link-quiet:focus-visible {
   color: var(--color-accent);
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.12em;
-  text-decoration-color: var(--color-accent);
+  text-decoration: none;
 }
 
 .link:focus-visible,
@@ -428,9 +444,7 @@ hr {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  /* The state change itself (colour, underline) is not motion and must
-     survive prefers-reduced-motion: reduce — only the transition is
-     gated here. */
+  /* Only colour transitions are motion, so they are gated here. */
   .link {
     transition: color 120ms ease-out, text-decoration-color 120ms ease-out;
   }

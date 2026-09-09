@@ -1,6 +1,6 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { allBlocks, valuesOf } from "./unit/css-source.ts";
 
 // Covers D-4.4 section 3 (06-CONTEXT.md:365-370) — the design-system
@@ -257,18 +257,9 @@ test("(non-Latin) the union of non-ASCII, non-prose-punctuation characters rende
   expect([...union]).toEqual([ARROW]);
 });
 
-// --- Accent: absent at rest, present on focus and on hover ---------------
+// --- Accent: absent at rest and on hover, present on focus ---------------
 
-async function tabUntilFocused(page: Page, target: Locator, maxPresses = 60): Promise<boolean> {
-  for (let i = 0; i < maxPresses; i++) {
-    await page.keyboard.press("Tab");
-    const isFocused = await target.evaluate((el) => el === document.activeElement).catch(() => false);
-    if (isFocused) return true;
-  }
-  return false;
-}
-
-test("(accent) reserved to focus and hover — absent at rest on /, /cv and /type; present on a focused and a hovered link", async ({
+test("(accent) reserved to focus — absent at rest and on hover on /, /cv and /type; present on a focused link", async ({
   page,
 }) => {
   // Every case below touches a hover/focus transition, so this is called
@@ -311,20 +302,26 @@ test("(accent) reserved to focus and hover — absent at rest on /, /cv and /typ
 
   // Now prove the reservation is a reservation, not merely an absence.
   await page.goto("/");
-  const link = page.locator('nav[aria-label="Sections"] a').first();
+  const link = page.locator(".seam-pair-link").first();
 
-  const reached = await tabUntilFocused(page, link);
-  expect(reached, "could not reach the nav's first link by keyboard Tab").toBe(true);
+  await link.focus();
+  await expect(link).toBeFocused();
   const focusOutline = await link.evaluate((el) => getComputedStyle(el).outlineColor);
   expect(focusOutline, `focused link's outlineColor was "${focusOutline}", expected the accent (${ACCENT_RGB})`).toBe(
     ACCENT_RGB,
   );
 
+  // Focus may legitimately use the accent, so clear focus before measuring
+  // the global hover state itself.
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+  const rest = await link.evaluate((el) => getComputedStyle(el).color);
   await link.hover();
-  const hoverColor = await link.evaluate((el) => getComputedStyle(el).color);
-  expect(hoverColor, `hovered link's color was "${hoverColor}", expected the accent (${ACCENT_RGB})`).toBe(
-    ACCENT_RGB,
-  );
+  const hover = await link.evaluate((el) => {
+    const style = getComputedStyle(el);
+    return { color: style.color, decoration: style.textDecorationLine };
+  });
+  expect(hover.color, `hovered link's color was "${hover.color}", expected its resting colour`).toBe(rest);
+  expect(hover.decoration).toBe("none");
 });
 
 // --- Source sweep: arbitrary Tailwind values and non-zero rounded utilities
