@@ -144,13 +144,19 @@ export function LandingSeam({
           section would turn the pairs upside down with the background. The
           angle is still shared — the hook writes --seam-angle to :root and
           both grains read it — so the two seams stay parallel. */}
+      {/* aria-labelledby, not aria-label: the section has a visible heading
+          now, and naming it something else would give a screen reader
+          "More work" for a region titled PROJECTS. */}
       <section
-        aria-label="More work"
+        aria-labelledby="seam-more-title"
         className={`seam-scene seam-scene-mirrored ${styles.scene} ${styles.sceneMirrored}`}
         id="seam-scene-mirrored"
       >
         {grain}
         <div id="seam-more" className={`seam-more ${styles.more}`}>
+          <h2 id="seam-more-title" className={`seam-more-title ${styles.moreTitle}`}>
+            Projects
+          </h2>
           {more}
         </div>
       </section>

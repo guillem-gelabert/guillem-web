@@ -28,7 +28,10 @@ test("the mirrored scene is the 'More work' landmark and holds every piece after
   const scene = page.locator("#seam-scene-mirrored");
   await expect(scene).toHaveCount(1);
   await expect(scene).not.toHaveAttribute("aria-hidden", "true");
-  await expect(page.getByRole("region", { name: "More work" })).toHaveCount(1);
+  // Named by its visible heading (aria-labelledby), not by an aria-label
+  // that said something else.
+  await expect(page.getByRole("region", { name: "Projects" })).toHaveCount(1);
+  await expect(page.locator("#seam-more-title")).toHaveText("Projects");
 
   const items = scene.getByRole("listitem");
   await expect(items).toHaveCount(more.length);
@@ -40,7 +43,11 @@ test("the mirrored scene is the 'More work' landmark and holds every piece after
     const links = item.locator("a");
     await expect(links).toHaveCount(1);
     await expect(links).toHaveAttribute("href", entry.href);
-    await expect(links).toHaveText(entry.host);
+    await expect(links).toHaveText("To project →");
+    // Named for a screen reader by the piece it goes to: "To project"
+    // repeated down a list names every link the same. The visible words open
+    // the label, so WCAG 2.5.3's label-in-name holds.
+    await expect(links).toHaveAttribute("aria-label", `To project: ${entry.title}`);
     await expect(links).not.toHaveAttribute("target", "_blank");
     // The title is still printed — as a heading, not a link.
     await expect(item.locator(".seam-pair-title")).toHaveText(entry.title);
@@ -49,10 +56,15 @@ test("the mirrored scene is the 'More work' landmark and holds every piece after
     // one-line annotation — the hero's standfirst register — does not.
     for (const paragraph of entry.body) await expect(item).toContainText(paragraph);
     await expect(item).not.toContainText(entry.annotation);
-    await expect(item).toContainText(entry.domain);
+    for (const field of entry.domains) await expect(item).toContainText(field);
     await expect(item).toContainText(entry.contentType);
     for (const tool of entry.stack) await expect(item).toContainText(tool);
-    await expect(item.locator(".seam-pair-tags > *")).toHaveCount(2 + entry.stack.length);
+    await expect(item.locator(".seam-pair-tags > *")).toHaveCount(
+      entry.domains.length + 1 + entry.stack.length,
+    );
+    // The domains are the rounded chips; the stack and the content type
+    // are square. The shape is the only thing separating the two kinds.
+    await expect(item.locator(".seam-pair-domain")).toHaveCount(entry.domains.length);
     await expect(item.locator(".seam-pair-body")).toHaveCount(2);
     // The optional colour reveal is a second, decorative image over its
     // declared display shot, and any thumbnail also carries the two sphere
@@ -317,7 +329,7 @@ test("the square's type is sized against the square, with the site's roles as th
   expect(small.tag).toBe(14);
 });
 
-test("on a phone the pair stands — circle over square, both the full width — and the scene grows", async ({
+test("on a phone the pair stands — square over circle, both the full width — and the scene grows", async ({
   browser,
 }) => {
   const context = await browser.newContext({ viewport: { width: 393, height: 852 }, hasTouch: true, isMobile: true });
@@ -343,7 +355,11 @@ test("on a phone the pair stands — circle over square, both the full width —
   expect(Math.abs(m.s.width - m.list)).toBeLessThanOrEqual(1);
   expect(Math.abs(m.s.height - m.s.width)).toBeLessThanOrEqual(1);
   expect(m.content.scrollHeight).toBeLessThanOrEqual(m.content.height);
-  expect(m.s.y).toBeGreaterThanOrEqual(m.c.y + m.c.height);
+  // SQUARE on top on a phone. The DOM order is unchanged — the square is
+  // still second, so reading and focus order still meet the title and its
+  // link before the picture; only the paint order flips, via
+  // flex-direction: column-reverse (landing-seam.module.css, .more).
+  expect(m.c.y).toBeGreaterThanOrEqual(m.s.y + m.s.height);
   // The scene is at least a screen and holds the whole pair.
   expect(m.scene).toBeGreaterThanOrEqual(852);
   expect(m.s.bottom).toBeLessThanOrEqual(m.sceneBottom + 1);
@@ -400,6 +416,59 @@ for (const viewport of COLUMNS) {
   });
 }
 
+// The square holds a title, two paragraphs, a link and the chips, and its
+// side is derived from the viewport — so the two can disagree. They did:
+// before this was fixed a 320px window left a 136px square holding 661px of
+// copy, because the pair kept its circle and square side by side in a column
+// already too narrow for both, and the type's pixel floors could not shrink
+// to meet it.
+//
+// Swept rather than spot-checked, and across BOTH pointer branches: the
+// phone layout is a different branch of landing-seam.module.css, and the
+// desktop one is what a narrow browser window gets.
+for (const touch of [false, true]) {
+  const branch = touch ? "phone" : "desktop";
+  test(`the square never overflows its own box — ${branch} branch`, async ({ browser }) => {
+    const sizes = [
+      [320, 700], [360, 780], [375, 812], [393, 852], [430, 932],
+      [600, 900], [768, 1024], [1024, 768], [1280, 800], [1440, 900],
+    ] as const;
+
+    for (const [width, height] of sizes) {
+      const context = await browser.newContext({
+        viewport: { width, height },
+        hasTouch: touch,
+        isMobile: touch,
+      });
+      const page = await context.newPage();
+      await page.goto("/");
+      await page.evaluate(() => document.fonts.ready);
+
+      const squares = await page.evaluate(() =>
+        [...document.querySelectorAll(".seam-pair-square")].map((square) => ({
+          clientHeight: square.clientHeight,
+          scrollHeight: square.scrollHeight,
+          clientWidth: square.clientWidth,
+          scrollWidth: square.scrollWidth,
+        })),
+      );
+      expect(squares.length).toBeGreaterThan(0);
+
+      for (const square of squares) {
+        expect(
+          square.scrollHeight,
+          `${branch} ${width}x${height}: copy is ${square.scrollHeight}px in a ${square.clientHeight}px square`,
+        ).toBeLessThanOrEqual(square.clientHeight);
+        expect(
+          square.scrollWidth,
+          `${branch} ${width}x${height}: copy is ${square.scrollWidth}px in a ${square.clientWidth}px square`,
+        ).toBeLessThanOrEqual(square.clientWidth);
+      }
+      await context.close();
+    }
+  });
+}
+
 test("a lone pair is held to the scene's height in a short window", async ({ page }) => {
   // 1440x600: one column is a 663px side, and the scene less its two
   // insets is ~499px. The cap binds: the circle's side is exactly that,
@@ -413,11 +482,19 @@ test("a lone pair is held to the scene's height in a short window", async ({ pag
     const pair = document.querySelector("#seam-more li")!.getBoundingClientRect();
     const circle = document.querySelector("#seam-more .seam-pair-circle")!.getBoundingClientRect();
     const square = document.querySelector("#seam-more .seam-pair-square")!.getBoundingClientRect();
-    // All four --edge values are equal on a desktop, so the top inset is
-    // also the bottom one.
-    const inset = list.top - scene.top;
+    // Measured at BOTH ends rather than doubling one: --edge-top carries a
+    // 4rem floor the other three insets do not, so the scene is no longer
+    // symmetric and the cap (--pair-max-side) subtracts the two separately.
+    //
+    // The TOP inset is read off the section's title, not the list. The title
+    // sits inside the same padding box and the list now sits below it, so
+    // measuring the list here would fold the heading's height into the inset
+    // and under-report the cap by exactly that much.
+    const title = document.querySelector("#seam-more-title")!.getBoundingClientRect();
+    const insetTop = title.top - scene.top;
+    const insetBottom = scene.bottom - list.bottom;
     return {
-      cap: 600 - 2 * inset,
+      cap: 600 - insetTop - insetBottom,
       side: circle.height,
       square: { width: square.width, height: square.height },
       pairLeft: pair.left - list.left,

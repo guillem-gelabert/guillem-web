@@ -21,9 +21,15 @@ const { BANNED_MARKERS } = await import("../../lib/placeholder.ts");
 test("WORK has exactly 2 entries, each with six non-empty string fields", () => {
   assert.equal(WORK.length, 2);
   for (const entry of WORK) {
-    for (const key of ["title", "annotation", "href", "host", "domain", "contentType"] as const) {
+    for (const key of ["title", "annotation", "href", "host", "contentType"] as const) {
       assert.equal(typeof entry[key], "string");
       assert.ok(entry[key].length > 0, `${key} must be non-empty`);
+    }
+    // domains is a LIST now — a piece can sit in more than one field.
+    assert.ok(Array.isArray(entry.domains) && entry.domains.length > 0, "domains must be non-empty");
+    for (const field of entry.domains) {
+      assert.equal(typeof field, "string");
+      assert.ok(field.length > 0, "every domain must be non-empty");
     }
   }
 });
@@ -140,7 +146,7 @@ test("every stack entry is a non-empty tag; the stack may be empty", () => {
 
 test("every tag is one short phrase — no sentence punctuation, no line breaks", () => {
   for (const entry of WORK) {
-    for (const tag of [entry.domain, entry.contentType, ...entry.stack]) {
+    for (const tag of [...entry.domains, entry.contentType, ...entry.stack]) {
       // A dot INSIDE a tag is a name (three.js); one at the end is a sentence.
       assert.ok(!/[\n\r]/.test(tag) && !/\.$/.test(tag), `tag must not end in a full stop or carry a line break: "${tag}"`);
       assert.ok(tag.split(/\s+/).length <= 3, `tag must be at most three words: "${tag}"`);

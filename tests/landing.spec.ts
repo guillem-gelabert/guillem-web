@@ -42,17 +42,23 @@ test("the homepage renders only the requested content, in order", async ({ page 
     // accessible name — keep the published title's own case.
     WORK[0].title.toUpperCase(),
     WORK[0].annotation,
+    // The badge on the disc's edge. Set in the DOM as "New story" and
+    // uppercased in CSS, so innerText reports caps while the accessible
+    // name keeps its sentence case.
+    "NEW STORY",
+    // The second scene's own title, uppercased in CSS.
+    "PROJECTS",
     // Then the mirrored scene: every piece after the first as a pair —
-    // title, the two body paragraphs, then the tags (domain, content type,
-    // stack) which the square sets in caps, and last the host line, which is
-    // the pair's one link.
+    // title, the two body paragraphs, the pair's one link directly under
+    // them, and last the tags (domain, content type, stack), which the
+    // square sets in caps.
     ...WORK.slice(1).flatMap((entry) => [
       entry.title,
       ...entry.body,
-      entry.domain.toUpperCase(),
+      "To project →",
+      ...entry.domains.map((field) => field.toUpperCase()),
       entry.contentType.toUpperCase(),
       ...entry.stack.map((tool) => tool.toUpperCase()),
-      entry.host,
     ]),
   ]);
 });

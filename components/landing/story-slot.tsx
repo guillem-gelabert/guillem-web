@@ -67,6 +67,24 @@ export function StorySlot() {
             <defs>
               <path id="seam-arc-path" fill="none" d="M 16,100 A 84,84 0 0 1 184,100" />
             </defs>
+            {/* The headline's rule, drawn rather than decorated. Chrome
+                computes text-decoration-thickness and text-underline-offset
+                to `auto` on SVG <text> and ignores what you set, so the only
+                way to control this line's weight and its distance from the
+                type is to draw it: an arc of the same circle at a smaller
+                radius, stroked in user units.
+
+                pathLength normalises the arc to 100 units whatever its
+                geometry, so the dash below is a percentage of the sweep: the
+                type takes ~84% of the top semicircle (see the note in
+                landing-seam.module.css), so 84 units of dash offset by 8
+                centres the rule under it. */}
+            <path
+              className="seam-arc-underline"
+              d="M 19,100 A 81,81 0 0 1 181,100"
+              pathLength="100"
+              fill="none"
+            />
             <text>
               {/* startOffset + text-anchor centre the line on the arc's
                   midpoint, which is the top of the circle. */}
@@ -170,6 +188,17 @@ export function StorySlot() {
           ) : null}
         </>
       )}
+      {/* The badge, sat on the disc's edge rather than in the empty box
+          above it. Real text, not a decorative mark: it says what it says
+          to a screen reader too, which is why it is a <p> with its own
+          words and not a ::before.
+
+          It is a sibling of the pictures on purpose — they share .content
+          as their containing block, so the badge can be placed against the
+          same --disc-size the disc itself is drawn from, and lands on the
+          circumference by geometry instead of by a hand-tuned offset.
+          See landing-seam.module.css. */}
+      <p className="seam-new-story">New story</p>
     </>
   );
 }

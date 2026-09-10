@@ -316,18 +316,31 @@ test.describe("landing background", () => {
 
     // The tagline is the one line that provably crosses the seam: at
     // 1440x900 its box starts on paper and ends on ink, where black is
-    // 2.82:1 and stops reading. A white outline carries it across —  four
-    // hard 1px offsets, not a blur, so it draws an edge rather than a glow
-    // and only shows where the ground is dark. Opaque, so it never tints
-    // the dots. Asserted because without it the last word is unreadable
-    // at exactly one viewport size, which is easy to miss.
+    // 2.82:1 and stops reading. A white halo carries it across, and it is
+    // asserted because without it the last word is unreadable at exactly one
+    // viewport size, which is easy to miss.
+    //
+    // BLURRED, not the four hard 1px offsets this used to require. The line
+    // now also crosses the story's arc, and a 1px sticker outline only
+    // separates type from a flat ground — against dither dots and other type
+    // it reads as a second edge. What matters is unchanged: opaque white, so
+    // it never tints the dots, and centred, so it shows only where the ground
+    // is dark rather than throwing the line in one direction.
     const shadow = await page
       .locator(".seam-tagline")
       .evaluate((element) => window.getComputedStyle(element).textShadow);
-    expect(shadow.match(/rgb\(255, 255, 255\)/g)).toHaveLength(4);
-    expect(shadow).not.toContain("px 0px rgb");
-    // No blur radius on any of the four: each offset is "<x>px <y>px 0px".
-    expect(shadow.match(/0px(?:,|$)/g)).toHaveLength(4);
+    const layers = shadow.split(/,(?![^(]*\))/).map((layer) => layer.trim());
+    expect(layers.length).toBeGreaterThanOrEqual(2);
+    for (const layer of layers) {
+      // Opaque white, no offset, and a real blur radius on every layer.
+      expect(layer).toContain("rgb(255, 255, 255)");
+      const lengths = layer.match(/-?[\d.]+px/g) ?? [];
+      expect(lengths).toHaveLength(3);
+      const [x, y, blur] = lengths.map(Number.parseFloat);
+      expect(x).toBe(0);
+      expect(y).toBe(0);
+      expect(blur).toBeGreaterThan(0);
+    }
     await expect(page.locator(".seam-content-case-study").first()).toHaveCSS(
       "color",
       WHITE,

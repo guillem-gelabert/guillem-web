@@ -5,7 +5,10 @@
      safe areas to respect; the phone block near the end of this file raises
      all four to clear the notch and the home indicator. */
   --edge: clamp(1rem, 3.5vw, 12rem);
-  --edge-top: var(--edge);
+  /* The top inset alone is raised: the nameplate is the tallest thing in
+     the scene and it wants more air above it than the sides need beside
+     it. max(), so the wider edge still wins on a large desktop. */
+  --edge-top: max(var(--edge), 4rem);
   --edge-bottom: var(--edge);
   --edge-right: var(--edge);
   /* The viewport's own proportion as a plain number: >1 landscape, 1
@@ -460,6 +463,78 @@
   align-self: flex-end;
 }
 
+/* The "new story" badge, sat ON the disc's edge and overlapping it.
+
+   Placed by the disc's own geometry rather than by a tuned offset: the
+   anchor is the disc's centre (the same top: 50cqh / left: 50% the picture
+   uses, and for the same containing-block reason documented there), and the
+   badge is then pushed out to a point on the circumference. Half of it
+   falls inside the disc and half outside, which is the overlap.
+
+   The number is cos(45deg) / 2 = 0.3536: the disc's radius is
+   --disc-size / 2, and the bottom-left point of a circle is that radius
+   times cos(45deg) along each axis. Change --disc-size and the badge stays
+   on the edge.
+
+   #EE0000, and deliberately NOT --color-accent (#C1272D), for exactly the
+   reason the disc's own note gives: the accent is reserved to focus, and
+   tests/design-budget.spec.ts sweeps every computed backgroundColor inside
+   <main> for that value. This red is its own.
+
+   It is also as red as it can be. White on pure #FF0000 is 4.00:1, under
+   WCAG AA's 4.5 for the 14px label this carries; #EE0000 is the reddest
+   value with G=B=0 that clears it, at 4.53:1. Redder means either a bigger
+   or bolder label, or black type.
+
+   pointer-events: none is load-bearing. It lies over the bottom-left of the
+   disc, and the disc is the story's link (.seam-arc-disc); without this the
+   badge would take those clicks and the corner of the picture would stop
+   being clickable.
+
+   .text-label's spec, set in the DOM as "New story" and uppercased in CSS,
+   so the accessible name keeps its sentence case. */
+.boxCaseStudy :global(.seam-new-story) {
+  position: absolute;
+  top: 50cqh;
+  left: 50%;
+  translate:
+    calc(-50% - 0.3536 * var(--disc-size))
+    calc(-50% + 0.3536 * var(--disc-size));
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: clamp(80px, 26cqh, 128px);
+  aspect-ratio: 1;
+  padding: 0.6em;
+  margin: 0;
+  border-radius: 50%;
+  background: #ee0000;
+  color: #fff;
+  text-align: center;
+  text-wrap: balance;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.3;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+}
+
+/* On a phone it moves to the disc's lower-RIGHT — the mirror of the
+   desktop's corner, same cos(45deg) / 2 offset with the x sign flipped.
+   The lower-left is where the seam crosses on a phone, and the badge sat on
+   top of it. */
+@media (hover: none) and (pointer: coarse) {
+  .boxCaseStudy :global(.seam-new-story) {
+    translate:
+      calc(-50% + 0.3536 * var(--disc-size))
+      calc(-50% + 0.3536 * var(--disc-size));
+  }
+}
+
 /* No blend modes anywhere in this composition. Copy states its colour,
    and the colour is chosen for the ground the element's box sits on.
 
@@ -684,11 +759,14 @@
    moves, keeping it clear of the ink is the better fix. */
 .boxNameplate :global(.seam-tagline) {
   color: #000;
+  /* A blurred halo rather than the four hard offsets this used to carry.
+     The tagline straddles the seam and now also crosses the story's arc, and
+     a 1px sticker outline only separates it from a flat ground — against
+     dither dots and type it reads as a second edge. Stacked blurs give it a
+     soft field to sit in instead. */
   text-shadow:
-    1px 1px 0 #fff,
-    -1px 1px 0 #fff,
-    1px -1px 0 #fff,
-    -1px -1px 0 #fff;
+    0 0 2px #fff,
+    0 0 4px #fff;
   margin-top: 1.1em;
   font-family: var(--font-geometric);
   font-size: 4.4cqw;
@@ -870,6 +948,12 @@
   display: block;
   width: 100%;
   height: 100%;
+  /* A halo in the opposite value to the type, so the headline survives
+     whatever it crosses — the disc's own tonal range, the tagline, the
+     seam. On the SVG element rather than on the <text>, so the blur radius
+     is in CSS pixels: inside the SVG it would be in the viewBox's 200 user
+     units and scale with the disc. White type here, so black. */
+  filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.75));
   /* The trail is a box-shadow on the picture, and this element sits over
      it — overflow must not clip it, and nothing here needs clipping. */
   overflow: visible;
@@ -891,12 +975,81 @@
    text-transform on SVG <text> is honoured by every engine this site
    targets; the DOM keeps the published title in its own case, which is
    what the link is named by. */
+/* Underlined because it IS the link, and .link-quiet on the anchor means
+   nothing else says so — the same gap the work pairs had before their "To
+   project" link. On a textPath the decoration follows the curve, so the
+   rule is the arc's own. Sized in user units like everything in this SVG:
+   the stroke thickness and offset scale with the disc rather than with the
+   viewport. */
 .boxCaseStudy :global(.seam-arc-svg) text {
   font-size: 12px;
   font-weight: 300;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   fill: #fff;
+}
+
+/* The headline's rule. See story-slot.tsx for why it is drawn and not a
+   text-decoration.
+
+   Weight: 0.85 user units at a 12-unit font is a stem of Jost Light —
+   the thickness of the I in this very setting. Chrome's own `auto`
+   underline is nearer 1.2 and read as a bar under light caps.
+
+   Position: the disc's edge is at 100 / --arc-scale = 78.125 and the type's
+   baseline path is at 84, so there are 5.875 units between them. The rule's
+   centreline sits at 81.0, which leaves ~2.9 units of air to the disc and
+   ~3.0 to the type — even, which is what the eye reads as centred in the
+   channel. 81.8 put more space under the rule than over it. */
+.boxCaseStudy :global(.seam-arc-underline) {
+  stroke: #fff;
+  stroke-width: 0.85;
+  stroke-dasharray: 84 100;
+  stroke-dashoffset: -8;
+}
+
+/* The phone's headline: the same arc, turned onto the light side.
+
+   The ring is a desktop shape at desktop proportions. On a phone the disc
+   is nearly the full column, and the headline's span — the top semicircle —
+   runs straight through the PAPER half of the seam, where its #fff is
+   invisible. Both facts are fixed here, and neither needs a second copy of
+   the title in the DOM.
+
+   The rotation is --seam-angle minus 90, and it does two things at once
+   because of where the text sits on the circle. The headline is centred on
+   the arc's midpoint, which is at twelve o'clock unrotated; turning the SVG
+   by S - 90 moves that midpoint to S - 90 clockwise from north, which is
+   the direction of the seam's own normal on the paper side. So the text
+   lands on the light half. And the tangent at that midpoint is
+   perpendicular to the radius through it, which puts the baseline at S
+   exactly — parallel to the seam. Aligned with the seam and on the light
+   side of it are the same rotation.
+
+   transform-origin is left alone: the SVG's box is already centred on the
+   disc, so the default 50% 50% turns the ring about the disc's own centre
+   and nothing moves off it.
+
+   Black, for the ground it now sits on. The arc's underline follows the
+   fill, so it turns with the type. */
+@media (hover: none) and (pointer: coarse) {
+  .boxCaseStudy :global(.seam-arc-svg) {
+    rotate: calc(var(--seam-angle, 50deg) - 90deg);
+    /* Black type on the paper side here, so the halo flips to white.
+       Tighter and thinner than the desktop's: the arc paints AFTER the
+       tagline (a later stack), so its halo lands on top of that line. Wide
+       enough to lift the letters off the nameplate, narrow enough not to
+       rub the tagline out. */
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.7));
+  }
+
+  .boxCaseStudy :global(.seam-arc-svg) text {
+    fill: #000;
+  }
+
+  .boxCaseStudy :global(.seam-arc-underline) {
+    stroke: #000;
+  }
 }
 
 /* The whole disc is the link.
@@ -1133,6 +1286,29 @@
    window is 663px on a side, which fits a 900px screen and would not fit a
    600px one; the cap is what keeps a lone pair above the fold in a short
    window, at the price of not reaching its column's right edge there. */
+/* The second scene's title. The scene is the mirrored one, so its two
+   grounds are swapped and this box can land on either — the same problem
+   .seam-tagline has where it crosses the seam, and the same answer: state
+   the colour and carry a halo in the other value, so the word reads on
+   paper and on ink alike.
+
+   .text-label's spec at a size that follows the scene rather than the
+   viewport, and the grid below it keeps its own top edge: the heading takes
+   the margin, not the list. */
+.moreTitle {
+  margin: 0 0 max(var(--stack-gap), 2cqw);
+  color: #000;
+  text-shadow:
+    0 0 2px #fff,
+    0 0 4px #fff;
+  font-family: var(--font-body);
+  font-size: max(14px, 1.6cqw);
+  font-weight: 400;
+  line-height: 1.3;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .more {
   --pair-gap: var(--stack-gap);
   --pair-shape-gap: var(--edge);
@@ -1175,7 +1351,32 @@
   );
 }
 
-/* No width breakpoint anywhere in this file: the desktop layout is one
+/* The one width breakpoint in this file, and it is a fallback rather than
+   part of the curve.
+
+   The grid already drops to a single column under ~640px, but the PAIR
+   still puts its circle and square side by side there, so each shape gets
+   half of an already narrow column: a 600px window leaves a 269px square,
+   and a 320px one leaves 136px. The copy inside has pixel floors (18px
+   body, 14px chips) that cannot shrink to meet that, so it overflowed the
+   square by up to 525px — measured, not assumed.
+
+   Stacking them is the only thing that makes the box big enough to hold
+   what is in it. Same shape as the phone branch below, for the same reason,
+   reached by width because a narrow desktop WINDOW is not a phone and the
+   pointer queries there never fire.
+
+   767px, not the pair's own width: the pair is the cq container the side is
+   measured against, so querying it here would change what --pair-side
+   resolves against and move the desktop geometry with it. */
+@media (max-width: 767px) {
+  .more {
+    --pair-direction: column-reverse;
+    --pair-per-row: 1;
+  }
+}
+
+/* No OTHER width breakpoint in this file: the desktop layout is one
    continuous set of clamp() and calc() curves, and these two branches are
    for phones, which is a question about the device rather than about how
    many pixels wide the window is. A 900px desktop window is a desktop; it
@@ -1241,7 +1442,7 @@
      than the name's own proportion wants, and the height term takes over so
      the name shrinks rather than running into the case study. */
 .boxNameplate :global(.seam-nameplate-text) {
-    font-size: min(56cqw, 64cqh);
+    font-size: min(58cqw, 66cqh);
   }
 
   /* Same trade as the landscape branch below, less of it: the case study's
@@ -1340,6 +1541,10 @@
       clamp(1rem, 3.5vw, 12rem),
       env(safe-area-inset-right, 0px)
     );
+    /* NOT the desktop's 4rem floor. The phone's own edge is 1rem, so that
+       floor quadruples it, and the extra pushes the nameplate and its
+       tagline down into the disc — the tagline's middle words end up behind
+       the picture. The notch is what this has to clear here. */
     --edge-top: max(
       clamp(1rem, 3.5vw, 12rem),
       env(safe-area-inset-top, 0px)
@@ -1361,11 +1566,18 @@
     display: none;
   }
 
-  /* A pair stands on a phone: circle over square, each the full width of
+  /* A pair stands on a phone: SQUARE over circle, each the full width of
      the column. Side by side, half a phone's width is 174px; stacked, each
-     shape gets the full 361px side and keeps its 1:1 geometry. */
+     shape gets the full 361px side and keeps its 1:1 geometry.
+
+     column-reverse, not a reordered DOM: the square carries the title, the
+     copy and the link, so it must stay FIRST in the document for reading
+     order, focus order and the accessibility tree. Only the paint order
+     flips. Reversing visual order against DOM order is a real trap when the
+     moved thing is focusable, which is why the link lives in the square and
+     the circle holds nothing interactive. */
   .more {
-    --pair-direction: column;
+    --pair-direction: column-reverse;
     --pair-per-row: 1;
   }
 }

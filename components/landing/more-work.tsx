@@ -121,25 +121,19 @@ export function MoreWork() {
                 {paragraph}
               </p>
             ))}
-            {/* The tags: domain, content type, then the stack. No separator
-                glyph between them: the site ships no icons and its non-Latin
-                character budget is a single arrow
-                (tests/design-budget.spec.ts), so a middle dot is out; the gap
-                does the separating. */}
-            <p className={`seam-pair-tags ${styles.tags}`}>
-              <span className={styles.tag}>{entry.domain}</span>
-              <span className={styles.tag}>{entry.contentType}</span>
-              {entry.stack.map((tool) => (
-                <span key={tool} className={`seam-pair-stack ${styles.tag}`}>
-                  {tool}
-                </span>
-              ))}
-            </p>
             {/* The one link in the pair, and the only thing in it that is
-                clickable. Its text is the host, which is what work-list.tsx
-                and cv-sections.tsx already print as the outbound marker —
-                there it is a plain label beside a linked title, here it IS
-                the link, so the destination names itself.
+                clickable — directly under the description, where the reader
+                finishes, rather than below the tags at the foot.
+
+                The arrow is U+2192, the mirror of the U+2190 that
+                lib/locales.ts already sets in every back link. That widens
+                the site's non-Latin budget from one glyph to two, which
+                tests/design-budget.spec.ts states as an explicit set; it is
+                still one arrow per direction and still no icons.
+
+                aria-label, because "To project" repeated down a list names
+                every link the same. The visible words open the label, so
+                WCAG 2.5.3's label-in-name holds.
 
                 Same tab: no target, and therefore no rel — with no new
                 window there is no window.opener to close. Do not "harden"
@@ -152,9 +146,34 @@ export function MoreWork() {
                 underline, and the shared accent focus outline that
                 tests/design-budget.spec.ts proves the accent is reserved
                 for. The module class beside it only sizes the box. */}
-            <a className={`link seam-pair-link ${styles.projectLink}`} href={entry.href}>
-              {entry.host}
+            <a
+              className={`link seam-pair-link ${styles.projectLink}`}
+              href={entry.href}
+              aria-label={`To project: ${entry.title}`}
+            >
+              To project →
             </a>
+            {/* The tags: the domains, the content type, then the stack. The
+                domains are rounded and the rest are not — see
+                more-work.module.css. No separator
+                glyph between them: the site ships no icons and its non-Latin
+                character budget is a single arrow
+                (tests/design-budget.spec.ts), so a middle dot is out; the gap
+                does the separating. */}
+            <p className={`seam-pair-tags ${styles.tags}`}>
+              {entry.domains.map((field) => (
+                <span key={field} className={`seam-pair-domain ${styles.tag} ${styles.domain}`}>
+                  {field}
+                </span>
+              ))}
+              <span className={styles.tag}>{entry.contentType}</span>
+              {entry.stack.map((tool) => (
+                <span key={tool} className={`seam-pair-stack ${styles.tag}`}>
+                  {tool}
+                </span>
+              ))}
+            </p>
+
           </div>
         </li>
       ))}

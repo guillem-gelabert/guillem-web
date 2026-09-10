@@ -197,7 +197,13 @@ for (const route of ROUTES) {
 
 // --- Non-Latin characters: the union across / and /cv is exactly {U+2190} -
 
-const ARROW = "←"; // ← the one sanctioned exception (U+2190), the back-link glyph
+// The sanctioned exceptions, and the whole of them: one arrow per
+// direction, no icons. U+2190 is the back-link glyph every locale sets in
+// lib/locales.ts; U+2192 is its mirror, on the work pairs' "To project"
+// link (components/landing/more-work.tsx). A bullet, a chevron or any
+// decorative glyph still fails this.
+const ARROW_BACK = "←"; // U+2190
+const ARROW_FORWARD = "→"; // U+2192
 
 // Typographic punctuation in legitimate running prose (em/en dash, curly
 // quotes, ellipsis, nbsp) and the Latin-1 Supplement block (U+00C0–U+00FF —
@@ -230,7 +236,7 @@ function isExpectedProseCharacter(ch: string): boolean {
   return PROSE_PUNCTUATION.has(ch);
 }
 
-test("(non-Latin) the union of non-ASCII, non-prose-punctuation characters rendered across / and /cv is exactly {U+2190}", async ({
+test("(non-Latin) the union of non-ASCII, non-prose-punctuation characters rendered across / and /cv is exactly {U+2190, U+2192}", async ({
   page,
 }) => {
   const union = new Set<string>();
@@ -254,7 +260,7 @@ test("(non-Latin) the union of non-ASCII, non-prose-punctuation characters rende
 
   console.log(`design-budget: non-Latin/non-prose-punctuation set per route: ${JSON.stringify(perRoute)}`);
 
-  expect([...union]).toEqual([ARROW]);
+  expect([...union].sort()).toEqual([ARROW_BACK, ARROW_FORWARD].sort());
 });
 
 // --- Accent: absent at rest and on hover, present on focus ---------------

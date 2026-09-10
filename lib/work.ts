@@ -36,7 +36,11 @@ export type WorkEntry = {
   // (components/landing/more-work.tsx). Nouns, not sentences — .text-label
   // sets them in caps at 14px, where a clause stops reading. Both required:
   // a pair with one tag missing renders a gap where the grammar promises two.
-  domain: string; // the field the piece is about: Economy, Demography, ...
+  // The fields the piece is ABOUT, one or more: Economy, Demography,
+  // Statistics. A list because a piece can sit in two at once — the globe
+  // is demography and statistics both — and because these are rendered
+  // differently from the stack (see more-work.module.css).
+  domains: readonly string[];
   contentType: string; // the form the piece takes: Chart essay, Live map, ...
   // Two paragraphs on what the piece is and what it finds, for the pair's
   // square. Exactly two, not "some": the square is laid out for two blocks
@@ -64,7 +68,7 @@ export const WORK: readonly [WorkEntry, WorkEntry] = [
       "The Balearics stopped gaining on Europe in 1993 — while tourist arrivals went on tripling.",
     href: "https://ib-gdp.guillemgelabert.com/everyone-in-mallorca-agrees-on-one-thing",
     host: "ib-gdp.guillemgelabert.com",
-    domain: "Economy",
+    domains: ["Economy"],
     contentType: "Chart essay",
     body: [
       "A scroll-driven history of the Balearic economy over 125 years, set against the " +
@@ -121,7 +125,7 @@ export const WORK: readonly [WorkEntry, WorkEntry] = [
       "Roughly two people die every second: where they are, when it happens, and who they were.",
     href: "https://watchpeopledie.live",
     host: "watchpeopledie.live",
-    domain: "Demography",
+    domains: ["Demography", "Statistics"],
     contentType: "Live map",
     body: [
       "A live globe maps deaths worldwide at roughly two per second.",

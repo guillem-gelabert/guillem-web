@@ -19,8 +19,9 @@
   padding: 0;
 }
 
-/* One pair: two boxes of one side, circle first. A ROW on a desktop, tops
-   aligned; a COLUMN on a phone, circle over square — --pair-direction and
+/* One pair: two boxes of one side, circle first in the DOM. A ROW on a
+   desktop, tops aligned; a column-REVERSE on a phone, square over circle —
+   --pair-direction and
    --pair-per-row come from landing-seam.module.css, which knows which
    device this is. The side is what is left of the CELL after the gap,
    divided by how many shapes share the row (two in a row, one in a column,
@@ -109,10 +110,10 @@
   }
 }
 
-/* The square is the circle's width and height. Both dimensions read the
-   same computed side so intrinsic content cannot overrule the 1:1 geometry;
-   aspect-ratio documents that contract and remains a fallback if one
-   explicit dimension is changed later.
+/* The square is the circle's width, and at least its height. It used to
+   pin BOTH to the computed side, with aspect-ratio restating the contract —
+   which is exactly what made the copy overflow instead of the box growing.
+   The width is still the side; the height is a minimum.
 
    The square is its own inline-size container so the type inside can be a
    share of IT. Two things about cq units here, both easy to get wrong:
@@ -127,8 +128,18 @@
   flex: 0 0 auto;
   box-sizing: border-box;
   width: var(--pair-side);
-  height: var(--pair-side);
-  aspect-ratio: 1;
+  /* A FLOOR, not a fixed height. The square is 1:1 at every size the copy
+     fits — which is every size measured from 360px up — and the geometry
+     tests still assert width == height there. Below that the box wins over
+     the ratio: at a 320px viewport the column leaves a 288px square and the
+     copy needs 359, because the type carries pixel floors (18px body, 14px
+     chips) that cannot shrink to meet it.
+     
+     Height fixed, the overflow just spilled out of the box. This way the
+     square grows instead, which is also what protects it from copy longer
+     than today's — the entry's two paragraphs are a contract in lib/work.ts,
+     but their LENGTH is not. */
+  min-height: var(--pair-side);
   container-type: inline-size;
   display: flex;
   flex-direction: column;
@@ -164,8 +175,27 @@
 }
 
 /* .text-label's spec at a size that follows the square: caps, tracked, the
-   regular weight, 14px floor. */
+   regular weight, 14px floor — set as a chip.
+
+   Rectangular, and that is the point: border-radius: 0 is declared rather
+   than left off, because a "pill" normally means a rounded one and this
+   site's radius budget is zero (tests/design-budget.spec.ts sweeps every
+   computed corner inside <main>). Reversed out of the square — the square is
+   #000 with #fff type, so a chip inverts to #fff with #000 type, which keeps
+   the pair to the two values it already uses and adds no third. */
 .tag {
+  /* Trimmed to the cap height, so the chip's padding is the space you
+     actually see. Untrimmed, the line box carries half-leading above the
+     caps and a descender's worth below the baseline, and these words are all
+     caps with no descenders — so the type sits visibly high in the chip and
+     the gap underneath is larger than the one above. text-box does the trim
+     at the box, which is why the padding below can equal the padding above
+     rather than being tuned to fake it. */
+  text-box: trim-both cap alphabetic;
+  padding: 0.4em 0.6em;
+  border-radius: 0;
+  background: var(--pair-type);
+  color: var(--pair-fill);
   font-size: max(14px, 2.8cqw);
   font-weight: 400;
   line-height: 1.3;
@@ -173,10 +203,19 @@
   letter-spacing: 0.04em;
 }
 
-/* The pair's only link, at the foot of the square, set in the tag register.
-   It replaces a stretched ::after that made the whole <li> clickable: an
-   invisible affordance over a box whose title was deliberately quiet, so
-   nothing on screen said the pair went anywhere.
+/* What the piece is ABOUT is rounded; what it was made WITH is not. The two
+   kinds of chip carry the same type and the same ink, so the shape is the
+   only thing separating them — which is why the stack's corners are square
+   rather than merely less round. */
+.domain {
+  border-radius: 999px;
+  padding-inline: 0.85em;
+}
+
+/* The pair's only link, directly under the description. It replaces a
+   stretched ::after that made the whole <li> clickable: an invisible
+   affordance over a box whose title was deliberately quiet, so nothing on
+   screen said the pair went anywhere.
 
    The underline, the inherited colour and the accent focus outline all come
    from the global .link (globals.css) that the anchor also carries; this
@@ -184,29 +223,46 @@
    budget is U+2190, and a rightwards arrow would fail
    tests/design-budget.spec.ts.
 
-   The padding is the target-size floor, not decoration. WCAG 2.5.8 wants
-   24px and tests/landing.spec.ts measures every link on the page; the tag
-   register's 14px over a 1.3 line box is 18px, so the block needs the rest.
-   width: fit-content keeps the target the width of the host, not of the
+   No padding for the target-size floor: at the body register the line box
+   is 24px at the 18px floor and larger everywhere else, which clears WCAG
+   2.5.8 on its own — tests/landing.spec.ts measures every link on the page.
+   width: fit-content keeps the target the width of the words, not of the
    whole square. */
 .projectLink {
   display: block;
   width: fit-content;
-  padding-block: 4px;
-  font-size: max(14px, 2.8cqw);
-  font-weight: 400;
-  line-height: 1.3;
+  /* Sat directly under the copy, so it takes the copy's own size rather
+     than the tag row's: at the body register it reads as the pair's call to
+     action instead of a footnote. The site's heavier weight, which is the
+     only other emphasis available — the palette is one ink on one ground. */
+  margin-top: max(var(--spacing-sm), 1cqw);
+  font-size: max(18px, 4cqw);
+  font-weight: 530;
+  line-height: 1.35;
 }
 
 /* The two tags pushed to the square's bottom edge: the title and annotation
    stack from the top, the tags sit at the foot, and whatever is between is
    the square's own air. */
+/* The chips sit on the square's floor and fill it from the left.
+
+   wrap-REVERSE is what makes the bottom row the first one: it flips the
+   cross axis, so the line that fills first is the lowest and any overflow
+   stacks ABOVE it rather than starting a half-empty second row underneath.
+   Without it a wrapped row leaves a gap along the floor, which is the one
+   place this block is anchored to. */
 .tags {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-xs) var(--spacing-md);
-  /* Pushed to the foot, with the link below it: this is what leaves the
-     square's slack between the copy and the pair's two closing rows. */
+  flex-wrap: wrap-reverse;
+  /* Bottom-RIGHT: the chips gather in the square's far corner, and
+     wrap-reverse keeps the lowest row the one that fills first. */
+  justify-content: flex-end;
+  align-content: flex-end;
+  /* One value, so the space between chips is the same across a row as it is
+     between rows. Two values made the stack look tighter than the line. */
+  gap: var(--spacing-xs);
+  /* Pushed to the foot: this is what leaves the square's slack between the
+     copy and the chips. */
   margin-top: auto;
 }
 

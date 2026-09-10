@@ -81,10 +81,29 @@ test.describe("landing seam geometry", () => {
     const secondaryRightInset = 1440 - secondary.x - secondary.width;
     const secondaryBottomInset = 900 - secondary.y - secondary.height;
 
+    // The scene's own insets, rather than an assumption that all four are
+    // equal: --edge-top carries a 4rem floor the other three do not, so the
+    // top inset is deliberately larger than the sides. Read from the scene
+    // so this asserts the panels honour the insets, which is the actual
+    // contract, instead of restating one number.
+    // resolveSceneLength, not parseFloat: these are clamp()/max() token
+    // streams on an unregistered custom property, so getPropertyValue hands
+    // back the expression rather than a length.
+    const scene = page.locator("#seam-scene");
+    const insets = {
+      edge: await resolveSceneLength(scene, "--edge"),
+      top: await resolveSceneLength(scene, "--edge-top"),
+      bottom: await resolveSceneLength(scene, "--edge-bottom"),
+    };
+
     expectNearlyEqual(primary.width, secondary.width);
     expectNearlyEqual(primary.height, secondary.height);
-    expectNearlyEqual(primary.x, primary.y);
-    expectNearlyEqual(secondaryRightInset, secondaryBottomInset);
+    // Top-left panel: left on --edge, top on --edge-top.
+    expectNearlyEqual(primary.x, insets.edge);
+    expectNearlyEqual(primary.y, insets.top);
+    // Bottom-right panel: the mirror, on --edge and --edge-bottom.
+    expectNearlyEqual(secondaryRightInset, insets.edge);
+    expectNearlyEqual(secondaryBottomInset, insets.bottom);
     expectNearlyEqual(primary.x, secondaryRightInset);
     // The nameplate box is a 1.16 rectangle by construction (its own
     // module CSS comment); the case study mirrors that proportion.
