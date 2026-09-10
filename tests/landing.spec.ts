@@ -43,15 +43,16 @@ test("the homepage renders only the requested content, in order", async ({ page 
     WORK[0].title.toUpperCase(),
     WORK[0].annotation,
     // Then the mirrored scene: every piece after the first as a pair —
-    // title, annotation, and the two tags, which .text-label sets in caps.
     // title, the two body paragraphs, then the tags (domain, content type,
-    // stack), which the square sets in caps.
+    // stack) which the square sets in caps, and last the host line, which is
+    // the pair's one link.
     ...WORK.slice(1).flatMap((entry) => [
       entry.title,
       ...entry.body,
       entry.domain.toUpperCase(),
       entry.contentType.toUpperCase(),
       ...entry.stack.map((tool) => tool.toUpperCase()),
+      entry.host,
     ]),
   ]);
 });
@@ -66,6 +67,60 @@ test("the visible descriptor exactly matches the meta description", async ({ pag
     "content",
     POSITIONING_PLACEHOLDER,
   );
+});
+
+test("the hero disc is grey and dithered at rest, bare colour on hover", async ({ page }) => {
+  await page.goto("/");
+  const slot = page.locator("section#story");
+  const reveal = slot.locator(".seam-shot-reveal");
+  const shading = slot.locator(".seam-shot-shadow, .seam-shot-highlight");
+
+  await expect(reveal).toHaveCount(1);
+  await expect(shading).toHaveCount(2);
+
+  // At rest: the grey capture under a full-strength dither.
+  await expect(reveal).toHaveCSS("opacity", "0");
+  for (const index of [0, 1]) await expect(shading.nth(index)).toHaveCSS("opacity", "1");
+  // The colour layer paints LAST, over the shading. That order is what lets
+  // one opaque layer hide the dither, so nothing blended has to animate.
+
+  // Hovering the disc resolves it to the bare colour capture. The pictures
+  // are pointer-events: none, so the pointer lands on the arc's stretched
+  // ::after — which is exactly the disc, and is what carries the :hover.
+  const disc = await slot.locator(".seam-shot").boundingBox();
+  if (!disc) throw new Error("the disc has no box");
+  await page.mouse.move(disc.x + disc.width / 2, disc.y + disc.height / 2);
+
+  await expect(reveal).toHaveCSS("opacity", "1");
+  // The shading does not move — it is simply covered.
+  for (const index of [0, 1]) await expect(shading.nth(index)).toHaveCSS("opacity", "1");
+  // ...and it is genuinely underneath: the colour layer is the last child.
+  const order = await slot.evaluate((el) =>
+    [...el.querySelectorAll("img")].map((n) => n.className));
+  expect(order[order.length - 1]).toBe("seam-shot-reveal");
+
+  // And the headline does NOT drive it. The glyphs are their own hit targets
+  // and SVG text hit-tests against its fill, so the gaps between letters are
+  // dead zones: keying the fade to the arc made dragging across the title
+  // pump the dither on and off. It is keyed to the disc alone now.
+  const arc = await slot.locator(".seam-arc").boundingBox();
+  if (!arc) throw new Error("the arc has no box");
+
+  // Park the pointer clear of the disc and let the fade finish, so what is
+  // sampled below is the settled state and not the tail of this transition.
+  await page.mouse.move(arc.x - 40, arc.y - 40);
+  await expect(shading.first()).toHaveCSS("opacity", "1");
+
+  const ring = disc.y - disc.height * 0.06; // just outside the disc, in the type
+  const samples: string[] = [];
+  for (let step = -6; step <= 6; step += 1) {
+    await page.mouse.move(arc.x + arc.width / 2 + step * (disc.width / 16), ring);
+    samples.push(await slot.locator(".seam-shot-shadow").evaluate((el) => getComputedStyle(el).opacity));
+  }
+  expect(
+    [...new Set(samples)],
+    "the dither must hold steady while the pointer crosses the headline",
+  ).toEqual(["1"]);
 });
 
 test("the story slot links the first piece, title only, and shows its chart", async ({
@@ -85,10 +140,14 @@ test("the story slot links the first piece, title only, and shows its chart", as
   await expect(link).not.toHaveAttribute("target", "_blank");
   await expect(slot.locator("a")).toHaveCount(1);
 
-  // One <img> for a declared shot, and none for a null one.
+  // One <img> for a declared shot, and none for a null one — plus the two
+  // decorative sphere-shading maps the disc carries over it, which are
+  // matched by their own classes so the described shot stays nth(0).
   const declared = [hero].filter((entry) => entry.shot !== null);
-  const shots = slot.locator("img");
+  const shots = slot.locator("img.seam-shot");
   await expect(shots).toHaveCount(declared.length);
+  // The described shot, its colour reveal, and the two shading maps.
+  await expect(slot.locator("img")).toHaveCount(declared.length * 2 + 2);
 
   for (const [index, entry] of declared.entries()) {
     const shot = shots.nth(index);

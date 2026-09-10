@@ -911,9 +911,12 @@
    centred on the disc, so the disc's centre is simply this box's centre.
 
    border-radius here is not cosmetic — it is the hit area, so the corners
-   outside the disc stay unclickable. */
-.boxCaseStudy :global(.seam-arc) a::after {
-  content: "";
+   outside the disc stay unclickable.
+
+   A real element rather than the anchor's ::after: a pseudo-element cannot
+   be the subject of :hover in a selector, and this one's hover is what
+   fades the dither off the disc. See story-slot.tsx. */
+.boxCaseStudy :global(.seam-arc-disc) {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -995,6 +998,103 @@
      elementFromPoint at the disc's centre returned the IMG. With this, the
      clicks fall through to the hit area beneath. */
   pointer-events: none;
+}
+
+/* The sphere shading over the disc: a shadow map and a highlight map, both
+   diffusion-dithered to pure black and white and clipped to a sphere's
+   silhouette. They take the disc's box exactly as the capture does — the
+   same --disc-size, the same anchor, the same 50% radius — so all three
+   layers are one circle.
+
+   Blended rather than faded. The maps carry no alpha, so darken keeps the
+   shadow's black and drops its white, and lighten does the reverse for the
+   highlight; opacity instead would haze the disc with the map's other
+   colour. Nothing is painted behind them, which is what lets the same pair
+   sit over any thumbnail (the "More work" circles carry it too).
+
+   pointer-events: none for the reason .seam-shot documents above: these come
+   later still in DOM order, so without it they would take the clicks the
+   headline's stretched ::after is there to catch. */
+/* The colour capture, in the disc's box exactly as the grey one is, and
+   OVER the shading. Hidden at rest; see the hover rule below.
+
+   It is opaque, so raising it is what makes the dither go away — the two
+   shading maps never animate. That is the point of the order: they carry
+   mix-blend-mode, and a blended layer cannot be composited on the GPU, so
+   animating their opacity forced a CPU re-composite of the whole stacking
+   context every frame and the fade came out choppy. This is one unblended
+   layer, which the compositor can move on its own. */
+.boxCaseStudy :global(.seam-shot-reveal) {
+  position: absolute;
+  top: 50cqh;
+  left: 50%;
+  translate: -50% -50%;
+  width: var(--disc-size);
+  height: var(--disc-size);
+  max-width: none;
+  border-radius: 50%;
+  object-fit: cover;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 220ms ease-out;
+  /* The colour capture is a dither too (lib/work.ts), so it takes the same
+     rule as the shading and the seam's own grain: one dot per image pixel,
+     and a smooth resample averages them back into the tone the reduced
+     palette existed to destroy. */
+  image-rendering: pixelated;
+  /* As on .reveal in more-work.module.css: the single animated layer, sitting
+     over blended siblings, promoted so the compositor owns the fade. */
+  will-change: opacity;
+}
+
+/* Hovering the disc resolves it to the bare colour capture: the colour
+   layer comes up and the whole dither lifts, rather than the two being
+   worn at once. The same gesture, and the same 220ms, as the "More work"
+   circles (more-work.module.css).
+
+   The general sibling combinator is what makes this work without a
+   wrapper: .seam-arc precedes all three pictures in story-slot.tsx, and
+   its stretched a::after is exactly the disc — so hovering the picture
+   hovers the arc, which is the element the pointer actually hits. The
+   pictures themselves are pointer-events: none and could never carry the
+   :hover. :focus-within covers the keyboard: the arc holds the only link. */
+.boxCaseStudy :global(.seam-arc):has(:global(.seam-arc-disc):hover) ~ :global(.seam-shot-reveal),
+.boxCaseStudy :global(.seam-arc):focus-within ~ :global(.seam-shot-reveal) {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boxCaseStudy :global(.seam-shot-reveal) {
+    transition: none;
+  }
+}
+
+.boxCaseStudy :global(.seam-shot-shadow),
+.boxCaseStudy :global(.seam-shot-highlight) {
+  position: absolute;
+  top: 50cqh;
+  left: 50%;
+  translate: -50% -50%;
+  width: var(--disc-size);
+  height: var(--disc-size);
+  /* Tailwind preflight's img { max-width: 100% } would cap this at
+     .content's 78% and hand the height back to the ratio — see the note on
+     the shared .seam-shot rule. */
+  max-width: none;
+  border-radius: 50%;
+  object-fit: cover;
+  pointer-events: none;
+  /* Load-bearing, exactly as on .grainField above: one dot per image pixel,
+     and a smooth resample averages them back into grey. */
+  image-rendering: pixelated;
+}
+
+.boxCaseStudy :global(.seam-shot-shadow) {
+  mix-blend-mode: darken;
+}
+
+.boxCaseStudy :global(.seam-shot-highlight) {
+  mix-blend-mode: lighten;
 }
 
 /* The "More work" box in the mirrored scene: the whole scene inside the

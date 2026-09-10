@@ -75,6 +75,15 @@ export function StorySlot() {
               </textPath>
             </text>
           </svg>
+          {/* The disc's hit area, and the element whose :hover drives the
+              picture below. It was the anchor's ::after, which cannot be
+              hovered by a selector — and hanging the fade on .seam-arc:hover
+              instead meant the GLYPHS drove it: SVG text hit-tests against
+              its fill, so the gaps between letters are dead zones and
+              dragging across the headline pumped the dither on and off.
+              Same geometry as that ::after, still inside the anchor, so the
+              link and its target size are unchanged. */}
+          <span className="seam-arc-disc" aria-hidden="true" />
         </a>
       </h3>
 
@@ -103,7 +112,64 @@ export function StorySlot() {
 
           Not aria-hidden and not alt="": the picture IS the piece, so it
           carries a real description. */}
-      {story.shot === null ? null : <SmearShot shot={story.shot} />}
+      {story.shot === null ? null : (
+        <>
+          <SmearShot shot={story.shot} />
+          {/* The sphere shading, over the disc. Two diffusion-dithered maps,
+              pure black/white with no alpha, clipped to a sphere's
+              silhouette: darken keeps the shadow map's black and discards
+              its white, lighten does the reverse for the highlight, so the
+              flat masked circle reads as a lit sphere without a fill behind
+              it. Same pair the "More work" circles carry.
+
+              Plain <img> siblings rather than part of SmearShot: they are
+              decoration and do not carry the scroll trail, so they stay out
+              of the client leaf. They share the disc's box through their own
+              rules in landing-seam.module.css, and pointer-events: none
+              there keeps them off the headline's hit area — the same trap
+              .seam-shot documents. */}
+          {/* eslint-disable-next-line @next/next/no-img-element -- decorative shading layer; no `sharp` at runtime */}
+          <img
+            src="/work/sphere-shadow-diffusion.png"
+            alt=""
+            aria-hidden="true"
+            width={467}
+            height={467}
+            loading="eager"
+            fetchPriority="low"
+            className="seam-shot-shadow"
+          />
+          {/* eslint-disable-next-line @next/next/no-img-element -- decorative shading layer; no `sharp` at runtime */}
+          <img
+            src="/work/sphere-highlight-diffusion.png"
+            alt=""
+            aria-hidden="true"
+            width={467}
+            height={467}
+            loading="eager"
+            fetchPriority="low"
+            className="seam-shot-highlight"
+          />
+          {story.shot.reveal ? (
+            // The colour capture, over the grey one and under the shading,
+            // revealed when the disc is hovered or its link focused. Same
+            // construction as the "More work" circles: one asset per state
+            // rather than a filter, so the resting image is a real file the
+            // test can name.
+            // eslint-disable-next-line @next/next/no-img-element -- decorative duplicate of the described shot
+            <img
+              src={story.shot.reveal.src}
+              alt=""
+              aria-hidden="true"
+              width={story.shot.reveal.width}
+              height={story.shot.reveal.height}
+              loading="eager"
+              fetchPriority="low"
+              className="seam-shot-reveal"
+            />
+          ) : null}
+        </>
+      )}
     </>
   );
 }

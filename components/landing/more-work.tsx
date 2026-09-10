@@ -54,6 +54,35 @@ export function MoreWork() {
                   loading="lazy"
                   className={`seam-pair-shot ${styles.shot}`}
                 />
+                {/* The sphere shading, over the grey capture and UNDER the
+                    colour one below it:
+                    two diffusion-dithered maps, pure black/white, clipped to
+                    a sphere's silhouette, sized to the circle itself
+                    rather than to the capture's 1.16 crop. darken drops the
+                    shadow map's black in and lets its white pass through;
+                    lighten does the same for the highlight map's white.
+                    Together they turn the flat masked circle into a lit
+                    sphere without painting a background behind it. */}
+                {/* eslint-disable-next-line @next/next/no-img-element -- decorative shading layer, no `sharp` at runtime */}
+                <img
+                  src="/work/sphere-shadow-diffusion.png"
+                  alt=""
+                  aria-hidden="true"
+                  width={467}
+                  height={467}
+                  loading="lazy"
+                  className={`seam-pair-shade ${styles.shade} ${styles.shadow}`}
+                />
+                {/* eslint-disable-next-line @next/next/no-img-element -- decorative shading layer, no `sharp` at runtime */}
+                <img
+                  src="/work/sphere-highlight-diffusion.png"
+                  alt=""
+                  aria-hidden="true"
+                  width={467}
+                  height={467}
+                  loading="lazy"
+                  className={`seam-pair-shade ${styles.shade} ${styles.highlight}`}
+                />
                 {entry.shot.reveal ? (
                   // eslint-disable-next-line @next/next/no-img-element -- decorative duplicate of the described dither image
                   <img
@@ -71,22 +100,19 @@ export function MoreWork() {
           </div>
 
           <div className={`seam-pair-square ${styles.square}`}>
-            {/* The title is the ONLY link in the pair — the same rule the
-                hero, work-list.tsx and the /writing index follow. Same tab,
-                so no target and therefore no rel: with no new window there is
-                no window.opener to close. The anchor's ::after stretches over
-                the whole pair (more-work.module.css), so the circle is
-                clickable without becoming a second link.
+            {/* The title is NOT a link, and the pair is not one either. The
+                anchor's ::after used to stretch over the whole <li>, which
+                made the entire box a click target with nothing on screen
+                saying so — and the title itself carried .link-quiet, whose
+                whole job is to look like ordinary type. Between them the
+                pair had no visible affordance at all. The host line at the
+                foot is the link now, and it is styled as one.
 
                 No role classes (.text-standfirst, .text-body, .text-label)
                 on the copy in here: their sizes are fixed pixels, and this
                 type is sized against the square it sits in — see
                 more-work.module.css. Weights stay the site's two. */}
-            <h3 className={`seam-pair-title ${styles.title}`}>
-              <a className={`link-quiet seam-pair-link ${styles.link}`} href={entry.href}>
-                {entry.title}
-              </a>
-            </h3>
+            <h3 className={`seam-pair-title ${styles.title}`}>{entry.title}</h3>
             {/* Two paragraphs, not the one-line annotation: the annotation
                 is the hero's standfirst register, and this square has the
                 room to say what the piece is. */}
@@ -109,6 +135,26 @@ export function MoreWork() {
                 </span>
               ))}
             </p>
+            {/* The one link in the pair, and the only thing in it that is
+                clickable. Its text is the host, which is what work-list.tsx
+                and cv-sections.tsx already print as the outbound marker —
+                there it is a plain label beside a linked title, here it IS
+                the link, so the destination names itself.
+
+                Same tab: no target, and therefore no rel — with no new
+                window there is no window.opener to close. Do not "harden"
+                this by opening a new tab; that reopens the reverse-
+                tabnabbing surface work-list.tsx documents avoiding.
+
+                .link, not .link-quiet. Quiet is what the title was, and it
+                is why nothing here read as a link; .link is the site's own
+                explicit treatment (globals.css) — inherited colour, a 1px
+                underline, and the shared accent focus outline that
+                tests/design-budget.spec.ts proves the accent is reserved
+                for. The module class beside it only sizes the box. */}
+            <a className={`link seam-pair-link ${styles.projectLink}`} href={entry.href}>
+              {entry.host}
+            </a>
           </div>
         </li>
       ))}

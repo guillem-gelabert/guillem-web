@@ -89,20 +89,34 @@ export const WORK: readonly [WorkEntry, WorkEntry] = [
     // read at that size. 900px wide is roughly twice that column, so it
     // holds on a 2x screen without shipping the full 2368px capture.
     shot: {
-      src: "/work/mallorca-eu-average.png",
-      width: 900,
-      height: 410,
+      // Greyscale at rest, the colour capture on hover — the same two-state
+      // treatment the globe below carries, so both circles behave alike.
+      // A luminance reduction computed in linear light, as there.
+      src: "/work/mallorca-eu-average-bw.png",
+      width: 592,
+      height: 516,
+      // Reduced and dithered like the globe's, and sized to ITS circle: the
+      // disc is 385px and object-fit: cover puts this on screen at 442x385,
+      // so 1.38 CSS px per dot — the seam's own pitch — wants 320x279.
+      reveal: {
+        src: "/work/mallorca-eu-average.png",
+        width: 320,
+        height: 279,
+      },
       // Describes the crop, not the whole chart: the years are not in the
       // frame, so the alt does not claim them. It does not repeat the
       // title either — the linked headline above it already says that.
+      // TODO(owner): confirm what the two lines measure. This describes only
+      // what is visibly in the frame — it does not name the series, because
+      // naming them wrongly is worse than describing the shape.
       alt:
-        "A detail from the piece: GDP per capita as a percentage of the EU average, three " +
-        "lines against a dashed line at 100. The Balearics climb above the average, peak, " +
-        "and fall back to it.",
+        "A detail from the piece: two lines against a dashed reference line. One holds " +
+        "close to that line, rising and falling in waves; the other stays flat and low " +
+        "before climbing steeply away above it.",
     },
   },
   {
-    title: "Real-Time Defunction Predictive Model",
+    title: "Real-Time Predictive Defunction Model",
     annotation:
       "Roughly two people die every second: where they are, when it happens, and who they were.",
     href: "https://watchpeopledie.live",
@@ -115,24 +129,51 @@ export const WORK: readonly [WorkEntry, WorkEntry] = [
     ],
     stack: ["three.js", "d3", "pandas"],
     // The globe itself, captured from the live piece rather than redrawn for
-    // the landing, with the flashes that define it. Its monochrome dither is
-    // a deliberate display treatment: it preserves the Europe/North Africa
-    // face and its mortality flashes while letting the disc sit cleanly in
-    // the landing's black-and-white field. The original full-colour capture
-    // remains beside it as watch-people-die-earth.png.
+    // the landing, with the flashes that define it. It is shown greyscale so
+    // the disc sits cleanly in the landing's black-and-white field, and the
+    // dither is no longer baked into the file: it arrives as the sphere
+    // shadow and highlight maps laid over this base
+    // (components/landing/more-work.tsx), which is what lets the same
+    // treatment cover the hero disc too. A luminance reduction of the colour
+    // capture below, computed in linear light rather than on the
+    // gamma-encoded channels, so the ocean does not crush against the land.
+    //
+    // That replaces watch-people-die-earth-dither.png, the pre-dithered
+    // 1254px capture this slot used to hold; it stays in public/work for
+    // reference and nothing renders it.
+    //
+    // Cropped to the sphere's own bounding square, so the planet meets all
+    // four edges. The earlier capture carried black air around it, which is
+    // what the 1.16 scale in more-work.module.css existed to crop away; the
+    // layers all sit at 100% of the circle now and register with the sphere
+    // shading by construction rather than by a magic number.
     shot: {
-      src: "/work/watch-people-die-earth-dither.png",
-      width: 1254,
-      height: 1254,
+      src: "/work/watch-people-die-earth-bw.png",
+      width: 1140,
+      height: 1140,
+      // The colour capture is NOT a photograph at full resolution: it is
+      // reduced to a UNIFORM 4-level RGB cube and diffusion-dithered at
+      // 467px, which is the
+      // seam's own 1.38 CSS px per dot at this circle's size — the same
+      // pitch the shading maps and the background grain print at. At full size
+      // its dither fell at 0.56 px per dot, far too fine to see, and the
+      // hover state read as a smooth photograph dropped into a riso page.
+      //
+      // The palette is a uniform grid rather than one fitted to the image,
+      // and that is the point: inks chosen to match the picture's own
+      // colours let big flat regions land exactly on an ink and print solid,
+      // which posterises instead of dithering. Off-grid inks force the
+      // dots.
       reveal: {
         src: "/work/watch-people-die-earth.png",
-        width: 980,
-        height: 980,
+        width: 467,
+        height: 467,
       },
       alt:
-        "The piece's globe, seen from above the Atlantic: Europe, North Africa and the " +
-        "Middle East under scattered cloud, with nine white flashes over Europe and the " +
-        "Mediterranean, each one a death at the moment it happened.",
+        "The piece's globe, most of it in night: Europe and North Africa lit along the " +
+        "left limb under cloud, and the land east of them covered in the orange grain of " +
+        "city lights, with three white flashes over southern Asia, each one a death at the " +
+        "moment it happened.",
     },
   },
 ] as const;

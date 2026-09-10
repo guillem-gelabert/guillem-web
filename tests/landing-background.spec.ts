@@ -265,12 +265,22 @@ test.describe("landing background", () => {
       page.locator(".seam-box-case-study > .seam-content"),
     ).toHaveCSS("position", "relative");
 
-    // NO blend modes anywhere in the composition. This is the assertion
-    // that keeps them from creeping back: difference was load-bearing for
-    // three generations of this background (it let one white fill read on
-    // both grounds), and every attempt to keep it against real dither
-    // dots needed a second gradient layer to blend against. Copy states
-    // its colour instead.
+    // NO blend modes in the composition, with one sanctioned exception.
+    // This is the assertion that keeps them from creeping back: difference
+    // was load-bearing for three generations of this background (it let one
+    // white fill read on both grounds), and every attempt to keep it
+    // against real dither dots needed a second gradient layer to blend
+    // against. Copy states its colour instead.
+    //
+    // The exception is the disc's sphere shading, and it is the opposite
+    // case on every count that made difference a problem: two 1-bit maps
+    // that ink only the terminator and the lit cap, blended against the
+    // picture inside the disc rather than against the ground, and needing
+    // no second layer to sit on. darken lays the shadow's black down and
+    // lighten the highlight's white — the riso rule the seam's own dither
+    // already follows. They are named individually here so that anything
+    // ELSE acquiring a blend mode still fails this test.
+    const SHADING = ["seam-shot-shadow", "seam-shot-highlight"];
     const blended = await page.evaluate(() =>
       [...document.querySelectorAll("#seam-scene *")]
         .filter(
@@ -279,7 +289,9 @@ test.describe("landing background", () => {
         )
         .map((element) => element.className.toString().split(" ")[0]),
     );
-    expect(blended).toEqual([]);
+    expect(blended.filter((name) => !SHADING.includes(name))).toEqual([]);
+    // And the exception is present rather than merely tolerated.
+    expect(blended.slice().sort()).toEqual(SHADING.slice().sort());
 
     // And no smooth-ramp layers either — the mechanism that existed only
     // to give those blends a dot-free ground.

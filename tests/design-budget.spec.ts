@@ -314,14 +314,20 @@ test("(accent) reserved to focus — absent at rest and on hover on /, /cv and /
   // Focus may legitimately use the accent, so clear focus before measuring
   // the global hover state itself.
   await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
-  const rest = await link.evaluate((el) => getComputedStyle(el).color);
+  const rest = await link.evaluate((el) => {
+    const style = getComputedStyle(el);
+    return { color: style.color, decoration: style.textDecorationLine };
+  });
   await link.hover();
   const hover = await link.evaluate((el) => {
     const style = getComputedStyle(el);
     return { color: style.color, decoration: style.textDecorationLine };
   });
-  expect(hover.color, `hovered link's color was "${hover.color}", expected its resting colour`).toBe(rest);
-  expect(hover.decoration).toBe("none");
+  expect(hover.color, `hovered link's color was "${hover.color}", expected its resting colour`).toBe(rest.color);
+  // Hover changes NOTHING, which is the claim — not that the link is
+  // undecorated. This link is .link and carries a rest underline (the pair's
+  // only visible affordance); it was .link-quiet when this asserted "none".
+  expect(hover.decoration).toBe(rest.decoration);
 });
 
 // --- Source sweep: arbitrary Tailwind values and non-zero rounded utilities

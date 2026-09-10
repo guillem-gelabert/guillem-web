@@ -35,12 +35,16 @@ test("the mirrored scene is the 'More work' landmark and holds every piece after
 
   for (const [index, entry] of more.entries()) {
     const item = items.nth(index);
-    // One link, the title, same tab.
+    // One link, the host line, same tab. The title is plain type and the
+    // pair is not a click target: see the box-is-not-clickable test below.
     const links = item.locator("a");
     await expect(links).toHaveCount(1);
     await expect(links).toHaveAttribute("href", entry.href);
-    await expect(links).toHaveText(entry.title);
+    await expect(links).toHaveText(entry.host);
     await expect(links).not.toHaveAttribute("target", "_blank");
+    // The title is still printed — as a heading, not a link.
+    await expect(item.locator(".seam-pair-title")).toHaveText(entry.title);
+    await expect(item.locator(".seam-pair-title a")).toHaveCount(0);
     // Both body paragraphs and every tag reach the page as text, and the
     // one-line annotation — the hero's standfirst register — does not.
     for (const paragraph of entry.body) await expect(item).toContainText(paragraph);
@@ -51,8 +55,12 @@ test("the mirrored scene is the 'More work' landmark and holds every piece after
     await expect(item.locator(".seam-pair-tags > *")).toHaveCount(2 + entry.stack.length);
     await expect(item.locator(".seam-pair-body")).toHaveCount(2);
     // The optional colour reveal is a second, decorative image over its
-    // declared display shot; a null shot still renders no image.
-    await expect(item.locator("img")).toHaveCount(entry.shot === null ? 0 : entry.shot.reveal ? 2 : 1);
+    // declared display shot, and any thumbnail also carries the two sphere
+    // shading maps; a null shot still renders no image at all.
+    const shading = 2;
+    await expect(item.locator("img")).toHaveCount(
+      entry.shot === null ? 0 : (entry.shot.reveal ? 2 : 1) + shading,
+    );
   }
 });
 
@@ -66,12 +74,17 @@ test("the second piece is printed once, below the fold, and not in the hero", as
   await expect(page.locator("section#story a")).toHaveAttribute("href", hero.href);
 });
 
-test("work titles keep their neutral treatment on hover", async ({ page }) => {
+test("the pair's link reads as a link, and stays colour-neutral on hover", async ({ page }) => {
   const link = page.locator(".seam-pair-link").first();
   const rest = await link.evaluate((element) => {
     const style = getComputedStyle(element);
     return { color: style.color, decoration: style.textDecorationLine };
   });
+
+  // Underlined at rest. This is the one element in the pair that should
+  // announce itself: the title is plain type and the box takes no clicks,
+  // so without this the pair would offer no visible affordance at all.
+  expect(rest.decoration).toBe("underline");
 
   await link.hover();
   const hover = await link.evaluate((element) => {
@@ -79,8 +92,39 @@ test("work titles keep their neutral treatment on hover", async ({ page }) => {
     return { color: style.color, decoration: style.textDecorationLine };
   });
 
+  // Hover changes no colour — the accent stays reserved for focus.
   expect(hover.color).toBe(rest.color);
-  expect(hover.decoration).toBe("none");
+  expect(hover.decoration).toBe("underline");
+});
+
+test("the pair's box is not a click target — only the link is", async ({ page }) => {
+  const item = page.locator("#seam-scene-mirrored").getByRole("listitem").first();
+  // elementFromPoint reads VIEWPORT coordinates, so the pair has to be on
+  // screen first. Without this every probe returns null and the whole test
+  // passes for the wrong reason.
+  await item.scrollIntoViewIfNeeded();
+
+  // What actually sits under the pointer at each of these points. The
+  // anchor used to stretch a ::after over the whole <li>, so the circle and
+  // the copy were both clickable with nothing on screen saying so.
+  const probe = async (target: ReturnType<typeof item.locator>) => {
+    const box = await target.boundingBox();
+    if (!box) throw new Error("no box to probe");
+    return page.evaluate(
+      ([x, y]) => {
+        const el = document.elementFromPoint(x, y);
+        // null would mean the point is off screen — the caller must not read
+        // that as "no link here".
+        return el === null ? "OFFSCREEN" : el.closest("a") ? "LINK" : "NOT-A-LINK";
+      },
+      [box.x + box.width / 2, box.y + box.height / 2],
+    );
+  };
+
+  expect(await probe(item.locator(".seam-pair-circle"))).toBe("NOT-A-LINK");
+  expect(await probe(item.locator(".seam-pair-title"))).toBe("NOT-A-LINK");
+  // And the link itself still takes the pointer at its own coordinates.
+  expect(await probe(item.locator(".seam-pair-link"))).toBe("LINK");
 });
 
 test("the globe fills its borderless circle and reveals its colour image from either half of the pair", async ({
@@ -95,29 +139,49 @@ test("the globe fills its borderless circle and reveals its colour image from ei
   await expect(colour).toHaveCount(1);
   await expect(circle).toHaveCSS("border-top-width", "0px");
   const bounds = await page.evaluate(() => {
-    const circle = document.querySelector(".seam-pair-circle")!.getBoundingClientRect();
-    const image = document.querySelector(".seam-pair-shot")!.getBoundingClientRect();
-    const reveal = document.querySelector(".seam-pair-reveal")!.getBoundingClientRect();
-    return { circle, image, reveal };
+    const rect = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
+    return {
+      circle: rect(".seam-pair-circle"),
+      image: rect(".seam-pair-shot"),
+      reveal: rect(".seam-pair-reveal"),
+      shading: [...document.querySelectorAll(".seam-pair-shade")].map((element) =>
+        element.getBoundingClientRect(),
+      ),
+    };
   });
-  for (const image of [bounds.image, bounds.reveal]) {
-    // The square source has black air around the globe itself. Each layer is
-    // deliberately scaled past the mask, so that air is cropped and the
-    // sphere fills the full circular slot rather than reading as an inset.
-    expect(image.width).toBeGreaterThanOrEqual(bounds.circle.width * 1.14);
-    expect(image.height).toBeGreaterThanOrEqual(bounds.circle.height * 1.14);
-    expect(Math.abs(image.x + image.width / 2 - (bounds.circle.x + bounds.circle.width / 2))).toBeLessThanOrEqual(1);
-    expect(Math.abs(image.y + image.height / 2 - (bounds.circle.y + bounds.circle.height / 2))).toBeLessThanOrEqual(1);
+  // EVERY layer is the circle exactly, and that is the whole registration
+  // the treatment depends on. The capture used to be scaled to 1.16 because
+  // it carried black air around the planet; it is cropped to the sphere's
+  // own bounding square now, so it lands at 1:1 like the two shading maps —
+  // whose sphere likewise meets all four edges of its frame. Scale any of
+  // them and the terminator and rim light fall outside the mask.
+  expect(bounds.shading).toHaveLength(2);
+  for (const layer of [bounds.image, bounds.reveal, ...bounds.shading]) {
+    expect(Math.abs(layer.width - bounds.circle.width)).toBeLessThanOrEqual(1);
+    expect(Math.abs(layer.height - bounds.circle.height)).toBeLessThanOrEqual(1);
+    expect(Math.abs(layer.x - bounds.circle.x)).toBeLessThanOrEqual(1);
+    expect(Math.abs(layer.y - bounds.circle.y)).toBeLessThanOrEqual(1);
   }
 
+  const shading = circle.locator(".seam-pair-shade");
   await expect(colour).toHaveCSS("opacity", "0");
-  // The link's expanded hit area intentionally sits over the circle. Force
-  // the pointer to the circle's coordinates; the pair still receives :hover.
+  // The shading is on at rest, over the grey capture.
+  for (const index of [0, 1]) await expect(shading.nth(index)).toHaveCSS("opacity", "1");
+
+  // Nothing overlays the circle now, but force is kept so this asserts the
+  // reveal rather than the pointer's route to it.
   await circle.hover({ force: true });
   await expect(colour).toHaveCSS("opacity", "1");
   await square.hover();
   await expect(colour).toHaveCSS("opacity", "1");
   await expect(dither).toHaveCSS("opacity", "1");
+  // Hovering resolves to the bare colour capture. The dither does not fade:
+  // the opaque colour layer paints over it, which is what keeps any
+  // mix-blend-mode layer out of the animation.
+  for (const index of [0, 1]) await expect(shading.nth(index)).toHaveCSS("opacity", "1");
+  const order = await circle.evaluate((el) =>
+    [...el.querySelectorAll("img")].map((n) => n.className.split(" ")[0]));
+  expect(order[order.length - 1]).toBe("seam-pair-reveal");
 });
 
 test("each pair is a circle beside a square of the same side, on one row at 1440x900", async ({
