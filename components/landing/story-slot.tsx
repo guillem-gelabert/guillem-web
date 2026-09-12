@@ -151,24 +151,36 @@ export function StorySlot() {
               rules in landing-seam.module.css, and pointer-events: none
               there keeps them off the headline's hit area — the same trap
               .seam-shot documents. */}
+          {/* Two exports, chosen by device pixel ratio, because a dither is
+              only a dither at the pitch it was made for. One 467px map
+              rendered at every size: 0.48 CSS px per dot on a phone, which
+              at DPR 3 is 1.45 device px — nearest-neighbour then prints
+              alternating 1px and 2px dots, and the two maps beat against
+              each other as a moire grid over the whole disc. 150px at 1x
+              and 280px at 2x and above put every device near the seam's
+              own ~2.5 device px per dot (see .grainField in
+              landing-seam.module.css). The width/height are the 2x file's,
+              which is also the src fallback. */}
           {/* eslint-disable-next-line @next/next/no-img-element -- decorative shading layer; no `sharp` at runtime */}
           <img
-            src="/work/sphere-shadow-diffusion.png"
+            src="/work/sphere-shadow-diffusion-2x.png"
+            srcSet="/work/sphere-shadow-diffusion-1x.png 1x, /work/sphere-shadow-diffusion-2x.png 2x"
             alt=""
             aria-hidden="true"
-            width={467}
-            height={467}
+            width={280}
+            height={280}
             loading="eager"
             fetchPriority="low"
             className="seam-shot-shadow"
           />
           {/* eslint-disable-next-line @next/next/no-img-element -- decorative shading layer; no `sharp` at runtime */}
           <img
-            src="/work/sphere-highlight-diffusion.png"
+            src="/work/sphere-highlight-diffusion-2x.png"
+            srcSet="/work/sphere-highlight-diffusion-1x.png 1x, /work/sphere-highlight-diffusion-2x.png 2x"
             alt=""
             aria-hidden="true"
-            width={467}
-            height={467}
+            width={280}
+            height={280}
             loading="eager"
             fetchPriority="low"
             className="seam-shot-highlight"

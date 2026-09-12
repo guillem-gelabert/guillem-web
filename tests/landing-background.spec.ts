@@ -110,11 +110,15 @@ test.describe("landing background", () => {
     expect(ink.maskImage).toContain(DITHER_DESKTOP);
     expect(ink.webkitMaskImage).toContain(DITHER_DESKTOP);
 
-    // luminance, not alpha. The export is opaque black-on-white, so an
-    // alpha mask would read it as uniformly present and paint a solid
-    // rectangle of ink over the whole scene — a failure that looks like a
-    // missing gradient rather than a broken mask.
-    expect(ink.maskMode).toBe("luminance");
+    // Alpha, not luminance. The export is a 1-bit palette PNG whose black
+    // entry is transparent, so the default mask mode reads it correctly in
+    // every engine. It used to be an opaque black-on-white bitmap under
+    // mask-mode: luminance, and WebKit ignored that mode whenever the
+    // -webkit- prefixed mask-image was also declared — then decoded the
+    // 1-bit grayscale file as a stencil, black = paint, which printed the
+    // gradient inverted on iOS. A luminance declaration coming back here is
+    // the regression this pins.
+    expect(ink.maskMode).toBe("match-source");
 
     // The mask fills its element exactly once. Both halves matter: a
     // repeat would tile a second copy of the ramp into the scene, and a

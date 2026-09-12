@@ -265,6 +265,40 @@ is ruled out.
 
 Suite at baseline: 185/15 Playwright, 153/3 unit, 30/4 build, lint unchanged.
 
+### 2026-09-13 — five iOS Safari defects on the landing, measured in the iPhone 17 Pro simulator
+
+Reported from the simulator (iOS 26.5): white bands top and bottom, the gradient inverted, the
+NEW STORY badge clipped at its foot, the disc's dither moiréd, and PROJECTS peeking above the
+fold. Each was reproduced on the simulator against a local server and bisected with reduced
+pages before anything was changed. Four root causes, none of them in Chrome:
+
+- **viewport-fit=cover is not honoured on a fresh launch** (layout viewport 816 of 874pt,
+  `env(safe-area-inset-*)` all 0), and `overscroll-behavior: none` on the document switches it
+  off even mid-session (874 → 754). So the status-bar strip is painted by the canvas, whatever
+  the composition does. The overscroll lock is removed and the canvas is the seam's paper,
+  `html:has(.seam-scene) { background: #f2f2f2 }`. "A canvas colour is ruled out" above was
+  about a colour that did not match the top edge; this one is the top-left corner's own tone.
+- **WebKit ignores `mask-mode: luminance` when `-webkit-mask-image` is also declared**, and
+  decodes a 1-bit grayscale PNG as a stencil with black as the painted value — the gradient came
+  out with the same geometry and the colours swapped. `seam-dither-desktop.png` is now a two-entry
+  palette with the black entry transparent (same 651KB), read by alpha everywhere; `mask-mode`
+  is gone from the stylesheet and the test now pins `match-source`.
+- **WebKit clips the absolutely positioned descendants of any `container-type` box at its border
+  edge.** `.boxCaseStudy` is `container-type: normal` now and derives `--disc-size` from the
+  tokens that set its box (`--box-width`, `--nameplate-height`, `--box-padding`); every `50cqh`
+  anchor in it became `50%`, which `.content`'s `height: 100%` makes equivalent.
+- **The sphere maps were 467px**, 0.48 CSS px per dot on a phone — 1.45 device px, so
+  nearest-neighbour printed alternating 1px/2px dots and the two maps beat against each other.
+  Regenerated from the originals at 150px (1x) and 280px (2x+) via `srcSet`, near the seam's own
+  ~2.5 device px per dot.
+- PROJECTS: iOS draws the document through the toolbar's glass past the layout viewport, so
+  `.more` gets `padding-top: max(--edge-top, --chrome-bottom + 3rem)`.
+
+Findings the next attempt should not re-derive: the cover/no-cover state in this Safari is
+per-navigation and inconsistent (three viewport heights seen for identical pages), so the layout
+has to look right in all of them; Chrome's dev CSP `upgrade-insecure-requests` is why the
+simulator loads a plain-http dev server unstyled — proxy it with the header stripped.
+
 ## Next
 
 - **v1.0 is complete.** The next action is the user's, not an executor's: fill the five values, do

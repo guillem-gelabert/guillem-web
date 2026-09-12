@@ -18,6 +18,10 @@
   --color-accent: #C1272D;
   --color-surface-code: rgba(0, 0, 0, 0.04);
   --color-rule: rgba(0, 0, 0, 0.12);
+  /* The landing seam's paper, and therefore the canvas behind the landing
+     (see the html:has(.seam-scene) rule at the end of this file). The seam
+     stylesheet's --gradient-tint reads it, so the two cannot drift. */
+  --color-seam-canvas: #f2f2f2;
 
   --spacing-xs: 4px;
   --spacing-sm: 8px;
@@ -488,10 +492,22 @@ body {
    components/landing/landing-seam.module.css: paint reaches 100lvh so the
    grain covers the safe-area bands, geometry sits in 100svh so it clears the
    URL bar at its tallest and does not move when the bar collapses. */
-html,
-body {
-  /* No rubber-band. The canvas behind the page is --color-paper, so an
-     overscroll past either end of the composition would reveal a white band
-     that nothing in the page can paint over (e7745c2 saw exactly that). */
-  overscroll-behavior: none;
+/* No overscroll-behavior here, and that is a finding, not an omission.
+   iOS 26.5 Safari drops viewport-fit=cover the moment the document declares
+   overscroll-behavior: none — measured in the simulator with a page that
+   was otherwise edge to edge (lvh 874 → 754, insets 0) — and it also does
+   not honour cover on a fresh launch at all: the layout viewport starts
+   below the status bar and env(safe-area-inset-top) is 0. So the strip
+   under the status bar is painted by the CANVAS on a phone, whatever the
+   composition does, and the canvas colour is the only lever.
+
+   That colour is the seam's paper, --gradient-tint in
+   components/landing/landing-seam.module.css, so the strip reads as the
+   light corner continuing rather than a white band over a grey page. Set
+   on <html>, scoped to the landing: the root's background is what becomes
+   the canvas, and :has() keeps every other route on --color-paper. The
+   same colour is what a rubber-band overscroll now reveals at either end,
+   which is what the overscroll lock was there to hide. */
+html:has(.seam-scene) {
+  background: var(--color-seam-canvas);
 }

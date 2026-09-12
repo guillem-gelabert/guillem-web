@@ -63,23 +63,27 @@ export function MoreWork() {
                     lighten does the same for the highlight map's white.
                     Together they turn the flat masked circle into a lit
                     sphere without painting a background behind it. */}
+                {/* Same two exports as the story's disc, picked by DPR — see
+                    the note in story-slot.tsx for the pitch they are cut to. */}
                 {/* eslint-disable-next-line @next/next/no-img-element -- decorative shading layer, no `sharp` at runtime */}
                 <img
-                  src="/work/sphere-shadow-diffusion.png"
+                  src="/work/sphere-shadow-diffusion-2x.png"
+                  srcSet="/work/sphere-shadow-diffusion-1x.png 1x, /work/sphere-shadow-diffusion-2x.png 2x"
                   alt=""
                   aria-hidden="true"
-                  width={467}
-                  height={467}
+                  width={280}
+                  height={280}
                   loading="lazy"
                   className={`seam-pair-shade ${styles.shade} ${styles.shadow}`}
                 />
                 {/* eslint-disable-next-line @next/next/no-img-element -- decorative shading layer, no `sharp` at runtime */}
                 <img
-                  src="/work/sphere-highlight-diffusion.png"
+                  src="/work/sphere-highlight-diffusion-2x.png"
+                  srcSet="/work/sphere-highlight-diffusion-1x.png 1x, /work/sphere-highlight-diffusion-2x.png 2x"
                   alt=""
                   aria-hidden="true"
-                  width={467}
-                  height={467}
+                  width={280}
+                  height={280}
                   loading="lazy"
                   className={`seam-pair-shade ${styles.shade} ${styles.highlight}`}
                 />

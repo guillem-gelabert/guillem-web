@@ -214,7 +214,7 @@
      now. It stays as the name of the composition's hue — the one value a
      re-colouring starts from — and is the only token here that is still
      warm, so it is also the reminder of what this used to be. */
-  --gradient-tint: #f2f2f2;
+  --gradient-tint: var(--color-seam-canvas, #f2f2f2);
   --gradient-shade: #555555;
   --gradient-base: var(--gradient-tint);
   --gradient-colour: #ff8000;
@@ -271,8 +271,11 @@
    PNG (public/seam-dither-*.png): an Angle gradient in Photoshop, tone
    corrected, then Image > Mode > Bitmap with Diffusion Dither, so every
    pixel is pure black or pure white and tone is carried by dot density
-   alone. That is what makes it read as riso rather than as grain over
-   grey — riso ink is either down or it is not.
+   alone. Saved as a two-entry palette with the black entry transparent,
+   so the ink is where the file is opaque — see the mask-mode note on
+   .grainField for why it is not a grayscale bitmap read by luminance.
+   Pure black or pure white per pixel is what makes it read as riso rather
+   than as grain over grey — riso ink is either down or it is not.
 
    It replaces a stack of four feTurbulence fields that multiplied binary
    dots into five plateaus. Two things go with them. The measured dot
@@ -415,7 +418,14 @@
   /* The mask fills the square, so the file's centre lands on the pivot
      and its twelve-o'clock seam points straight up before rotation. */
   mask-image: var(--dither-image);
-  mask-mode: luminance;
+  /* No mask-mode. The file carries its own alpha — a 1-bit palette PNG
+     whose black entry is transparent — so the default (alpha) mode reads
+     it the same in every engine, prefixed or not. It was an opaque
+     black-on-white bitmap under mask-mode: luminance, and WebKit ignored
+     that mode whenever -webkit-mask-image was also declared (measured in
+     the iOS 26.5 simulator), then decoded the 1-bit grayscale as a stencil
+     with black as the painted value — the gradient came out inverted on
+     iOS, same geometry, colours swapped. Alpha needs no mode to agree on. */
   mask-repeat: no-repeat;
   mask-size: 100% 100%;
   mask-position: center;
@@ -551,7 +561,7 @@
    so the accessible name keeps its sentence case. */
 .boxCaseStudy :global(.seam-new-story) {
   position: absolute;
-  top: 50cqh;
+  top: 50%;
   left: 50%;
   translate:
     calc(-50% - 0.3536 * var(--disc-size))
@@ -561,7 +571,7 @@
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  width: clamp(80px, 26cqh, 128px);
+  width: clamp(80px, calc(0.26 * var(--case-study-content-height)), 128px);
   aspect-ratio: 1;
   padding: 0.6em;
   margin: 0;
@@ -947,13 +957,44 @@
    cq units on a container-type: size box are its CONTENT box, so this is
    already inside the padding — 385px on a 443px-tall box at 1440x900. */
 .boxCaseStudy {
-  --disc-size: min(100cqw, 100cqh);
+  /* The box's own dimensions, restated as tokens, because this box is NOT
+     a size container any more and cq units do not resolve in it.
+
+     It was container-type: size like every .box, and --disc-size was
+     min(100cqw, 100cqh). WebKit clips the absolutely positioned
+     descendants of a box under containment at that box's border edge —
+     any containment, size, layout or inline-size alike, measured in the
+     iOS 26.5 simulator with a reduced case — and the badge, the ring of
+     type and the disc's trail all overhang this box on purpose. The badge
+     lost its bottom third on every iPhone. Chrome clips nothing, which is
+     why it went unseen.
+
+     So the same numbers are derived from what sets them: the box takes
+     the stack's width (a flex item stretched to width: --box-width, floored
+     at --box-min-width) and .box's height (--nameplate-height, floored at
+     --box-min-height); the portrait branch overrides the height and
+     restates --case-study-height with it. Padding comes off both, which is
+     exactly what the cq units measured — the content box. Every rule below
+     that read a cqh reads these instead, and top: 50cqh became top: 50%:
+     .content is height: 100% of the same content box, so they agree. */
+  --case-study-height: var(--nameplate-height);
+  --case-study-content-width: calc(
+    max(var(--box-width), var(--box-min-width)) - 2 * var(--box-padding)
+  );
+  --case-study-content-height: calc(
+    max(var(--case-study-height), var(--box-min-height)) - 2 * var(--box-padding)
+  );
+  --disc-size: min(
+    var(--case-study-content-width),
+    var(--case-study-content-height)
+  );
   /* The ring of type around the disc is --arc-scale times it (see
      .seam-arc below, which reads this). Declared HERE rather than there
      because the phone-portrait branch sizes this box against it: the ring
      is what overhangs the box and crosses the tagline, so the box's height
      has to know the factor. */
   --arc-scale: 1.28;
+  container-type: normal;
 }
 
 /* The capture and the arc heading are both taken out of the copy's flow and
@@ -963,7 +1004,7 @@
 .boxCaseStudy :global(.seam-shot),
 .boxCaseStudy :global(.seam-arc) {
   position: absolute;
-  top: 50cqh;
+  top: 50%;
   left: 50%;
   translate: -50% -50%;
 }
@@ -1158,7 +1199,10 @@
    not the box's own 443): .box declares container-type: size, and its
    padding is outside the query size. */
 .boxCaseStudy :global(.text-heading-body) {
-  font-size: min(calc(1rem + 4vw), 9cqh);
+  font-size: min(
+    calc(1rem + 4vw),
+    calc(0.09 * var(--case-study-content-height))
+  );
 }
 
 /* The capture covers the whole disc.
@@ -1185,14 +1229,14 @@
    position: relative so the copy paints over the picture. So:
      left: 50%  is .content's own centre, which IS the box's centre —
                 .content is 78% wide with margin-inline: auto.
-     top: 50cqh is the box's content-box mid-height measured from
-                .content's top edge, which sits exactly on that content
-                box's top (the box is a flex container with
-                align-items: flex-start). A percentage would resolve
-                against .content's height, which is the copy's height and
-                has nothing to do with the disc.
-   Getting this wrong is not subtle: with top: 50% the picture landed
-   100px above the disc and 29px narrower than it.
+     top: 50%   is the box's content-box mid-height: .content is
+                height: 100% of that content box and its top edge sits
+                exactly on the box's content-box top (the box is a flex
+                container with align-items: flex-start). This was 50cqh
+                while the box was a size container; the percentage only
+                works because .content is full height — when it was the
+                copy's own height, top: 50% landed the picture 100px above
+                the disc and 29px narrower than it.
 
    max-width is in the shared rule for the picture's sake: Tailwind v4
    preflight ships `img { max-width: 100%; height: auto }`, which would cap
@@ -1239,7 +1283,7 @@
    layer, which the compositor can move on its own. */
 .boxCaseStudy :global(.seam-shot-reveal) {
   position: absolute;
-  top: 50cqh;
+  top: 50%;
   left: 50%;
   translate: -50% -50%;
   width: var(--disc-size);
@@ -1285,7 +1329,7 @@
 .boxCaseStudy :global(.seam-shot-shadow),
 .boxCaseStudy :global(.seam-shot-highlight) {
   position: absolute;
-  top: 50cqh;
+  top: 50%;
   left: 50%;
   translate: -50% -50%;
   width: var(--disc-size);
@@ -1387,6 +1431,15 @@
   position: relative;
   box-sizing: border-box;
   padding: var(--edge-top) var(--edge-right) var(--edge-bottom) var(--edge);
+  /* Further below the fold than --edge-top alone. iOS Safari draws the
+     document on through the glass of its bottom toolbar, past the layout
+     viewport's edge, so the first thing in this scene showed up under the
+     URL bar on the first screen — PROJECTS, above the fold. The band it
+     shows through is at most the chrome's own height, --chrome-bottom, so
+     that plus 3rem keeps the title off the first screen in every viewport
+     state the phone produces; on a desktop the band is 0 and --edge-top
+     (at least 4rem there) still wins. */
+  padding-top: max(var(--edge-top), calc(var(--chrome-bottom) + 3rem));
 }
 
 /* Declared on the LIST, not on .more, and that is load-bearing. A custom
@@ -1551,10 +1604,11 @@
      min(), so the name's own proportion still wins wherever the screen is
      tall enough to allow it — this is a ceiling, not a new size. */
   .boxCaseStudy {
-    height: min(
+    --case-study-height: min(
       var(--nameplate-height),
       calc(var(--case-study-room) / ((var(--arc-scale) + 1) / 2))
     );
+    height: var(--case-study-height);
   }
 
   /* Width, not height, sets the name here: GELABERT is the longer line at
