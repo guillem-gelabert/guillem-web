@@ -22,9 +22,9 @@ test("/ genuinely scrolls", async ({ page }) => {
   // This used to be false — the Phase 1 holding page was name-only and had
   // nothing to scroll. Without this guard the rest of this file could pass
   // while a visitor saw nothing to trail at all.
-  // Measured on #scroll-root, not the document: the app-shell locks the
-  // document at 100dvh so its scrollHeight is one viewport by construction
-  // (app/globals.css). The scroller is what a visitor actually scrolls.
+  // The document is the scroller (app/globals.css). It was #scroll-root
+  // while the app-shell locked the document; ./scroll-root is the one place
+  // that names which, so this reads the same either way.
   const { scrollHeight, viewportHeight } = await readOverflow(page);
   expect(scrollHeight).toBeGreaterThan(viewportHeight);
 

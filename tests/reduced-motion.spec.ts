@@ -48,9 +48,10 @@ test("heading text-shadow stays 'none' throughout a full scroll under reduced-mo
   // a single before/after check could miss a transient shadow mid-scroll.
   const samples: (string | null)[] = [];
   for (let step = 0; step < 5; step++) {
-    // Via #scroll-root: window.scrollBy moves nothing under the app-shell,
-    // which would make this whole assertion vacuous — a no-op scroll can
-    // never produce a smear, so the test would pass without testing.
+    // Via ./scroll-root, so this scrolls whatever the app-shell's scroller
+    // actually is. A no-op scroll can never produce a smear, so getting that
+    // wrong makes the whole assertion vacuous — it would pass without
+    // testing anything.
     await scrollBy(page, 200);
     // Give the (never-scheduled) rAF loop a chance to run if it incorrectly
     // started, and let scroll/scrollend listeners fire.

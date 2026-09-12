@@ -121,6 +121,53 @@ duplicate `.planning/`'s detail. Update the three lists below when a phase or pl
   side on phones, where white type disappears; it predates this change and this change shrank it at
   every narrow viewport measured, but it is not fixed.
 
+### iPhone: the glass behind the status bar, and the story over the tagline — 2026-09-12
+
+Two defects from an iPhone 17 Pro: **white slabs** behind the Dynamic Island and the URL bar, and
+the featured story's curved title printed **through the tagline**.
+
+The first was the **fifth pass at the same bug**, and the reason it kept coming back is that none
+of the previous four left a record — `.planning/` had nothing on the status bar, safe areas,
+`viewport-fit` or the app-shell, so each attempt was re-derived from Chrome, which
+**structurally cannot reproduce any of it** (`env(safe-area-inset-*)` is `0px` there and lvh, svh
+and dvh all resolve the same). `.planning/quick/260912-ios-…/` is the record this time.
+
+The two bands were never one bug. The bottom one is `.scene { height: 100dvh }` stopping short of
+the screen, fixed by `100lvh` in `6085eee`; the top one is the canvas, which only shows at rest.
+**`fb8613d` and `7f4f771` undid both on the same day** — the first locking the document and
+deleting `--color-seam-canvas` on the reasoning that the lock made colour irrelevant (it makes
+colour the *only* thing that shows), the second setting the scene back to `100dvh`. Invisible then:
+`--gradient-tint` was `#ffefe0`, and the same day's repaint to grey riso is what turned white-on-
+cream into a slab.
+
+**The document scrolls again**, so the strip shows the page through the glass — which is what
+`viewport-fit=cover`'s own comment has claimed all along, and what `fb8613d` named while
+implementing its opposite. The moving tone while scrolling is the accepted cost of see-through.
+`#scroll-root` and `scroll-root.ts` are gone; `window.scrollY` is the origin again.
+
+The rule that replaces the lock: **paint reaches `lvh`, geometry sits in `svh`**. The grain covers
+the safe-area bands; the gradient's origin and every box stay in the viewport that does not move
+when iOS collapses its toolbar. `dvh` was only ever stable *because* the lock prevented that
+collapse. And since the scene's bottom edge is now behind the URL bar, `--edge-bottom` carries
+`--chrome-bottom: calc(100lvh - 100svh)` so content stops at the bar while paint runs past it.
+
+The story's cap divides the room it has by **`(--arc-scale + 1) / 2`, not `--arc-scale`** — the
+ring of type is centred on the box, so only half its excess hangs above — and the box's own padding
+supplies the gap, since cq units resolve against the content box. Disc 163px on the reported
+device, 27px clear of the tagline.
+
+**The load-bearing change is testability.** `env()` and `calc(100lvh - 100svh)` now sit behind
+`--safe-*` and `--chrome-bottom`, so `tests/landing-phone-portrait.spec.ts` can set what a device
+reports. Verified as a negative control: with the cap removed it fails at **−119px of overlap**,
+and at 0px insets it passes by 120px — without the indirection the spec would have been vacuous,
+which is precisely how this bug survived four fixes. Playwright 185/15 against a 181/15 baseline:
+same fifteen pre-existing failures, four new passes.
+
+**One thing still open**, and only a phone can close it: `fb8613d` says the strip shows the root
+colour at `scrollY === 0`, `d8bc1f3` says the grain shows through. Never settled — `e7745c2`
+overrode `d8bc1f3` fourteen minutes later, verifying by sampling pixels rather than on a device.
+This follows `d8bc1f3` and paints no canvas colour.
+
 ## Next
 
 - **v1.0 is complete.** The next action is the user's, not an executor's: fill the five values, do

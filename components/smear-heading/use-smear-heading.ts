@@ -5,7 +5,6 @@ import {
   useSmearHeadingRegistry,
   type TrailProperty,
 } from "./smear-heading-provider";
-import { getScrollY } from "./scroll-root";
 
 /**
  * Per-heading registration hook. Registers on mount, unregisters on unmount.
@@ -40,11 +39,10 @@ export function useSmearHeading<T extends HTMLElement>(
       const current = ref.current;
       if (!current) return;
       const rect = current.getBoundingClientRect();
-      // getScrollY(), not window.scrollY: under the app-shell the document
-      // never scrolls, so window.scrollY is always 0 and this would register
-      // every heading at its viewport position instead of its document
-      // position. The provider's frame loop reads the same helper.
-      register(current, rect.top + getScrollY(), property);
+      // Document position, not viewport position: the provider's frame loop
+      // subtracts window.scrollY from this every frame, so the two have to
+      // read the same origin or every heading smears from the wrong place.
+      register(current, rect.top + window.scrollY, property);
     });
 
     return () => {

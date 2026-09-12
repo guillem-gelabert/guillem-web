@@ -9,7 +9,6 @@ import {
   useRef,
 } from "react";
 import { usePrefersReducedMotion } from "./use-prefers-reduced-motion";
-import { getScrollY } from "./scroll-root";
 
 // Constants ported verbatim from text_trail_demo/index.html:324-327,362.
 const MAX_TRAIL = 280;
@@ -164,7 +163,7 @@ export function SmearHeadingProvider({
     function frame(time: number) {
       const elapsed = Math.min(time - (previousTime || time), 40);
       const smoothing = 1 - Math.exp(-elapsed * 0.009);
-      const scrollY = getScrollY();
+      const scrollY = window.scrollY;
       let anyActive = false;
 
       for (const [el, state] of registry) {
@@ -278,11 +277,11 @@ export function SmearHeadingProvider({
       }
     }
 
-    // On `document` in the capture phase, not on `window`: the scroller is
-    // now #scroll-root (see scroll-root.ts), and scroll events do not bubble
-    // — but they do run capture, so this catches the inner scroller without
-    // depending on it being mounted when this effect runs. It still catches
-    // the document's own scroll on routes that have no #scroll-root.
+    // On `document` in the capture phase rather than on `window`. The
+    // document is the scroller again (app/globals.css), so `window` would do
+    // — but scroll events from any inner scroll container do not bubble and
+    // DO run capture, so this keeps working if a route ever grows one, and
+    // costs nothing while none does.
     document.addEventListener("scroll", handleScroll, {
       capture: true,
       passive: true,
@@ -329,7 +328,7 @@ export function SmearHeadingProvider({
       }
       registryRef.current.set(el, {
         documentTop,
-        lagY: documentTop - getScrollY(),
+        lagY: documentTop - window.scrollY,
         property,
       });
     },

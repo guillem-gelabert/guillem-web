@@ -459,43 +459,39 @@ body {
   color: var(--color-ink);
 }
 
-/* App-shell: the document does NOT scroll — #scroll-root does.
+/* The document scrolls. It did not, between fb8613d and this commit, and the
+   round trip is worth recording because it has now been taken five times.
    ------------------------------------------------------------------------
    iOS Safari composites the SCROLLING DOCUMENT's pixels behind the
-   translucent status bar, and `position: fixed` elements do not count. At
-   scrollY === 0 the strip shows the root background colour; once the
-   document has scrolled at all it shows real page pixels. The landing is
-   two 100lvh scenes tall, so it always scrolls, so the seam's gradient
-   always bled into the strip.
+   translucent status bar. That is the point, not a defect: the strip is
+   meant to show the page through glass, which is the same intent
+   viewport-fit=cover carries in the two root layouts. What it costs is that
+   the strip shows whatever is under it at the time, so on a full-bleed
+   composition it changes tone as you scroll.
 
-   Naming a colour cannot fix that, and this rule used to try: it handed
-   <body> the shade the grain stack paints at y=0 so the band would at least
-   match. That is the wrong end of the problem — the strip is not showing
-   <body> once scrolled, and an opaque colour there fights a strip that is
-   meant to show the page through glass. `theme-color` is not a lever
-   either; iOS 26 ignores it.
+   fb8613d read that change as a bleed and removed it by locking the document
+   and scrolling an inner #scroll-root, on the reasoning that no scrolling
+   document means no pixels to composite. It works, and it takes the glass
+   with it: the strips then show a flat <body> colour and nothing else. It
+   also deleted the --color-seam-canvas rule that had been matching that
+   colour to the seam, on the grounds that the lock made colour irrelevant —
+   the lock does the opposite, it makes colour the ONLY thing that shows. So
+   the landing's strips fell back to --color-paper, and once 7f4f771
+   repainted the seam grey riso that read as two white slabs.
 
-   Locking the document removes the scrolling pixels altogether, so the
-   strips show the solid <body> background — the paper below, on every
-   route. Which is also what makes the landing read the way most sites do
-   behind the URL bar, rather than as a painted band.
+   Two dead ends this must not cycle back through. An opaque canvas colour is
+   what Safari samples to tint the status bar (8b0003e painted a brown band
+   that way); `transparent` leaves the canvas unpainted, and unpainted is
+   white (e7745c2). `theme-color` is not a lever either; iOS 26 ignores it.
 
-   The pair to this is components/smear-heading/scroll-root.ts:
-   `window.scrollY` is permanently 0 under this rule, and everything that
-   reads a scroll position goes through that module instead. Setting one
-   without the other silently breaks every smear heading. */
+   The composition's own half of this lives in
+   components/landing/landing-seam.module.css: paint reaches 100lvh so the
+   grain covers the safe-area bands, geometry sits in 100svh so it clears the
+   URL bar at its tallest and does not move when the bar collapses. */
 html,
 body {
-  height: 100dvh;
-  overflow: hidden;
-  /* No rubber-band, so nothing can reveal the canvas behind the page. */
+  /* No rubber-band. The canvas behind the page is --color-paper, so an
+     overscroll past either end of the composition would reveal a white band
+     that nothing in the page can paint over (e7745c2 saw exactly that). */
   overscroll-behavior: none;
-}
-
-#scroll-root {
-  height: 100dvh;
-  overflow-y: auto;
-  overflow-x: clip;
-  overscroll-behavior: none;
-  -webkit-overflow-scrolling: touch;
 }

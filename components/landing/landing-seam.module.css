@@ -11,10 +11,62 @@
   --edge-top: max(var(--edge), 4rem);
   --edge-bottom: var(--edge);
   --edge-right: var(--edge);
+  /* PAINT REACHES lvh, GEOMETRY SITS IN svh. The one rule every viewport
+     unit in this file follows, and the reason none of them is dvh.
+     -----------------------------------------------------------------------
+     lvh is the viewport that spans the safe-area bands, so the grain — and
+     only the grain — is sized in it and runs to the physical edges of the
+     screen under the notch and the home indicator.
+
+     Everything a person has to SEE in a fixed place is svh: the box
+     geometry, and above all the gradient's origin. svh assumes the browser's
+     toolbar is expanded, so it is the one viewport that does not change when
+     iOS collapses that toolbar mid-scroll, and the one that is never behind
+     it. These were all dvh while the document was locked, where it made no
+     difference because a locked document never collapses the toolbar (iOS
+     does that on DOCUMENT scroll). The document scrolls again, so dvh would
+     now drag the pivot up the screen as you scroll and take the whole
+     composition with it — the seam angle is derived from that origin. */
+  /* The four safe-area insets, named once, as tokens with env() inside
+     them rather than env() spelled out at each use.
+     -----------------------------------------------------------------------
+     This is the indirection that makes any of the phone layout TESTABLE.
+     Chromium reports every env(safe-area-inset-*) as 0px and resolves lvh,
+     svh and dvh to the same number, so a headless run has no notch, no home
+     indicator and no toolbar — which is why five successive attempts at the
+     safe-area bands (6085eee, 8b0003e, d8bc1f3, e7745c2, fb8613d) were all
+     reasoned about from Chrome and all shipped a band. Behind a custom
+     property a test can set the inset a real device reports and measure what
+     the composition then does; behind a bare env() it cannot.
+
+     tests/landing-phone-portrait.spec.ts is the caller: it sets these to an
+     iPhone 17 Pro's values and asserts the story clears the tagline, which
+     is a collision that DOES NOT HAPPEN at 0px insets. Nothing else should
+     override them — env() is the real source on a device. */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  /* The band at the BOTTOM of the large viewport that the browser's own
+     toolbar covers — Safari's URL bar on a phone. lvh spans it, svh does
+     not, so their difference is its height, and it is 0 wherever there is
+     no collapsing chrome (every desktop browser, and Chromium always).
+
+     This is the hinge of the whole phone layout. The scene is 100lvh so the
+     grain reaches the physical screen edges, which means the scene's own
+     bottom edge is UNDER the toolbar — so anything positioned against that
+     edge is under it too. --edge-bottom carries this band on a coarse
+     pointer for exactly that reason: paint runs to lvh, content stops at
+     the toolbar.
+
+     A token, not the calc() inline, for the same reason as --safe-* above:
+     Chromium resolves lvh and svh identically, so a test can only
+     reproduce a phone's chrome by setting this. */
+  --chrome-bottom: calc(100lvh - 100svh);
   /* The viewport's own proportion as a plain number: >1 landscape, 1
      square, <1 portrait. --nameplate-width and --aside-ratio both read it,
      and it has to be declared before them. */
-  --viewport-ratio: tan(atan2(100vw, 100dvh));
+  --viewport-ratio: tan(atan2(100vw, 100svh));
   /* Not an input any more — a readout. The boxes size themselves against
      the seam, and this is the horizontal channel that is left between the
      two columns afterwards. Nothing reads it; it stays because it names
@@ -54,7 +106,7 @@
 
      The ray runs through the scene's centre at the viewport's own slope,
      so a point clears it while x + y/ratio stays under the value the
-     centre gives: (100vw + 100dvh/ratio)/2, which is 50vw + 50dvh/ratio.
+     centre gives: (100vw + 100svh/ratio)/2, which is 50vw + 50svh/ratio.
      Substituting the corner (edge + W, edge + W/1.16) and solving for W
      gives the width below; the height is that over 1.16. The 0.86 holds it
      14% off that solution — tangency was a shade too tight by eye, and this
@@ -71,7 +123,7 @@
   --nameplate-width: 38vw;
   --nameplate-width: calc(
     (
-      50vw + 50dvh / var(--viewport-ratio) - var(--edge) -
+      50vw + 50svh / var(--viewport-ratio) - var(--edge) -
         var(--edge-top) / var(--viewport-ratio)
     ) / (1 + 1 / (1.16 * var(--viewport-ratio))) * 0.86
   );
@@ -88,36 +140,40 @@
      what froze the seam at this default. The fallback lives in the var()
      call at the conic instead, where it applies only if nothing has been
      written yet. */
-  /* Both offsets are measured in dvh, so the origin sits the same distance
+  /* Both offsets are measured in svh, so the origin sits the same distance
      from the left edge as it does from the bottom one — a square corner
      inset that scales with height alone, rather than one that stretches
      with the window's width. */
-  --gradient-center-desktop-x: 16dvh;
-  --gradient-center-desktop-y: 84dvh;
+  --gradient-center-desktop-x: 16svh;
+  --gradient-center-desktop-y: 84svh;
   /* Tighter into the corner than the other two modes: a phone's scene is
-     tall and narrow, so the same 8dvh inset reads as much further from the
+     tall and narrow, so the same 8svh inset reads as much further from the
      corner across the width than it does on a desktop. */
-  --gradient-center-mobile-portrait-x: 5dvh;
+  --gradient-center-mobile-portrait-x: 5svh;
   /* Held above the home indicator, not merely near the bottom. The page
-     runs under it (viewport-fit=cover), so 95dvh would leave the pivot
+     runs under it (viewport-fit=cover), so 95svh would leave the pivot
      inside that band on a device with a taller inset — on a 15 Pro it
      clears by 9px, which is coincidence rather than a margin. min() takes
      whichever is higher up: the proportional position, or the safe-area
      edge with room to spare. env() is 0px where there is no indicator, and
-     the 95dvh term wins there. */
+     the 95svh term wins there.
+
+     This clamp and the svh are two different guards and both are needed:
+     svh holds the origin clear of the browser's URL bar, env() holds it
+     clear of the home indicator underneath that. */
   --gradient-center-mobile-portrait-y: min(
-    95dvh,
-    calc(100dvh - env(safe-area-inset-bottom, 0px) - 2rem)
+    95svh,
+    calc(100svh - var(--safe-bottom) - 2rem)
   );
   /* 15%, like the other two. This was 85% for the old mobile-landscape
      layout, where the boxes sat the other way round; the corners are
      arranged as they are on desktop now, so 85% only bought a mirrored
      gradient at the orientation flip — a window 861px tall mirrors itself
      between 861 and 862px wide. */
-  --gradient-center-mobile-landscape-x: 8dvh;
+  --gradient-center-mobile-landscape-x: 8svh;
   --gradient-center-mobile-landscape-y: min(
-    92dvh,
-    calc(100dvh - env(safe-area-inset-bottom, 0px) - 2rem)
+    92svh,
+    calc(100svh - var(--safe-bottom) - 2rem)
   );
   --gradient-center-x: var(--gradient-center-desktop-x);
   --gradient-center-y: var(--gradient-center-desktop-y);
@@ -165,18 +221,18 @@
 
   position: relative;
   width: 100%;
-  /* 100dvh, matching #scroll-root's own height (app/globals.css): the
-     document is locked and #scroll-root is the scroller, so the screen the
-     scene has to fill is the scroller's box, not the large viewport.
+  /* 100lvh, not 100dvh: with viewport-fit=cover the LARGE viewport is the
+     one that spans the safe-area bands, so this is what reaches the top and
+     bottom edges of the screen. Under 100dvh the scene stops short of both
+     and <body>'s paper shows through them as two white bands — measured on
+     device in 6085eee, and again after 7f4f771 set this back to 100dvh.
 
-     It was 100lvh, for a scrolling document under viewport-fit=cover, where
-     the large viewport was what reached past the safe-area bands. Left at
-     100lvh inside a 100dvh scroller each scene overflows by the height of
-     those bands, so the seam no longer lands on the fold. The bands are now
-     covered by <body>'s own paper rather than by the scene stretching under
-     them. */
-  height: 100dvh;
-  min-height: 100dvh;
+     This is the paint half of the rule at the top of this file: the scene's
+     box, and .grain's inset: 0 inside it, are the only things sized in lvh.
+     Every anchor and every box that has to stay clear of the browser's
+     toolbar is svh. */
+  height: 100lvh;
+  min-height: 100lvh;
   /* Was overflow: hidden, which clipped the disc's trail flat at the fold —
      the disc sits low in this scene and the smear runs up to MAX_TRAIL
      (280px) past it.
@@ -184,7 +240,7 @@
      clip on x, visible on y: the pair is legal in exactly this combination
      (`visible` would compute to `auto` next to `hidden`/`scroll`/`auto` and
      turn the scene into a scroll container, but not next to `clip`), and it
-     is the same pattern #scroll-root already uses in app/globals.css. The x
+     is the one pairing that does not turn the scene into a scroller. The x
      axis still has to be clipped — a poster-scale nameplate at a 320px
      viewport is what would otherwise give the page a horizontal scrollbar,
      which tests/landing.spec.ts and tests/landing-viewport.spec.ts both
@@ -256,13 +312,13 @@
      it rather than behind it. */
   z-index: 0;
   /* A screen tall, and taller if the pairs need it. .scene fixes height
-     at 100dvh for the fold; this one holds copy — two paragraphs a pair —
+     at 100lvh for the fold; this one holds copy — two paragraphs a pair —
      and on a phone that copy runs past one screen. The grain is inset: 0,
      so it covers whatever height this comes to. On a desktop the pairs fit
-     and this is exactly 100dvh, which tests/landing-trail.spec.ts's
+     and this is exactly 100lvh, which tests/landing-trail.spec.ts's
      two-scenes page height still relies on. */
   height: auto;
-  min-height: 100dvh;
+  min-height: 100lvh;
 }
 
 .sceneMirrored .grain {
@@ -279,7 +335,7 @@
      roughly five times the scene. .scene used to be overflow: hidden and
      absorbed that; it is overflow-y: visible now, so the disc's trail can
      cross the fold, and the field went with it: its box started
-     contributing to #scroll-root's scrollable area and the page grew from
+     contributing to the document's scrollable area and the page grew from
      1800px to 3478px — 1678px of empty scroll below the composition.
      
      Clipping it on .grain instead is exactly the old behaviour for the
@@ -892,6 +948,12 @@
    already inside the padding — 385px on a 443px-tall box at 1440x900. */
 .boxCaseStudy {
   --disc-size: min(100cqw, 100cqh);
+  /* The ring of type around the disc is --arc-scale times it (see
+     .seam-arc below, which reads this). Declared HERE rather than there
+     because the phone-portrait branch sizes this box against it: the ring
+     is what overhangs the box and crosses the tagline, so the box's height
+     has to know the factor. */
+  --arc-scale: 1.28;
 }
 
 /* The capture and the arc heading are both taken out of the copy's flow and
@@ -919,8 +981,6 @@
    with the viewport: 1.28 is what leaves 14% of the disc's width on each
    side for the glyphs to sit in. */
 .boxCaseStudy :global(.seam-arc) {
-  --arc-scale: 1.28;
-
   width: calc(var(--disc-size) * var(--arc-scale));
   height: calc(var(--disc-size) * var(--arc-scale));
   /* Its own box is the disc plus the ring, so it sits OVER the disc and
@@ -1316,7 +1376,7 @@
   --pair-fill: #000;
   --pair-type: #fff;
   --pair-ideal: 36rem;
-  --pair-max-side: calc(100dvh - var(--edge-top) - var(--edge-bottom));
+  --pair-max-side: calc(100lvh - var(--edge-top) - var(--edge-bottom));
   --pair-direction: row;
   --pair-per-row: 2;
 
@@ -1413,6 +1473,38 @@
        so the two stacks already have the height the asides were holding. */
     --nameplate-height: calc(var(--box-width) * 0.874);
     --aside-width: calc(var(--box-width) * 0.62);
+    /* What the nameplate stack actually leaves the case study, and the
+       reason it is not simply "the screen minus the nameplate box": the
+       tagline sits OUTSIDE that box. .boxNameplate is overflow: visible and
+       --nameplate-height is cut to the name's own two-line proportion
+       (0.874 above), so the tagline hangs below the box rather than inside
+       it, and a case study measured against the box alone climbs straight
+       into it — which is what it was doing.
+
+       Two overhangs, not one. The NAME already runs past the box before
+       the tagline starts: --nameplate-height is 0.874 of the box's width
+       while two lines at line-height 0.78 sized 58cqw come to
+       2 * 0.78 * 0.58 = 0.905 of it, so about 0.031 hangs below. The
+       tagline then adds 4.4cqw at line-height 1.15 after a 1.1em top
+       margin — 0.044 * (1.1 + 1.15) = 0.099 — and the two together are
+       0.130. Measured at 0.131 on a 402x874 phone (48.6px below a 370px
+       box), so 0.132 is the derivation rounded the safe way.
+
+       Tied to the type rather than tuned: change .seam-tagline's size,
+       margin or leading, or the name's, and this has to move with them.
+       tests/landing-phone-portrait.spec.ts is what catches it if it does
+       not.
+
+       Measured in lvh, not svh, because that is the box this box is
+       positioned in — the scene. --edge-bottom already carries the
+       toolbar's band (--chrome-bottom), so the subtraction lands on the
+       same place svh would and stays honest if the two stacks are ever
+       anchored differently. */
+    --tagline-block: calc(var(--box-width) * 0.132);
+    --case-study-room: calc(
+      100lvh - var(--edge-top) - var(--nameplate-height) -
+        var(--tagline-block) - var(--stack-gap) - var(--edge-bottom)
+    );
     --gradient-center-x: var(--gradient-center-mobile-portrait-x);
     --gradient-center-y: var(--gradient-center-mobile-portrait-y);
     /* Flatter than the ~22deg aiming at the gap used to give: the ray
@@ -1426,6 +1518,43 @@
   .stackCaseStudy {
     right: auto;
     left: var(--edge);
+  }
+
+  /* The case study stops mirroring the name's proportion when there is not
+     room for it. .box gives BOTH corners --nameplate-height, which on a
+     full-bleed portrait box is 0.874 of the screen's width — and nothing
+     bounded that against what the nameplate had already taken, so on a
+     402x874 phone a ~323px box carried a ~323px disc inside a ~413px ring
+     of type that overhung the box by 0.14 x the disc and printed the story
+     title straight through the tagline.
+
+     Bounding the RING rather than the disc is the load-bearing part, and
+     the factor is (--arc-scale + 1) / 2, not --arc-scale. The ring is
+     --arc-scale x the disc and CENTRED on the box, so half the excess
+     hangs above and half below: its top sits (--arc-scale - 1) / 2 of the
+     disc above the box's own top edge, and the box plus that overhang
+     comes to (--arc-scale + 1) / 2 — 1.14 at 1.28, not 1.28. Dividing by
+     the full scale instead reserves 11% of the corner for nothing.
+
+     There is no separate clearance term because the box's own padding is
+     one. cq units resolve against the CONTENT box, so the disc is
+     --box-padding smaller than the box on each side and the ring's
+     overhang is measured from there: at a 16px padding the ring clears the
+     box's top edge by 1.28 x 16 = 20px rather than landing on it. A gap
+     that falls out of the geometry, and one that scales with the padding
+     if that ever changes.
+
+     --disc-size is min(100cqw, 100cqh) off this box, so the disc, the
+     badge, both shading maps and the reveal all follow it down from this
+     one declaration.
+
+     min(), so the name's own proportion still wins wherever the screen is
+     tall enough to allow it — this is a ceiling, not a new size. */
+  .boxCaseStudy {
+    height: min(
+      var(--nameplate-height),
+      calc(var(--case-study-room) / ((var(--arc-scale) + 1) / 2))
+    );
   }
 
   /* Width, not height, sets the name here: GELABERT is the longer line at
@@ -1485,7 +1614,7 @@
        follows (the font-size rule below sizes by cqh and lets the measure
        fall where it falls). --edge-top/--edge-bottom are still respected —
        full height means filling what the padding leaves, not ignoring it. */
-    --nameplate-height: calc(100dvh - var(--edge-top) - var(--edge-bottom));
+    --nameplate-height: calc(100lvh - var(--edge-top) - var(--edge-bottom));
     --gradient-center-x: var(--gradient-center-mobile-landscape-x);
     --gradient-center-y: var(--gradient-center-mobile-landscape-y);
     /* Declared on .scene deliberately: on a phone this SHOULD beat the
@@ -1535,11 +1664,11 @@
   .scene {
     --edge: max(
       clamp(1rem, 3.5vw, 12rem),
-      env(safe-area-inset-left, 0px)
+      var(--safe-left)
     );
     --edge-right: max(
       clamp(1rem, 3.5vw, 12rem),
-      env(safe-area-inset-right, 0px)
+      var(--safe-right)
     );
     /* NOT the desktop's 4rem floor. The phone's own edge is 1rem, so that
        floor quadruples it, and the extra pushes the nameplate and its
@@ -1547,11 +1676,17 @@
        the picture. The notch is what this has to clear here. */
     --edge-top: max(
       clamp(1rem, 3.5vw, 12rem),
-      env(safe-area-inset-top, 0px)
+      var(--safe-top)
     );
-    --edge-bottom: max(
-      clamp(1rem, 3.5vw, 12rem),
-      env(safe-area-inset-bottom, 0px)
+    /* Plus the toolbar's band: the scene is 100lvh, so its bottom edge is
+       behind Safari's URL bar, and .stackCaseStudy is anchored to that edge.
+       Without this term the whole story corner sits under the bar. The
+       max() inside is the ordinary edge against the home indicator; the
+       band is added to it rather than max()'d with it, because the two are
+       stacked on screen, not alternatives. */
+    --edge-bottom: calc(
+      max(clamp(1rem, 3.5vw, 12rem), var(--safe-bottom)) +
+        var(--chrome-bottom)
     );
   }
 
