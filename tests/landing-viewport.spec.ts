@@ -135,6 +135,18 @@ for (const viewport of VIEWPORTS) {
     });
 
     test(`the measure holds at ${viewport.width}px`, async ({ page }) => {
+      // On /cv, not on / — the one test in this file that leaves the
+      // landing. The landing's last .max-w-prose was the featured story's
+      // standfirst, and that slot prints the headline and the picture now,
+      // so there is nothing here to measure. Relaxing the sweep to tolerate
+      // zero matches would have made it pass on any page at all, which is
+      // the failure mode 03-VALIDATION.md's rule 1 exists to prevent — so
+      // the check moved to a surface that does set running copy instead.
+      // The measure is a site-wide contract, not a landing one; the
+      // viewport loop around it still does the work it always did.
+      await page.goto("/cv");
+      await page.evaluate(() => document.fonts.ready);
+
       // 65ch legitimately exceeds a 375px viewport — that is correct, and is
       // why the page-overflow and no-internal-scroll checks exist alongside
       // this one rather than instead of it.

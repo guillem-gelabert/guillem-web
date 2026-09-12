@@ -214,6 +214,31 @@ decision not to paint it.
 session's egress proxy, so this is search-result synthesis corroborated across two queries and
 consistent with `fb8613d`'s and `8b0003e`'s own on-device notes. The phone is the only real test.
 
+### Landing: the featured story loses its standfirst — 2026-09-12
+
+The story's annotation printed between the arc and the disc; it is gone. The corner is the picture
+and its headline now. The data is untouched — `lib/work.ts` still carries `annotation` and the
+"More work" pairs still print it below the fold; only this slot stopped rendering it.
+
+Three things depended on it, and the interesting one is that **the component's own comment
+predicted it**: that `<p>` was the landing's last `.max-w-prose`, kept partly so
+`tests/landing-viewport.spec.ts`'s "the measure holds" sweep had something to read. That check
+moved to `/cv` rather than being relaxed to tolerate zero matches — a sweep that passes on a page
+with nothing to sweep is the failure mode `03-VALIDATION.md`'s rule 1 exists to prevent, and the
+measure is a site-wide contract, not a landing one.
+
+`tests/landing-trail.spec.ts`'s "the body face does not trail" went red on `null` rather than
+quietly passing, because its `read()` helper returns null instead of throwing — the same property
+that caught three stale selectors when the seam first shipped, earning its keep a second time. The
+standfirst was swapped for the badge there rather than deleted: that list proves everything in the
+box except the disc stays flat, and dropping a line shrinks what it proves.
+
+Geometry unchanged, measured: disc 163px, 27px clear of the tagline, arc type 17.4px on a 17 Pro —
+everything in that corner is absolutely positioned, so removing an in-flow sibling moved nothing.
+Badge clearance above the URL bar 34px on the notched phones, 9px on an SE. Suite back at its
+baseline 185/15 after the two fixes (one run showed a third failure at 393x852; 16/16 on repeat, a
+flake).
+
 ## Next
 
 - **v1.0 is complete.** The next action is the user's, not an executor's: fill the five values, do

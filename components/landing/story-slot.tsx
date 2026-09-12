@@ -105,16 +105,21 @@ export function StorySlot() {
         </a>
       </h3>
 
-      {/* max-w-prose (65ch) is a no-op inside this box — the copy column is
-          78% of the box's width, ~356px at 1440x900, where 65ch of 18px
-          Jost is ~585px. It stays because the site's measure contract
-          applies to every standfirst on every surface, and
-          tests/landing-viewport.spec.ts's "the measure holds" sweep reads
-          `main .max-w-prose` to prove 65ch resolves against the element's
-          OWN font: drop the class here and that sweep silently has nothing
-          left to measure on the landing. */}
-      <p className="max-w-prose text-standfirst">{story.annotation}</p>
+      {/* No standfirst. The story's annotation used to print here, between
+          the arc and the disc; the corner reads as the picture and its
+          headline now, and the annotation is one line of prose in a box
+          that is mostly circle.
 
+          It is still in lib/work.ts and still printed by the "More work"
+          pairs below the fold — only this slot stopped rendering it, the
+          same way the case studies stayed in the repo when the landing
+          stopped resolving them.
+
+          This was also the landing's last `.max-w-prose`, which
+          tests/landing-viewport.spec.ts's "the measure holds" sweep used to
+          read. That check moved to /cv rather than being relaxed: the
+          measure is a site-wide contract and it is still asserted, on a
+          surface that actually sets running copy. */}
       {/* The disc: the capture, masked to a circle, covering it whole.
           Its geometry and its mask live in landing-seam.module.css, with
           the box it is measured against.

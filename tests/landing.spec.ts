@@ -41,7 +41,10 @@ test("the homepage renders only the requested content, in order", async ({ page 
     // text), so innerText reports caps while the DOM — and the link's
     // accessible name — keep the published title's own case.
     WORK[0].title.toUpperCase(),
-    WORK[0].annotation,
+    // No annotation between them any more: the featured slot prints the
+    // headline and the picture and nothing else. WORK[0].annotation still
+    // exists and is still asserted by tests/unit/work.test.ts; it is simply
+    // not on this surface.
     // The badge on the disc's edge. Set in the DOM as "New story" and
     // uppercased in CSS, so innerText reports caps while the accessible
     // name keeps its sentence case.

@@ -158,6 +158,11 @@ test("the body face does not trail", async ({ page }) => {
   // belong to the pre-seam landing and resolved to null here, so every
   // assertion compared null against "none" and the test was failing on HEAD.
   //
+  // read() returning null rather than throwing is what makes that failure
+  // LOUD, and it earned its keep again when the story's standfirst was
+  // removed: this test went red on `null` instead of quietly passing over
+  // an element that no longer exists. Keep it that way.
+  //
   // What it is FOR still holds and is what it now measures: the trail is
   // registered on the two display headings and on nothing else, so the
   // small copy sharing their boxes must stay flat. The story headline is
@@ -175,7 +180,13 @@ test("the body face does not trail", async ({ page }) => {
       // text-shadow on the heading would inherit into the SVG.
       arcHeading: read("section#story h3.seam-arc"),
       arcGlyphs: read("section#story .seam-arc-svg text"),
-      standfirst: read("section#story p.text-standfirst"),
+      // The badge on the disc's edge, which is the small copy the slot
+      // still has. It replaces the standfirst here one-for-one: that <p>
+      // was the other flat-copy witness in this box and the slot does not
+      // print it any more. Swapped rather than dropped, because the point
+      // of this list is that everything in the box EXCEPT the disc stays
+      // flat — deleting a line shrinks what that proves.
+      badge: read("section#story p.seam-new-story"),
       // The second piece's link, now a pair below the fold rather than a
       // line under the disc. Same rule: small copy stays flat.
       pairLink: read("#seam-scene-mirrored .seam-pair a"),
@@ -185,7 +196,7 @@ test("the body face does not trail", async ({ page }) => {
 
   expect(shadows.arcHeading).toBe("none");
   expect(shadows.arcGlyphs).toBe("none");
-  expect(shadows.standfirst).toBe("none");
+  expect(shadows.badge).toBe("none");
   expect(shadows.pairLink).toBe("none");
   expect(shadows.langLabel).toBe("none");
 });
