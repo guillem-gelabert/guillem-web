@@ -239,6 +239,32 @@ Badge clearance above the URL bar 34px on the notched phones, 9px on an SE. Suit
 baseline 185/15 after the two fixes (one run showed a third failure at 393x852; 16/16 on repeat, a
 flake).
 
+### The scroll runway is reverted — 2026-09-12
+
+Seen on the phone: the runway itself was **visible**, a light band of paper between the status bar
+and the composition. Obvious in hindsight and the reason is in the entry above — the runway is
+`--gradient-tint` paper, the composition's top edge there is mostly `#555555` ink, so a strip of
+paper against ink reads as a band. It traded a white bar at the top for a grey one.
+
+The mechanism worked; the material was wrong. Two states also kept returning the page to `scrollY`
+0 — a status-bar tap, and any scroll back to the top — and at 0 the spacer is simply 16px of
+visible nothing above the composition. A runway is only invisible if you can never rest on it, and
+nothing here guaranteed that.
+
+Reverted whole: `use-scroll-runway.ts`, the `.runway` and `.landing` rules, the `--seam-paper`
+hoist, the `<main>` class, and the two test changes that served them. `--gradient-tint` goes back
+to its literal on `.scene`. The revert conflicted only in this file, and was resolved by keeping
+the history rather than deleting it — the entry above stands, this one says what happened next.
+`tests/landing-trail.spec.ts` auto-merged correctly: the height assertion drops its runway term,
+and the badge witness that replaced the standfirst survives.
+
+**Back to the state after the glass fix**, which is the accepted one: the status-bar strip is white
+at the very top of the page and shows the composition the moment you scroll. That is iOS's own
+fallback at `scrollY` 0 and there is no way to reach it with layout — only a canvas colour, which
+is ruled out.
+
+Suite at baseline: 185/15 Playwright, 153/3 unit, 30/4 build, lint unchanged.
+
 ## Next
 
 - **v1.0 is complete.** The next action is the user's, not an executor's: fill the five values, do

@@ -163,36 +163,6 @@ for (const device of PORTRAIT_VIEWPORTS) {
       expect(rects.badge.left).toBeGreaterThanOrEqual(0);
       expect(rects.badge.right).toBeLessThanOrEqual(rects.innerWidth);
       expect(rects.badge.bottom).toBeLessThanOrEqual(rects.innerHeight);
-
-      // The scroll runway, both halves of it.
-      //
-      // Chromium cannot show what the runway BUYS — the strip behind the
-      // Dynamic Island, which it has no concept of — but the mechanism that
-      // buys it is entirely measurable here, and it is the part that can
-      // silently stop working: a changed --runway, a scroll-restoration
-      // change, an effect that no longer runs. Both assertions are needed
-      // and neither implies the other.
-      const runway = await page.evaluate(() => ({
-        height:
-          document.getElementById("seam-runway")?.getBoundingClientRect()
-            .height ?? 0,
-        scrollY: window.scrollY,
-        sceneTop:
-          document.getElementById("seam-scene")?.getBoundingClientRect().top ??
-          NaN,
-      }));
-
-      // One: the document is NOT at zero, which is the whole point — at
-      // scrollY 0 iOS paints that strip a flat colour instead of compositing
-      // the page behind it.
-      expect(runway.height).toBeGreaterThan(0);
-      expect(runway.scrollY).toBeCloseTo(runway.height, 0);
-
-      // Two: and it cost nothing visually. The scroll cancels the offset
-      // exactly, so the composition still starts at the top of the screen.
-      // Without this a runway that "worked" could be shoving the hero
-      // off-screen by its own height.
-      expect(Math.abs(runway.sceneTop)).toBeLessThanOrEqual(1);
     } finally {
       await context.close();
     }
