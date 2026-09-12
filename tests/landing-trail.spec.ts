@@ -39,14 +39,27 @@ test("/ genuinely scrolls", async ({ page }) => {
   // from 1800px to 3478px: 1678px of empty scroll below the composition,
   // with the assertion above still green. The clip lives on .grain now
   // (inset: 0, so its box IS the scene's), and this is what says so.
-  const scenes = await page.evaluate(() =>
-    Array.from(document.querySelectorAll("section.seam-scene")).reduce(
+  //
+  // Plus the scroll runway, which is the one thing above the composition
+  // that legitimately adds to the page (components/seam/use-scroll-runway.ts:
+  // a few pixels the document is scrolled past on load so iOS never sits at
+  // scrollY 0). It is named here rather than folded into a looser tolerance
+  // precisely because this assertion's job is to catch anything
+  // UNACCOUNTED-FOR inflating the page — the 1678px of empty scroll above is
+  // what it exists for, and widening the slack to swallow the runway would
+  // have swallowed that too.
+  const { scenes, runway } = await page.evaluate(() => ({
+    scenes: Array.from(document.querySelectorAll("section.seam-scene")).reduce(
       (total, el) => total + el.getBoundingClientRect().height,
       0,
     ),
-  );
+    runway:
+      document.getElementById("seam-runway")?.getBoundingClientRect().height ??
+      0,
+  }));
   expect(scenes).toBeGreaterThan(0);
-  expect(Math.abs(scrollHeight - scenes)).toBeLessThanOrEqual(2);
+  expect(runway).toBeGreaterThan(0);
+  expect(Math.abs(scrollHeight - (scenes + runway))).toBeLessThanOrEqual(2);
 });
 
 test("the landing retains its two trail-capable targets — one text, one box", async ({

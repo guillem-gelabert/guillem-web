@@ -2,6 +2,7 @@
 
 import { useRef, type ReactNode } from "react";
 import { useSeamAlignment } from "@/components/seam/use-seam-alignment";
+import { useScrollRunway } from "@/components/seam/use-scroll-runway";
 import styles from "./landing-seam.module.css";
 
 type LandingSeamProps = {
@@ -35,8 +36,10 @@ export function LandingSeam({
   const sceneRef = useRef<HTMLElement>(null);
   const seamStartRef = useRef<HTMLDivElement>(null);
   const seamEndRef = useRef<HTMLDivElement>(null);
+  const runwayRef = useRef<HTMLDivElement>(null);
 
   useSeamAlignment(sceneRef, seamStartRef, seamEndRef);
+  useScrollRunway(runwayRef);
 
   // Rendered once per section: the paper, and the ink the dither cuts
   // into. It was six layers — four turbulence fields multiplying into
@@ -56,7 +59,21 @@ export function LandingSeam({
   const content = `seam-content ${styles.content}`;
 
   return (
-    <main>
+    <main className={styles.landing}>
+      {/* The scroll runway. A few pixels of paper above the composition that
+          use-scroll-runway.ts scrolls past on load, so the document is never
+          at scrollY 0 — which is the one state where iOS Safari paints the
+          status-bar strip a flat colour instead of compositing the page
+          behind it. See that file for the whole mechanism.
+
+          aria-hidden and empty: it is a scroll affordance, not content, and
+          it is not in the reading order. */}
+      <div
+        ref={runwayRef}
+        id="seam-runway"
+        className={`seam-runway ${styles.runway}`}
+        aria-hidden="true"
+      />
       <section
         ref={sceneRef}
         id="seam-scene"

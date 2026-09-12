@@ -168,6 +168,52 @@ colour at `scrollY === 0`, `d8bc1f3` says the grain shows through. Never settled
 overrode `d8bc1f3` fourteen minutes later, verifying by sampling pixels rather than on a device.
 This follows `d8bc1f3` and paints no canvas colour.
 
+### The status-bar strip at rest: a scroll runway — 2026-09-12
+
+Follow-up to the fix above, from the device. Three of its four counts were right; the fourth was
+the strip behind the Dynamic Island **at the top of the page only** — white before you scroll,
+correct the moment you do.
+
+I had called that strip unavoidably flat, and said the only question was which colour to paint it.
+**Wrong, and wrong in a way that would have shipped a worse fix.** Safari composites real page
+pixels behind the status area once the document has **non-zero scroll**; the flat colour is only
+the `scrollY === 0` fallback (Safari 26 takes it from a fixed/sticky element near the viewport
+edge, else `<body>`). So the answer is not a better colour — it is not being at zero.
+
+**A scroll runway**: `1rem` of paper above the composition, scrolled past on load. The offset and
+the scroll cancel, so nothing moves on screen — `#seam-scene` still measures `top: 0` — but the
+document is at non-zero scroll from the first paint and the strip has pixels to composite. The
+other half of the technique was already in place: the scene is `100lvh` with `.grain` at
+`inset: 0`, so the composition bleeds past the visual viewport.
+
+Two things the implementation had to get right that the plan did not anticipate. The runway is the
+scene's **sibling**, so it inherits nothing `.scene` declares — neither `--runway` nor the paper
+colour. `--runway` moved onto `.runway` itself (and `use-scroll-runway.ts` reads the resolved
+height off that element, so layout and JS cannot drift), and the paper literal moved up to a
+`.landing` class on `<main>` that `.scene` and `.runway` both read, rather than being written
+twice. The runway is painted paper rather than left transparent for the one case where it is ever
+seen: if a device ignores `overscroll-behavior: none`, a pull-down should reveal more of the
+composition, not the white canvas this whole thread is about.
+
+`tests/landing-trail.spec.ts`'s exact-page-height assertion now names the runway as its one
+legitimate extra rather than widening its tolerance to swallow it — the 1678px of empty scroll it
+once caught is exactly what a looser slack would stop catching. The new assertions in
+`tests/landing-phone-portrait.spec.ts` are both halves of the mechanism (`scrollY` equals the
+runway; the hero's top is still viewport `0`), and they are load-bearing: commenting the effect out
+fails them at `scrollY` 0 against an expected 16.
+
+Suite unchanged at 185/15 Playwright, 153/3 unit, 30/4 build, lint 1 error + 1 warning — all the
+same pre-existing failures.
+
+**One state stays imperfect**, and it is a real gesture: tapping the status bar scrolls to top,
+which returns to `scrollY === 0` and the white strip until the next scroll. The sources pair the
+runway with a fallback canvas colour for exactly that; deliberately not added, per the standing
+decision not to paint it.
+
+**Sourcing caveat.** The primary write-ups on Safari 26's Liquid Glass tinting were blocked by the
+session's egress proxy, so this is search-result synthesis corroborated across two queries and
+consistent with `fb8613d`'s and `8b0003e`'s own on-device notes. The phone is the only real test.
+
 ## Next
 
 - **v1.0 is complete.** The next action is the user's, not an executor's: fill the five values, do

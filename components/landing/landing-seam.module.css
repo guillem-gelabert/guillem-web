@@ -214,7 +214,7 @@
      now. It stays as the name of the composition's hue — the one value a
      re-colouring starts from — and is the only token here that is still
      warm, so it is also the reminder of what this used to be. */
-  --gradient-tint: #f2f2f2;
+  --gradient-tint: var(--seam-paper);
   --gradient-shade: #555555;
   --gradient-base: var(--gradient-tint);
   --gradient-colour: #ff8000;
@@ -265,6 +265,46 @@
      out solid white. No copy blends any more — every element states its
      colour — so this is now simple tidiness rather than a trap. */
   background: none;
+}
+
+/* The landing's own wrapper. It exists to hold ONE token: the paper, which
+   .scene and .runway both need and which neither can declare for the other
+   — they are siblings, so nothing either declares reaches the other. The
+   literal lives here and both read it, rather than being written twice and
+   drifting the first time the palette moves.
+
+   Nothing else belongs here. Every other token in this file is the scene's,
+   and tests/landing-background.spec.ts and tests/landing-seam-geometry.spec.ts
+   both resolve them off #seam-scene. */
+.landing {
+  --seam-paper: #f2f2f2;
+}
+
+/* The scroll runway — a few pixels of paper above the composition, scrolled
+   past on load by components/seam/use-scroll-runway.ts.
+
+   It exists so the document is never sitting at scrollY 0, because that is
+   the one state where iOS Safari stops compositing the page behind the
+   translucent status bar and paints a flat colour there instead. The offset
+   and the scroll cancel, so nothing here is ever meant to be seen.
+
+   PAPER, not transparent, for the case where it is seen anyway:
+   overscroll-behavior: none (app/globals.css) should suppress the
+   rubber-band that would pull this into view, but a device that ignores it
+   would otherwise reveal the white canvas — which is the exact band this
+   whole mechanism exists to remove. Showing more of the composition's own
+   paper instead makes the failure mode invisible rather than ironic.
+
+   --runway is declared HERE rather than on .scene with the other tokens,
+   because this element is the scene's SIBLING and inherits nothing the scene
+   declares. use-scroll-runway.ts reads the resolved height off this element
+   for the same reason: one declaration, read by both the layout and the JS,
+   so they cannot drift. */
+.runway {
+  --runway: 1rem;
+
+  height: var(--runway);
+  background: var(--seam-paper);
 }
 
 /* The grainy gradient. The ramp and its dither both live in one 1-bit
