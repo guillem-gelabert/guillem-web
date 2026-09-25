@@ -247,8 +247,9 @@ test("each pair is a circle beside a square of the same side, on one row at 1440
     // Side by side, tops aligned: one row.
     expect(Math.abs(s.y - c.y)).toBeLessThanOrEqual(1);
 
-    // The checkerboard (components/landing/pair-rows.tsx): circle first on
-    // even rows, square first on odd ones.
+    // The checkerboard (components/landing/pair-rows.tsx): square first on
+    // even rows, circle first on odd ones; and the pairs alternate black and
+    // white by row plus column.
     if (rowTop === null || Math.abs(c.y - rowTop) > 1) {
       rowTop = c.y;
       row += 1;
@@ -257,7 +258,11 @@ test("each pair is a circle beside a square of the same side, on one row at 1440
     for (const box of [c, s]) {
       shapesByRow[row].push({ x: box.x, right: box.x + box.width, y: box.y, bottom: box.y + box.height });
     }
-    const [left, right] = row % 2 === 0 ? [c, s] : [s, c];
+    const [left, right] = row % 2 === 0 ? [s, c] : [c, s];
+    const column = shapesByRow[row].length / 2 - 1;
+    const fill = (row + column) % 2 === 0 ? "rgb(0, 0, 0)" : "rgb(255, 255, 255)";
+    await expect(square, `pair ${index} fill`).toHaveCSS("background-color", fill);
+    await expect(circle, `pair ${index} fill`).toHaveCSS("background-color", fill);
     expect(right.x, `pair ${index} on row ${row}`).toBeGreaterThan(left.x + left.width);
     // The air between the two shapes is the grid's own gap.
     expect(Math.abs(right.x - (left.x + left.width) - gridGap.column)).toBeLessThanOrEqual(1);
@@ -438,7 +443,11 @@ async function columnsFor(page: import("@playwright/test").Page, count: number) 
       listWidth: list.getBoundingClientRect().width,
       pairWidth: pair.getBoundingClientRect().width,
       gap: parseFloat(getComputedStyle(list).columnGap),
-      span: square.getBoundingClientRect().right - circle.getBoundingClientRect().left,
+      // Either shape can lead (the checkerboard flips rows), so the span is
+      // outermost edge to outermost edge.
+      span:
+        Math.max(square.getBoundingClientRect().right, circle.getBoundingClientRect().right) -
+        Math.min(square.getBoundingClientRect().left, circle.getBoundingClientRect().left),
       side: circle.getBoundingClientRect().height,
     };
   }, count);

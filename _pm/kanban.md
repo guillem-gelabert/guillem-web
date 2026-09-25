@@ -307,6 +307,8 @@ simulator loads a plain-http dev server unstyled — proxy it with the header st
   fixed 1:1 (`height`, `overflow: hidden`), so ~11px body / ~8px chips at two columns. Project copy
   trimmed to two short lines and its stack tags dropped. The gap inside a pair is the grid gap
   (`--pair-shape-gap: var(--pair-gap)`), so the checkerboard has one spacing throughout.
+  Then a second checkerboard: even rows square-first, odd rows circle-first, and pairs alternate
+  black/white by (row + column) — `pair-rows.tsx` sets `data-flipped` and `data-tone`.
 
 ## Next
 

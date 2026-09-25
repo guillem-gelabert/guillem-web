@@ -39,20 +39,32 @@
 
   container-type: inline-size;
   display: flex;
-  flex-direction: var(--pair-direction, row);
+  flex-direction: var(--pair-direction, row-reverse);
   align-items: flex-start;
   gap: var(--pair-shape-gap);
 }
 
-/* Every other ROW of the grid lays its pairs the other way round, so the
-   grid reads as a checkerboard of circles and squares. Which rows those are
-   is read off the layout by pair-rows.tsx, which sets the attribute; this
-   only says what the flip is. --pair-direction-flipped comes from
-   landing-seam.module.css beside --pair-direction: row-reverse for a pair
-   side by side, column (circle over square) for a stacked one. Paint order
-   only — the DOM, and so reading and focus order, is unchanged. */
+/* The grid is a checkerboard twice over. Even rows lay each pair square
+   first and odd rows circle first, and the pairs alternate black and white
+   by row plus column, so a row's colours shift by one against the row
+   above. Which row and column a pair is in is read off the layout by
+   pair-rows.tsx, which sets the two attributes; these rules only say what
+   they mean.
+
+   --pair-direction-flipped comes from landing-seam.module.css beside
+   --pair-direction: row for a pair side by side, column (circle over
+   square) for a stacked one. Paint order only — the DOM, and so reading
+   and focus order, is unchanged. */
 .pair[data-flipped] {
-  flex-direction: var(--pair-direction-flipped, row-reverse);
+  flex-direction: var(--pair-direction-flipped, row);
+}
+
+/* The white pair: the two values swapped. Everything in the square reads
+   --pair-fill and --pair-type (the chips invert off them too), so this is
+   the whole of it. */
+.pair[data-tone="light"] {
+  --pair-fill: #fff;
+  --pair-type: #000;
 }
 
 .circle {
