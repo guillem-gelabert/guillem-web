@@ -327,9 +327,20 @@ test("(accent) reserved to focus — absent at rest and on hover on /, /cv and /
   await link.hover();
   const hover = await link.evaluate((el) => {
     const style = getComputedStyle(el);
-    return { color: style.color, decoration: style.textDecorationLine };
+    const square = el.closest(".seam-pair-square");
+    return {
+      color: style.color,
+      decoration: style.textDecorationLine,
+      container: square ? getComputedStyle(square).color : getComputedStyle(el.parentElement!).color,
+    };
   });
-  expect(hover.color, `hovered link's color was "${hover.color}", expected its resting colour`).toBe(rest.color);
+  // The link carries no hover colour of its own: it follows its container.
+  // That container may change on hover — the landing's pairs take an orange
+  // fill with black type (more-work.module.css) — but the link never breaks
+  // from it, and never into the accent.
+  expect(hover.color, `hovered link's color was "${hover.color}", expected its container's (${hover.container})`).toBe(hover.container);
+  expect(hover.color, "hovered link took the accent").not.toBe(ACCENT_RGB);
+  expect(rest.color, "resting link took the accent").not.toBe(ACCENT_RGB);
   // Hover changes NOTHING, which is the claim — not that the link is
   // undecorated. This link is .link and carries a rest underline (the pair's
   // only visible affordance); it was .link-quiet when this asserted "none".

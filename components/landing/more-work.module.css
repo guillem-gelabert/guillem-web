@@ -67,6 +67,18 @@
   --pair-type: #000;
 }
 
+/* Hover (or keyboard focus inside the pair): the whole entry, circle and
+   square, takes the composition's one hue, --gradient-colour from
+   landing-seam.module.css, with black type — whichever tone it rests in.
+   Not --color-accent: that is reserved to focus (tests/design-budget.spec.ts).
+   After the tone rule on purpose: .pair:hover and .pair[data-tone] weigh
+   the same, so source order is what lets hover win over a white pair. */
+.pair:hover,
+.pair:focus-within {
+  --pair-fill: var(--gradient-colour, #ff8000);
+  --pair-type: #000;
+}
+
 .circle {
   position: relative;
   flex: 0 0 auto;

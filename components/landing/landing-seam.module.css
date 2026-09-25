@@ -210,10 +210,10 @@
      extremes a hue to carry. Painting the ink instead of blending it
      makes that structural rather than compensated.
 
-     --gradient-colour was the middle of that ramp and nothing reads it
-     now. It stays as the name of the composition's hue — the one value a
-     re-colouring starts from — and is the only token here that is still
-     warm, so it is also the reminder of what this used to be. */
+     --gradient-colour was the middle of that ramp. The grain no longer
+     reads it; the "More work" pairs do, as their hover fill
+     (more-work.module.css), so the composition's one hue is still the one
+     value a re-colouring starts from. */
   --gradient-tint: var(--color-seam-canvas, #f2f2f2);
   --gradient-shade: #555555;
   --gradient-base: var(--gradient-tint);
@@ -1414,7 +1414,9 @@
 }
 
 .more {
-  --pair-gap: var(--stack-gap);
+  /* The scene's own side gutter, so the grid's air matches its margins.
+     It was --stack-gap, a third of this at 1440. */
+  --pair-gap: var(--edge);
   /* The same air inside a pair as between pairs, across columns and down
      rows: with every other row flipped the grid reads as one checkerboard
      of shapes, and a wider gap inside each pair would break it back into
@@ -1423,7 +1425,10 @@
   --pair-padding: var(--aside-padding);
   --pair-fill: #000;
   --pair-type: #fff;
-  --pair-ideal: 36rem;
+  /* 32rem, not the 36rem it was with the narrow gap: with --edge between
+     them, 36rem columns drop 1920 to two. 32 keeps 2 at 1366–1440, 3 at
+     1920 and 4 at 2560. */
+  --pair-ideal: 32rem;
   --pair-max-side: calc(100lvh - var(--edge-top) - var(--edge-bottom));
   /* Square first on even rows, circle first on odd ones (pair-rows.tsx).
      The DOM is circle then square, so the even-row default is the reverse. */

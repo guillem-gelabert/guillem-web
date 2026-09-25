@@ -115,13 +115,20 @@ test("the pair's link reads as a link, and stays colour-neutral on hover", async
   expect(rest.decoration).toBe("underline");
 
   await link.hover();
+  // .link eases its colour (globals.css), so wait for it to land first.
+  await expect(link).toHaveCSS("color", "rgb(0, 0, 0)");
   const hover = await link.evaluate((element) => {
     const style = getComputedStyle(element);
-    return { color: style.color, decoration: style.textDecorationLine };
+    const square = getComputedStyle(element.closest(".seam-pair-square")!);
+    return { color: style.color, decoration: style.textDecorationLine, square: square.color };
   });
 
-  // Hover changes no colour — the accent stays reserved for focus.
-  expect(hover.color).toBe(rest.color);
+  // The link has no hover colour of its own. Hovering it hovers the pair,
+  // which turns the whole entry orange with black type (more-work.module.css),
+  // and the link just follows its square — never the accent, which stays
+  // reserved for focus.
+  expect(hover.color).toBe(hover.square);
+  expect(hover.color).toBe("rgb(0, 0, 0)");
   expect(hover.decoration).toBe("underline");
 });
 

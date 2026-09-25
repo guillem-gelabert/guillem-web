@@ -309,6 +309,8 @@ simulator loads a plain-http dev server unstyled — proxy it with the header st
   (`--pair-shape-gap: var(--pair-gap)`), so the checkerboard has one spacing throughout.
   Then a second checkerboard: even rows square-first, odd rows circle-first, and pairs alternate
   black/white by (row + column) — `pair-rows.tsx` sets `data-flipped` and `data-tone`.
+  Hover turns the whole pair `--gradient-colour` (#ff8000) with black type; the gutters are
+  `--edge` (with `--pair-ideal` cut to 32rem to keep 2/3/4 columns at 1440/1920/2560).
 
 ## Next
 
