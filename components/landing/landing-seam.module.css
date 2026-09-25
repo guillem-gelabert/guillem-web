@@ -210,10 +210,10 @@
      extremes a hue to carry. Painting the ink instead of blending it
      makes that structural rather than compensated.
 
-     --gradient-colour was the middle of that ramp. The grain no longer
-     reads it; the "More work" pairs do, as their hover fill
-     (more-work.module.css), so the composition's one hue is still the one
-     value a re-colouring starts from. */
+     --gradient-colour was the middle of that ramp and nothing reads it
+     now. It stays as the name of the composition's hue — the one value a
+     re-colouring starts from — and is the only token here that is still
+     warm, so it is also the reminder of what this used to be. */
   --gradient-tint: var(--color-seam-canvas, #f2f2f2);
   --gradient-shade: #555555;
   --gradient-base: var(--gradient-tint);

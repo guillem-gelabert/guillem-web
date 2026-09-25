@@ -115,8 +115,11 @@ test("the pair's link reads as a link, and stays colour-neutral on hover", async
   expect(rest.decoration).toBe("underline");
 
   await link.hover();
-  // .link eases its colour (globals.css), so wait for it to land first.
-  await expect(link).toHaveCSS("color", "rgb(0, 0, 0)");
+  // .link eases its colour (globals.css), so wait for it to land on the
+  // square's before reading it.
+  await expect
+    .poll(() => link.evaluate((el) => getComputedStyle(el).color === getComputedStyle(el.closest(".seam-pair-square")!).color))
+    .toBe(true);
   const hover = await link.evaluate((element) => {
     const style = getComputedStyle(element);
     const square = getComputedStyle(element.closest(".seam-pair-square")!);
@@ -124,12 +127,37 @@ test("the pair's link reads as a link, and stays colour-neutral on hover", async
   });
 
   // The link has no hover colour of its own. Hovering it hovers the pair,
-  // which turns the whole entry orange with black type (more-work.module.css),
-  // and the link just follows its square — never the accent, which stays
-  // reserved for focus.
+  // which repaints the whole entry in its own hover colour
+  // (more-work.module.css), and the link just follows its square.
   expect(hover.color).toBe(hover.square);
-  expect(hover.color).toBe("rgb(0, 0, 0)");
   expect(hover.decoration).toBe("underline");
+});
+
+test("every pair hovers its own hue, at the featured badge's saturation and lightness", async ({ page }) => {
+  const pairs = page.locator("#seam-more .seam-pair");
+  const count = await pairs.count();
+  const fills: string[] = [];
+  for (let index = 0; index < count; index += 1) {
+    const pair = pairs.nth(index);
+    await pair.hover();
+    const { fill, circle, type } = await pair.evaluate((el) => ({
+      fill: getComputedStyle(el.querySelector(".seam-pair-square")!).backgroundColor,
+      circle: getComputedStyle(el.querySelector(".seam-pair-circle")!).backgroundColor,
+      type: getComputedStyle(el.querySelector(".seam-pair-square")!).color,
+    }));
+    expect(circle, `pair ${index}: circle and square share the hover fill`).toBe(fill);
+    const [r, g, b] = fill.match(/\d+/g)!.map(Number);
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    // #EE0000 is hsl(0 100% 46.7%): max 238, min 0.
+    expect(max, `pair ${index} ${fill}`).toBeGreaterThanOrEqual(237);
+    expect(max, `pair ${index} ${fill}`).toBeLessThanOrEqual(239);
+    expect(min, `pair ${index} ${fill}`).toBe(0);
+    expect(["rgb(0, 0, 0)", "rgb(255, 255, 255)"]).toContain(type);
+    fills.push(fill);
+  }
+  expect(fills[0], "the first pair hovers the badge's own red").toBe("rgb(238, 0, 0)");
+  expect(new Set(fills).size, fills.join(" | ")).toBe(count);
 });
 
 test("the pair's box is not a click target — only the link is", async ({ page }) => {

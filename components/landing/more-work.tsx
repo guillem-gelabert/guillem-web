@@ -30,7 +30,49 @@ const [, ...more] = WORK;
 //
 // The writing (lib/notes.ts) shares the grid, after the projects, so it
 // counts towards the columns too.
-const listStyle = { "--pair-count": more.length + NOTES.length } as CSSProperties;
+const pairCount = more.length + NOTES.length;
+const listStyle = { "--pair-count": pairCount } as CSSProperties;
+
+// Each pair's hover colour: its own hue, at the featured badge's saturation
+// and lightness. The badge is #EE0000, hsl(0 100% 46.7%)
+// (landing-seam.module.css), so the hues start there and step round the
+// wheel evenly, one per pair in list order — the first pair hovers the
+// badge's own red. The type is black or white, whichever reads better on
+// that hue by WCAG contrast: a yellow wants black, a blue wants white.
+//
+// Written as custom properties on the <li>; more-work.module.css only says
+// that hover uses them.
+const BADGE_SATURATION = 1;
+const BADGE_LIGHTNESS = 0xee / 0xff / 2; // #EE0000: max 0.933, min 0
+
+function hslToRgb(hue: number): [number, number, number] {
+  const chroma = (1 - Math.abs(2 * BADGE_LIGHTNESS - 1)) * BADGE_SATURATION;
+  const x = chroma * (1 - Math.abs(((hue / 60) % 2) - 1));
+  const m = BADGE_LIGHTNESS - chroma / 2;
+  const [r, g, b] =
+    hue < 60 ? [chroma, x, 0]
+    : hue < 120 ? [x, chroma, 0]
+    : hue < 180 ? [0, chroma, x]
+    : hue < 240 ? [0, x, chroma]
+    : hue < 300 ? [x, 0, chroma]
+    : [chroma, 0, x];
+  return [r + m, g + m, b + m];
+}
+
+function luminance([r, g, b]: [number, number, number]) {
+  const linear = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+  return 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b);
+}
+
+function hoverStyle(index: number): CSSProperties {
+  const hue = (index * 360) / pairCount;
+  const rgb = hslToRgb(hue);
+  const l = luminance(rgb);
+  // Contrast against black is (L + 0.05) / 0.05, against white 1.05 / (L + 0.05).
+  const type = (l + 0.05) / 0.05 >= 1.05 / (l + 0.05) ? "#000" : "#fff";
+  const hex = rgb.map((c) => Math.round(c * 255).toString(16).padStart(2, "0")).join("");
+  return { "--pair-hover": `#${hex}`, "--pair-hover-type": type } as CSSProperties;
+}
 
 export function MoreWork() {
   return (
@@ -39,8 +81,8 @@ export function MoreWork() {
     // removes (the same note work-list.tsx carries).
     <>
       <ol role="list" className={`seam-more-list ${styles.list}`} style={listStyle}>
-        {more.map((entry) => (
-          <li key={entry.href} className={`seam-pair ${styles.pair}`}>
+        {more.map((entry, index) => (
+          <li key={entry.href} className={`seam-pair ${styles.pair}`} style={hoverStyle(index)}>
             {/* The circle. Its border-radius is the mask, and the fill behind
                 the picture is what shows while shot is null. aria-hidden only
                 when it is that fill — an empty box says nothing a screen
@@ -192,8 +234,12 @@ export function MoreWork() {
             shot: null gets; no page yet, so no link; one subtitle instead of
             two paragraphs; and at most one tag, TIL or Book — a post has
             none, so it has no tag row either. */}
-        {NOTES.map((note) => (
-          <li key={note.title} className={`seam-pair seam-pair-note ${styles.pair}`}>
+        {NOTES.map((note, index) => (
+          <li
+            key={note.title}
+            className={`seam-pair seam-pair-note ${styles.pair}`}
+            style={hoverStyle(more.length + index)}
+          >
             <div className={`seam-pair-circle ${styles.circle}`} aria-hidden="true" />
             <div className={`seam-pair-square ${styles.square}`}>
               <h3 className={`seam-pair-title ${styles.title}`}>{note.title}</h3>
