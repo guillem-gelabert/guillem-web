@@ -217,12 +217,15 @@ test("each pair is a circle beside a square of the same side, on one row at 1440
 }) => {
   const items = page.locator("#seam-scene-mirrored").getByRole("listitem");
   const count = await items.count();
-  const sceneBox = await page.locator("#seam-scene-mirrored").boundingBox();
-  if (!sceneBox) throw new Error("scene box missing");
-  // The outer gutter, read once off the first pair: the grid's left edge.
-  const first = await items.first().locator(".seam-pair-circle").boundingBox();
-  if (!first) throw new Error("first circle missing");
-  const outerGutter = first.x - sceneBox.x;
+  // One gap everywhere: between a pair's two shapes, between columns and
+  // between rows. Read off the grid itself, and asserted non-trivial.
+  const gridGap = await page.evaluate(() => {
+    const list = getComputedStyle(document.querySelector("#seam-more ol")!);
+    return { column: parseFloat(list.columnGap), row: parseFloat(list.rowGap) };
+  });
+  expect(gridGap.column).toBeGreaterThan(0);
+  expect(gridGap.row).toBe(gridGap.column);
+  const shapesByRow: { x: number; right: number; y: number; bottom: number }[][] = [];
 
   let row = -1;
   let rowTop: number | null = null;
@@ -249,17 +252,33 @@ test("each pair is a circle beside a square of the same side, on one row at 1440
     if (rowTop === null || Math.abs(c.y - rowTop) > 1) {
       rowTop = c.y;
       row += 1;
+      shapesByRow.push([]);
+    }
+    for (const box of [c, s]) {
+      shapesByRow[row].push({ x: box.x, right: box.x + box.width, y: box.y, bottom: box.y + box.height });
     }
     const [left, right] = row % 2 === 0 ? [c, s] : [s, c];
     expect(right.x, `pair ${index} on row ${row}`).toBeGreaterThan(left.x + left.width);
-    // The air between the two shapes uses the same gutter as the air from
-    // the grid to the scene edge.
-    expect(Math.abs(right.x - (left.x + left.width) - outerGutter)).toBeLessThanOrEqual(1);
+    // The air between the two shapes is the grid's own gap.
+    expect(Math.abs(right.x - (left.x + left.width) - gridGap.column)).toBeLessThanOrEqual(1);
     // Both inside the viewport's width — the pair fits its box.
     expect(left.x).toBeGreaterThanOrEqual(0);
     expect(right.x + right.width).toBeLessThanOrEqual(1440);
   }
   expect(row, "the grid should span more than one row").toBeGreaterThan(0);
+
+  // Across the whole checkerboard: every horizontal gap between neighbouring
+  // shapes in a row, and every gap between rows, is that same value.
+  for (const [index, shapes] of shapesByRow.entries()) {
+    const sorted = [...shapes].sort((a, b) => a.x - b.x);
+    for (let i = 1; i < sorted.length; i += 1) {
+      expect(Math.abs(sorted[i].x - sorted[i - 1].right - gridGap.column), `row ${index}, gap ${i}`).toBeLessThanOrEqual(1);
+    }
+    if (index > 0) {
+      const above = Math.max(...shapesByRow[index - 1].map((box) => box.bottom));
+      expect(Math.abs(shapes[0].y - above - gridGap.row), `above row ${index}`).toBeLessThanOrEqual(1);
+    }
+  }
 });
 
 test("the background is mirrored, the content is not", async ({ page }) => {

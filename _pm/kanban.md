@@ -305,7 +305,8 @@ simulator loads a plain-http dev server unstyled — proxy it with the header st
   other grid row lays its pairs square-first (`pair-rows.tsx` reads rows off the layout, since the
   column count is auto-fill). Pair type is now pure cqw with no pixel floors and the square is a
   fixed 1:1 (`height`, `overflow: hidden`), so ~11px body / ~8px chips at two columns. Project copy
-  trimmed to two short lines and its stack tags dropped.
+  trimmed to two short lines and its stack tags dropped. The gap inside a pair is the grid gap
+  (`--pair-shape-gap: var(--pair-gap)`), so the checkerboard has one spacing throughout.
 
 ## Next
 

@@ -1415,7 +1415,11 @@
 
 .more {
   --pair-gap: var(--stack-gap);
-  --pair-shape-gap: var(--edge);
+  /* The same air inside a pair as between pairs, across columns and down
+     rows: with every other row flipped the grid reads as one checkerboard
+     of shapes, and a wider gap inside each pair would break it back into
+     pairs. It used to be --edge, the gutter to the scene's side. */
+  --pair-shape-gap: var(--pair-gap);
   --pair-padding: var(--aside-padding);
   --pair-fill: #000;
   --pair-type: #fff;
