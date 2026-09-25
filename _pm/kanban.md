@@ -301,9 +301,11 @@ simulator loads a plain-http dev server unstyled — proxy it with the header st
 
 - **Landing writing** (2026-09-25) — three posts, three TILs and one book review as pairs in the
   PROJECTS grid, after the projects (`lib/notes.ts`, rendered by `more-work.tsx`). Lorem ipsum,
-  empty circles, no links; TILs and the review carry one tag each (TIL, Book), posts none. Open:
-  with eight pairs the grid goes to two columns at 1440 and the project square outgrows its
-  circle (tests/landing-more.spec.ts "each pair is a circle beside a square of the same side").
+  empty circles, no links; TILs and the review carry one tag each (TIL, Book), posts none. Every
+  other grid row lays its pairs square-first (`pair-rows.tsx` reads rows off the layout, since the
+  column count is auto-fill). Pair type is now pure cqw with no pixel floors and the square is a
+  fixed 1:1 (`height`, `overflow: hidden`), so ~11px body / ~8px chips at two columns. Project copy
+  trimmed to two short lines and its stack tags dropped.
 
 ## Next
 

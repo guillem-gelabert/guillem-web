@@ -1422,6 +1422,7 @@
   --pair-ideal: 36rem;
   --pair-max-side: calc(100lvh - var(--edge-top) - var(--edge-bottom));
   --pair-direction: row;
+  --pair-direction-flipped: row-reverse;
   --pair-per-row: 2;
 
   /* In flow, not absolute: the scene's height follows this box (see
@@ -1485,6 +1486,7 @@
 @media (max-width: 767px) {
   .more {
     --pair-direction: column-reverse;
+    --pair-direction-flipped: column;
     --pair-per-row: 1;
   }
 }
@@ -1767,6 +1769,7 @@
      the circle holds nothing interactive. */
   .more {
     --pair-direction: column-reverse;
+    --pair-direction-flipped: column;
     --pair-per-row: 1;
   }
 }

@@ -212,40 +212,54 @@ test("the globe fills its borderless circle and reveals its colour image from ei
   expect(order[order.length - 1]).toBe("seam-pair-reveal");
 });
 
-test("each pair is a circle beside a square of the same side, on one row at 1440x900", async ({
+test("each pair is a circle beside a square of the same side, on one row at 1440x900, and every other row is flipped", async ({
   page,
 }) => {
   const items = page.locator("#seam-scene-mirrored").getByRole("listitem");
   const count = await items.count();
+  const sceneBox = await page.locator("#seam-scene-mirrored").boundingBox();
+  if (!sceneBox) throw new Error("scene box missing");
+  // The outer gutter, read once off the first pair: the grid's left edge.
+  const first = await items.first().locator(".seam-pair-circle").boundingBox();
+  if (!first) throw new Error("first circle missing");
+  const outerGutter = first.x - sceneBox.x;
+
+  let row = -1;
+  let rowTop: number | null = null;
   for (let index = 0; index < count; index += 1) {
     const item = items.nth(index);
     const circle = item.locator(".seam-pair-circle");
     const square = item.locator(".seam-pair-square");
-    const scene = page.locator("#seam-scene-mirrored");
     const c = await circle.boundingBox();
     const s = await square.boundingBox();
-    const sceneBox = await scene.boundingBox();
-    if (!c || !s || !sceneBox) throw new Error("pair boxes missing");
+    if (!c || !s) throw new Error("pair boxes missing");
 
     // The circle is a circle: a square box with a 50% radius.
     expect(Math.abs(c.width - c.height)).toBeLessThanOrEqual(1);
     await expect(circle).toHaveCSS("border-radius", "50%");
     // The square is the circle's width and height. Content must not be able
     // to overrule the panel's 1:1 geometry.
-    expect(Math.abs(s.width - c.width)).toBeLessThanOrEqual(1);
-    expect(Math.abs(s.height - c.height)).toBeLessThanOrEqual(1);
-    // The air between the two shapes uses the same gutter as the air from
-    // the pair to the scene edge.
-    const pairGap = s.x - (c.x + c.width);
-    const outerGutter = c.x - sceneBox.x;
-    expect(Math.abs(pairGap - outerGutter)).toBeLessThanOrEqual(1);
-    // Side by side, tops aligned: one row, circle first.
+    expect(Math.abs(s.width - c.width), `pair ${index} width`).toBeLessThanOrEqual(1);
+    expect(Math.abs(s.height - c.height), `pair ${index} height`).toBeLessThanOrEqual(1);
+    // Side by side, tops aligned: one row.
     expect(Math.abs(s.y - c.y)).toBeLessThanOrEqual(1);
-    expect(s.x).toBeGreaterThan(c.x + c.width);
+
+    // The checkerboard (components/landing/pair-rows.tsx): circle first on
+    // even rows, square first on odd ones.
+    if (rowTop === null || Math.abs(c.y - rowTop) > 1) {
+      rowTop = c.y;
+      row += 1;
+    }
+    const [left, right] = row % 2 === 0 ? [c, s] : [s, c];
+    expect(right.x, `pair ${index} on row ${row}`).toBeGreaterThan(left.x + left.width);
+    // The air between the two shapes uses the same gutter as the air from
+    // the grid to the scene edge.
+    expect(Math.abs(right.x - (left.x + left.width) - outerGutter)).toBeLessThanOrEqual(1);
     // Both inside the viewport's width — the pair fits its box.
-    expect(c.x).toBeGreaterThanOrEqual(0);
-    expect(s.x + s.width).toBeLessThanOrEqual(1440);
+    expect(left.x).toBeGreaterThanOrEqual(0);
+    expect(right.x + right.width).toBeLessThanOrEqual(1440);
   }
+  expect(row, "the grid should span more than one row").toBeGreaterThan(0);
 });
 
 test("the background is mirrored, the content is not", async ({ page }) => {
@@ -316,36 +330,43 @@ const COUNTS = [1, 2, 3, 4, 6];
 // The square's type scales with the square: on the desktop's lone 663px pair
 // the body is ~24px and the title ~46px, well above the site's fixed 18px
 // roles, and on a phone's stacked pair those fixed sizes are the floor.
-test("the square's type is sized against the square, with the site's roles as the floor", async ({
+test("the square's type is a fixed share of the square, at any size, and the square stays 1:1", async ({
   page,
 }) => {
   const read = () =>
     page.evaluate(() => {
       const square = document.querySelector(".seam-pair-square")!;
       const px = (el: Element, prop: string) => parseFloat(getComputedStyle(el).getPropertyValue(prop));
+      const box = square.getBoundingClientRect();
       return {
-        side: square.getBoundingClientRect().width,
+        side: box.width,
+        height: box.height,
         title: px(square.querySelector(".seam-pair-title")!, "font-size"),
         body: px(square.querySelector(".seam-pair-body")!, "font-size"),
         tag: px(square.querySelector(".seam-pair-tags > *")!, "font-size"),
         titleWeight: getComputedStyle(square.querySelector(".seam-pair-title")!).fontWeight,
       };
     });
-  // One column first — a lone pair's square — so the cq sizes have room to
-  // clear their floors. The shipped grid has two columns at this width.
-  await page.evaluate(() => (document.querySelector("#seam-more ol") as HTMLElement).style.setProperty("--pair-count", "1"));
-  const desktop = await read();
-  expect(desktop.side).toBeGreaterThan(600);
-  expect(desktop.body).toBeGreaterThan(22);
-  expect(desktop.title).toBeGreaterThan(40);
-  expect(desktop.tag).toBeGreaterThan(15);
-  expect(desktop.titleWeight).toBe("530");
-  // Shrink the square (two columns) and the floors take over.
-  await page.evaluate(() => (document.querySelector("#seam-more ol") as HTMLElement).style.setProperty("--pair-count", "2"));
+  // One column — a lone pair's square — then the shipped grid's smaller one.
+  // No pixel floors (more-work.module.css): every size scales with the side,
+  // so the ratios hold at both.
+  const setCount = (count: string) =>
+    page.evaluate((value) => (document.querySelector("#seam-more ol") as HTMLElement).style.setProperty("--pair-count", value), count);
+  const shipped = await page.evaluate(() => (document.querySelector("#seam-more ol") as HTMLElement).style.getPropertyValue("--pair-count"));
+  await setCount("1");
+  const large = await read();
+  await setCount(shipped);
   const small = await read();
+  expect(large.side).toBeGreaterThan(600);
   expect(small.side).toBeLessThan(400);
-  expect(small.body).toBe(18);
-  expect(small.tag).toBe(14);
+  expect(large.titleWeight).toBe("530");
+  for (const size of [large, small]) {
+    expect(Math.abs(size.height - size.side)).toBeLessThanOrEqual(1);
+  }
+  const scale = small.side / large.side;
+  for (const key of ["title", "body", "tag"] as const) {
+    expect(small[key] / large[key], key).toBeCloseTo(scale, 1);
+  }
 });
 
 test("on a phone the pair stands — square over circle, both the full width — and the scene grows", async ({

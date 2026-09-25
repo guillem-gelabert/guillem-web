@@ -128,10 +128,10 @@ export const WORK: readonly [WorkEntry, WorkEntry] = [
     domains: ["Demography", "Statistics"],
     contentType: "Live map",
     body: [
-      "A live globe maps deaths worldwide at roughly two per second.",
-      "Each event uses WHO mortality estimates for age, sex, cause and location, placed with population density and seasonal timing.",
+      "Every death, live.",
+      "From WHO data.",
     ],
-    stack: ["three.js", "d3", "pandas"],
+    stack: [],
     // The globe itself, captured from the live piece rather than redrawn for
     // the landing, with the flashes that define it. It is shown greyscale so
     // the disc sits cleanly in the landing's black-and-white field, and the
