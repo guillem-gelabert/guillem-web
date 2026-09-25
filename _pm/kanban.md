@@ -299,9 +299,11 @@ per-navigation and inconsistent (three viewport heights seen for identical pages
 has to look right in all of them; Chrome's dev CSP `upgrade-insecure-requests` is why the
 simulator loads a plain-http dev server unstyled — proxy it with the header stripped.
 
-- **Landing writing shelf** (2026-09-25) — three posts, three TILs and one book review under
-  PROJECTS on the mirrored scene (`lib/notes.ts`, `components/landing/notes.tsx`). All lorem ipsum,
-  no links until the pages exist.
+- **Landing writing** (2026-09-25) — three posts, three TILs and one book review as pairs in the
+  PROJECTS grid, after the projects (`lib/notes.ts`, rendered by `more-work.tsx`). Lorem ipsum,
+  empty circles, no links; TILs and the review carry one tag each (TIL, Book), posts none. Open:
+  with eight pairs the grid goes to two columns at 1440 and the project square outgrows its
+  circle (tests/landing-more.spec.ts "each pair is a circle beside a square of the same side").
 
 ## Next
 

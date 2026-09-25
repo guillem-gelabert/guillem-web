@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { NOTES } from "../lib/notes";
 import { WORK } from "../lib/work";
 
 // The second scene. It was content-free and aria-hidden — the composition
@@ -36,8 +37,9 @@ test("the mirrored scene is the 'More work' landmark and holds every piece after
   // Scoped to the pairs' own list: the writing shelf under it
   // (components/landing/notes.tsx) is in the same scene and has list items
   // of its own.
-  const items = scene.locator(".seam-more-list").getByRole("listitem");
-  await expect(items).toHaveCount(more.length);
+  // The projects first, then the writing (lib/notes.ts), in one list.
+  const items = scene.getByRole("listitem");
+  await expect(items).toHaveCount(more.length + NOTES.length);
 
   for (const [index, entry] of more.entries()) {
     const item = items.nth(index);
@@ -76,6 +78,17 @@ test("the mirrored scene is the 'More work' landmark and holds every piece after
     await expect(item.locator("img")).toHaveCount(
       entry.shot === null ? 0 : (entry.shot.reveal ? 2 : 1) + shading,
     );
+  }
+
+  // The writing: the same pair with no link, no thumbnail, one subtitle and
+  // at most one tag — TIL or Book, none on a post.
+  for (const [index, note] of NOTES.entries()) {
+    const item = items.nth(more.length + index);
+    await expect(item.locator("a")).toHaveCount(0);
+    await expect(item.locator("img")).toHaveCount(0);
+    await expect(item.locator(".seam-pair-title")).toHaveText(note.title);
+    await expect(item.locator(".seam-pair-body")).toHaveText(note.subtitle);
+    await expect(item.locator(".seam-pair-tags > *")).toHaveText(note.tag === null ? [] : [note.tag]);
   }
 });
 
@@ -202,7 +215,7 @@ test("the globe fills its borderless circle and reveals its colour image from ei
 test("each pair is a circle beside a square of the same side, on one row at 1440x900", async ({
   page,
 }) => {
-  const items = page.locator("#seam-scene-mirrored .seam-more-list").getByRole("listitem");
+  const items = page.locator("#seam-scene-mirrored").getByRole("listitem");
   const count = await items.count();
   for (let index = 0; index < count; index += 1) {
     const item = items.nth(index);
@@ -318,6 +331,9 @@ test("the square's type is sized against the square, with the site's roles as th
         titleWeight: getComputedStyle(square.querySelector(".seam-pair-title")!).fontWeight,
       };
     });
+  // One column first — a lone pair's square — so the cq sizes have room to
+  // clear their floors. The shipped grid has two columns at this width.
+  await page.evaluate(() => (document.querySelector("#seam-more ol") as HTMLElement).style.setProperty("--pair-count", "1"));
   const desktop = await read();
   expect(desktop.side).toBeGreaterThan(600);
   expect(desktop.body).toBeGreaterThan(22);
@@ -400,11 +416,12 @@ for (const viewport of COLUMNS) {
     await page.goto("/");
     await page.evaluate(() => document.fonts.ready);
 
-    // As shipped: the component wrote WORK's own count, one pair today.
+    // As shipped: the component wrote the projects' and the writing's
+    // count together.
     const shipped = await page.evaluate(
       () => getComputedStyle(document.querySelector("#seam-more ol")!).gridTemplateColumns.split(" ").length,
     );
-    expect(shipped).toBe(Math.min(viewport.fit, more.length));
+    expect(shipped).toBe(Math.min(viewport.fit, more.length + NOTES.length));
 
     for (const count of COUNTS) {
       const grid = await columnsFor(page, count);
@@ -479,6 +496,8 @@ test("a lone pair is held to the scene's height in a short window", async ({ pag
   // edge rather than running under the fold. The square obeys the same cap,
   // preserving its 1:1 geometry even when its copy needs more room.
   await page.setViewportSize({ width: 1440, height: 600 });
+  // One column, as a lone pair would lay: the shipped grid has two here.
+  await page.evaluate(() => (document.querySelector("#seam-more ol") as HTMLElement).style.setProperty("--pair-count", "1"));
   const measured = await page.evaluate(() => {
     const scene = document.querySelector("#seam-scene-mirrored")!.getBoundingClientRect();
     const list = document.querySelector("#seam-more ol")!.getBoundingClientRect();

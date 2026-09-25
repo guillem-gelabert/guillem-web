@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { POSITIONING_PLACEHOLDER, WORK } from "../lib/work";
-import { BOOK_REVIEW, POSTS, TILS } from "../lib/notes";
+import { NOTES } from "../lib/notes";
 
 // The landing's content contract. Three of these tests were written for the
 // pre-seam landing — a work list plus an obfuscated email in a plain
@@ -64,19 +64,13 @@ test("the homepage renders only the requested content, in order", async ({ page 
       entry.contentType.toUpperCase(),
       ...entry.stack.map((tool) => tool.toUpperCase()),
     ]),
-    // Then the writing shelf (components/landing/notes.tsx): its title, and
-    // each column's heading over its cards — date, title, the book review's
-    // book and author, excerpt. Headings and the kicker are caps in CSS.
-    "WRITING",
-    "POSTS",
-    ...POSTS.flatMap((entry) => [entry.date, entry.title, entry.excerpt]),
-    "TODAY I LEARNED",
-    ...TILS.flatMap((entry) => [entry.date, entry.title, entry.excerpt]),
-    "BOOK REVIEW",
-    BOOK_REVIEW.date,
-    BOOK_REVIEW.title,
-    `${BOOK_REVIEW.book}, ${BOOK_REVIEW.author}`.toUpperCase(),
-    BOOK_REVIEW.excerpt,
+    // Then the writing, in the same grid (lib/notes.ts): title, subtitle,
+    // and the one tag a TIL or the book review carries, in caps.
+    ...NOTES.flatMap((note) => [
+      note.title,
+      note.subtitle,
+      ...(note.tag === null ? [] : [note.tag.toUpperCase()]),
+    ]),
   ]);
 });
 

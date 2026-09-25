@@ -1,73 +1,66 @@
 /**
- * The landing's writing shelf: three posts, three TILs and one book review,
- * rendered below the projects by components/landing/notes.tsx.
+ * The landing's writing: three posts, three TILs and one book review, laid
+ * out as pairs in the same grid as the projects after them
+ * (components/landing/more-work.tsx).
  *
  * [PLACEHOLDER] Every string here is lorem ipsum, committed by the owner's
  * call so the landing renders at full length before the real pieces exist
  * (lib/placeholder.ts). None of them has a page yet, so no entry carries an
- * href — a card that links to "#" promises a destination that is not there.
- * When a real post lands, give its type an href and the card a link then.
- *
- * Fixed-length tuples for the same reason lib/work.ts uses one: the shelf is
- * laid out for exactly these counts, and an empty column is a build error
- * rather than a UI state.
+ * href — a pair that links to "#" promises a destination that is not there
+ * — and none has a thumbnail, so each circle is the flat fill WorkEntry's
+ * `shot: null` already renders. When a real piece lands, give NoteEntry an
+ * href and a shot then.
  */
 
 export type NoteEntry = {
   title: string;
-  date: string; // ISO yyyy-mm-dd, rendered as-is in a <time>
-  excerpt: string;
-};
-
-export type BookReview = NoteEntry & {
-  book: string;
-  author: string;
+  subtitle: string; // one line, the square's only copy under the title
+  // The one tag a note carries: what kind of note it is. Posts carry none —
+  // a post is the default, and the grid only marks the exceptions.
+  tag: "TIL" | "Book" | null;
 };
 
 export const POSTS: readonly [NoteEntry, NoteEntry, NoteEntry] = [
   {
     title: "Lorem ipsum dolor sit amet",
-    date: "2026-09-18",
-    excerpt:
-      "Consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+    subtitle: "Consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore.",
+    tag: null,
   },
   {
     title: "Ut enim ad minim veniam",
-    date: "2026-09-04",
-    excerpt:
-      "Quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    subtitle: "Quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo.",
+    tag: null,
   },
   {
     title: "Duis aute irure dolor",
-    date: "2026-08-21",
-    excerpt:
-      "In reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
+    subtitle: "In reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla.",
+    tag: null,
   },
 ];
 
 export const TILS: readonly [NoteEntry, NoteEntry, NoteEntry] = [
   {
     title: "Excepteur sint occaecat",
-    date: "2026-09-22",
-    excerpt: "Cupidatat non proident, sunt in culpa qui officia deserunt.",
+    subtitle: "Cupidatat non proident, sunt in culpa qui officia deserunt.",
+    tag: "TIL",
   },
   {
     title: "Mollit anim id est laborum",
-    date: "2026-09-12",
-    excerpt: "Sed ut perspiciatis unde omnis iste natus error sit voluptatem.",
+    subtitle: "Sed ut perspiciatis unde omnis iste natus error sit voluptatem.",
+    tag: "TIL",
   },
   {
     title: "Nemo enim ipsam voluptatem",
-    date: "2026-08-30",
-    excerpt: "Quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur.",
+    subtitle: "Quia voluptas sit aspernatur aut odit aut fugit.",
+    tag: "TIL",
   },
 ];
 
-export const BOOK_REVIEW: BookReview = {
+export const BOOK_REVIEW: NoteEntry = {
   title: "Neque porro quisquam est",
-  book: "Lorem Ipsum",
-  author: "Marcus Tullius",
-  date: "2026-09-09",
-  excerpt:
-    "Qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.",
+  subtitle: "Lorem Ipsum, by Marcus Tullius: qui dolorem ipsum quia dolor sit amet.",
+  tag: "Book",
 };
+
+/** Grid order: posts, then TILs, then the review. */
+export const NOTES: readonly NoteEntry[] = [...POSTS, ...TILS, BOOK_REVIEW];

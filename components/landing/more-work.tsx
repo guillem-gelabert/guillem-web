@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { NOTES } from "@/lib/notes";
 import { WORK } from "@/lib/work";
 import styles from "./more-work.module.css";
 
@@ -25,7 +26,10 @@ const [, ...more] = WORK;
 // A typed cast because React's CSSProperties does not know custom
 // properties; the value is an integer, never a string, so it is a number
 // on the CSS side too.
-const listStyle = { "--pair-count": more.length } as CSSProperties;
+//
+// The writing (lib/notes.ts) shares the grid, after the projects, so it
+// counts towards the columns too.
+const listStyle = { "--pair-count": more.length + NOTES.length } as CSSProperties;
 
 export function MoreWork() {
   return (
@@ -178,6 +182,25 @@ export function MoreWork() {
               ))}
             </p>
 
+          </div>
+        </li>
+      ))}
+      {/* The writing: the same pair, cut down to what a lorem entry has.
+          No thumbnail yet, so the circle is the flat fill a work entry with
+          shot: null gets; no page yet, so no link; one subtitle instead of
+          two paragraphs; and at most one tag, TIL or Book — a post has
+          none, so it has no tag row either. */}
+      {NOTES.map((note) => (
+        <li key={note.title} className={`seam-pair seam-pair-note ${styles.pair}`}>
+          <div className={`seam-pair-circle ${styles.circle}`} aria-hidden="true" />
+          <div className={`seam-pair-square ${styles.square}`}>
+            <h3 className={`seam-pair-title ${styles.title}`}>{note.title}</h3>
+            <p className={`seam-pair-body ${styles.body}`}>{note.subtitle}</p>
+            {note.tag === null ? null : (
+              <p className={`seam-pair-tags ${styles.tags}`}>
+                <span className={styles.tag}>{note.tag}</span>
+              </p>
+            )}
           </div>
         </li>
       ))}
