@@ -1,0 +1,85 @@
+/* The writing shelf under the projects. It sits inside .more
+   (landing-seam.module.css), so it reads that rule's custom properties —
+   --pair-gap, --pair-padding, --pair-fill, --pair-type — rather than
+   restating them, and the cards hold on both grounds the way the squares do.
+
+   Type sizes are the landing's existing ones, not new values: the headings
+   are the PROJECTS title's spec and the cards set the site's fixed 18/14
+   roles, which keeps the route inside tests/design-budget.spec.ts's
+   four-size ceiling. */
+
+.notes {
+  margin-top: calc(var(--pair-gap) * 2);
+}
+
+/* PROJECTS' own spec (.moreTitle): a caps label with a halo, because the
+   shelf's headings land on either ground. */
+.sectionTitle,
+.heading {
+  margin: 0 0 max(var(--stack-gap), 2cqw);
+  color: #000;
+  text-shadow:
+    0 0 2px #fff,
+    0 0 4px #fff;
+  font-family: var(--font-body);
+  font-size: max(14px, 1.6cqw);
+  font-weight: 400;
+  line-height: 1.3;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Three columns where they fit, one where they do not — the same
+   auto-fill-with-no-breakpoint approach as the pairs' grid. */
+.columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(20rem, 100%), 1fr));
+  gap: var(--pair-gap);
+  align-items: start;
+}
+
+.column {
+  min-width: 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pair-gap);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: var(--pair-padding);
+  background: var(--pair-fill);
+  color: var(--pair-type);
+  font-family: var(--font-body);
+}
+
+.meta {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.3;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 530;
+  line-height: 1.2;
+}
+
+.excerpt {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.35;
+}

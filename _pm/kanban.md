@@ -299,6 +299,10 @@ per-navigation and inconsistent (three viewport heights seen for identical pages
 has to look right in all of them; Chrome's dev CSP `upgrade-insecure-requests` is why the
 simulator loads a plain-http dev server unstyled — proxy it with the header stripped.
 
+- **Landing writing shelf** (2026-09-25) — three posts, three TILs and one book review under
+  PROJECTS on the mirrored scene (`lib/notes.ts`, `components/landing/notes.tsx`). All lorem ipsum,
+  no links until the pages exist.
+
 ## Next
 
 - **v1.0 is complete.** The next action is the user's, not an executor's: fill the five values, do

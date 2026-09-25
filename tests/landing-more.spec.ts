@@ -33,7 +33,10 @@ test("the mirrored scene is the 'More work' landmark and holds every piece after
   await expect(page.getByRole("region", { name: "Projects" })).toHaveCount(1);
   await expect(page.locator("#seam-more-title")).toHaveText("Projects");
 
-  const items = scene.getByRole("listitem");
+  // Scoped to the pairs' own list: the writing shelf under it
+  // (components/landing/notes.tsx) is in the same scene and has list items
+  // of its own.
+  const items = scene.locator(".seam-more-list").getByRole("listitem");
   await expect(items).toHaveCount(more.length);
 
   for (const [index, entry] of more.entries()) {
@@ -199,7 +202,7 @@ test("the globe fills its borderless circle and reveals its colour image from ei
 test("each pair is a circle beside a square of the same side, on one row at 1440x900", async ({
   page,
 }) => {
-  const items = page.locator("#seam-scene-mirrored").getByRole("listitem");
+  const items = page.locator("#seam-scene-mirrored .seam-more-list").getByRole("listitem");
   const count = await items.count();
   for (let index = 0; index < count; index += 1) {
     const item = items.nth(index);
@@ -492,7 +495,11 @@ test("a lone pair is held to the scene's height in a short window", async ({ pag
     // and under-report the cap by exactly that much.
     const title = document.querySelector("#seam-more-title")!.getBoundingClientRect();
     const insetTop = title.top - scene.top;
-    const insetBottom = scene.bottom - list.bottom;
+    // The BOTTOM inset is the box's own padding, not the gap under the
+    // list: the writing shelf (components/landing/notes.tsx) sits between
+    // the list and the scene's foot now.
+    const more = document.querySelector("#seam-more")!;
+    const insetBottom = Number.parseFloat(getComputedStyle(more).paddingBottom);
     return {
       cap: 600 - insetTop - insetBottom,
       side: circle.height,

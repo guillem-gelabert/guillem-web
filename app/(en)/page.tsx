@@ -5,6 +5,7 @@ import { SmearTitle } from "@/components/smear-title";
 import { StorySlot } from "@/components/landing/story-slot";
 import { MoreWork } from "@/components/landing/more-work";
 import { LandingSeam } from "@/components/landing/landing-seam";
+import { Notes } from "@/components/landing/notes";
 
 // This route carries no client directive. Phase 1 marked whole pages as
 // Client Components to reach the scroll-trail hook; doing that here would
@@ -103,10 +104,16 @@ export default function Landing() {
           <StorySlot />
         </section>
       }
-      // Every piece after the first, on the mirrored scene below the fold.
-      // The section names itself (aria-label, in landing-seam.tsx); this
-      // slot is the list alone.
-      more={<MoreWork />}
+      // Every piece after the first, on the mirrored scene below the fold,
+      // then the writing shelf under it. The section names itself
+      // (aria-labelledby, in landing-seam.tsx); the shelf carries its own
+      // heading and region.
+      more={
+        <>
+          <MoreWork />
+          <Notes />
+        </>
+      }
     />
   );
 }
