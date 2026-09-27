@@ -18,45 +18,41 @@ test.beforeEach(async ({ page }) => {
   await page.evaluate(() => document.fonts.ready);
 });
 
-test("/writing renders two articles, the case study first, each h2 the sole link in its article", async ({
+test("/writing renders three articles, newest first, each h2 the sole link in its article", async ({
   page,
 }) => {
   const articles = page.locator("article");
-  await expect(articles).toHaveCount(2);
-  // A second entry brings the separator with it — the n>=2 index shape
+  await expect(articles).toHaveCount(3);
+  // One separator between each pair of entries — the n>=2 index shape
   // this file exists to prove costs no second render mode.
-  await expect(page.locator("hr")).toHaveCount(1);
+  await expect(page.locator("hr")).toHaveCount(2);
 
-  // FIRST: content/the-chart-therefore-changes.mdx, dated 2026-08-31 —
-  // newer than content/fixture.mdx's 2026-08-30, so byDateThenSlug sorts it
-  // ahead in dev (where showDrafts() makes the still-draft fixture visible
-  // too; production visibility of the case study is proven independently
-  // in tests/build/prerender.test.ts).
-  const first = articles.nth(0);
-  const firstH2 = first.locator("h2");
-  await expect(firstH2).toHaveClass(/text-display/);
-  await expect(firstH2).toHaveText("The Chart Therefore Changes");
-  const firstLinks = first.locator("a");
-  await expect(firstLinks).toHaveCount(1);
-  await expect(firstLinks.first()).toHaveAttribute(
-    "href",
-    "/writing/the-chart-therefore-changes",
-  );
-
-  // SECOND: the still-draft fixture.mdx — visible here only because
-  // Playwright runs against `npm run dev`.
-  const second = articles.nth(1);
-  const secondH2 = second.locator("h2");
-  await expect(secondH2).toHaveClass(/text-display/);
-  await expect(secondH2).toHaveText("A Working Fixture for the Prose Contract");
-  const secondLinks = second.locator("a");
-  await expect(secondLinks).toHaveCount(1);
-  await expect(secondLinks.first()).toHaveAttribute("href", "/writing/fixture");
+  // Order is byDateThenSlug, newest first:
+  // content/what-are-embeddings.mdx (2026-09-11), then
+  // content/the-chart-therefore-changes.mdx (2026-08-31), then the
+  // still-draft content/fixture.mdx (2026-08-30) — visible here only
+  // because Playwright runs against `npm run dev`, where showDrafts() is
+  // always true. Production visibility of the published entries is proven
+  // independently in tests/build/prerender.test.ts.
+  const expected = [
+    { title: "What Are Embeddings", href: "/writing/what-are-embeddings" },
+    { title: "The Chart Therefore Changes", href: "/writing/the-chart-therefore-changes" },
+    { title: "A Working Fixture for the Prose Contract", href: "/writing/fixture" },
+  ];
+  for (const [i, { title, href }] of expected.entries()) {
+    const article = articles.nth(i);
+    const h2 = article.locator("h2");
+    await expect(h2).toHaveClass(/text-display/);
+    await expect(h2).toHaveText(title);
+    const links = article.locator("a");
+    await expect(links).toHaveCount(1);
+    await expect(links.first()).toHaveAttribute("href", href);
+  }
 });
 
 // The tests below use article.first() — deliberately, and unchanged from
-// before this plan: with the case study now sorting first (see above), they
-// measure the case study's rendered markup rather than the fixture's. That
+// before this plan: with the newest post now sorting first (see above), they
+// measure that post's rendered markup rather than the fixture's. That
 // is a deliberate change of subject, not an accident: the "not a card" and
 // "standfirst weight 530" properties apply to every article the same way,
 // through the one shared markup path app/(en)/writing/page.tsx renders both
