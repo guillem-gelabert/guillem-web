@@ -314,6 +314,14 @@ simulator loads a plain-http dev server unstyled — proxy it with the header st
   contrast — `hoverStyle()` in `more-work.tsx` writes them inline. The gutters are
   `--edge` (with `--pair-ideal` cut to 32rem to keep 2/3/4 columns at 1440/1920/2560).
 
+- **Writing: "What Are Embeddings" is published** (2026-09-27) — `/writing/what-are-embeddings` is
+  live as prose only. The six interactives (port map, subpixel colour chooser, RGB cube, NES palette
+  quantiser, Wave Race riders, player radar + search) are still `{/* TODO */}` comments in
+  `content/what-are-embeddings.mdx`, and the Wirtz shortlist ships as a static table. Everything from
+  Wave Race on was rewritten against `voice.md` and `content/what-are-embeddings.skeleton.markdown`;
+  lines 1–54 got typo and compile fixes only. `tests/writing-index.spec.ts` now expects three entries
+  on `/writing`, newest first.
+
 ## Next
 
 - **v1.0 is complete.** The next action is the user's, not an executor's: fill the five values, do
