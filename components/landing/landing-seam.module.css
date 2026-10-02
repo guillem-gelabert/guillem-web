@@ -421,6 +421,18 @@
    both scenes resolve the same svh-based value from the branch below, so
    the two pivots agree. On desktop the hook clears its inline value and
    both read .scene's default. */
+/* The canvas that redraws the ink at one dot per CSS pixel
+   (components/landing/grain-ink.tsx). Until it has drawn, the PNG field
+   above is the ink; once it has, the field stays as geometry only — its
+   box and transform are what the canvas reads — and stops painting. */
+.grainInk {
+  image-rendering: pixelated;
+}
+
+.grain[data-ink="canvas"] .grainField {
+  visibility: hidden;
+}
+
 .sceneMirrored .grainField {
   top: calc(100lvh - var(--gradient-center-y));
   transform: scaleY(-1) rotate(var(--seam-angle, 50deg));

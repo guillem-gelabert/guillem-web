@@ -3,6 +3,7 @@
 import { useRef, type ReactNode } from "react";
 import { useSeamAlignment } from "@/components/seam/use-seam-alignment";
 import { useVisibleHeight } from "@/components/seam/use-visible-height";
+import { GrainInk } from "./grain-ink";
 import styles from "./landing-seam.module.css";
 
 type LandingSeamProps = {
@@ -49,6 +50,9 @@ export function LandingSeam({
     <div className={`seam-grain ${styles.grain}`} aria-hidden="true">
       <div className={`seam-grain-base ${styles.grainBase}`} />
       <div className={`seam-grain-field ${styles.grainField}`} />
+      {/* The same ink at one dot per CSS pixel, drawn once hydrated; the
+          field above is the first paint and the geometry it reads. */}
+      <GrainInk className={`seam-grain-ink ${styles.grainInk}`} />
     </div>
   );
 

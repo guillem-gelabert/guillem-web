@@ -195,7 +195,12 @@ is held to exactly three two-field items by `tests/unit/backlog.test.ts`, and th
 No thumbnails generated; circles without a shot stay a flat fill. The sphere shading over both circles is no longer the 150/280px PNGs
 (1.4–2.6 CSS px per dot on a desktop): `components/landing/sphere-shading.tsx` computes the shadow
 (Lambert, light at 230°/65°) and the highlight (elliptical blob) — both fitted to the old maps — and
-Floyd–Steinberg dithers them on a canvas at the circle's own width, one dot per CSS pixel.
+Floyd–Steinberg dithers them on a canvas at the circle's own width, one dot per CSS pixel. The seam background does the same
+(`components/landing/grain-ink.tsx`): the PNG is still the first paint, then a canvas redraws the
+ramp (measured off the PNG: ink density by angle only) at one dot per CSS pixel, reading the pivot
+and rotation off `.grainField`'s box and transform — so the seam still turns with the aspect ratio
+and the mirrored scene's flip comes for free. Both dithers jitter the threshold slightly (seeded)
+to break Floyd–Steinberg's lattice.
 
 
 - **Landing writing** (2026-09-25) — three posts, three TILs and one book review as pairs in the

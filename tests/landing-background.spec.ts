@@ -411,3 +411,57 @@ test.describe("landing background", () => {
     await touch.close();
   });
 });
+
+// The ink is redrawn on a canvas at one dot per CSS pixel once hydrated
+// (components/landing/grain-ink.tsx); the PNG field is the first paint and
+// the geometry the canvas reads, and stops painting after. The PNG's dots
+// are 2600px over 250vmax — they grew with the window and were the same
+// size on a retina screen as on a 1x one.
+test("redraws the ink at one dot per CSS pixel, on the PNG's own ramp", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  await page.waitForFunction(() => document.querySelectorAll('.seam-grain[data-ink="canvas"]').length === 2);
+
+  const scenes = await page.evaluate(() =>
+    Array.from(document.querySelectorAll<HTMLElement>(".seam-grain")).map((grain) => {
+      const canvas = grain.querySelector("canvas.seam-grain-ink") as HTMLCanvasElement;
+      const field = grain.querySelector(".seam-grain-field") as HTMLElement;
+      // Ink density in a 40px box, at a point given in the PNG's own frame:
+      // `degrees` clockwise from twelve o'clock, 300 CSS px from the pivot.
+      const fieldBox = field.getBoundingClientRect();
+      const grainBox = grain.getBoundingClientRect();
+      const pivot = { x: fieldBox.left + fieldBox.width / 2 - grainBox.left, y: fieldBox.top + fieldBox.height / 2 - grainBox.top };
+      const matrix = new DOMMatrixReadOnly(getComputedStyle(field).transform);
+      const context = canvas.getContext("2d")!;
+      const density = (degrees: number) => {
+        const t = (degrees * Math.PI) / 180;
+        const local = new DOMPoint(300 * Math.sin(t), -300 * Math.cos(t));
+        const p = matrix.transformPoint(local);
+        const x = Math.round(pivot.x + p.x - 20);
+        const y = Math.round(pivot.y + p.y - 20);
+        const data = context.getImageData(x, y, 40, 40).data;
+        let ink = 0;
+        for (let i = 3; i < data.length; i += 4) if (data[i] > 0) ink += 1;
+        return ink / (data.length / 4);
+      };
+      return {
+        canvas: [canvas.width, canvas.height],
+        css: [grain.clientWidth, grain.clientHeight],
+        rendering: getComputedStyle(canvas).imageRendering,
+        fieldVisibility: getComputedStyle(field).visibility,
+        justClockwise: density(20),
+        justBefore: density(340),
+      };
+    }),
+  );
+
+  for (const scene of scenes) {
+    expect(scene.canvas).toEqual(scene.css);
+    expect(scene.rendering).toBe("pixelated");
+    expect(scene.fieldVisibility).toBe("hidden");
+    // The ramp in the PNG's frame: dense ink just clockwise of the seam
+    // (~0.96 at 20deg), sparse just before it (~0.18 at 340deg).
+    expect(scene.justClockwise).toBeGreaterThan(0.85);
+    expect(scene.justBefore).toBeLessThan(0.3);
+  }
+});

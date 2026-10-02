@@ -255,6 +255,9 @@ test("each pair is a circle beside a square of the same side, on one row at 1440
   // One real project ships today, and a checkerboard needs rows. Stand up
   // five copies of that pair (three rows at two columns); the row script in
   // pair-rows.tsx re-marks on the list's resize, so wait for a flipped row.
+  // After hydration, or React's hydration pass throws the clones away: the
+  // background canvas having drawn (grain-ink.tsx) means effects have run.
+  await page.waitForFunction(() => document.querySelectorAll('.seam-grain[data-ink="canvas"]').length === 2);
   await page.evaluate(() => {
     const list = document.querySelector("#seam-more ol") as HTMLElement;
     const pair = list.firstElementChild!;

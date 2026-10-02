@@ -70,13 +70,14 @@ function draw(canvas: HTMLCanvasElement, kind: "shadow" | "highlight") {
   }
 
   const image = context.createImageData(size, size);
+  const random = mulberry32(kind === "shadow" ? 0x5ad0 : 0x419);
   for (let y = 0; y < size; y += 1) {
     const forward = y % 2 === 0;
     for (let i = 0; i < size; i += 1) {
       const x = forward ? i : size - 1 - i;
       const index = y * size + x;
       const old = values[index];
-      const next = old >= 0.5 ? 1 : 0;
+      const next = old >= 0.5 + (random() - 0.5) * JITTER ? 1 : 0;
       const error = old - next;
       const step = forward ? 1 : -1;
       if (x + step >= 0 && x + step < size) values[index + step] += (error * 7) / 16;
@@ -94,6 +95,20 @@ function draw(canvas: HTMLCanvasElement, kind: "shadow" | "highlight") {
     }
   }
   context.putImageData(image, 0, 0);
+}
+
+// Plain Floyd-Steinberg settles into a regular lattice in very light and very
+// dark areas. A small jitter on the threshold breaks it up; seeded, so the
+// pattern is the same on every load.
+const JITTER = 0.18;
+
+function mulberry32(seed: number) {
+  return () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
 }
 
 type SphereShadingProps = {
