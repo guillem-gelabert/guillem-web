@@ -2,6 +2,7 @@
 
 import { useRef, type ReactNode } from "react";
 import { useSeamAlignment } from "@/components/seam/use-seam-alignment";
+import { useVisibleHeight } from "@/components/seam/use-visible-height";
 import styles from "./landing-seam.module.css";
 
 type LandingSeamProps = {
@@ -37,6 +38,7 @@ export function LandingSeam({
   const seamEndRef = useRef<HTMLDivElement>(null);
 
   useSeamAlignment(sceneRef, seamStartRef, seamEndRef);
+  useVisibleHeight();
 
   // Rendered once per section: the paper, and the ink the dither cuts
   // into. It was six layers — four turbulence fields multiplying into

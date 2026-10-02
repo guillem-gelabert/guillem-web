@@ -165,6 +165,12 @@ as plain grain) so plain grain sits between fade and name. Chrome, Firefox and E
 instead of 0.019em, because the hard edge against their dark bar reads tighter. Checked in the
 iPhone 17 Pro simulator (iOS 26.5); Chrome on iOS needs a phone check.
 
+The toolbar band is `100lvh` minus the **measured** visible height
+(`components/seam/use-visible-height.ts`, the smallest `visualViewport.height` seen) rather than
+`100svh`: some iOS loads report svh taller than the visible area, which put the "New story" badge
+under Chrome's toolbar. The story corner shrinks to fit, with the disc held above 110px. Checked on
+the 17 Pro and 12 mini simulators and Chrome on a 17 Pro.
+
 
 - **Landing writing** (2026-09-25) — three posts, three TILs and one book review as pairs in the
   PROJECTS grid, after the projects (`lib/notes.ts`, rendered by `more-work.tsx`). Lorem ipsum,

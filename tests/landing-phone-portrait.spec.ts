@@ -290,3 +290,54 @@ test("Chrome on iOS is flagged out of the Safari treatment and gets more room ab
   expect(safari.marginTop / safari.fontSize).toBeCloseTo(0.019, 3);
   expect(chrome.marginTop / chrome.fontSize).toBeCloseTo(0.04, 3);
 });
+
+// The toolbar band is 100lvh minus the MEASURED visible height
+// (components/seam/use-visible-height.ts), not 100svh, because some iOS loads
+// report svh taller than what is on screen. Chromium cannot produce that
+// mismatch, so the second half stands one up: a visible height 120px short
+// of the viewport, as if a toolbar covered it, and the story — badge
+// included — must still end above it at a usable size.
+test("the story corner fits above the measured visible height", async ({ browser }) => {
+  const context = await browser.newContext({
+    viewport: { width: 402, height: 874 },
+    hasTouch: true,
+    isMobile: true,
+  });
+  const page = await context.newPage();
+
+  try {
+    await page.goto("/");
+    await page.evaluate(() => document.fonts.ready);
+    // The hook runs after hydration, which can land after "load".
+    await page.waitForFunction(
+      () => document.documentElement.style.getPropertyValue("--visible-height") !== "",
+    );
+
+    const written = await page.evaluate(() => ({
+      token: document.documentElement.style.getPropertyValue("--visible-height"),
+      visible: window.visualViewport!.height,
+    }));
+    expect(written.token).toBe(`${written.visible}px`);
+
+    const covered = 120;
+    await page.addStyleTag({
+      content: `:root { --visible-height: calc(100svh - ${covered}px) !important; }`,
+    });
+    await page.evaluate(() => new Promise(requestAnimationFrame));
+
+    const rects = await page.evaluate(() => {
+      const read = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
+      return {
+        innerHeight: window.innerHeight,
+        story: read("#seam-case-study").bottom,
+        badge: read(".seam-new-story").bottom,
+        shot: read(".seam-shot").width,
+      };
+    });
+    expect(rects.story).toBeLessThanOrEqual(rects.innerHeight - covered);
+    expect(rects.badge).toBeLessThanOrEqual(rects.innerHeight - covered);
+    expect(rects.shot).toBeGreaterThan(MIN_DISC_PX);
+  } finally {
+    await context.close();
+  }
+});

@@ -35,13 +35,17 @@
   --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
-  /* Safari's bottom toolbar, which is browser chrome, not a safe area: the
-     band of the large viewport that the small viewport excludes. 0 wherever
-     there is no collapsing chrome. The scene is 100lvh, so its bottom edge
-     sits under the toolbar; --edge-bottom adds this band on a phone so the
-     story corner stops above it while the grain runs on underneath. A token
-     for the same testability reason as --safe-*. */
-  --chrome-bottom: calc(100lvh - 100svh);
+  /* The browser's bottom toolbar, which is chrome, not a safe area: the band
+     of the large viewport that is not visible. 0 wherever there is no
+     collapsing chrome. The scene is 100lvh, so its bottom edge sits under the
+     toolbar; --edge-bottom adds this band on a phone so the story corner
+     stops above it while the grain runs on underneath.
+
+     --visible-height is the measured visible height
+     (components/seam/use-visible-height.ts); 100svh is the same thing in
+     theory and the fallback before JavaScript, but some iOS loads report it
+     too tall. A token for the same testability reason as --safe-*. */
+  --chrome-bottom: calc(100lvh - var(--visible-height, 100svh));
   /* The viewport's own proportion as a plain number: >1 landscape, 1
      square, <1 portrait. --nameplate-width and --aside-ratio both read it,
      and it has to be declared before them. */
