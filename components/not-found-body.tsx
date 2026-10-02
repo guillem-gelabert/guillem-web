@@ -13,7 +13,7 @@ type NotFoundBodyProps = {
 // copies of two locales is how the German drifts — this is the one source.
 export function NotFoundBody({ locale }: NotFoundBodyProps) {
   return (
-    <main className="flex min-h-screen flex-col justify-center gap-md px-lg">
+    <main className="mx-auto flex w-full max-w-page min-h-screen flex-col justify-center gap-md px-lg">
       <SmearTitle as="h1" className="text-heading">
         {UI[locale].notFoundHeading}
       </SmearTitle>

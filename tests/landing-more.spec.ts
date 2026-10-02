@@ -321,23 +321,54 @@ test("each pair is a circle beside a square of the same side, on one row at 1440
   }
 });
 
-test("the background is mirrored, the content is not", async ({ page }) => {
+test("the background is mirrored across the fold, the content is not", async ({ page }) => {
   // The flip used to sit on the section, which would turn any content
-  // inside it upside down. It lives on the grain now: the section itself
-  // has no transform, and the grain carries exactly scaleY(-1).
+  // inside it upside down; then on the grain, as a scaleY(-1) about the
+  // grain's own centre, which is a reflection across the fold only while
+  // this scene is exactly one screen tall — on a phone it is taller and the
+  // seam broke at the fold. It lives on the ink FIELD now: a reflection
+  // (determinant -1) composed with the seam's rotation, about a pivot placed
+  // where the first scene's pivot reflects to. The section, the grain and
+  // the list carry no transform.
   const transforms = await page.evaluate(() => {
+    const first = document.querySelector("#seam-scene") as HTMLElement;
     const scene = document.querySelector("#seam-scene-mirrored") as HTMLElement;
     const grain = scene.querySelector(".seam-grain") as HTMLElement;
     const list = scene.querySelector("ol") as HTMLElement;
+    const det = (el: Element) => {
+      const m = new DOMMatrixReadOnly(getComputedStyle(el).transform);
+      return m.a * m.d - m.b * m.c;
+    };
+    const pivot = (root: HTMLElement) => {
+      const field = root.querySelector(".seam-grain-field") as HTMLElement;
+      const f = field.getBoundingClientRect();
+      const r = root.getBoundingClientRect();
+      // The field is a square centred on its pivot; the transform is about
+      // that centre, so the bounding box's centre IS the pivot.
+      return f.top + f.height / 2 - r.top;
+    };
     return {
       scene: getComputedStyle(scene).transform,
       grain: getComputedStyle(grain).transform,
       list: getComputedStyle(list).transform,
+      firstFieldDet: det(first.querySelector(".seam-grain-field")!),
+      mirroredFieldDet: det(grain.querySelector(".seam-grain-field")!),
+      firstPivot: pivot(first),
+      mirroredPivot: pivot(scene),
+      firstHeight: first.getBoundingClientRect().height,
     };
   });
   expect(transforms.scene).toBe("none");
-  expect(transforms.grain).toBe("matrix(1, 0, 0, -1, 0, 0)");
+  expect(transforms.grain).toBe("none");
   expect(transforms.list).toBe("none");
+  // A rotation keeps orientation; a rotation composed with one flip reverses it.
+  expect(transforms.firstFieldDet).toBeCloseTo(1, 3);
+  expect(transforms.mirroredFieldDet).toBeCloseTo(-1, 3);
+  // The pivots are mirror images across the fold: as far below it as the
+  // first one is above it.
+  expect(
+    Math.abs(transforms.mirroredPivot - (transforms.firstHeight - transforms.firstPivot)),
+  ).toBeLessThanOrEqual(1);
 });
 
 test("the grid fills the scene inside its insets and the first pair starts at the top-left", async ({
@@ -372,8 +403,10 @@ test("the grid fills the scene inside its insets and the first pair starts at th
 
 // Columns from the width AND the count. The track minimum is
 // clamp(max(22%, (100% - gaps) / count), 36rem, 100%): the width alone
-// would give a phone one column, 1440 two, 1920 three and 2560 four, never
-// five — and the count caps that at the number of pairs, so one piece is
+// would give a phone one column and 1440 two. Past --container-page (96rem)
+// the list stops growing — the boxed layout's --page-inset takes the rest —
+// so 1920 and 2560 stay at two as well. The count caps that at the number
+// of pairs, so one piece is
 // one column everywhere. WORK holds two pieces today (one pair), so the
 // width half of the rule is exercised by writing other counts into the
 // same custom property the component sets, and reading the columns back.
@@ -381,8 +414,8 @@ const COLUMNS = [
   { width: 393, height: 852, fit: 1, phone: true },
   { width: 1366, height: 768, fit: 2, phone: false },
   { width: 1440, height: 900, fit: 2, phone: false },
-  { width: 1920, height: 1080, fit: 3, phone: false },
-  { width: 2560, height: 1440, fit: 4, phone: false },
+  { width: 1920, height: 1080, fit: 2, phone: false },
+  { width: 2560, height: 1440, fit: 2, phone: false },
 ];
 const COUNTS = [1, 2, 3, 4, 6];
 

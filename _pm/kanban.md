@@ -121,98 +121,12 @@ duplicate `.planning/`'s detail. Update the three lists below when a phase or pl
   side on phones, where white type disappears; it predates this change and this change shrank it at
   every narrow viewport measured, but it is not fixed.
 
-### iPhone: the glass behind the status bar, and the story over the tagline — 2026-09-12
+### Landing: the story over the tagline — 2026-09-12
 
-Two defects from an iPhone 17 Pro: **white slabs** behind the Dynamic Island and the URL bar, and
-the featured story's curved title printed **through the tagline**.
-
-The first was the **fifth pass at the same bug**, and the reason it kept coming back is that none
-of the previous four left a record — `.planning/` had nothing on the status bar, safe areas,
-`viewport-fit` or the app-shell, so each attempt was re-derived from Chrome, which
-**structurally cannot reproduce any of it** (`env(safe-area-inset-*)` is `0px` there and lvh, svh
-and dvh all resolve the same). `.planning/quick/260912-ios-…/` is the record this time.
-
-The two bands were never one bug. The bottom one is `.scene { height: 100dvh }` stopping short of
-the screen, fixed by `100lvh` in `6085eee`; the top one is the canvas, which only shows at rest.
-**`fb8613d` and `7f4f771` undid both on the same day** — the first locking the document and
-deleting `--color-seam-canvas` on the reasoning that the lock made colour irrelevant (it makes
-colour the *only* thing that shows), the second setting the scene back to `100dvh`. Invisible then:
-`--gradient-tint` was `#ffefe0`, and the same day's repaint to grey riso is what turned white-on-
-cream into a slab.
-
-**The document scrolls again**, so the strip shows the page through the glass — which is what
-`viewport-fit=cover`'s own comment has claimed all along, and what `fb8613d` named while
-implementing its opposite. The moving tone while scrolling is the accepted cost of see-through.
-`#scroll-root` and `scroll-root.ts` are gone; `window.scrollY` is the origin again.
-
-The rule that replaces the lock: **paint reaches `lvh`, geometry sits in `svh`**. The grain covers
-the safe-area bands; the gradient's origin and every box stay in the viewport that does not move
-when iOS collapses its toolbar. `dvh` was only ever stable *because* the lock prevented that
-collapse. And since the scene's bottom edge is now behind the URL bar, `--edge-bottom` carries
-`--chrome-bottom: calc(100lvh - 100svh)` so content stops at the bar while paint runs past it.
-
-The story's cap divides the room it has by **`(--arc-scale + 1) / 2`, not `--arc-scale`** — the
-ring of type is centred on the box, so only half its excess hangs above — and the box's own padding
-supplies the gap, since cq units resolve against the content box. Disc 163px on the reported
-device, 27px clear of the tagline.
-
-**The load-bearing change is testability.** `env()` and `calc(100lvh - 100svh)` now sit behind
-`--safe-*` and `--chrome-bottom`, so `tests/landing-phone-portrait.spec.ts` can set what a device
-reports. Verified as a negative control: with the cap removed it fails at **−119px of overlap**,
-and at 0px insets it passes by 120px — without the indirection the spec would have been vacuous,
-which is precisely how this bug survived four fixes. Playwright 185/15 against a 181/15 baseline:
-same fifteen pre-existing failures, four new passes.
-
-**One thing still open**, and only a phone can close it: `fb8613d` says the strip shows the root
-colour at `scrollY === 0`, `d8bc1f3` says the grain shows through. Never settled — `e7745c2`
-overrode `d8bc1f3` fourteen minutes later, verifying by sampling pixels rather than on a device.
-This follows `d8bc1f3` and paints no canvas colour.
-
-### The status-bar strip at rest: a scroll runway — 2026-09-12
-
-Follow-up to the fix above, from the device. Three of its four counts were right; the fourth was
-the strip behind the Dynamic Island **at the top of the page only** — white before you scroll,
-correct the moment you do.
-
-I had called that strip unavoidably flat, and said the only question was which colour to paint it.
-**Wrong, and wrong in a way that would have shipped a worse fix.** Safari composites real page
-pixels behind the status area once the document has **non-zero scroll**; the flat colour is only
-the `scrollY === 0` fallback (Safari 26 takes it from a fixed/sticky element near the viewport
-edge, else `<body>`). So the answer is not a better colour — it is not being at zero.
-
-**A scroll runway**: `1rem` of paper above the composition, scrolled past on load. The offset and
-the scroll cancel, so nothing moves on screen — `#seam-scene` still measures `top: 0` — but the
-document is at non-zero scroll from the first paint and the strip has pixels to composite. The
-other half of the technique was already in place: the scene is `100lvh` with `.grain` at
-`inset: 0`, so the composition bleeds past the visual viewport.
-
-Two things the implementation had to get right that the plan did not anticipate. The runway is the
-scene's **sibling**, so it inherits nothing `.scene` declares — neither `--runway` nor the paper
-colour. `--runway` moved onto `.runway` itself (and `use-scroll-runway.ts` reads the resolved
-height off that element, so layout and JS cannot drift), and the paper literal moved up to a
-`.landing` class on `<main>` that `.scene` and `.runway` both read, rather than being written
-twice. The runway is painted paper rather than left transparent for the one case where it is ever
-seen: if a device ignores `overscroll-behavior: none`, a pull-down should reveal more of the
-composition, not the white canvas this whole thread is about.
-
-`tests/landing-trail.spec.ts`'s exact-page-height assertion now names the runway as its one
-legitimate extra rather than widening its tolerance to swallow it — the 1678px of empty scroll it
-once caught is exactly what a looser slack would stop catching. The new assertions in
-`tests/landing-phone-portrait.spec.ts` are both halves of the mechanism (`scrollY` equals the
-runway; the hero's top is still viewport `0`), and they are load-bearing: commenting the effect out
-fails them at `scrollY` 0 against an expected 16.
-
-Suite unchanged at 185/15 Playwright, 153/3 unit, 30/4 build, lint 1 error + 1 warning — all the
-same pre-existing failures.
-
-**One state stays imperfect**, and it is a real gesture: tapping the status bar scrolls to top,
-which returns to `scrollY === 0` and the white strip until the next scroll. The sources pair the
-runway with a fallback canvas colour for exactly that; deliberately not added, per the standing
-decision not to paint it.
-
-**Sourcing caveat.** The primary write-ups on Safari 26's Liquid Glass tinting were blocked by the
-session's egress proxy, so this is search-result synthesis corroborated across two queries and
-consistent with `fb8613d`'s and `8b0003e`'s own on-device notes. The phone is the only real test.
+The featured story's curved title printed through the tagline on a 402x874 iPhone. The story's cap
+divides the room it has by **`(--arc-scale + 1) / 2`, not `--arc-scale`** — the ring of type is
+centred on the box, so only half its excess hangs above — and the box's own padding supplies the
+gap, since cq units resolve against the content box. `tests/landing-phone-portrait.spec.ts` holds it.
 
 ### Landing: the featured story loses its standfirst — 2026-09-12
 
@@ -235,69 +149,18 @@ box except the disc stays flat, and dropping a line shrinks what it proves.
 
 Geometry unchanged, measured: disc 163px, 27px clear of the tagline, arc type 17.4px on a 17 Pro —
 everything in that corner is absolutely positioned, so removing an in-flow sibling moved nothing.
-Badge clearance above the URL bar 34px on the notched phones, 9px on an SE. Suite back at its
-baseline 185/15 after the two fixes (one run showed a third failure at 393x852; 16/16 on repeat, a
+Suite back at its baseline 185/15 after the two fixes (one run showed a third failure at 393x852; 16/16 on repeat, a
 flake).
 
-### The scroll runway is reverted — 2026-09-12
+### Landing: safe areas on iOS Safari — 2026-10-02
 
-Seen on the phone: the runway itself was **visible**, a light band of paper between the status bar
-and the composition. Obvious in hindsight and the reason is in the entry above — the runway is
-`--gradient-tint` paper, the composition's top edge there is mostly `#555555` ink, so a strip of
-paper against ink reads as a band. It traded a white bar at the top for a grey one.
+Background full-bleed, content safe: the grain paints to the physical edges, only the two corner
+stacks read `env(safe-area-inset-*)`, and the story corner adds Safari's toolbar band
+(`--chrome-bottom`) so it stops above the URL bar. Unscrolled, iOS Safari shows the body colour
+in the strip behind the status bar, not the page, so on a phone running iOS WebKit
+(`@supports (-webkit-touch-callout: none)`) the body is white and the first scene's grain fades
+to white over its top 4rem. Checked in the iPhone 17 Pro simulator (iOS 26.5); needs a phone check.
 
-The mechanism worked; the material was wrong. Two states also kept returning the page to `scrollY`
-0 — a status-bar tap, and any scroll back to the top — and at 0 the spacer is simply 16px of
-visible nothing above the composition. A runway is only invisible if you can never rest on it, and
-nothing here guaranteed that.
-
-Reverted whole: `use-scroll-runway.ts`, the `.runway` and `.landing` rules, the `--seam-paper`
-hoist, the `<main>` class, and the two test changes that served them. `--gradient-tint` goes back
-to its literal on `.scene`. The revert conflicted only in this file, and was resolved by keeping
-the history rather than deleting it — the entry above stands, this one says what happened next.
-`tests/landing-trail.spec.ts` auto-merged correctly: the height assertion drops its runway term,
-and the badge witness that replaced the standfirst survives.
-
-**Back to the state after the glass fix**, which is the accepted one: the status-bar strip is white
-at the very top of the page and shows the composition the moment you scroll. That is iOS's own
-fallback at `scrollY` 0 and there is no way to reach it with layout — only a canvas colour, which
-is ruled out.
-
-Suite at baseline: 185/15 Playwright, 153/3 unit, 30/4 build, lint unchanged.
-
-### 2026-09-13 — five iOS Safari defects on the landing, measured in the iPhone 17 Pro simulator
-
-Reported from the simulator (iOS 26.5): white bands top and bottom, the gradient inverted, the
-NEW STORY badge clipped at its foot, the disc's dither moiréd, and PROJECTS peeking above the
-fold. Each was reproduced on the simulator against a local server and bisected with reduced
-pages before anything was changed. Four root causes, none of them in Chrome:
-
-- **viewport-fit=cover is not honoured on a fresh launch** (layout viewport 816 of 874pt,
-  `env(safe-area-inset-*)` all 0), and `overscroll-behavior: none` on the document switches it
-  off even mid-session (874 → 754). So the status-bar strip is painted by the canvas, whatever
-  the composition does. The overscroll lock is removed and the canvas is the seam's paper,
-  `html:has(.seam-scene) { background: #f2f2f2 }`. "A canvas colour is ruled out" above was
-  about a colour that did not match the top edge; this one is the top-left corner's own tone.
-- **WebKit ignores `mask-mode: luminance` when `-webkit-mask-image` is also declared**, and
-  decodes a 1-bit grayscale PNG as a stencil with black as the painted value — the gradient came
-  out with the same geometry and the colours swapped. `seam-dither-desktop.png` is now a two-entry
-  palette with the black entry transparent (same 651KB), read by alpha everywhere; `mask-mode`
-  is gone from the stylesheet and the test now pins `match-source`.
-- **WebKit clips the absolutely positioned descendants of any `container-type` box at its border
-  edge.** `.boxCaseStudy` is `container-type: normal` now and derives `--disc-size` from the
-  tokens that set its box (`--box-width`, `--nameplate-height`, `--box-padding`); every `50cqh`
-  anchor in it became `50%`, which `.content`'s `height: 100%` makes equivalent.
-- **The sphere maps were 467px**, 0.48 CSS px per dot on a phone — 1.45 device px, so
-  nearest-neighbour printed alternating 1px/2px dots and the two maps beat against each other.
-  Regenerated from the originals at 150px (1x) and 280px (2x+) via `srcSet`, near the seam's own
-  ~2.5 device px per dot.
-- PROJECTS: iOS draws the document through the toolbar's glass past the layout viewport, so
-  `.more` gets `padding-top: max(--edge-top, --chrome-bottom + 3rem)`.
-
-Findings the next attempt should not re-derive: the cover/no-cover state in this Safari is
-per-navigation and inconsistent (three viewport heights seen for identical pages), so the layout
-has to look right in all of them; Chrome's dev CSP `upgrade-insecure-requests` is why the
-simulator loads a plain-http dev server unstyled — proxy it with the header stripped.
 
 - **Landing writing** (2026-09-25) — three posts, three TILs and one book review as pairs in the
   PROJECTS grid, after the projects (`lib/notes.ts`, rendered by `more-work.tsx`). Lorem ipsum,

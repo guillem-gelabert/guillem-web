@@ -69,7 +69,7 @@ export default function GlobalNotFound() {
     >
       <body>
         <SmearHeadingProvider>
-          <main className="flex min-h-screen flex-col justify-center gap-md px-lg">
+          <main className="mx-auto flex w-full max-w-page min-h-screen flex-col justify-center gap-md px-lg">
             <SmearTitle as="h1" className="text-heading">
               {UI.en.notFoundHeading}
             </SmearTitle>

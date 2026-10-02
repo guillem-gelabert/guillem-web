@@ -22,8 +22,7 @@ test("type specimen overflows the viewport so a visitor can actually scroll it",
   await page.goto("/type");
   await page.evaluate(() => document.fonts.ready);
 
-  // Through ./scroll-root, which names the app-shell's scroller — the
-  // document today (app/globals.css), #scroll-root while it was locked.
+  // Through ./scroll-root, which names the scroller (the document).
   const { scrollHeight, viewportHeight } = await readOverflow(page);
 
   // Comfortably more than one screen — not merely a pixel over.

@@ -39,7 +39,7 @@ export const metadata: Metadata = {
 
 export default function CvPage() {
   return (
-    <main className="flex flex-col gap-3xl px-lg py-3xl">
+    <main className="mx-auto flex w-full max-w-page flex-col gap-3xl px-lg py-3xl">
       <header className="flex flex-col gap-2xl">
         {/* WCAG 2.5.8: a Label-role line box alone measures 18.2px, under
             the 24px target floor. inline-block + py-xs (4px) takes it to

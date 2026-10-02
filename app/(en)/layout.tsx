@@ -6,13 +6,9 @@ import { SmearHeadingProvider } from "@/components/smear-heading/smear-heading-p
 import { rootMetadata } from "@/lib/metadata";
 import "../globals.css";
 
-// viewport-fit=cover is what lets the landing seam reach the physical
-// edges of a notched iPhone. Without it iOS letterboxes the page inside the
-// safe area and the gradient stops short of the notch and the home
-// indicator. The seam deliberately runs under both — components/landing/
-// landing-seam.module.css takes no safe-area insets — so this and that are
-// a pair: setting one without the other gets a composition that is either
-// letterboxed or padded away from the edges it is meant to touch.
+// viewport-fit=cover: the landing seam paints edge to edge on a notched
+// iPhone. Only the content stacks in components/landing/landing-seam.module.css
+// read env(safe-area-inset-*); backgrounds take no insets.
 export const viewport: Viewport = {
   viewportFit: "cover",
 };

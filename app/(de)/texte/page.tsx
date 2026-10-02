@@ -35,7 +35,7 @@ export default async function WritingIndex() {
   const entries = await publishedFor(locale);
 
   return (
-    <main className="flex flex-col gap-2xl px-lg py-3xl">
+    <main className="mx-auto flex w-full max-w-page flex-col gap-2xl px-lg py-3xl">
       {/* Amendment A2: the site-root back link the contents nav's Writing
           entry creates a need for. hrefLang="en" is a literal "en", not
           otherLocale(locale) — this is a fixed crossing to an English-only

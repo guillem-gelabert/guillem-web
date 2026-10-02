@@ -32,7 +32,7 @@ export const metadata: Metadata = {
 
 export default function TypeSpecimen() {
   return (
-    <main className="flex flex-col gap-3xl px-lg py-3xl">
+    <main className="mx-auto flex w-full max-w-page flex-col gap-3xl px-lg py-3xl">
       <section className="flex flex-col gap-sm">
         <p className="text-label">Display</p>
         <SmearTitle as="h1" className="text-display">

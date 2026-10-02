@@ -10,58 +10,37 @@
      it. max(), so the wider edge still wins on a large desktop. */
   --edge-top: max(var(--edge), 4rem);
   --edge-bottom: var(--edge);
-  --edge-right: var(--edge);
-  /* PAINT REACHES lvh, GEOMETRY SITS IN svh. The one rule every viewport
-     unit in this file follows, and the reason none of them is dvh.
-     -----------------------------------------------------------------------
-     lvh is the viewport that spans the safe-area bands, so the grain — and
-     only the grain — is sized in it and runs to the physical edges of the
-     screen under the notch and the home indicator.
+  /* The boxed layout: past --container-page (app/globals.css, the same cap
+     every other route's <main> carries) the two sides take up the extra
+     width, so the stacks and the projects grid sit inside a centred frame
+     while .grain still paints the full scene. Zero below the cap. Sides
+     only — the top and bottom insets are about the viewport's height. */
+  --page-inset: max(0px, (100vw - var(--container-page)) / 2);
+  --edge-left: calc(var(--edge) + var(--page-inset));
+  --edge-right: calc(var(--edge) + var(--page-inset));
+  /* Paint is full-bleed, content is safe. The scene and its .grain paint to
+     the physical edges (viewport-fit=cover in the root layouts, 100lvh
+     below); only the two corner stacks read the safe-area tokens, through
+     their --edge-* insets in the phone block at the end of this file.
 
-     Everything a person has to SEE in a fixed place is svh: the box
-     geometry, and above all the gradient's origin. svh assumes the browser's
-     toolbar is expanded, so it is the one viewport that does not change when
-     iOS collapses that toolbar mid-scroll, and the one that is never behind
-     it. These were all dvh while the document was locked, where it made no
-     difference because a locked document never collapses the toolbar (iOS
-     does that on DOCUMENT scroll). The document scrolls again, so dvh would
-     now drag the pivot up the screen as you scroll and take the whole
-     composition with it — the seam angle is derived from that origin. */
-  /* The four safe-area insets, named once, as tokens with env() inside
-     them rather than env() spelled out at each use.
-     -----------------------------------------------------------------------
-     This is the indirection that makes any of the phone layout TESTABLE.
-     Chromium reports every env(safe-area-inset-*) as 0px and resolves lvh,
-     svh and dvh to the same number, so a headless run has no notch, no home
-     indicator and no toolbar — which is why five successive attempts at the
-     safe-area bands (6085eee, 8b0003e, d8bc1f3, e7745c2, fb8613d) were all
-     reasoned about from Chrome and all shipped a band. Behind a custom
-     property a test can set the inset a real device reports and measure what
-     the composition then does; behind a bare env() it cannot.
-
-     tests/landing-phone-portrait.spec.ts is the caller: it sets these to an
-     iPhone 17 Pro's values and asserts the story clears the tagline, which
-     is a collision that DOES NOT HAPPEN at 0px insets. Nothing else should
-     override them — env() is the real source on a device. */
+     Geometry a person has to see in a fixed place — the boxes and the
+     gradient's origin — is svh. svh assumes the browser's toolbar is
+     expanded, so it does not change when Safari collapses the toolbar
+     mid-scroll and is never behind it; dvh would drag the pivot, and the
+     seam angle derived from it, up the screen as you scroll. */
+  /* The hardware safe-area insets, named once. Chromium reports every
+     env(safe-area-inset-*) as 0px, so a test sets these to a device's values
+     (tests/landing-phone-portrait.spec.ts); nothing else overrides them. */
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
-  /* The band at the BOTTOM of the large viewport that the browser's own
-     toolbar covers — Safari's URL bar on a phone. lvh spans it, svh does
-     not, so their difference is its height, and it is 0 wherever there is
-     no collapsing chrome (every desktop browser, and Chromium always).
-
-     This is the hinge of the whole phone layout. The scene is 100lvh so the
-     grain reaches the physical screen edges, which means the scene's own
-     bottom edge is UNDER the toolbar — so anything positioned against that
-     edge is under it too. --edge-bottom carries this band on a coarse
-     pointer for exactly that reason: paint runs to lvh, content stops at
-     the toolbar.
-
-     A token, not the calc() inline, for the same reason as --safe-* above:
-     Chromium resolves lvh and svh identically, so a test can only
-     reproduce a phone's chrome by setting this. */
+  /* Safari's bottom toolbar, which is browser chrome, not a safe area: the
+     band of the large viewport that the small viewport excludes. 0 wherever
+     there is no collapsing chrome. The scene is 100lvh, so its bottom edge
+     sits under the toolbar; --edge-bottom adds this band on a phone so the
+     story corner stops above it while the grain runs on underneath. A token
+     for the same testability reason as --safe-*. */
   --chrome-bottom: calc(100lvh - 100svh);
   /* The viewport's own proportion as a plain number: >1 landscape, 1
      square, <1 portrait. --nameplate-width and --aside-ratio both read it,
@@ -72,7 +51,7 @@
      two columns afterwards. Nothing reads it; it stays because it names
      the thing the composition is about. */
   --corner-gap: calc(
-    100vw - var(--edge) - var(--edge-right) - var(--box-width) -
+    100vw - var(--edge-left) - var(--edge-right) - var(--box-width) -
       var(--box-width)
   );
   /* --stack-gap and --aside-padding are load-bearing, not cosmetic. The
@@ -123,7 +102,7 @@
   --nameplate-width: 38vw;
   --nameplate-width: calc(
     (
-      50vw + 50svh / var(--viewport-ratio) - var(--edge) -
+      50vw + 50svh / var(--viewport-ratio) - var(--edge-left) -
         var(--edge-top) / var(--viewport-ratio)
     ) / (1 + 1 / (1.16 * var(--viewport-ratio))) * 0.86
   );
@@ -150,31 +129,16 @@
      tall and narrow, so the same 8svh inset reads as much further from the
      corner across the width than it does on a desktop. */
   --gradient-center-mobile-portrait-x: 5svh;
-  /* Held above the home indicator, not merely near the bottom. The page
-     runs under it (viewport-fit=cover), so 95svh would leave the pivot
-     inside that band on a device with a taller inset — on a 15 Pro it
-     clears by 9px, which is coincidence rather than a margin. min() takes
-     whichever is higher up: the proportional position, or the safe-area
-     edge with room to spare. env() is 0px where there is no indicator, and
-     the 95svh term wins there.
-
-     This clamp and the svh are two different guards and both are needed:
-     svh holds the origin clear of the browser's URL bar, env() holds it
-     clear of the home indicator underneath that. */
-  --gradient-center-mobile-portrait-y: min(
-    95svh,
-    calc(100svh - var(--safe-bottom) - 2rem)
-  );
+  /* Background geometry deliberately ignores the safe area. Only the two
+     content stacks use --safe-* through their edge tokens. */
+  --gradient-center-mobile-portrait-y: 95svh;
   /* 15%, like the other two. This was 85% for the old mobile-landscape
      layout, where the boxes sat the other way round; the corners are
      arranged as they are on desktop now, so 85% only bought a mirrored
      gradient at the orientation flip — a window 861px tall mirrors itself
      between 861 and 862px wide. */
   --gradient-center-mobile-landscape-x: 8svh;
-  --gradient-center-mobile-landscape-y: min(
-    92svh,
-    calc(100svh - var(--safe-bottom) - 2rem)
-  );
+  --gradient-center-mobile-landscape-y: 92svh;
   --gradient-center-x: var(--gradient-center-desktop-x);
   --gradient-center-y: var(--gradient-center-desktop-y);
   /* Two colours do the work, paper and ink, the way a riso print has
@@ -221,16 +185,11 @@
 
   position: relative;
   width: 100%;
-  /* 100lvh, not 100dvh: with viewport-fit=cover the LARGE viewport is the
-     one that spans the safe-area bands, so this is what reaches the top and
-     bottom edges of the screen. Under 100dvh the scene stops short of both
-     and <body>'s paper shows through them as two white bands — measured on
-     device in 6085eee, and again after 7f4f771 set this back to 100dvh.
-
-     This is the paint half of the rule at the top of this file: the scene's
-     box, and .grain's inset: 0 inside it, are the only things sized in lvh.
-     Every anchor and every box that has to stay clear of the browser's
-     toolbar is svh. */
+  /* 100lvh, not 100dvh: the large viewport reaches behind the bottom browser
+     chrome, so the grain paints under the toolbar and the home indicator.
+     The scene's box, and .grain's inset: 0 inside it, are the only things
+     sized in lvh; every anchor that has to stay clear of the toolbar is svh
+     or carries --chrome-bottom. */
   height: 100lvh;
   min-height: 100lvh;
   /* Was overflow: hidden, which clipped the disc's trail flat at the fold —
@@ -299,17 +258,22 @@
    image-rendering: pixelated is load-bearing. The dither is one dot per
    image pixel; resampling it smoothly averages dots back into the grey
    the bitmap conversion existed to destroy. */
-/* The second section. Its GRAIN is flipped along the x axis, below:
-   scaleY(-1) mirrors the whole grain stack including the dither, which is
-   what makes it read as a reflection of the first rather than a repeat of
-   it.
+/* The second section. Its ink FIELD is reflected across the fold, below:
+   the same dither, flipped, about the line where the first scene ends, so
+   the two seams meet there and read as one V rather than a repeat.
 
    The flip used to be on the section itself, when the section held nothing
-   but the grain. It holds the "More work" pairs now (.more, at the end of
-   this file), and a transform here would print them upside down — so the
-   section carries no transform and the grain carries the whole of it.
-   --seam-angle needs no restating: the hook writes it to :root, and both
-   grains inherit it from there, which is what keeps the two seams parallel. */
+   but the grain; then on .grain, as a scaleY(-1) about its own centre. That
+   is a reflection across the fold only while this scene is exactly as tall
+   as the first. It is taller on a phone — the pairs stack and run past one
+   screen — so the axis slid to the middle of a 1500px box, the pivot landed
+   near the page's end, and the whole top of this scene came out one flat
+   tone against the first scene's light corner: a hard horizontal edge at
+   the fold. So the flip is now on the field, about the pivot, with the
+   pivot itself placed where the first scene's pivot reflects to
+   (.sceneMirrored .grainField, after .grainField). The "More work" pairs
+   still carry no transform. --seam-angle needs no restating: the hook
+   writes it to :root, and both fields inherit it from there. */
 .sceneMirrored {
   /* Under the first scene, so the disc's trail crosses the fold on top of
      it rather than behind it. */
@@ -322,10 +286,6 @@
      two-scenes page height still relies on. */
   height: auto;
   min-height: 100lvh;
-}
-
-.sceneMirrored .grain {
-  transform: scaleY(-1);
 }
 
 .grain {
@@ -348,9 +308,9 @@
 }
 
 /* Also the scene's backstop: .scene paints nothing, so this is what covers
-   the safe-area bands the composition runs under. It is the paper the ink
-   sits on — every white pixel of the dither is this colour showing
-   through. */
+   every pixel the composition runs under, including its phone bleed. It is
+   the paper the ink sits on — every white pixel of the dither is this colour
+   showing through. */
 .grainBase {
   background: var(--gradient-base);
 }
@@ -441,6 +401,25 @@
      compositor-only transform: no repaint, no re-rasterising the mask. */
   transform: rotate(var(--seam-angle, 50deg));
   transform-origin: center;
+}
+
+/* The mirrored scene's field: the first scene's pattern reflected across
+   the fold. Reflecting a point across the line y = 100lvh sends the pivot
+   at --gradient-center-y (from the first scene's top) to
+   100lvh - --gradient-center-y from THIS scene's top — that is the `top`
+   below — and flips the pattern about a horizontal line through it,
+   which is what scaleY(-1) does to a square centred on its own pivot.
+   rotate() applies first (right to left), so it is the rotated ramp that
+   is flipped, the same way a mirror would show the first scene.
+
+   Read from the CSS declaration, not from what the hook writes: the hook
+   sets --gradient-center-y inline on the FIRST scene only, and on a phone
+   both scenes resolve the same svh-based value from the branch below, so
+   the two pivots agree. On desktop the hook clears its inline value and
+   both read .scene's default. */
+.sceneMirrored .grainField {
+  top: calc(100lvh - var(--gradient-center-y));
+  transform: scaleY(-1) rotate(var(--seam-angle, 50deg));
 }
 
 /* A corner, not a box: where the pair sits and how wide it is. Its height
@@ -634,7 +613,7 @@
 
 .stackNameplate {
   top: var(--edge-top);
-  left: var(--edge);
+  left: var(--edge-left);
 }
 
 .stackCaseStudy {
@@ -1442,7 +1421,7 @@
      inside starts at exactly the same point. */
   position: relative;
   box-sizing: border-box;
-  padding: var(--edge-top) var(--edge-right) var(--edge-bottom) var(--edge);
+  padding: var(--edge-top) var(--edge-right) var(--edge-bottom) var(--edge-left);
   /* Further below the fold than --edge-top alone. iOS Safari draws the
      document on through the glass of its bottom toolbar, past the layout
      viewport's edge, so the first thing in this scene showed up under the
@@ -1768,6 +1747,15 @@
     display: none;
   }
 
+  /* The name's cap-trimmed top sits on --edge-top, but its ink does not
+     start there on either axis: the G rises 0.006em above the cap line and
+     starts 0.0128em in from its advance. So the top ink gap read ~4px
+     tighter than the side's at 402px. Pushing the name down by the sum
+     makes the two ink gaps equal at every size, since both are in em. */
+  .boxNameplate :global(.seam-nameplate-text) {
+    margin-top: 0.019em;
+  }
+
   /* A pair stands on a phone: SQUARE over circle, each the full width of
      the column. Side by side, half a phone's width is 174px; stacked, each
      shape gets the full 361px side and keeps its 1:1 geometry.
@@ -1782,5 +1770,22 @@
     --pair-direction: column-reverse;
     --pair-direction-flipped: column;
     --pair-per-row: 1;
+  }
+}
+
+/* iOS Safari on a phone: unscrolled, the strip behind the status bar shows
+   the body colour, not the page (app/globals.css sets it white there). The
+   first scene's grain fades into that white at the top so the strip reads
+   as the composition's edge rather than a band. It scrolls with the scene:
+   once the page moves, Safari shows real pixels in the strip instead. */
+@media (hover: none) and (pointer: coarse) {
+  @supports (-webkit-touch-callout: none) {
+    .scene:not(.sceneMirrored) > .grain::after {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 4rem;
+      background: linear-gradient(to bottom, var(--color-seam-status), transparent);
+    }
   }
 }

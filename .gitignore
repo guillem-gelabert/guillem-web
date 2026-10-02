@@ -19,3 +19,4 @@ node_modules/
 *.tmp.mjs
 *.tmp.ts
 .probe-*
+.screenshots/

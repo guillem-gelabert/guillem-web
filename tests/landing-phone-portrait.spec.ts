@@ -64,6 +64,79 @@ const PORTRAIT_VIEWPORTS = [
   { width: 375, height: 667, safeTop: 0, safeBottom: 0, chromeBottom: 114, name: "iPhone SE" },
 ];
 
+test("the background is full-bleed and only the hero content takes the safe area", async ({
+  browser,
+}) => {
+  const device = PORTRAIT_VIEWPORTS[0]!;
+  const context = await browser.newContext({
+    viewport: { width: device.width, height: device.height },
+    hasTouch: true,
+    isMobile: true,
+  });
+  const page = await context.newPage();
+
+  try {
+    await page.goto("/");
+    await page.evaluate(() => document.fonts.ready);
+    const fieldTopBeforeSafeArea = await page
+      .locator("#seam-scene > .seam-grain > .seam-grain-field")
+      .evaluate((element) => element.getBoundingClientRect().top);
+
+    await page.addStyleTag({
+      content: `#seam-scene {
+        --safe-top: ${device.safeTop}px;
+        --safe-bottom: ${device.safeBottom}px;
+        --chrome-bottom: ${device.chromeBottom}px;
+      }`,
+    });
+    await page.evaluate(() => new Promise(requestAnimationFrame));
+
+    const layout = await page.evaluate(() => {
+      const read = (selector: string) => {
+        const element = document.querySelector(selector);
+        if (!element) throw new Error(`${selector} not found`);
+        const rect = element.getBoundingClientRect();
+        return { top: rect.top, bottom: rect.bottom };
+      };
+
+      return {
+        scrollY: window.scrollY,
+        innerHeight: window.innerHeight,
+        scene: read("#seam-scene"),
+        grain: read("#seam-scene > .seam-grain"),
+        field: read("#seam-scene > .seam-grain > .seam-grain-field"),
+        nameplate: read("#seam-nameplate"),
+        story: read("#seam-case-study"),
+        bodyBackground: getComputedStyle(document.body).backgroundColor,
+      };
+    });
+
+    // No scroll offset: the page loads at the top like any other document.
+    expect(layout.scrollY).toBe(0);
+
+    // Paint ignores the insets. The grain covers the whole scene, the scene
+    // starts at the viewport's top edge and reaches its bottom, and setting
+    // the insets does not move the gradient.
+    expect(layout.scene.top).toBeCloseTo(0, 1);
+    expect(layout.grain.top).toBeCloseTo(layout.scene.top, 1);
+    expect(layout.grain.bottom).toBeCloseTo(layout.scene.bottom, 1);
+    expect(layout.scene.bottom).toBeGreaterThanOrEqual(layout.innerHeight - 1);
+    expect(layout.field.top).toBeCloseTo(fieldTopBeforeSafeArea, 1);
+
+    // Content takes them: the nameplate clears the top inset, the story clears
+    // the home indicator and Safari's toolbar stacked above it.
+    expect(layout.nameplate.top).toBeGreaterThanOrEqual(device.safeTop);
+    expect(layout.story.bottom).toBeLessThanOrEqual(
+      layout.innerHeight - device.safeBottom - device.chromeBottom,
+    );
+
+    // The body is the seam's paper, Safari's fallback for its bar colour.
+    expect(layout.bodyBackground).toBe("rgb(242, 242, 242)");
+  } finally {
+    await context.close();
+  }
+});
+
 for (const device of PORTRAIT_VIEWPORTS) {
   const viewport = { width: device.width, height: device.height };
 

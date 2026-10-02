@@ -80,7 +80,7 @@ export default async function WritingPost({
   const twin = await translationOf(entry);
 
   return (
-    <main className="flex flex-col gap-3xl px-lg py-3xl">
+    <main className="mx-auto flex w-full max-w-page flex-col gap-3xl px-lg py-3xl">
       <header className="flex flex-col gap-2xl">
         <Link href={indexPath("de")} className="text-label link-quiet inline-block py-xs">
           {UI.de.backLink}

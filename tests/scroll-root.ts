@@ -3,12 +3,7 @@ import type { Page } from "@playwright/test";
 /**
  * Scroll helpers for the specs that drive the smear trail.
  *
- * The document is the scroller (app/globals.css). It was not, between
- * fb8613d and the commit that restored the glass behind the iOS status bar,
- * and these helpers went through #scroll-root for that period — hence the
- * file name, kept so the three specs that import it do not churn.
- *
- * They stay as named helpers rather than inline `window.scrollBy` calls
+ * The document is the scroller. They stay as named helpers rather than inline `window.scrollBy` calls
  * because the choice of scroller is a property of the app-shell, and one
  * place to change it is what stops the specs disagreeing with each other if
  * it ever moves again.

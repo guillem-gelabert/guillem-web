@@ -19,9 +19,13 @@
   --color-surface-code: rgba(0, 0, 0, 0.04);
   --color-rule: rgba(0, 0, 0, 0.12);
   /* The landing seam's paper, and therefore the canvas behind the landing
-     (see the html:has(.seam-scene) rule at the end of this file). The seam
+     (see the body:has(.seam-scene) rule at the end of this file). The seam
      stylesheet's --gradient-tint reads it, so the two cannot drift. */
   --color-seam-canvas: #f2f2f2;
+  /* What iOS Safari fills the strip behind its status bar with at the top
+     of the landing: the body colour. The seam fades its grain into the same
+     value there (landing-seam.module.css), so strip and page meet unbroken. */
+  --color-seam-status: #ffffff;
 
   --spacing-xs: 4px;
   --spacing-sm: 8px;
@@ -30,6 +34,11 @@
   --spacing-xl: 32px;
   --spacing-2xl: 48px;
   --spacing-3xl: 64px;
+
+  /* The boxed layout's cap (max-w-page): every route's <main> stops growing
+     here and centres, and the landing's stacks read the same value through
+     --page-inset in components/landing/landing-seam.module.css. */
+  --container-page: 96rem;
 }
 
 /* Prose Contract (02-UI-SPEC.md) — overrides @tailwindcss/typography with
@@ -463,51 +472,21 @@ body {
   color: var(--color-ink);
 }
 
-/* The document scrolls. It did not, between fb8613d and this commit, and the
-   round trip is worth recording because it has now been taken five times.
-   ------------------------------------------------------------------------
-   iOS Safari composites the SCROLLING DOCUMENT's pixels behind the
-   translucent status bar. That is the point, not a defect: the strip is
-   meant to show the page through glass, which is the same intent
-   viewport-fit=cover carries in the two root layouts. What it costs is that
-   the strip shows whatever is under it at the time, so on a full-bleed
-   composition it changes tone as you scroll.
-
-   fb8613d read that change as a bleed and removed it by locking the document
-   and scrolling an inner #scroll-root, on the reasoning that no scrolling
-   document means no pixels to composite. It works, and it takes the glass
-   with it: the strips then show a flat <body> colour and nothing else. It
-   also deleted the --color-seam-canvas rule that had been matching that
-   colour to the seam, on the grounds that the lock made colour irrelevant —
-   the lock does the opposite, it makes colour the ONLY thing that shows. So
-   the landing's strips fell back to --color-paper, and once 7f4f771
-   repainted the seam grey riso that read as two white slabs.
-
-   Two dead ends this must not cycle back through. An opaque canvas colour is
-   what Safari samples to tint the status bar (8b0003e painted a brown band
-   that way); `transparent` leaves the canvas unpainted, and unpainted is
-   white (e7745c2). `theme-color` is not a lever either; iOS 26 ignores it.
-
-   The composition's own half of this lives in
-   components/landing/landing-seam.module.css: paint reaches 100lvh so the
-   grain covers the safe-area bands, geometry sits in 100svh so it clears the
-   URL bar at its tallest and does not move when the bar collapses. */
-/* No overscroll-behavior here, and that is a finding, not an omission.
-   iOS 26.5 Safari drops viewport-fit=cover the moment the document declares
-   overscroll-behavior: none — measured in the simulator with a page that
-   was otherwise edge to edge (lvh 874 → 754, insets 0) — and it also does
-   not honour cover on a fresh launch at all: the layout viewport starts
-   below the status bar and env(safe-area-inset-top) is 0. So the strip
-   under the status bar is painted by the CANVAS on a phone, whatever the
-   composition does, and the canvas colour is the only lever.
-
-   That colour is the seam's paper, --gradient-tint in
-   components/landing/landing-seam.module.css, so the strip reads as the
-   light corner continuing rather than a white band over a grey page. Set
-   on <html>, scoped to the landing: the root's background is what becomes
-   the canvas, and :has() keeps every other route on --color-paper. The
-   same colour is what a rubber-band overscroll now reveals at either end,
-   which is what the overscroll lock was there to hide. */
-html:has(.seam-scene) {
+/* The landing's default surface is the seam's paper, so the body behind it
+   matches: it is what Safari falls back to for its bar colour and what a
+   rubber-band overscroll reveals. :has() keeps every other route on
+   --color-paper. */
+body:has(.seam-scene) {
   background: var(--color-seam-canvas);
+}
+
+/* iOS Safari on a phone (-webkit-touch-callout is iOS WebKit only): unscrolled,
+   the strip behind the status bar is outside the page's viewport and shows
+   this colour, so it is white and the grain fades to white beneath it. */
+@media (hover: none) and (pointer: coarse) {
+  @supports (-webkit-touch-callout: none) {
+    body:has(.seam-scene) {
+      background: var(--color-seam-status);
+    }
+  }
 }
