@@ -1777,9 +1777,10 @@
    the body colour, not the page (app/globals.css sets it white there). The
    first scene's grain fades into that white over --status-fade at the top,
    so the strip reads as the composition's edge rather than a band, and the
-   nameplate drops by three quarters of it so a band of plain grain still
-   sits between the fade and the name. Not the whole fade: its last quarter
-   is faint enough to read as plain grain already. Through --edge-top rather than the stack's
+   nameplate drops by half of it so a band of plain grain still sits
+   between the fade and the name. Not the whole fade: its fainter half
+   already reads as plain grain, and dropping by more left that band
+   looking too wide. Through --edge-top rather than the stack's
    own top, so the phone layout's room calculations below the name move with
    it. It scrolls with the scene: once the page moves, Safari shows real
    pixels in the strip instead. Chrome, Firefox and Edge on iOS paint their
@@ -1789,7 +1790,7 @@
     :global(html:not([data-ios-browser])) .scene:not(.sceneMirrored) {
       --status-fade: 2rem;
       --edge-top: calc(
-        max(clamp(1rem, 3.5vw, 12rem), var(--safe-top)) + var(--status-fade) * 0.75
+        max(clamp(1rem, 3.5vw, 12rem), var(--safe-top)) + var(--status-fade) * 0.5
       );
     }
 
