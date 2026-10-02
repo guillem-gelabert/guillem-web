@@ -455,6 +455,8 @@ test("the square's type is a fixed share of the square, at any size, and the squ
   // shipped list, which holds a single pair today.
   const setCount = (count: string) =>
     page.evaluate((value) => (document.querySelector("#seam-more ol") as HTMLElement).style.setProperty("--pair-count", value), count);
+  // The 24rem cap is its own test; lifted here so a lone pair is large.
+  await page.evaluate(() => (document.querySelector("#seam-more ol") as HTMLElement).style.setProperty("--pair-max-side", "100lvh"));
   await setCount("1");
   const large = await read();
   await setCount("2");
@@ -553,11 +555,15 @@ for (const viewport of COLUMNS) {
     for (const count of COUNTS) {
       const grid = await columnsFor(page, count);
       expect(grid.tracks, `count ${count}`).toBe(Math.min(viewport.fit, count));
-      // The pair is one column wide and its two shapes plus the gap fill
-      // it — the side is only ever capped by the height, and none of these
-      // viewports is short enough for that to bind.
+      // The pair is one column wide, and its two shapes plus the gap fill it
+      // up to the 24rem side cap (384px), past which the pair stops short of
+      // the column's right edge. None of these viewports is short enough for
+      // the height cap to bind. On a phone the shapes stack, so the span is
+      // one side.
       expect(Math.abs(grid.pairWidth * grid.tracks + grid.gap * (grid.tracks - 1) - grid.listWidth)).toBeLessThanOrEqual(1);
-      expect(Math.abs(grid.span - grid.pairWidth)).toBeLessThanOrEqual(1);
+      const perRow = viewport.phone ? 1 : 2;
+      const side = Math.min((grid.pairWidth - grid.gap * (perRow - 1)) / perRow, 384);
+      expect(Math.abs(grid.span - (side * perRow + grid.gap * (perRow - 1))), `count ${count}`).toBeLessThanOrEqual(1);
     }
     await context.close();
   });
@@ -616,14 +622,30 @@ for (const touch of [false, true]) {
   });
 }
 
+test("a lone pair is never larger than 24rem", async ({ page }) => {
+  // The shipped grid holds a single pair, which would otherwise take a whole
+  // column: 663px a side at 1440, more at 2560.
+  for (const [width, height] of [[1440, 900], [2560, 1440]] as const) {
+    await page.setViewportSize({ width, height });
+    await page.evaluate(() => (document.querySelector("#seam-more ol") as HTMLElement).style.setProperty("--pair-count", "1"));
+    const sides = await page.evaluate(() => ({
+      circle: document.querySelector("#seam-more .seam-pair-circle")!.getBoundingClientRect(),
+      square: document.querySelector("#seam-more .seam-pair-square")!.getBoundingClientRect(),
+    }));
+    expect(Math.abs(sides.circle.width - 384), `${width}x${height}`).toBeLessThanOrEqual(1);
+    expect(Math.abs(sides.square.width - 384), `${width}x${height}`).toBeLessThanOrEqual(1);
+    expect(Math.abs(sides.square.height - 384), `${width}x${height}`).toBeLessThanOrEqual(1);
+  }
+});
+
 test("a lone pair is held to the scene's height in a short window", async ({ page }) => {
-  // 1440x600: one column is a 663px side, and the scene less its two
-  // insets is ~499px. The cap binds: the circle's side is exactly that,
+  // 1440x440: the scene less its two insets is ~326px, under the 24rem cap.
+  // The height cap binds: the circle's side is exactly that,
   // and the pair stays left-aligned, stopping short of the column's right
   // edge rather than running under the fold. The square obeys the same cap,
   // preserving its 1:1 geometry even when its copy needs more room.
-  await page.setViewportSize({ width: 1440, height: 600 });
-  // One column, as a lone pair would lay: the shipped grid has two here.
+  await page.setViewportSize({ width: 1440, height: 440 });
+  // One column, as a lone pair lays.
   await page.evaluate(() => (document.querySelector("#seam-more ol") as HTMLElement).style.setProperty("--pair-count", "1"));
   const measured = await page.evaluate(() => {
     const scene = document.querySelector("#seam-scene-mirrored")!.getBoundingClientRect();
@@ -647,7 +669,7 @@ test("a lone pair is held to the scene's height in a short window", async ({ pag
     const more = document.querySelector("#seam-more")!;
     const insetBottom = Number.parseFloat(getComputedStyle(more).paddingBottom);
     return {
-      cap: 600 - insetTop - insetBottom,
+      cap: 440 - insetTop - insetBottom,
       side: circle.height,
       square: { width: square.width, height: square.height },
       pairLeft: pair.left - list.left,

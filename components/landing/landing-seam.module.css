@@ -1369,10 +1369,9 @@
      changes this without an edit here.
 
    The pair's own side is then half its column — see more-work.module.css —
-   capped at --pair-max-side, the box's height. A single pair in a 1440px
-   window is 663px on a side, which fits a 900px screen and would not fit a
-   600px one; the cap is what keeps a lone pair above the fold in a short
-   window, at the price of not reaching its column's right edge there. */
+   capped at --pair-max-side: 24rem, or the box's height in a short window.
+   A lone pair stops short of its column's right edge rather than growing
+   to fill it. */
 /* The second scene's title. The scene is the mirrored one, so its two
    grounds are swapped and this box can land on either — the same problem
    .seam-tagline has where it crosses the seam, and the same answer: state
@@ -1412,7 +1411,11 @@
      them, 36rem columns drop 1920 to two. 32 keeps 2 at 1366–1440, 3 at
      1920 and 4 at 2560. */
   --pair-ideal: 32rem;
-  --pair-max-side: calc(100lvh - var(--edge-top) - var(--edge-bottom));
+  /* A pair's side never passes 24rem — about what a pair gets in a full
+     two-column grid at the page cap — so a lone entry is no bigger than it
+     would be with company. Nor taller than the scene between its insets, so
+     it stays above the fold in a short window. */
+  --pair-max-side: min(24rem, calc(100lvh - var(--edge-top) - var(--edge-bottom)));
   /* Square first on even rows, circle first on odd ones (pair-rows.tsx).
      The DOM is circle then square, so the even-row default is the reverse. */
   --pair-direction: row-reverse;

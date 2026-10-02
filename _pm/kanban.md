@@ -176,7 +176,8 @@ the 17 Pro and 12 mini simulators and Chrome on a 17 Pro.
 The seven lorem pairs (three posts, three TILs, one book review) are gone from the projects grid;
 `lib/notes.ts` keeps the `NoteEntry` type and an empty `NOTES` so real pieces drop straight in. The
 grid holds one real project now, so the checkerboard test stands up five copies of it to have rows,
-and the type-scaling test compares one column against two rather than the shipped count.
+and the type-scaling test compares one column against two rather than the shipped count. A pair's side is now capped at 24rem (`--pair-max-side`,
+or the scene's height in a short window), so the lone real project no longer fills a whole column.
 
 
 - **Landing writing** (2026-09-25) — three posts, three TILs and one book review as pairs in the

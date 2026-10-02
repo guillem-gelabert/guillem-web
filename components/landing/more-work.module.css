@@ -25,10 +25,10 @@
    --pair-per-row come from landing-seam.module.css, which knows which
    device this is. The side is what is left of the CELL after the gap,
    divided by how many shapes share the row (two in a row, one in a column,
-   so a phone's shapes are the full width) — unless that is taller than the
-   box, in which case --pair-max-side (the scene's height between its
-   insets) wins and the pair stops short of its column's right edge instead
-   of running under the fold. The <li> is the container the cq unit reads,
+   so a phone's shapes are the full width) — unless that passes
+   --pair-max-side (24rem, or the scene's height between its insets in a
+   short window), which wins and the pair stops short of its column's right
+   edge. The <li> is the container the cq unit reads,
    which is what makes the side a share of the cell and not of the whole
    list. */
 .pair {
