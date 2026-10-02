@@ -229,7 +229,7 @@ export function MoreWork() {
             </div>
           </li>
         ))}
-        {/* The writing: the same pair, cut down to what a lorem entry has.
+        {/* The writing: the same pair, cut down to what a note has.
             No thumbnail yet, so the circle is the flat fill a work entry with
             shot: null gets; no page yet, so no link; one subtitle instead of
             two paragraphs; and at most one tag, TIL or Book — a post has

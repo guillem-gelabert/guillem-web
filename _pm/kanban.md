@@ -171,6 +171,13 @@ The toolbar band is `100lvh` minus the **measured** visible height
 under Chrome's toolbar. The story corner shrinks to fit, with the disc held above 110px. Checked on
 the 17 Pro and 12 mini simulators and Chrome on a 17 Pro.
 
+### Landing: lorem writing entries removed — 2026-10-02
+
+The seven lorem pairs (three posts, three TILs, one book review) are gone from the projects grid;
+`lib/notes.ts` keeps the `NoteEntry` type and an empty `NOTES` so real pieces drop straight in. The
+grid holds one real project now, so the checkerboard test stands up five copies of it to have rows,
+and the type-scaling test compares one column against two rather than the shipped count.
+
 
 - **Landing writing** (2026-09-25) — three posts, three TILs and one book review as pairs in the
   PROJECTS grid, after the projects (`lib/notes.ts`, rendered by `more-work.tsx`). Lorem ipsum,

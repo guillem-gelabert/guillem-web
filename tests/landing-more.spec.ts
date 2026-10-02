@@ -250,6 +250,16 @@ test("the globe fills its borderless circle and reveals its colour image from ei
 test("each pair is a circle beside a square of the same side, on one row at 1440x900, and every other row is flipped", async ({
   page,
 }) => {
+  // One real project ships today, and a checkerboard needs rows. Stand up
+  // five copies of that pair (three rows at two columns); the row script in
+  // pair-rows.tsx re-marks on the list's resize, so wait for a flipped row.
+  await page.evaluate(() => {
+    const list = document.querySelector("#seam-more ol") as HTMLElement;
+    const pair = list.firstElementChild!;
+    for (let i = list.children.length; i < 5; i += 1) list.append(pair.cloneNode(true));
+    list.style.setProperty("--pair-count", "5");
+  });
+  await page.waitForFunction(() => document.querySelector("#seam-more ol > [data-flipped]") !== null);
   const items = page.locator("#seam-scene-mirrored").getByRole("listitem");
   const count = await items.count();
   // One gap everywhere: between a pair's two shapes, between columns and
@@ -439,15 +449,15 @@ test("the square's type is a fixed share of the square, at any size, and the squ
         titleWeight: getComputedStyle(square.querySelector(".seam-pair-title")!).fontWeight,
       };
     });
-  // One column — a lone pair's square — then the shipped grid's smaller one.
+  // One column — a lone pair's square — then a two-column grid's smaller one.
   // No pixel floors (more-work.module.css): every size scales with the side,
-  // so the ratios hold at both.
+  // so the ratios hold at both. Two is written rather than read off the
+  // shipped list, which holds a single pair today.
   const setCount = (count: string) =>
     page.evaluate((value) => (document.querySelector("#seam-more ol") as HTMLElement).style.setProperty("--pair-count", value), count);
-  const shipped = await page.evaluate(() => (document.querySelector("#seam-more ol") as HTMLElement).style.getPropertyValue("--pair-count"));
   await setCount("1");
   const large = await read();
-  await setCount(shipped);
+  await setCount("2");
   const small = await read();
   expect(large.side).toBeGreaterThan(600);
   expect(small.side).toBeLessThan(400);
