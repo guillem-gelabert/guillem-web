@@ -159,8 +159,8 @@ stacks read `env(safe-area-inset-*)`, and the story corner adds Safari's toolbar
 (`--chrome-bottom`) so it stops above the URL bar. Unscrolled, iOS Safari shows the body colour
 in the strip behind the status bar, not the page, so on a phone running iOS WebKit
 (`@supports (-webkit-touch-callout: none)`) the body is white, the first scene's grain fades to
-white over its top 2rem, and the nameplate drops by the same amount so plain grain sits between
-fade and name. Chrome, Firefox and Edge on iOS paint their own bar, so a head script in
+white over its top 2rem, and the nameplate drops by 1.5rem (the fade's last quarter already reads
+as plain grain) so plain grain sits between fade and name. Chrome, Firefox and Edge on iOS paint their own bar, so a head script in
 `app/(en)/layout.tsx` flags them (`data-ios-browser`) out of that; they get 0.04em above the name
 instead of 0.019em, because the hard edge against their dark bar reads tighter. Checked in the
 iPhone 17 Pro simulator (iOS 26.5); Chrome on iOS needs a phone check.
