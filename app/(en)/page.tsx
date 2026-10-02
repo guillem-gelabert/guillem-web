@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+import { Fragment } from "react";
 import ReactDOM from "react-dom";
+import { getBacklog } from "@/lib/backlog-store";
 import { POSITIONING_PLACEHOLDER } from "@/lib/work";
 import { SmearTitle } from "@/components/smear-title";
 import { StorySlot } from "@/components/landing/story-slot";
 import { MoreWork } from "@/components/landing/more-work";
+import { BacklogWedge } from "@/components/landing/backlog-wedge";
 import { LandingSeam } from "@/components/landing/landing-seam";
 
 // This route carries no client directive. Phase 1 marked whole pages as
@@ -11,11 +14,12 @@ import { LandingSeam } from "@/components/landing/landing-seam";
 // make the metadata export below illegal. SmearTitle is the one client leaf
 // that carries the trail instead.
 //
-// It is no longer async either, and reads nothing from content/. It used to
-// resolve the case study out of the filesystem at build time
-// (findBySlug(await publishedFor("en"), CASE_STUDY_SLUG)) to decide which
-// half of the featured slot to render; the case studies are deferred, so the
-// slot renders lib/work.ts's published pieces, which are a constant.
+// It reads nothing from content/. It used to resolve the case study out of
+// the filesystem at build time to decide which half of the featured slot to
+// render; the case studies are deferred, so the slot renders lib/work.ts's
+// published pieces, which are a constant. It is async again for one read:
+// the backlog, which comes from lib/backlog-store.ts (the database when
+// there is one, lib/backlog.tsx's seed otherwise — never an error).
 
 export const metadata: Metadata = {
   // Plan 06-07: deliberately no `title` here. Under the factory's
@@ -42,7 +46,8 @@ export const metadata: Metadata = {
   // /texte, which call lib/metadata.ts's routeOpenGraph for their own path.
 };
 
-export default function Landing() {
+export default async function Landing() {
+  const backlog = await getBacklog();
   // The seam's dither mask is the composition, not decoration, and CSS
   // only discovers it after the stylesheet parses — a mask-image inside a
   // custom property is invisible to the preload scanner. Hoisting it into
@@ -81,8 +86,22 @@ export default function Landing() {
               the casing is now overridden in landing-seam.module.css —
               keeping it would leave a rule that looks load-bearing and
               isn't. */}
+          {/* Three words, a slash between each pair. The slashes are CSS
+              (::before on the empty separator spans, landing-seam.module.css),
+              so the element's text is still the constant verbatim — the
+              descriptor test and the meta description both compare to it. */}
           <p className="seam-tagline uppercase">
-            {POSITIONING_PLACEHOLDER}
+            {POSITIONING_PLACEHOLDER.split(" ").map((word, index) => (
+              <Fragment key={word}>
+                {index > 0 ? (
+                  <>
+                    {" "}
+                    <span className="seam-tagline-sep" aria-hidden="true" />
+                  </>
+                ) : null}
+                <span className="seam-tagline-word">{word}</span>
+              </Fragment>
+            ))}
           </p>
         </header>
       }
@@ -104,9 +123,14 @@ export default function Landing() {
         </section>
       }
       // Every piece after the first, then the writing, on the mirrored
-      // scene below the fold. The section names itself (aria-labelledby, in
-      // landing-seam.tsx); this slot is the list alone.
-      more={<MoreWork />}
+      // scene below the fold, and the backlog as the red wedge at its foot.
+      // The section names itself (aria-labelledby, in landing-seam.tsx).
+      more={
+        <>
+          <MoreWork />
+          <BacklogWedge items={backlog.items} />
+        </>
+      }
     />
   );
 }

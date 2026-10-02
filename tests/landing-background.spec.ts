@@ -239,17 +239,21 @@ test.describe("landing background", () => {
     // filling it.
     expect(disc.fit).toBe("cover");
 
-    // Respects the box's padding: min(100cqw, 100cqh) is the largest disc
-    // that crosses none of the four padding edges. It used to be sized on
-    // the box's DIAGONAL and deliberately overflowed on every side.
-    expect(disc.width).toBe(Math.min(disc.contentWidth, disc.contentHeight));
+    // Respects the box's padding, and leaves the standfirst its band: the
+    // disc is the largest circle inside the content box once --standfirst-
+    // room (6rem on a desktop, landing-seam.module.css) is taken off the
+    // height. It used to be sized on the box's DIAGONAL and deliberately
+    // overflowed on every side.
+    const standfirstRoom = 96;
+    expect(disc.width).toBe(Math.min(disc.contentWidth, disc.contentHeight - standfirstRoom));
 
-    // And centred on that content box. The picture's containing block is
-    // .content, not the box, so its two anchors are compensated
-    // (left: 50%, top: 50cqh) — a regression there moved it 100px off
-    // without changing its size, which only a centre check catches.
+    // And centred on what is left of that content box: horizontally on it,
+    // vertically half the standfirst's band above its middle. The picture's
+    // containing block is .content, not the box, so its two anchors are
+    // compensated — a regression there moved it 100px off without changing
+    // its size, which only a centre check catches.
     expect(Math.abs(disc.centreOffsetX)).toBeLessThanOrEqual(1);
-    expect(Math.abs(disc.centreOffsetY)).toBeLessThanOrEqual(1);
+    expect(Math.abs(disc.centreOffsetY + standfirstRoom / 2)).toBeLessThanOrEqual(1);
 
     // No gradient anywhere in the composition's one coloured object. The
     // washes are what this asserted the presence of; now nothing paints a

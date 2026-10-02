@@ -179,6 +179,24 @@ grid holds one real project now, so the checkerboard test stands up five copies 
 and the type-scaling test compares one column against two rather than the shipped count. A pair's side is now capped at 24rem (`--pair-max-side`,
 or the scene's height in a short window), so the lone real project no longer fills a whole column.
 
+### Landing: towards the poster mockup — 2026-10-02
+
+The landing moves toward the owner's mockup. Tagline `DATA / VISUALISATION / JOURNALISM` (slashes
+are generated content, so the element's text is still the constant the meta description compares
+to). The standfirst is back under the disc, right-aligned caps with a
+short rule, in a 6rem band the disc gives up (`--standfirst-room`, `--disc-center-y`); hidden on
+phones, where the disc keeps the height. PROJECTS has the short rule above it. Project squares are
+title + outlined chips + an arrow that is the link; the two body paragraphs are gone. The backlog
+is a red wedge (`components/landing/backlog-wedge.tsx`) in the mirrored scene's bottom-left, its
+hypotenuse parallel to the seam (`aspect-ratio: tan(--seam-angle)`), listing the names from
+`lib/backlog-store.ts` (DB when there is one, the three seeds otherwise) with square/circle CSS
+bullets; a straight band on phones. The mockup's five backlog items were not added: `lib/backlog.tsx`
+is held to exactly three two-field items by `tests/unit/backlog.test.ts`, and they need descriptions.
+No thumbnails generated; circles without a shot stay a flat fill. The sphere shading over both circles is no longer the 150/280px PNGs
+(1.4–2.6 CSS px per dot on a desktop): `components/landing/sphere-shading.tsx` computes the shadow
+(Lambert, light at 230°/65°) and the highlight (elliptical blob) — both fitted to the old maps — and
+Floyd–Steinberg dithers them on a canvas at the circle's own width, one dot per CSS pixel.
+
 
 - **Landing writing** (2026-09-25) — three posts, three TILs and one book review as pairs in the
   PROJECTS grid, after the projects (`lib/notes.ts`, rendered by `more-work.tsx`). Lorem ipsum,

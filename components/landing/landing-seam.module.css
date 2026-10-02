@@ -544,7 +544,7 @@
    so the accessible name keeps its sentence case. */
 .boxCaseStudy :global(.seam-new-story) {
   position: absolute;
-  top: 50%;
+  top: var(--disc-center-y);
   left: 50%;
   translate:
     calc(-50% - 0.3536 * var(--disc-size))
@@ -823,9 +823,14 @@
   font-weight: 300;
   letter-spacing: 0.14em;
   text-wrap: nowrap;
-  text-align: justify;
-  text-align-last: justify;
-  /* Optical alignment, not metric. The line is justified to the
+  /* Spread to the nameplate's measure with a slash centred in each gap:
+     the words and the two separator spans are flex items, and
+     space-between puts the same air either side of every slash. It was
+     text-align: justify with nothing between the words. */
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  /* Optical alignment, not metric. The line is spread to the
      nameplate's measure, so its two ends sit flush with the box — but
      GUILLEM's G is round and GELABERT's T ends in a flat stem with the
      letter's own side bearing after it, so a flush edge reads as
@@ -834,6 +839,11 @@
      purpose: the round G needs less than the T's bearing does. */
   padding-left: 0.3rem;
   padding-right: 0.6rem;
+}
+
+/* The slash is generated, so the paragraph's text stays the three words. */
+.boxNameplate :global(.seam-tagline-sep)::before {
+  content: "/";
 }
 
 /* Paper side on every viewport measured (its four corners all fall there
@@ -967,9 +977,15 @@
   --case-study-content-height: calc(
     max(var(--case-study-height), var(--box-min-height)) - 2 * var(--box-padding)
   );
+  /* The band under the disc that the standfirst takes, and the disc gives
+     up: the disc is sized to the content height LESS this, and everything
+     centred on it (--disc-center-y) moves up by half of it so the band is
+     free. 0 on a phone, where the standfirst is hidden. */
+  --standfirst-room: 6rem;
+  --disc-center-y: calc(50% - var(--standfirst-room) / 2);
   --disc-size: min(
     var(--case-study-content-width),
-    var(--case-study-content-height)
+    calc(var(--case-study-content-height) - var(--standfirst-room))
   );
   /* The ring of type around the disc is --arc-scale times it (see
      .seam-arc below, which reads this). Declared HERE rather than there
@@ -987,9 +1003,40 @@
 .boxCaseStudy :global(.seam-shot),
 .boxCaseStudy :global(.seam-arc) {
   position: absolute;
-  top: 50%;
+  top: var(--disc-center-y);
   left: 50%;
   translate: -50% -50%;
+}
+
+/* The standfirst: the annotation in the band below the disc, right-aligned
+   to the box's edge, .text-label's spec, with a short rule under it. White,
+   because the corner is the ink side on every desktop viewport measured.
+   pointer-events: none for the reason .seam-shot gives: it must not take
+   clicks meant for the disc's link beside it. */
+.boxCaseStudy :global(.seam-standfirst) {
+  position: absolute;
+  right: 0;
+  top: calc(var(--disc-center-y) + var(--disc-size) / 2 + 1em);
+  width: calc(0.75 * var(--disc-size));
+  margin: 0;
+  color: #fff;
+  text-align: right;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.3;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+}
+
+.boxCaseStudy :global(.seam-standfirst)::after {
+  content: "";
+  display: block;
+  width: 2rem;
+  height: 1px;
+  margin: 0.9em 0 0 auto;
+  background: currentColor;
 }
 
 .boxCaseStudy :global(.seam-shot) {
@@ -1266,7 +1313,7 @@
    layer, which the compositor can move on its own. */
 .boxCaseStudy :global(.seam-shot-reveal) {
   position: absolute;
-  top: 50%;
+  top: var(--disc-center-y);
   left: 50%;
   translate: -50% -50%;
   width: var(--disc-size);
@@ -1312,7 +1359,7 @@
 .boxCaseStudy :global(.seam-shot-shadow),
 .boxCaseStudy :global(.seam-shot-highlight) {
   position: absolute;
-  top: 50%;
+  top: var(--disc-center-y);
   left: 50%;
   translate: -50% -50%;
   width: var(--disc-size);
@@ -1381,6 +1428,15 @@
    .text-label's spec at a size that follows the scene rather than the
    viewport, and the grid below it keeps its own top edge: the heading takes
    the margin, not the list. */
+.moreTitle::before {
+  content: "";
+  display: block;
+  width: 2rem;
+  height: 1px;
+  margin-bottom: 0.9em;
+  background: currentColor;
+}
+
 .moreTitle {
   margin: 0 0 max(var(--stack-gap), 2cqw);
   color: #000;
@@ -1446,6 +1502,10 @@
    .more it would read the fallback, never the count, and lay one column
    for any number of pairs. On the list the two meet. */
 .more :global(.seam-more-list) {
+  /* Over the backlog's red wedge where the two meet, so a circle in the
+     last row sits on the red rather than under it. */
+  position: relative;
+  z-index: 1;
   --pair-columns: repeat(
     auto-fill,
     minmax(
@@ -1741,6 +1801,16 @@
       max(clamp(1rem, 3.5vw, 12rem), var(--safe-bottom)) +
         var(--chrome-bottom)
     );
+  }
+
+  /* No standfirst on a phone: the disc already takes all the height the
+     corner has, so it keeps it and the annotation stays off this surface. */
+  .boxCaseStudy {
+    --standfirst-room: 0px;
+  }
+
+  .boxCaseStudy :global(.seam-standfirst) {
+    display: none;
   }
 
   /* No language switch on a phone. Both links still point at "#" — there

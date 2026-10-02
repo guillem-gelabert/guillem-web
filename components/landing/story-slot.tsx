@@ -1,4 +1,5 @@
 import { SmearShot } from "@/components/landing/smear-shot";
+import { SphereShading } from "@/components/landing/sphere-shading";
 import { WORK } from "@/lib/work";
 
 // The landing's editorial block, and the whole of it.
@@ -105,21 +106,6 @@ export function StorySlot() {
         </a>
       </h3>
 
-      {/* No standfirst. The story's annotation used to print here, between
-          the arc and the disc; the corner reads as the picture and its
-          headline now, and the annotation is one line of prose in a box
-          that is mostly circle.
-
-          It is still in lib/work.ts and still printed by the "More work"
-          pairs below the fold — only this slot stopped rendering it, the
-          same way the case studies stayed in the repo when the landing
-          stopped resolving them.
-
-          This was also the landing's last `.max-w-prose`, which
-          tests/landing-viewport.spec.ts's "the measure holds" sweep used to
-          read. That check moved to /cv rather than being relaxed: the
-          measure is a site-wide contract and it is still asserted, on a
-          surface that actually sets running copy. */}
       {/* The disc: the capture, masked to a circle, covering it whole.
           Its geometry and its mask live in landing-seam.module.css, with
           the box it is measured against.
@@ -138,53 +124,15 @@ export function StorySlot() {
       {story.shot === null ? null : (
         <>
           <SmearShot shot={story.shot} />
-          {/* The sphere shading, over the disc. Two diffusion-dithered maps,
-              pure black/white with no alpha, clipped to a sphere's
-              silhouette: darken keeps the shadow map's black and discards
-              its white, lighten does the reverse for the highlight, so the
-              flat masked circle reads as a lit sphere without a fill behind
-              it. Same pair the "More work" circles carry.
-
-              Plain <img> siblings rather than part of SmearShot: they are
-              decoration and do not carry the scroll trail, so they stay out
-              of the client leaf. They share the disc's box through their own
-              rules in landing-seam.module.css, and pointer-events: none
-              there keeps them off the headline's hit area — the same trap
-              .seam-shot documents. */}
-          {/* Two exports, chosen by device pixel ratio, because a dither is
-              only a dither at the pitch it was made for. One 467px map
-              rendered at every size: 0.48 CSS px per dot on a phone, which
-              at DPR 3 is 1.45 device px — nearest-neighbour then prints
-              alternating 1px and 2px dots, and the two maps beat against
-              each other as a moire grid over the whole disc. 150px at 1x
-              and 280px at 2x and above put every device near the seam's
-              own ~2.5 device px per dot (see .grainField in
-              landing-seam.module.css). The width/height are the 2x file's,
-              which is also the src fallback. */}
-          {/* eslint-disable-next-line @next/next/no-img-element -- decorative shading layer; no `sharp` at runtime */}
-          <img
-            src="/work/sphere-shadow-diffusion-2x.png"
-            srcSet="/work/sphere-shadow-diffusion-1x.png 1x, /work/sphere-shadow-diffusion-2x.png 2x"
-            alt=""
-            aria-hidden="true"
-            width={280}
-            height={280}
-            loading="eager"
-            fetchPriority="low"
-            className="seam-shot-shadow"
-          />
-          {/* eslint-disable-next-line @next/next/no-img-element -- decorative shading layer; no `sharp` at runtime */}
-          <img
-            src="/work/sphere-highlight-diffusion-2x.png"
-            srcSet="/work/sphere-highlight-diffusion-1x.png 1x, /work/sphere-highlight-diffusion-2x.png 2x"
-            alt=""
-            aria-hidden="true"
-            width={280}
-            height={280}
-            loading="eager"
-            fetchPriority="low"
-            className="seam-shot-highlight"
-          />
+          {/* The sphere shading, over the disc: a shadow and a highlight
+              map, 1-bit, dithered at the disc's own size by a client leaf
+              (sphere-shading.tsx). darken keeps the shadow map's black,
+              lighten the highlight's white, so the flat masked circle reads
+              as a lit sphere. Same pair the "More work" circles carry. They
+              share the disc's box through their own rules in
+              landing-seam.module.css, and pointer-events: none there keeps
+              them off the headline's hit area. */}
+          <SphereShading shadowClassName="seam-shot-shadow" highlightClassName="seam-shot-highlight" />
           {story.shot.reveal ? (
             // The colour capture, over the grey one and under the shading,
             // revealed when the disc is hovered or its link focused. Same
@@ -216,6 +164,13 @@ export function StorySlot() {
           circumference by geometry instead of by a hand-tuned offset.
           See landing-seam.module.css. */}
       <p className="seam-new-story">New story</p>
+      {/* The standfirst, back under the disc: the annotation as a small
+          right-aligned block of caps with a short rule beneath, in the room
+          landing-seam.module.css clears for it below the disc
+          (--standfirst-room). It is not inside the box's copy flow — the
+          whole corner is positioned against the disc — and it is hidden on
+          a phone, where the disc already takes all the height there is. */}
+      <p className="seam-standfirst">{story.annotation}</p>
     </>
   );
 }

@@ -34,11 +34,11 @@ test("the mirrored scene is the 'More work' landmark and holds every piece after
   await expect(page.getByRole("region", { name: "Projects" })).toHaveCount(1);
   await expect(page.locator("#seam-more-title")).toHaveText("Projects");
 
-  // Scoped to the pairs' own list: the writing shelf under it
-  // (components/landing/notes.tsx) is in the same scene and has list items
-  // of its own.
+  // Scoped to the pairs' own list: the backlog wedge under it
+  // (components/landing/backlog-wedge.tsx) is in the same scene and has
+  // list items of its own.
   // The projects first, then the writing (lib/notes.ts), in one list.
-  const items = scene.getByRole("listitem");
+  const items = scene.locator(".seam-more-list").getByRole("listitem");
   await expect(items).toHaveCount(more.length + NOTES.length);
 
   for (const [index, entry] of more.entries()) {
@@ -48,18 +48,17 @@ test("the mirrored scene is the 'More work' landmark and holds every piece after
     const links = item.locator("a");
     await expect(links).toHaveCount(1);
     await expect(links).toHaveAttribute("href", entry.href);
-    await expect(links).toHaveText("To project →");
-    // Named for a screen reader by the piece it goes to: "To project"
-    // repeated down a list names every link the same. The visible words open
-    // the label, so WCAG 2.5.3's label-in-name holds.
+    await expect(links).toHaveText("→");
+    // Named for a screen reader by the piece it goes to: the glyph says
+    // nothing on its own.
     await expect(links).toHaveAttribute("aria-label", `To project: ${entry.title}`);
     await expect(links).not.toHaveAttribute("target", "_blank");
     // The title is still printed — as a heading, not a link.
     await expect(item.locator(".seam-pair-title")).toHaveText(entry.title);
     await expect(item.locator(".seam-pair-title a")).toHaveCount(0);
-    // Both body paragraphs and every tag reach the page as text, and the
-    // one-line annotation — the hero's standfirst register — does not.
-    for (const paragraph of entry.body) await expect(item).toContainText(paragraph);
+    // Every tag reaches the page as text; neither the body paragraphs nor
+    // the one-line annotation do — the square is a title and its tags.
+    for (const paragraph of entry.body) await expect(item).not.toContainText(paragraph);
     await expect(item).not.toContainText(entry.annotation);
     for (const field of entry.domains) await expect(item).toContainText(field);
     await expect(item).toContainText(entry.contentType);
@@ -67,17 +66,17 @@ test("the mirrored scene is the 'More work' landmark and holds every piece after
     await expect(item.locator(".seam-pair-tags > *")).toHaveCount(
       entry.domains.length + 1 + entry.stack.length,
     );
-    // The domains are the rounded chips; the stack and the content type
-    // are square. The shape is the only thing separating the two kinds.
+    // The domains keep their own class, though every chip is square now.
     await expect(item.locator(".seam-pair-domain")).toHaveCount(entry.domains.length);
-    await expect(item.locator(".seam-pair-body")).toHaveCount(2);
+    await expect(item.locator(".seam-pair-body")).toHaveCount(0);
     // The optional colour reveal is a second, decorative image over its
-    // declared display shot, and any thumbnail also carries the two sphere
-    // shading maps; a null shot still renders no image at all.
-    const shading = 2;
+    // declared display shot; a null shot still renders no image at all. Any
+    // thumbnail also carries the two sphere shading maps, drawn as canvases
+    // at the circle's own size (sphere-shading.tsx).
     await expect(item.locator("img")).toHaveCount(
-      entry.shot === null ? 0 : (entry.shot.reveal ? 2 : 1) + shading,
+      entry.shot === null ? 0 : entry.shot.reveal ? 2 : 1,
     );
+    await expect(item.locator("canvas.seam-pair-shade")).toHaveCount(entry.shot === null ? 0 : 2);
   }
 
   // The writing: the same pair with no link, no thumbnail, one subtitle and
@@ -102,17 +101,20 @@ test("the second piece is printed once, below the fold, and not in the hero", as
   await expect(page.locator("section#story a")).toHaveAttribute("href", hero.href);
 });
 
-test("the pair's link reads as a link, and stays colour-neutral on hover", async ({ page }) => {
+test("the pair's link is the arrow, and stays colour-neutral on hover", async ({ page }) => {
   const link = page.locator(".seam-pair-link").first();
   const rest = await link.evaluate((element) => {
     const style = getComputedStyle(element);
-    return { color: style.color, decoration: style.textDecorationLine };
+    const square = getComputedStyle(element.closest(".seam-pair-square")!);
+    return { color: style.color, decoration: style.textDecorationLine, square: square.color, text: element.textContent?.trim() };
   });
 
-  // Underlined at rest. This is the one element in the pair that should
-  // announce itself: the title is plain type and the box takes no clicks,
-  // so without this the pair would offer no visible affordance at all.
-  expect(rest.decoration).toBe("underline");
+  // The arrow is the affordance: the title is plain type and the box takes
+  // no clicks, so this glyph is the one thing in the pair that says it goes
+  // somewhere. No underline — under an arrow it reads as a stray rule.
+  expect(rest.text).toBe("→");
+  expect(rest.decoration).toBe("none");
+  expect(rest.color).toBe(rest.square);
 
   await link.hover();
   // .link eases its colour (globals.css), so wait for it to land on the
@@ -130,7 +132,7 @@ test("the pair's link reads as a link, and stays colour-neutral on hover", async
   // which repaints the whole entry in its own hover colour
   // (more-work.module.css), and the link just follows its square.
   expect(hover.color).toBe(hover.square);
-  expect(hover.decoration).toBe("underline");
+  expect(hover.decoration).toBe("none");
 });
 
 test("every pair hovers its own hue, at the featured badge's saturation and lightness", async ({ page }) => {
@@ -161,7 +163,7 @@ test("every pair hovers its own hue, at the featured badge's saturation and ligh
 });
 
 test("the pair's box is not a click target — only the link is", async ({ page }) => {
-  const item = page.locator("#seam-scene-mirrored").getByRole("listitem").first();
+  const item = page.locator(".seam-more-list").getByRole("listitem").first();
   // elementFromPoint reads VIEWPORT coordinates, so the pair has to be on
   // screen first. Without this every probe returns null and the whole test
   // passes for the wrong reason.
@@ -193,7 +195,7 @@ test("the pair's box is not a click target — only the link is", async ({ page 
 test("the globe fills its borderless circle and reveals its colour image from either half of the pair", async ({
   page,
 }) => {
-  const item = page.locator("#seam-scene-mirrored").getByRole("listitem").first();
+  const item = page.locator(".seam-more-list").getByRole("listitem").first();
   const circle = item.locator(".seam-pair-circle");
   const square = item.locator(".seam-pair-square");
   const dither = circle.locator(".seam-pair-shot");
@@ -260,7 +262,7 @@ test("each pair is a circle beside a square of the same side, on one row at 1440
     list.style.setProperty("--pair-count", "5");
   });
   await page.waitForFunction(() => document.querySelector("#seam-more ol > [data-flipped]") !== null);
-  const items = page.locator("#seam-scene-mirrored").getByRole("listitem");
+  const items = page.locator(".seam-more-list").getByRole("listitem");
   const count = await items.count();
   // One gap everywhere: between a pair's two shapes, between columns and
   // between rows. Read off the grid itself, and asserted non-trivial.
@@ -444,7 +446,7 @@ test("the square's type is a fixed share of the square, at any size, and the squ
         side: box.width,
         height: box.height,
         title: px(square.querySelector(".seam-pair-title")!, "font-size"),
-        body: px(square.querySelector(".seam-pair-body")!, "font-size"),
+        arrow: px(square.querySelector(".seam-pair-link")!, "font-size"),
         tag: px(square.querySelector(".seam-pair-tags > *")!, "font-size"),
         titleWeight: getComputedStyle(square.querySelector(".seam-pair-title")!).fontWeight,
       };
@@ -468,7 +470,7 @@ test("the square's type is a fixed share of the square, at any size, and the squ
     expect(Math.abs(size.height - size.side)).toBeLessThanOrEqual(1);
   }
   const scale = small.side / large.side;
-  for (const key of ["title", "body", "tag"] as const) {
+  for (const key of ["title", "arrow", "tag"] as const) {
     expect(small[key] / large[key], key).toBeCloseTo(scale, 1);
   }
 });

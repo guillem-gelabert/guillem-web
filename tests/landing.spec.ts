@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { POSITIONING_PLACEHOLDER, WORK } from "../lib/work";
 import { NOTES } from "../lib/notes";
+import { BACKLOG } from "../lib/backlog";
 
 // The landing's content contract. Three of these tests were written for the
 // pre-seam landing — a work list plus an obfuscated email in a plain
@@ -37,32 +38,32 @@ test("the homepage renders only the requested content, in order", async ({ page 
     "DE",
     "GUILLEM",
     "GELABERT",
-    POSITIONING_PLACEHOLDER.toUpperCase(),
+    // The tagline's three words are flex items now, with a generated slash
+    // between them (landing-seam.module.css), so innerText reports each on
+    // its own line and no slash. The element's text is still the constant:
+    // see the descriptor test below.
+    ...POSITIONING_PLACEHOLDER.toUpperCase().split(" "),
     // The arc headline is uppercased in CSS (text-transform on the SVG
     // text), so innerText reports caps while the DOM — and the link's
     // accessible name — keep the published title's own case.
     WORK[0].title.toUpperCase(),
-    // No annotation between them any more: the featured slot prints the
-    // headline and the picture and nothing else. WORK[0].annotation still
-    // exists and is still asserted by tests/unit/work.test.ts; it is simply
-    // not on this surface.
     // The badge on the disc's edge. Set in the DOM as "New story" and
     // uppercased in CSS, so innerText reports caps while the accessible
     // name keeps its sentence case.
     "NEW STORY",
+    // The standfirst under the disc: the annotation, set in caps.
+    WORK[0].annotation.toUpperCase(),
     // The second scene's own title, uppercased in CSS.
     "PROJECTS",
     // Then the mirrored scene: every piece after the first as a pair —
-    // title, the two body paragraphs, the pair's one link directly under
-    // them, and last the tags (domain, content type, stack), which the
-    // square sets in caps.
+    // title, the tags (domain, content type, stack) in caps, and the arrow
+    // that is the pair's one link.
     ...WORK.slice(1).flatMap((entry) => [
       entry.title,
-      ...entry.body,
-      "To project →",
       ...entry.domains.map((field) => field.toUpperCase()),
       entry.contentType.toUpperCase(),
       ...entry.stack.map((tool) => tool.toUpperCase()),
+      "→",
     ]),
     // Then the writing, in the same grid (lib/notes.ts): title, subtitle,
     // and the one tag a TIL or the book review carries, in caps.
@@ -71,6 +72,11 @@ test("the homepage renders only the requested content, in order", async ({ page 
       note.subtitle,
       ...(note.tag === null ? [] : [note.tag.toUpperCase()]),
     ]),
+    // Last, the backlog wedge: its heading with the count, then the names.
+    // Without a database the page serves lib/backlog.tsx's seed, which is
+    // what a test run has.
+    `BACKLOG (${BACKLOG.length})`,
+    ...BACKLOG.map((item) => item.name),
   ]);
 });
 
@@ -157,14 +163,15 @@ test("the story slot links the first piece, title only, and shows its chart", as
   await expect(link).not.toHaveAttribute("target", "_blank");
   await expect(slot.locator("a")).toHaveCount(1);
 
-  // One <img> for a declared shot, and none for a null one — plus the two
-  // decorative sphere-shading maps the disc carries over it, which are
-  // matched by their own classes so the described shot stays nth(0).
+  // One <img> for a declared shot, and none for a null one. The two
+  // decorative sphere-shading maps over the disc are canvases, dithered at
+  // the disc's own size (components/landing/sphere-shading.tsx).
   const declared = [hero].filter((entry) => entry.shot !== null);
   const shots = slot.locator("img.seam-shot");
   await expect(shots).toHaveCount(declared.length);
-  // The described shot, its colour reveal, and the two shading maps.
-  await expect(slot.locator("img")).toHaveCount(declared.length * 2 + 2);
+  // The described shot and its colour reveal; then the two shading maps.
+  await expect(slot.locator("img")).toHaveCount(declared.length * 2);
+  await expect(slot.locator("canvas.seam-shot-shadow, canvas.seam-shot-highlight")).toHaveCount(declared.length * 2);
 
   for (const [index, entry] of declared.entries()) {
     const shot = shots.nth(index);
@@ -196,13 +203,15 @@ test("the chart is the disc — wider than the copy column, inside the box", asy
   // which is precisely the bug the old assertion would now PASS on.
   const measured = await page.evaluate(() => {
     const shot = document.querySelector("section#story img");
+    const hit = document.querySelector("section#story .seam-arc-disc");
     const column = document.querySelector("section#story");
     const box = document.querySelector("#seam-case-study");
-    if (!shot || !column || !box) return null;
+    if (!shot || !hit || !column || !box) return null;
     const r = shot.getBoundingClientRect();
     return {
       shot: r.width,
       shotHeight: r.height,
+      hit: hit.getBoundingClientRect().width,
       column: column.getBoundingClientRect().width,
       box: box.getBoundingClientRect().width,
     };
@@ -210,8 +219,12 @@ test("the chart is the disc — wider than the copy column, inside the box", asy
   expect(measured).not.toBeNull();
   // Square: the disc's bounding box, not the asset's 2.195:1 ratio.
   expect(Math.abs(measured!.shot - measured!.shotHeight)).toBeLessThanOrEqual(1);
-  // Wider than the copy column it is nested inside — the max-width escape.
-  expect(measured!.shot).toBeGreaterThan(measured!.column);
+  // The same width as the disc's hit area, a <span> that reads the same
+  // --disc-size and that no img rule can cap — so a max-width creeping back
+  // onto the picture shows up here as the two disagreeing. (The disc is no
+  // longer wider than the copy column: it gives up a band to the
+  // standfirst, landing-seam.module.css.)
+  expect(Math.abs(measured!.shot - measured!.hit)).toBeLessThanOrEqual(1);
   // But still inside the box: the disc respects the box's padding.
   expect(measured!.shot).toBeLessThan(measured!.box);
   expect(measured!.column).toBeLessThan(measured!.box);

@@ -1,0 +1,113 @@
+/* The red wedge. It sits in flow at the foot of .more (landing-seam.module.css)
+   and reads the scene's insets and the seam's angle from there: --edge-*,
+   --seam-angle. The red is the featured badge's (#ee0000), not
+   --color-accent, which tests/design-budget.spec.ts reserves for focus. */
+
+.wedge {
+  --wedge-copy: 18rem;
+  --wedge-red: #ee0000;
+
+  position: relative;
+  /* Its own stacking context, so the ::before below can sit behind the copy
+     at z-index -1 and still paint OVER the scene's grain — without this,
+     a negative z-index drops the red under .grain and it vanishes. */
+  isolation: isolate;
+  width: var(--wedge-copy);
+  max-width: 100%;
+  margin-top: max(var(--edge-top), 4rem);
+  color: #fff;
+}
+
+/* The red field: a right triangle in the scene's bottom-left corner, its
+   hypotenuse parallel to the mirrored seam. left/bottom are the negative of
+   .more's padding, so the triangle's two straight edges are the scene's
+   own. The hypotenuse falls from the top-left at 1/tan(angle) per px of
+   width, so to clear the copy's top-right corner it has to START that
+   corner's distance from the left edge, divided by tan, above the copy.
+   With top and bottom both set the height is fixed, and aspect-ratio
+   derives the width from it: tan(angle) wide for every 1 tall, which is
+   what makes the slope the seam's. */
+.wedge::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: calc(-1 * var(--edge-left));
+  bottom: calc(-1 * var(--edge-bottom));
+  top: calc(-1 * (var(--edge-left) + var(--wedge-copy)) / tan(var(--seam-angle, 50deg)));
+  aspect-ratio: tan(var(--seam-angle, 50deg));
+  background: var(--wedge-red);
+  clip-path: polygon(0 0, 100% 100%, 0 100%);
+  pointer-events: none;
+}
+
+/* .moreTitle's spec (landing-seam.module.css): .text-label, with the short
+   rule above it. */
+.title {
+  margin: 0 0 var(--spacing-md);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.3;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.title::before {
+  content: "";
+  display: block;
+  width: 2rem;
+  height: 1px;
+  margin-bottom: 0.9em;
+  background: currentColor;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  position: relative;
+  padding-left: 1.6em;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+/* The bullet: a 0.6em square or circle in the type's own colour, centred on
+   the first line. */
+.item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: calc(0.75em - 0.3em);
+  width: 0.6em;
+  height: 0.6em;
+  background: currentColor;
+}
+
+.item[data-shape="circle"]::before {
+  border-radius: 50%;
+}
+
+/* On a phone the seam is steep — a wedge with the seam's slope would be a
+   sliver — so the red is a band across the whole scene foot instead, with a
+   diagonal top edge in the same direction. */
+@media (hover: none) and (pointer: coarse) {
+  .wedge {
+    width: auto;
+    padding-top: 2.5rem;
+  }
+
+  .wedge::before {
+    top: -2rem;
+    right: calc(-1 * var(--edge-right));
+    aspect-ratio: auto;
+    clip-path: polygon(0 0, 100% 3rem, 100% 100%, 0 100%);
+  }
+}

@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import { NOTES } from "@/lib/notes";
 import { WORK } from "@/lib/work";
 import { PairRows } from "./pair-rows";
+import { SphereShading } from "./sphere-shading";
 import styles from "./more-work.module.css";
 
 // Every published piece after the first, as pairs, below the fold.
@@ -9,9 +10,7 @@ import styles from "./more-work.module.css";
 // The first entry is the hero disc in the scene above (story-slot.tsx); this
 // takes the rest. Each is a circle beside a square: the circle is the
 // thumbnail masked round, or a flat fill while no file is committed, and
-// the square carries the title, the annotation and the two tags. It used to
-// be a single line of type under the hero disc, which gave the second piece
-// a title and nothing else.
+// the square carries the title, the tags and the arrow that is the link.
 //
 // Same plain-class-plus-module-class convention as landing-seam.tsx: the
 // module class styles the element, the plain one is what devtools and the
@@ -102,38 +101,15 @@ export function MoreWork() {
                     loading="lazy"
                     className={`seam-pair-shot ${styles.shot}`}
                   />
-                  {/* The sphere shading, over the grey capture and UNDER the
-                      colour one below it:
-                      two diffusion-dithered maps, pure black/white, clipped to
-                      a sphere's silhouette, sized to the circle itself
-                      rather than to the capture's 1.16 crop. darken drops the
-                      shadow map's black in and lets its white pass through;
-                      lighten does the same for the highlight map's white.
-                      Together they turn the flat masked circle into a lit
-                      sphere without painting a background behind it. */}
-                  {/* Same two exports as the story's disc, picked by DPR — see
-                      the note in story-slot.tsx for the pitch they are cut to. */}
-                  {/* eslint-disable-next-line @next/next/no-img-element -- decorative shading layer, no `sharp` at runtime */}
-                  <img
-                    src="/work/sphere-shadow-diffusion-2x.png"
-                    srcSet="/work/sphere-shadow-diffusion-1x.png 1x, /work/sphere-shadow-diffusion-2x.png 2x"
-                    alt=""
-                    aria-hidden="true"
-                    width={280}
-                    height={280}
-                    loading="lazy"
-                    className={`seam-pair-shade ${styles.shade} ${styles.shadow}`}
-                  />
-                  {/* eslint-disable-next-line @next/next/no-img-element -- decorative shading layer, no `sharp` at runtime */}
-                  <img
-                    src="/work/sphere-highlight-diffusion-2x.png"
-                    srcSet="/work/sphere-highlight-diffusion-1x.png 1x, /work/sphere-highlight-diffusion-2x.png 2x"
-                    alt=""
-                    aria-hidden="true"
-                    width={280}
-                    height={280}
-                    loading="lazy"
-                    className={`seam-pair-shade ${styles.shade} ${styles.highlight}`}
+                  {/* The sphere shading, over the grey capture and under the
+                      colour one: a shadow map and a highlight map, 1-bit,
+                      dithered at the circle's own size (sphere-shading.tsx).
+                      darken drops the shadow map's black in and lets its
+                      white pass through; lighten does the same for the
+                      highlight's white. */}
+                  <SphereShading
+                    shadowClassName={`seam-pair-shade ${styles.shade} ${styles.shadow}`}
+                    highlightClassName={`seam-pair-shade ${styles.shade} ${styles.highlight}`}
                   />
                   {entry.shot.reveal ? (
                     // eslint-disable-next-line @next/next/no-img-element -- decorative duplicate of the described dither image
@@ -165,67 +141,54 @@ export function MoreWork() {
                   type is sized against the square it sits in — see
                   more-work.module.css. Weights stay the site's two. */}
               <h3 className={`seam-pair-title ${styles.title}`}>{entry.title}</h3>
-              {/* Two paragraphs, not the one-line annotation: the annotation
-                  is the hero's standfirst register, and this square has the
-                  room to say what the piece is. */}
-              {entry.body.map((paragraph) => (
-                <p key={paragraph.slice(0, 40)} className={`seam-pair-body ${styles.body}`}>
-                  {paragraph}
+              {/* The foot: the tags along the floor, the arrow in the far
+                  corner. The two body paragraphs that used to sit between
+                  are gone — the square is a title and its tags now, and the
+                  piece speaks for itself at the other end of the arrow. */}
+              <div className={`seam-pair-foot ${styles.foot}`}>
+                {/* The tags: the domains, the content type, then the stack.
+                    Outlined chips, all rectangular. No separator glyph
+                    between them: the site ships no icons and its non-Latin
+                    budget is the two arrows (tests/design-budget.spec.ts). */}
+                <p className={`seam-pair-tags ${styles.tags}`}>
+                  {entry.domains.map((field) => (
+                    <span key={field} className={`seam-pair-domain ${styles.tag}`}>
+                      {field}
+                    </span>
+                  ))}
+                  <span className={styles.tag}>{entry.contentType}</span>
+                  {entry.stack.map((tool) => (
+                    <span key={tool} className={`seam-pair-stack ${styles.tag}`}>
+                      {tool}
+                    </span>
+                  ))}
                 </p>
-              ))}
-              {/* The one link in the pair, and the only thing in it that is
-                  clickable — directly under the description, where the reader
-                  finishes, rather than below the tags at the foot.
+                {/* The one link in the pair, and the only thing in it that
+                    is clickable: the arrow in the square's corner. The
+                    title is not a link and the box is not a click target
+                    (see the test of that name).
 
-                  The arrow is U+2192, the mirror of the U+2190 that
-                  lib/locales.ts already sets in every back link. That widens
-                  the site's non-Latin budget from one glyph to two, which
-                  tests/design-budget.spec.ts states as an explicit set; it is
-                  still one arrow per direction and still no icons.
+                    U+2192, the mirror of the U+2190 every back link sets
+                    (lib/locales.ts); the two arrows are the whole of the
+                    site's non-Latin budget. aria-label names the piece,
+                    since the glyph says nothing to a screen reader.
 
-                  aria-label, because "To project" repeated down a list names
-                  every link the same. The visible words open the label, so
-                  WCAG 2.5.3's label-in-name holds.
+                    Same tab: no target, and therefore no rel — with no new
+                    window there is no window.opener to close. Do not
+                    "harden" this by opening a new tab; that reopens the
+                    reverse-tabnabbing surface work-list.tsx documents.
 
-                  Same tab: no target, and therefore no rel — with no new
-                  window there is no window.opener to close. Do not "harden"
-                  this by opening a new tab; that reopens the reverse-
-                  tabnabbing surface work-list.tsx documents avoiding.
-
-                  .link, not .link-quiet. Quiet is what the title was, and it
-                  is why nothing here read as a link; .link is the site's own
-                  explicit treatment (globals.css) — inherited colour, a 1px
-                  underline, and the shared accent focus outline that
-                  tests/design-budget.spec.ts proves the accent is reserved
-                  for. The module class beside it only sizes the box. */}
-              <a
-                className={`link seam-pair-link ${styles.projectLink}`}
-                href={entry.href}
-                aria-label={`To project: ${entry.title}`}
-              >
-                To project →
-              </a>
-              {/* The tags: the domains, the content type, then the stack. The
-                  domains are rounded and the rest are not — see
-                  more-work.module.css. No separator
-                  glyph between them: the site ships no icons and its non-Latin
-                  character budget is a single arrow
-                  (tests/design-budget.spec.ts), so a middle dot is out; the gap
-                  does the separating. */}
-              <p className={`seam-pair-tags ${styles.tags}`}>
-                {entry.domains.map((field) => (
-                  <span key={field} className={`seam-pair-domain ${styles.tag} ${styles.domain}`}>
-                    {field}
-                  </span>
-                ))}
-                <span className={styles.tag}>{entry.contentType}</span>
-                {entry.stack.map((tool) => (
-                  <span key={tool} className={`seam-pair-stack ${styles.tag}`}>
-                    {tool}
-                  </span>
-                ))}
-              </p>
-
+                    .link-quiet, not .link: a glyph is its own affordance
+                    and an underline under an arrow reads as a stray rule.
+                    The accent focus outline still comes from globals.css. */}
+                <a
+                  className={`link-quiet seam-pair-link ${styles.projectLink}`}
+                  href={entry.href}
+                  aria-label={`To project: ${entry.title}`}
+                >
+                  →
+                </a>
+              </div>
             </div>
           </li>
         ))}
@@ -245,9 +208,11 @@ export function MoreWork() {
               <h3 className={`seam-pair-title ${styles.title}`}>{note.title}</h3>
               <p className={`seam-pair-body ${styles.body}`}>{note.subtitle}</p>
               {note.tag === null ? null : (
-                <p className={`seam-pair-tags ${styles.tags}`}>
-                  <span className={styles.tag}>{note.tag}</span>
-                </p>
+                <div className={`seam-pair-foot ${styles.foot}`}>
+                  <p className={`seam-pair-tags ${styles.tags}`}>
+                    <span className={styles.tag}>{note.tag}</span>
+                  </p>
+                </div>
               )}
             </div>
           </li>

@@ -41,6 +41,10 @@
   display: flex;
   flex-direction: var(--pair-direction, row-reverse);
   align-items: flex-start;
+  /* The pair hugs its column's LEFT edge whichever way the row runs. The
+     side is capped (--pair-max-side), so a pair can be narrower than its
+     column, and a row-reverse row otherwise packs its shapes to the right. */
+  justify-content: flex-end;
   gap: var(--pair-shape-gap);
 }
 
@@ -57,6 +61,7 @@
    and focus order, is unchanged. */
 .pair[data-flipped] {
   flex-direction: var(--pair-direction-flipped, row);
+  justify-content: flex-start;
 }
 
 /* The white pair: the two values swapped. Everything in the square reads
@@ -198,9 +203,8 @@
   line-height: 1.1;
 }
 
-/* The two paragraphs. 4cqw is ~24px on the desktop's lone pair. Line-height tighter than
-   .text-body's 1.6 because the measure is short and the block has to share
-   the square with a title and a tag row. */
+/* A note's one line under its title (the projects carry none). 4cqw is
+   ~24px on the desktop's lone pair. */
 .body {
   margin: 0;
   font-size: 4cqw;
@@ -209,14 +213,14 @@
 }
 
 /* .text-label's spec at a size that follows the square: caps, tracked, the
-   regular weight — set as a chip.
+   regular weight — set as an outlined chip. A 1px rule in the type's own
+   colour on no fill, so the chip adds no third value to the pair's two.
 
    Rectangular, and that is the point: border-radius: 0 is declared rather
    than left off, because a "pill" normally means a rounded one and this
    site's radius budget is zero (tests/design-budget.spec.ts sweeps every
-   computed corner inside <main>). Reversed out of the square — the square is
-   #000 with #fff type, so a chip inverts to #fff with #000 type, which keeps
-   the pair to the two values it already uses and adds no third. */
+   computed corner inside <main>). The domains used to be the rounded ones;
+   they are square now like the rest, and only their class tells them apart. */
 .tag {
   /* Trimmed to the cap height, so the chip's padding is the space you
      actually see. Untrimmed, the line box carries half-leading above the
@@ -226,10 +230,11 @@
      at the box, which is why the padding below can equal the padding above
      rather than being tuned to fake it. */
   text-box: trim-both cap alphabetic;
-  padding: 0.4em 0.6em;
+  padding: 0.45em 0.6em;
+  border: 1px solid var(--pair-type);
   border-radius: 0;
-  background: var(--pair-type);
-  color: var(--pair-fill);
+  background: transparent;
+  color: var(--pair-type);
   font-size: 2.8cqw;
   font-weight: 400;
   line-height: 1.3;
@@ -237,71 +242,46 @@
   letter-spacing: 0.04em;
 }
 
-/* What the piece is ABOUT is rounded; what it was made WITH is not. The two
-   kinds of chip carry the same type and the same ink, so the shape is the
-   only thing separating them — which is why the stack's corners are square
-   rather than merely less round. */
-.domain {
-  border-radius: 999px;
-  padding-inline: 0.85em;
+/* The square's foot: the chips from the left, the arrow in the far right
+   corner, both on the floor. margin-top: auto is what leaves the square's
+   slack between the title and this row. */
+.foot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  margin-top: auto;
 }
 
-/* The pair's only link, directly under the description. It replaces a
-   stretched ::after that made the whole <li> clickable: an invisible
-   affordance over a box whose title was deliberately quiet, so nothing on
-   screen said the pair went anywhere.
-
-   The underline, the inherited colour and the accent focus outline all come
-   from the global .link (globals.css) that the anchor also carries; this
-   rule only sizes the box. No arrow glyph: the site's entire non-Latin
-   budget is U+2190, and a rightwards arrow would fail
-   tests/design-budget.spec.ts.
-
-   The type is a share of the square, so in a small one the line box drops
-   under WCAG 2.5.8's 24px target. --link-reach pads it back up to 24px and
-   the same negative margin takes that padding out of the flow, so the
-   target grows and nothing on screen moves — tests/landing.spec.ts
-   measures every link on the page. width: fit-content keeps the target the width of the words, not of the
-   whole square. */
+/* The pair's only link: the arrow. Sized like the title, so it reads as
+   the square's second mark rather than a footnote. The type is a share of
+   the square, so in a small one the glyph's box drops under WCAG 2.5.8's
+   24px target; --link-reach pads it back up and the same negative margin
+   takes the padding out of the flow, so the target grows and nothing on
+   screen moves — tests/landing.spec.ts measures every link on the page.
+   Colour and the accent focus outline come from .link-quiet (globals.css). */
 .projectLink {
   display: block;
-  width: fit-content;
-  /* Sat directly under the copy, so it takes the copy's own size rather
-     than the tag row's: at the body register it reads as the pair's call to
-     action instead of a footnote. The site's heavier weight, which is the
-     only other emphasis available — the palette is one ink on one ground. */
-  /* 25, not 24: a pixel of slack for subpixel rounding (23.98 at 24). */
-  --link-reach: max(0px, (25px - 1.35em) / 2);
-  margin-block: calc(1cqw - var(--link-reach)) calc(-1 * var(--link-reach));
-  padding-block: var(--link-reach);
-  font-size: 4cqw;
-  font-weight: 530;
-  line-height: 1.35;
+  flex: 0 0 auto;
+  --link-reach: max(0px, (25px - 1em) / 2);
+  margin: calc(-1 * var(--link-reach));
+  padding: var(--link-reach);
+  font-size: 7.7cqw;
+  font-weight: 400;
+  line-height: 1;
 }
 
-/* The two tags pushed to the square's bottom edge: the title and annotation
-   stack from the top, the tags sit at the foot, and whatever is between is
-   the square's own air. */
-/* The chips sit on the square's floor and fill it from the left.
-
-   wrap-REVERSE is what makes the bottom row the first one: it flips the
-   cross axis, so the line that fills first is the lowest and any overflow
-   stacks ABOVE it rather than starting a half-empty second row underneath.
-   Without it a wrapped row leaves a gap along the floor, which is the one
-   place this block is anchored to. */
+/* The chips fill from the left along the floor. wrap-REVERSE makes the
+   bottom row the first one: it flips the cross axis, so the line that fills
+   first is the lowest and any overflow stacks ABOVE it rather than starting
+   a half-empty second row underneath. */
 .tags {
   display: flex;
   flex-wrap: wrap-reverse;
-  /* Bottom-RIGHT: the chips gather in the square's far corner, and
-     wrap-reverse keeps the lowest row the one that fills first. */
-  justify-content: flex-end;
   align-content: flex-end;
-  /* One value, so the space between chips is the same across a row as it is
-     between rows. Two values made the stack look tighter than the line. */
   gap: var(--spacing-xs);
-  /* Pushed to the foot: this is what leaves the square's slack between the
-     copy and the chips. */
-  margin-top: auto;
+  margin: 0;
+  min-width: 0;
 }
 
 /* The sphere shading, laid over the thumbnail inside the same clipped
