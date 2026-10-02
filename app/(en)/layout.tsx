@@ -36,12 +36,24 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
+// Chrome, Firefox and Edge on iOS run WebKit, so CSS cannot tell them from
+// Safari, but they paint their own bar behind the status bar where Safari
+// shows the page's body colour. Flagged before first paint so the landing's
+// Safari-only treatment (components/landing/landing-seam.module.css) can opt
+// them out. suppressHydrationWarning: the attribute is added before React
+// hydrates <html>.
+const IOS_BROWSER_SCRIPT = `if(/CriOS|FxiOS|EdgiOS/.test(navigator.userAgent))document.documentElement.dataset.iosBrowser="other"`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"
       className={`${humane.variable} ${ibmPlexMono.variable} ${jost.variable}`}
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: IOS_BROWSER_SCRIPT }} />
+      </head>
       <body>
         <SmearHeadingProvider>{children}</SmearHeadingProvider>
       </body>

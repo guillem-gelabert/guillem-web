@@ -241,3 +241,52 @@ for (const device of PORTRAIT_VIEWPORTS) {
     }
   });
 }
+
+// Chrome, Firefox and Edge on iOS paint their own bar behind the status bar,
+// so app/(en)/layout.tsx flags them out of the Safari-only white fade and
+// gives the name a little more room above it. Chromium cannot evaluate
+// @supports (-webkit-touch-callout: none), so the fade itself is not
+// observable here; the flag and the nameplate offset are.
+const IOS_UA = {
+  safari:
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 26_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
+  chrome:
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 26_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/141.0.0.0 Mobile/15E148 Safari/604.1",
+};
+
+test("Chrome on iOS is flagged out of the Safari treatment and gets more room above the name", async ({
+  browser,
+}) => {
+  const read = async (userAgent: string) => {
+    const context = await browser.newContext({
+      viewport: { width: 402, height: 874 },
+      hasTouch: true,
+      isMobile: true,
+      userAgent,
+    });
+    const page = await context.newPage();
+    try {
+      await page.goto("/");
+      await page.evaluate(() => document.fonts.ready);
+      return await page.evaluate(() => {
+        const name = document.querySelector(".seam-nameplate-text") as HTMLElement;
+        const style = getComputedStyle(name);
+        return {
+          flag: document.documentElement.dataset.iosBrowser ?? null,
+          marginTop: parseFloat(style.marginTop),
+          fontSize: parseFloat(style.fontSize),
+        };
+      });
+    } finally {
+      await context.close();
+    }
+  };
+
+  const safari = await read(IOS_UA.safari);
+  const chrome = await read(IOS_UA.chrome);
+
+  expect(safari.flag).toBeNull();
+  expect(chrome.flag).toBe("other");
+  expect(safari.marginTop / safari.fontSize).toBeCloseTo(0.019, 3);
+  expect(chrome.marginTop / chrome.fontSize).toBeCloseTo(0.04, 3);
+});

@@ -158,8 +158,12 @@ Background full-bleed, content safe: the grain paints to the physical edges, onl
 stacks read `env(safe-area-inset-*)`, and the story corner adds Safari's toolbar band
 (`--chrome-bottom`) so it stops above the URL bar. Unscrolled, iOS Safari shows the body colour
 in the strip behind the status bar, not the page, so on a phone running iOS WebKit
-(`@supports (-webkit-touch-callout: none)`) the body is white and the first scene's grain fades
-to white over its top 4rem. Checked in the iPhone 17 Pro simulator (iOS 26.5); needs a phone check.
+(`@supports (-webkit-touch-callout: none)`) the body is white, the first scene's grain fades to
+white over its top 2rem, and the nameplate drops by the same amount so plain grain sits between
+fade and name. Chrome, Firefox and Edge on iOS paint their own bar, so a head script in
+`app/(en)/layout.tsx` flags them (`data-ios-browser`) out of that; they get 0.04em above the name
+instead of 0.019em, because the hard edge against their dark bar reads tighter. Checked in the
+iPhone 17 Pro simulator (iOS 26.5); Chrome on iOS needs a phone check.
 
 
 - **Landing writing** (2026-09-25) — three posts, three TILs and one book review as pairs in the

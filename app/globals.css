@@ -482,10 +482,12 @@ body:has(.seam-scene) {
 
 /* iOS Safari on a phone (-webkit-touch-callout is iOS WebKit only): unscrolled,
    the strip behind the status bar is outside the page's viewport and shows
-   this colour, so it is white and the grain fades to white beneath it. */
+   this colour, so it is white and the grain fades to white beneath it.
+   Other iOS browsers paint their own bar there and are flagged out by the
+   script in app/(en)/layout.tsx. */
 @media (hover: none) and (pointer: coarse) {
   @supports (-webkit-touch-callout: none) {
-    body:has(.seam-scene) {
+    html:not([data-ios-browser]) body:has(.seam-scene) {
       background: var(--color-seam-status);
     }
   }
