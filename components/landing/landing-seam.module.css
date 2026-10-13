@@ -511,9 +511,25 @@ main:not(:has(.grain:not([data-ink="canvas"]))) .loader {
    scene's foot from there — on a phone, where the pairs stack, that is
    well past one screen. The canvas computes every pixel from the pivot and
    does not care about the square's size. */
+/* The second grain starts 2px up, under the first scene (which stacks
+   above it, z-index 1). Each grain is its own layer (.grain), and a
+   pinch-zoom on iOS scales the two by a fractional factor, which opened a
+   hairline of the page between them along the fold. The rows it reaches up
+   into are the same pass the first grain drew (grain-ink.tsx replays it
+   from the first grain's top), so the overlap is texture, not a seam. */
+.sceneMirrored {
+  --grain-overlap: 2px;
+}
+
+.sceneMirrored > .grain {
+  top: calc(-1 * var(--grain-overlap));
+}
+
+/* + --grain-overlap: the field is placed in its grain, which starts that
+   much above this scene. */
 .sceneMirrored .grainField {
   --dither-size: 500vmax;
-  top: calc(var(--gradient-center-y) - 100lvh);
+  top: calc(var(--gradient-center-y) - 100lvh + var(--grain-overlap));
 }
 
 /* A corner, not a box: where the pair sits and how wide it is. Its height

@@ -309,9 +309,9 @@ test("the story corner fits above the measured visible height", async ({ browser
     await page.goto("/");
     await page.evaluate(() => document.fonts.ready);
     // The hook writes only when visualViewport disagrees with 100svh by a
-    // real margin, settled (250ms) — and in Chromium the two agree, so it
+    // real margin, settled (500ms) — and in Chromium the two agree, so it
     // leaves the stylesheet's 100svh in place.
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(700);
     expect(
       await page.evaluate(() => document.documentElement.style.getPropertyValue("--visible-height")),
     ).toBe("");

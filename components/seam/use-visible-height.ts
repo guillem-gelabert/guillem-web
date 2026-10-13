@@ -22,10 +22,12 @@ import { useEffect } from "react";
 // (rotation) starts over, and pinch-zoom (scale !== 1) is ignored, since it
 // shrinks the visual viewport without the screen getting any smaller.
 //
-// Written once the readings settle, not as each arrives. That low first
-// reading is Safari's toolbar on its way from its loading size to its
-// resting one, and following it drew the disc tiny and then grew it in
-// front of you on every refresh. Until a value is written the stylesheet
+// Read only once the page has loaded, and written once the readings settle,
+// not as each arrives. That low first reading is Safari's toolbar in its
+// loading size, on its way to its resting one, and following it drew the
+// disc tiny and then grew it in front of you on every refresh. 250ms of
+// quiet was not enough after a pull-to-refresh, where the toolbar stays
+// large until the load completes. Until a value is written the stylesheet
 // uses 100svh, which was right on that phone from the start.
 //
 // And only when it differs from what is already in effect by a real
@@ -33,7 +35,7 @@ import { useEffect } from "react";
 // the same screen, and following that moved the disc by a couple of pixels
 // on refresh. Off by less than this, 100svh (or the value already written)
 // stays; the readings this exists for were off by 60px and more.
-const SETTLE_MS = 250;
+const SETTLE_MS = 500;
 const MARGIN_PX = 16;
 
 function smallViewportHeight() {
@@ -66,16 +68,23 @@ export function useVisibleHeight() {
         width = viewport.width;
         largest = 0;
       }
-      if (window.scrollY > 0 || viewport.height <= largest) return;
+      // Not mid-scroll, and not mid-pull either (scrollY < 0 while a
+      // pull-to-refresh stretches the top).
+      if (window.scrollY !== 0 || viewport.height <= largest) return;
       largest = viewport.height;
       clearTimeout(timer);
       timer = setTimeout(write, SETTLE_MS);
     };
 
-    update();
-    viewport.addEventListener("resize", update);
-    window.addEventListener("resize", update);
+    const start = () => {
+      update();
+      viewport.addEventListener("resize", update);
+      window.addEventListener("resize", update);
+    };
+    if (document.readyState === "complete") start();
+    else window.addEventListener("load", start, { once: true });
     return () => {
+      window.removeEventListener("load", start);
       clearTimeout(timer);
       viewport.removeEventListener("resize", update);
       window.removeEventListener("resize", update);

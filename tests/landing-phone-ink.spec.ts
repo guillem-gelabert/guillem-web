@@ -38,8 +38,8 @@ async function openPhone(browser: Browser, stub?: Stub) {
       document.querySelectorAll('.seam-grain[data-ink="canvas"]').length ===
       document.querySelectorAll(".seam-grain").length,
   );
-  // use-visible-height.ts writes, if at all, once its readings settle (250ms).
-  await page.waitForTimeout(400);
+  // use-visible-height.ts writes, if at all, once its readings settle (500ms).
+  await page.waitForTimeout(700);
   return { context, page };
 }
 
@@ -86,6 +86,14 @@ test("on a phone each grain's canvas is one dot per CSS pixel and the fold is in
     );
     expect(images).toHaveLength(inks.length);
     for (const image of images) expect(image.css).toEqual(image.natural);
+
+    // And the second grain reaches under the first, so a pinch-zoom cannot
+    // open a hairline between the two layers.
+    const overlap = await page.evaluate(() => {
+      const second = document.getElementById("seam-scene-mirrored")!;
+      return second.getBoundingClientRect().top - second.querySelector(".seam-grain")!.getBoundingClientRect().top;
+    });
+    expect(overlap).toBe(2);
 
     // The cure for the row at the fold on iOS: each grain its own layer.
     expect(
@@ -159,25 +167,28 @@ test("on a phone the story corner keeps its size when only the height changes", 
   }
 });
 
-// What the iPhone 17 Pro's visualViewport reported, played back: a first
-// reading far under the real height (561 for 714) that corrects itself
-// with a resize a moment later, and readings a couple of pixels either side
-// of the real one. Neither may move the story corner. The stub answers
-// `low` for the first 100ms after the first read, then the real height
-// plus `jitter`, and fires the resize Safari fires.
+// What the iPhone 17 Pro's visualViewport reported, played back: a reading
+// far under the real height (561 for 714) for as long as the page loads and
+// a moment after — the toolbar in its loading size, which a pull-to-refresh
+// holds until the load completes — and readings a couple of pixels either
+// side of the real one. Neither may move the story corner. The stub answers
+// `low` until 400ms after "load", then the real height plus `jitter`, and
+// fires the resize Safari fires when its toolbar settles.
 // Runs in the page before its own scripts, so it records every write.
 function stubVisualViewport({ low, jitter }: Stub) {
   const real = Object.getOwnPropertyDescriptor(VisualViewport.prototype, "height")!.get!;
-  let first: number | undefined;
+  let settled = false;
+  window.addEventListener("load", () =>
+    setTimeout(() => {
+      settled = true;
+      window.visualViewport!.dispatchEvent(new Event("resize"));
+    }, 400),
+  );
   const w = window as unknown as { __written: string[] };
   w.__written = [];
   Object.defineProperty(VisualViewport.prototype, "height", {
     get(this: VisualViewport) {
-      if (first === undefined) {
-        first = performance.now();
-        setTimeout(() => window.visualViewport!.dispatchEvent(new Event("resize")), 100);
-      }
-      if (low !== undefined && performance.now() - first < 100) return low;
+      if (low !== undefined && !settled) return low;
       return real.call(this) + jitter;
     },
   });
@@ -201,7 +212,7 @@ for (const [name, stub] of [
 
     const { context, page } = await openPhone(browser, stub);
     try {
-      await page.waitForTimeout(400);
+      await page.waitForTimeout(1200);
       expect(await page.evaluate(() => (window as unknown as { __written: string[] }).__written)).toEqual([]);
       expect(await page.evaluate(disc)).toBe(full);
     } finally {
