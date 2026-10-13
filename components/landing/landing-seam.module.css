@@ -307,6 +307,14 @@
      field (this element is inset: 0, so its box IS the scene's) while
      leaving the scene itself open for the trail. */
   overflow: hidden;
+  /* A compositing layer for each grain, so iOS Safari places both the same
+     way. Without it, on an iPhone 17 Pro, the second grain's ink came out a
+     pixel below its paper and smoothed: a row of bare paper along the fold
+     and blurred dots under it, with every box measuring exactly right. Of
+     four variants tried on the phone (/?debug, since removed) this one and
+     dropping the scenes' z-index cured it; the z-index is what lets the
+     disc's trail cross the fold on top, so this is the one kept. */
+  will-change: transform;
 }
 
 /* Also the scene's backstop: .scene paints nothing, so this is what covers
@@ -410,9 +418,8 @@
    above is the ink; once it has, the field stays as geometry only — its
    box and transform are what the canvas reads — and stops painting. The
    swap happens under .loader, which covers the page until it is done. */
-/* Drawn on, never shown: the image below shows it (grain-ink.tsx says why).
-   visibility rather than display, so it keeps the box tests and /?debug
-   measure. */
+/* Drawn on, never shown: the image below shows it (grain-ink.tsx).
+   visibility rather than display, so it keeps the box the tests measure. */
 .grainInk {
   visibility: hidden;
 }

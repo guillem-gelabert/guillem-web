@@ -4,7 +4,6 @@ import { useRef, type ReactNode } from "react";
 import { SEAM_ANGLE_SCRIPT, useSeamAlignment } from "@/components/seam/use-seam-alignment";
 import { useVisibleHeight } from "@/components/seam/use-visible-height";
 import { GrainInk } from "./grain-ink";
-import { SeamDebug } from "./seam-debug";
 import styles from "./landing-seam.module.css";
 
 type LandingSeamProps = {
@@ -73,7 +72,6 @@ export function LandingSeam({
       <noscript>
         <style>{`.seam-loader { display: none !important; }`}</style>
       </noscript>
-      <SeamDebug />
       <section
         ref={sceneRef}
         id="seam-scene"

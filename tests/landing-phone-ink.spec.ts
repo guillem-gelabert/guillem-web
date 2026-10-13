@@ -3,13 +3,12 @@ import { expect, test, webkit, type Browser } from "@playwright/test";
 // The seam's ink and the story corner on a phone, in WebKit — the engine an
 // iPhone runs.
 //
-// Reported on an iPhone 17 Pro after a few scrolls: the disc shrinking
-// every time, and below the fold the second scene's canvas squashed to two
-// dither rows per CSS pixel, so the texture changed at the fold. Both came
-// from use-visible-height.ts keeping the smallest visualViewport height it
-// ever saw: each lower reading shrank the story corner, which re-laid out
-// the second scene too, and the canvas was redrawn against heights that did
-// not last.
+// Reported on an iPhone 17 Pro: the disc shrinking as you scrolled, then
+// changing size on refresh, and a light row along the fold. The disc came
+// from use-visible-height.ts trusting every visualViewport reading; the
+// readings are played back below. The row needed the phone itself (it never
+// showed in WebKit here) and was cured by a compositing layer per grain,
+// which the first test pins.
 
 const PHONE = { width: 402, height: 874 };
 
@@ -87,6 +86,13 @@ test("on a phone each grain's canvas is one dot per CSS pixel and the fold is in
     );
     expect(images).toHaveLength(inks.length);
     for (const image of images) expect(image.css).toEqual(image.natural);
+
+    // The cure for the row at the fold on iOS: each grain its own layer.
+    expect(
+      await page.evaluate(() =>
+        [...document.querySelectorAll(".seam-grain")].map((grain) => getComputedStyle(grain).willChange),
+      ),
+    ).toEqual(["transform", "transform"]);
 
     for (const ink of inks) {
       // Exactly, in whole pixels: a canvas stretched over a fractional box
@@ -203,19 +209,3 @@ for (const [name, stub] of [
     }
   });
 }
-
-// Temporary, with components/landing/seam-debug.tsx.
-test("the debug readout shows at /?debug", async () => {
-  const { context, page } = await openPhone(browser);
-  try {
-    await page.goto("/?debug");
-    await expect(page.locator("pre", { hasText: "debug-3" })).toContainText("vv.height");
-    for (const fold of ["nofield", "layers", "flat", "overlap"]) {
-      await page.goto(`/?debug&fold=${fold}`);
-      await expect(page.locator("pre", { hasText: "debug-3" })).toContainText(`fold=${fold}`);
-      await page.waitForFunction(() => document.querySelectorAll('.seam-grain[data-ink="canvas"]').length === 2);
-    }
-  } finally {
-    await context.close();
-  }
-});

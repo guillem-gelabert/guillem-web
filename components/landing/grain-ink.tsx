@@ -76,7 +76,7 @@ function mulberry32(seed: number) {
 }
 
 type GrainInkProps = {
-  /** The canvas the pass is drawn on. Hidden; tests and /?debug read it. */
+  /** The canvas the pass is drawn on. Hidden; the tests read it. */
   className: string;
   /** The image that shows it. */
   imageClassName: string;
@@ -98,21 +98,17 @@ export function GrainInk({ className, imageClassName }: GrainInkProps) {
       const box = grain.getBoundingClientRect();
       const width = Math.max(1, Math.round(box.width / DOT));
       const height = Math.max(1, Math.ceil(box.height / DOT));
-      // Whole CSS pixels, and set here rather than left to inset: 0. The
-      // second grain is as tall as the work it holds — 1170.22px on an
-      // iPhone 17 Pro — and iOS Safari composited the 1170-row canvas
-      // stretched over that box with smoothing and a pixel's shift: a row of
-      // bare paper at the fold and blurred dots below it, image-rendering
-      // notwithstanding. At exactly its own size the canvas maps 1:1 onto CSS
-      // pixels; ceil, so it never falls short, and .grain clips the rest. Its
+      // Whole CSS pixels, and set here rather than left to inset: 0: the
+      // second grain is as tall as the work it holds (1170.22px on an iPhone
+      // 17 Pro), and a 1170-row canvas stretched over that is not one dot per
+      // pixel. ceil, so it never falls short, and .grain clips the rest. Its
       // top is snapped to a whole pixel of the page for the same reason.
       //
-      // That was not enough on its own: on the same phone the canvas was
-      // still drawn a pixel low and smoothed, with its grain's paper exactly
-      // where it should be. iOS composites a 2D canvas as a layer of its
-      // own and placed this one off the pixel grid. So the canvas is only
-      // where the pass is drawn; what shows is an <img> of it, which is
-      // painted in place like everything else on the page.
+      // What shows is an <img> of the canvas rather than the canvas itself.
+      // Both this and the image were tries at a row of bare paper iOS drew
+      // along the fold, and neither cured it — the layer on .grain did
+      // (landing-seam.module.css). They stay because they are what that
+      // fix was verified with on the phone.
       const pageTop = box.top + window.scrollY;
       for (const element of [canvas, shown]) {
         element.style.top = `${Math.round(pageTop) - pageTop}px`;
