@@ -30,12 +30,7 @@ test("the homepage renders only the requested content, in order", async ({ page 
     .split(/\n+/)
     .map((line) => line.trim())
     .filter(Boolean);
-  // The two language labels come first in the DOM: they sit on the seam
-  // itself, not in either corner. Both are still placeholders pointing at
-  // "#" — there is no German landing (see landing-seam.tsx).
   expect(visibleLines).toEqual([
-    "EN",
-    "DE",
     "GUILLEM",
     "GELABERT",
     // The tagline's three words are flex items now, with a generated slash
@@ -231,12 +226,11 @@ test("the chart is the disc — wider than the copy column, inside the box", asy
 });
 
 test("all links are keyboard focusable and meet the 24px target floor", async ({ page }) => {
-  // The two language placeholders on the seam, then one link per piece:
-  // the hero's arc headline in the first scene and a pair's title in the
-  // mirrored one. The mailto link this used to count is not on the seam
+  // One link per piece: the hero's arc headline in the first scene and a
+  // pair's title in the mirrored one. The mailto link this used to count is not on the seam
   // landing at all — /cv and the contact block own it.
   const links = page.locator("main a");
-  const count = 2 + WORK.length;
+  const count = WORK.length;
   await expect(links).toHaveCount(count);
 
   for (let index = 0; index < count; index += 1) {
