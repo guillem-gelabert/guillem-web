@@ -112,3 +112,15 @@ test("on a phone the story corner keeps its size when only the height changes", 
     await context.close();
   }
 });
+
+// Temporary, with components/landing/seam-debug.tsx.
+test("the debug readout shows at /?debug", async () => {
+  const { context, page } = await openPhone(browser);
+  try {
+    await page.goto("/?debug");
+    await expect(page.locator("pre", { hasText: "debug-1" })).toContainText("vv.height");
+    console.log(await page.locator("pre", { hasText: "debug-1" }).textContent());
+  } finally {
+    await context.close();
+  }
+});
