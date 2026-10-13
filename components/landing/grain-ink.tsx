@@ -86,20 +86,35 @@ export function GrainInk({ className }: { className: string }) {
 
 
     const draw = () => {
-      const width = Math.max(1, Math.round(grain.clientWidth / DOT));
-      const height = Math.max(1, Math.round(grain.clientHeight / DOT));
+      const box = grain.getBoundingClientRect();
+      const width = Math.max(1, Math.round(box.width / DOT));
+      const height = Math.max(1, Math.ceil(box.height / DOT));
+      // Whole CSS pixels, and set here rather than left to inset: 0. The
+      // second grain is as tall as the work it holds — 1170.22px on an
+      // iPhone 17 Pro — and iOS Safari composited the 1170-row canvas
+      // stretched over that box with smoothing and a pixel's shift: a row of
+      // bare paper at the fold and blurred dots below it, image-rendering
+      // notwithstanding. At exactly its own size the canvas maps 1:1 onto CSS
+      // pixels; ceil, so it never falls short, and .grain clips the rest. Its
+      // top is snapped to a whole pixel of the page for the same reason.
+      const pageTop = box.top + window.scrollY;
+      canvas.style.top = `${Math.round(pageTop) - pageTop}px`;
+      canvas.style.width = `${width * DOT}px`;
+      canvas.style.height = `${height * DOT}px`;
       const first = document.querySelector<HTMLElement>(".seam-grain") ?? grain;
       const firstField = first.querySelector<HTMLElement>(".seam-grain-field") ?? field;
       const firstBox = first.getBoundingClientRect();
       const fieldBox = firstField.getBoundingClientRect();
-      // Rows between the first grain's top and this one's: the part of the
+      // The first canvas's top, snapped as above: row 0 of the shared pass.
+      const origin = Math.round(firstBox.top + window.scrollY) - window.scrollY;
+      // Rows between the first canvas's top and this one's: the part of the
       // shared pass that belongs to the scenes above.
-      const above = Math.round((grain.getBoundingClientRect().top - firstBox.top) / DOT);
+      const above = Math.round((Math.round(pageTop) - window.scrollY - origin) / DOT);
       // The field is a square centred on its pivot and transformed about
       // its centre, so its bounding box's centre is the pivot. Read off the
       // first grain, in its frame, so the replayed rows are its rows exactly.
       const pivotX = (fieldBox.left + fieldBox.width / 2 - firstBox.left) / DOT;
-      const pivotY = (fieldBox.top + fieldBox.height / 2 - firstBox.top) / DOT;
+      const pivotY = (fieldBox.top + fieldBox.height / 2 - origin) / DOT;
       const styles = getComputedStyle(firstField);
       const matrix = new DOMMatrixReadOnly(styles.transform === "none" ? undefined : styles.transform).inverse();
       const ink = parseColour(getComputedStyle(grain).getPropertyValue("--gradient-shade") || "#555555");

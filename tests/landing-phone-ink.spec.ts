@@ -75,8 +75,9 @@ test("on a phone each grain's canvas is one dot per CSS pixel and the fold is in
     );
 
     for (const ink of inks) {
-      expect(Math.abs(ink.intrinsic[0]! - ink.css[0]!)).toBeLessThanOrEqual(1);
-      expect(Math.abs(ink.intrinsic[1]! - ink.css[1]!)).toBeLessThanOrEqual(1);
+      // Exactly, in whole pixels: a canvas stretched over a fractional box
+      // is what iOS Safari smoothed and shifted.
+      expect(ink.css).toEqual(ink.intrinsic);
       expect(Math.abs(ink.css[1]! - ink.grain)).toBeLessThanOrEqual(1);
     }
     // The last row above the fold and the first below it both sit in the
