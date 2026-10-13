@@ -21,6 +21,13 @@ import { useEffect } from "react";
 // 100svh cap covers a collapse that happens without a scroll. A width change
 // (rotation) starts over, and pinch-zoom (scale !== 1) is ignored, since it
 // shrinks the visual viewport without the screen getting any smaller.
+//
+// Written once the readings settle, not as each arrives. That low first
+// reading is Safari's toolbar on its way from its loading size to its
+// resting one, and following it drew the disc tiny and then grew it in
+// front of you on every refresh. Until a value is written the stylesheet
+// uses 100svh, which was right on that phone from the start.
+const SETTLE_MS = 250;
 export function useVisibleHeight() {
   useEffect(() => {
     const viewport = window.visualViewport;
@@ -29,6 +36,8 @@ export function useVisibleHeight() {
     const root = document.documentElement;
     let width = viewport.width;
     let largest = 0;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const write = () => root.style.setProperty("--visible-height", `${largest}px`);
 
     const update = () => {
       if (viewport.scale !== 1) return;
@@ -38,13 +47,15 @@ export function useVisibleHeight() {
       }
       if (window.scrollY > 0 || viewport.height <= largest) return;
       largest = viewport.height;
-      root.style.setProperty("--visible-height", `${largest}px`);
+      clearTimeout(timer);
+      timer = setTimeout(write, SETTLE_MS);
     };
 
     update();
     viewport.addEventListener("resize", update);
     window.addEventListener("resize", update);
     return () => {
+      clearTimeout(timer);
       viewport.removeEventListener("resize", update);
       window.removeEventListener("resize", update);
       root.style.removeProperty("--visible-height");

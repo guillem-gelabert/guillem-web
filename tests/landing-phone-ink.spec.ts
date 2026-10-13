@@ -36,6 +36,8 @@ async function openPhone(browser: Browser) {
       document.querySelectorAll('.seam-grain[data-ink="canvas"]').length ===
       document.querySelectorAll(".seam-grain").length,
   );
+  // use-visible-height.ts writes once its readings have settled.
+  await page.waitForFunction(() => document.documentElement.style.getPropertyValue("--visible-height") !== "");
   return { context, page };
 }
 
@@ -155,6 +157,10 @@ test("on a phone a low first reading of the visible height does not stick", asyn
     await page.reload();
     await page.waitForFunction(() => document.documentElement.style.getPropertyValue("--visible-height") === "561px");
     await page.setViewportSize(PHONE);
+    await page.waitForFunction(
+      (token) => document.documentElement.style.getPropertyValue("--visible-height") === token,
+      full.token,
+    );
     await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
 
     expect(await read()).toEqual(full);
