@@ -416,6 +416,12 @@ test("redraws the ink at one dot per CSS pixel, on the PNG's own ramp", async ({
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
   await page.waitForFunction(() => document.querySelectorAll('.seam-grain[data-ink="canvas"]').length === 2);
+  // The PNG field fades out under the canvas and only then hides.
+  await page.waitForFunction(() =>
+    Array.from(document.querySelectorAll(".seam-grain-field")).every(
+      (field) => getComputedStyle(field).visibility === "hidden",
+    ),
+  );
 
   const scenes = await page.evaluate(() =>
     Array.from(document.querySelectorAll<HTMLElement>(".seam-grain")).map((grain) => {
@@ -446,6 +452,46 @@ test("redraws the ink at one dot per CSS pixel, on the PNG's own ramp", async ({
         fieldVisibility: getComputedStyle(field).visibility,
         justClockwise: density(20),
         justBefore: density(340),
+        // Density in THIS canvas at the reflection, across the fold, of the
+        // first scene's 340deg/300px point. Only meaningful on the second
+        // scene, whose top edge is the fold.
+        mirrorOfLight: (() => {
+          const first = document.querySelector("#seam-scene .seam-grain") as HTMLElement;
+          const firstField = first.querySelector(".seam-grain-field") as HTMLElement;
+          const fb = firstField.getBoundingClientRect();
+          const gb = first.getBoundingClientRect();
+          const t = (340 * Math.PI) / 180;
+          const p = new DOMMatrixReadOnly(getComputedStyle(firstField).transform).transformPoint(
+            new DOMPoint(300 * Math.sin(t), -300 * Math.cos(t)),
+          );
+          const heroX = fb.left + fb.width / 2 - gb.left + p.x;
+          const heroY = fb.top + fb.height / 2 - gb.top + p.y;
+          const x = Math.round(heroX - 20);
+          const y = Math.round(gb.height - heroY - 20);
+          if (y < 0) return Number.NaN;
+          const data = context.getImageData(x, y, 40, 40).data;
+          let ink = 0;
+          for (let i = 3; i < data.length; i += 4) if (data[i] > 0) ink += 1;
+          return ink / (data.length / 4);
+        })(),
+        // Ink density of the 24 rows at the canvas's top and its bottom,
+        // in 240px bands across the width.
+        bands: (["top", "bottom"] as const).map((where) => {
+          const rows = 24;
+          const y = where === "top" ? 0 : canvas.height - rows;
+          const data = context.getImageData(0, y, canvas.width, rows).data;
+          const out: number[] = [];
+          for (let x0 = 0; x0 + 240 <= canvas.width; x0 += 240) {
+            let ink = 0;
+            for (let row = 0; row < rows; row += 1) {
+              for (let x = x0; x < x0 + 240; x += 1) {
+                if (data[(row * canvas.width + x) * 4 + 3] > 0) ink += 1;
+              }
+            }
+            out.push(ink / (rows * 240));
+          }
+          return out;
+        }),
       };
     }),
   );
@@ -454,9 +500,89 @@ test("redraws the ink at one dot per CSS pixel, on the PNG's own ramp", async ({
     expect(scene.canvas).toEqual(scene.css);
     expect(scene.rendering).toBe("pixelated");
     expect(scene.fieldVisibility).toBe("hidden");
-    // The ramp in the PNG's frame: dense ink just clockwise of the seam
-    // (~0.96 at 20deg), sparse just before it (~0.18 at 340deg).
-    expect(scene.justClockwise).toBeGreaterThan(0.85);
-    expect(scene.justBefore).toBeLessThan(0.3);
   }
+  // The ramp in the PNG's frame, on the hero, where the seam is: dense ink
+  // just clockwise of it (~0.96 at 20deg), sparse just before it (~0.18 at
+  // 340deg). The second scene's field has the same pivot, above it, so
+  // those points are not on its canvas.
+  expect(scenes[0].justClockwise).toBeGreaterThan(0.85);
+  expect(scenes[0].justBefore).toBeLessThan(0.3);
+  // Not a reflection: the point mirroring the hero's light corner across
+  // the fold (340deg, 300px out) is not light in the second scene.
+  expect(scenes[1].mirrorOfLight).toBeGreaterThan(scenes[0].justBefore + 0.2);
+  // And the texture runs on across the fold: the hero's last rows and the
+  // second scene's first rows carry the same ink, band by band.
+  const [, aboveFold] = scenes[0].bands;
+  const [belowFold] = scenes[1].bands;
+  aboveFold.forEach((density, band) => {
+    expect(Math.abs(density - belowFold[band]), `band ${band}`).toBeLessThan(0.05);
+  });
+});
+
+// On load the background used to change three times: the PNG at the
+// stylesheet's 50deg fallback, the canvas at that same angle, then the
+// canvas again once the hook had aimed the seam. Now an inline script sets
+// the angle before the first paint, and each canvas draws once, after the
+// fonts.
+test("the background takes its angle before the first paint and each canvas draws once", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const errors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error") errors.push(message.text());
+  });
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.addInitScript(() => {
+    const w = window as unknown as { __draws: number; __angleAtParse: string | null };
+    w.__draws = 0;
+    w.__angleAtParse = null;
+    const put = CanvasRenderingContext2D.prototype.putImageData;
+    CanvasRenderingContext2D.prototype.putImageData = function (
+      this: CanvasRenderingContext2D,
+      ...args: [ImageData, number, number]
+    ) {
+      // Only the seam's ink; the sphere shading draws on canvases too.
+      if (this.canvas.classList.contains("seam-grain-ink")) w.__draws += 1;
+      return Reflect.apply(put, this, args);
+    } as typeof put;
+    // DOMContentLoaded fires after the parser has run every classic inline
+    // script and before Next's deferred chunks hydrate the page.
+    document.addEventListener("DOMContentLoaded", () => {
+      w.__angleAtParse = document.documentElement.style.getPropertyValue("--seam-angle");
+    });
+  });
+  await page.goto("/");
+  await page.waitForFunction(() => document.querySelectorAll('.seam-grain[data-ink="canvas"]').length === 2);
+  await page.waitForTimeout(1000);
+
+  const result = await page.evaluate(() => {
+    const w = window as unknown as { __draws: number; __angleAtParse: string | null };
+    return {
+      draws: w.__draws,
+      atParse: w.__angleAtParse,
+      final: document.documentElement.style.getPropertyValue("--seam-angle"),
+    };
+  });
+  expect(result.atParse).toMatch(/deg$/);
+  expect(Math.abs(Number.parseFloat(result.atParse!) - Number.parseFloat(result.final))).toBeLessThan(0.5);
+  expect(errors).toEqual([]);
+  expect(result.draws).toBe(2);
+});
+
+// A loader covers the page until both grains have drawn their canvas, so
+// the PNG first paint and the swap to the canvas happen out of sight.
+test("a loader covers the page until the background has drawn, then goes", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const loaderAtParse = page.waitForEvent("console", (m) => m.text().startsWith("LOADER"));
+  await page.addInitScript(() => {
+    document.addEventListener("DOMContentLoaded", () => {
+      const loader = document.querySelector(".seam-loader");
+      console.log(`LOADER ${loader ? getComputedStyle(loader).display : "missing"}`);
+    });
+  });
+  await page.goto("/");
+  expect((await loaderAtParse).text()).toBe("LOADER grid");
+  await page.waitForFunction(() => document.querySelectorAll('.seam-grain[data-ink="canvas"]').length === 2);
+  await expect(page.locator(".seam-loader")).toBeHidden();
 });

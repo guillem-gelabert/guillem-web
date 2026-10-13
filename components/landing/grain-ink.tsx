@@ -14,8 +14,8 @@ import { useLayoutEffect, useRef } from "react";
 // ratio with image-rendering: pixelated.
 //
 // The geometry is read off .grainField rather than recomputed: its box is
-// centred on the pivot and its transform is the seam's rotation (and, in
-// the mirrored scene, the flip), so inverting that matrix takes any pixel
+// centred on the pivot and its transform is the seam's rotation, so
+// inverting that matrix takes any pixel
 // back into the PNG's own frame, where the tone is a function of angle
 // alone.
 
@@ -52,12 +52,19 @@ function parseColour(value: string): [number, number, number] {
 const JITTER = 0.18;
 
 // Error diffusion starts cold: its first row has no error carried down from
-// above, so it comes out as a near-solid line of ink. At the top of the page
-// that is invisible, but the mirrored scene's top edge is the fold, where it
-// drew a dark rule between the two scenes. So the pass starts this many rows
-// above the canvas, on the same ramp (the tone is defined everywhere), and
-// those rows are thrown away.
+// above, so it comes out as a near-solid line of ink. So the pass starts this
+// many rows above the page's top edge, on the same ramp (the tone is defined
+// everywhere), and those rows are thrown away.
 const WARM_UP = 24;
+
+// Every grain on the page is one texture. The fields share a pivot and an
+// angle, so the tone already runs on across the fold — but error diffusion
+// is a sequence, and two passes that each start at their own top edge put
+// two unrelated dot patterns either side of the fold, which reads as a seam
+// even where the densities agree. So each canvas replays the pass from the
+// top of the FIRST grain, with the first grain's geometry, the same seed and
+// the same width, and keeps only its own rows: the dots at its top edge are
+// the very ones the scene above would have drawn next.
 
 function mulberry32(seed: number) {
   return () => {
@@ -77,31 +84,40 @@ export function GrainInk({ className }: { className: string }) {
     const field = grain?.querySelector<HTMLElement>(".seam-grain-field");
     if (!canvas || !grain || !field) return;
 
-    let lastKey = "";
 
     const draw = () => {
       const width = Math.max(1, Math.round(grain.clientWidth / DOT));
       const height = Math.max(1, Math.round(grain.clientHeight / DOT));
-      const grainBox = grain.getBoundingClientRect();
-      const fieldBox = field.getBoundingClientRect();
+      const first = document.querySelector<HTMLElement>(".seam-grain") ?? grain;
+      const firstField = first.querySelector<HTMLElement>(".seam-grain-field") ?? field;
+      const firstBox = first.getBoundingClientRect();
+      const fieldBox = firstField.getBoundingClientRect();
+      // Rows between the first grain's top and this one's: the part of the
+      // shared pass that belongs to the scenes above.
+      const above = Math.round((grain.getBoundingClientRect().top - firstBox.top) / DOT);
       // The field is a square centred on its pivot and transformed about
-      // its centre, so its bounding box's centre is the pivot.
-      const pivotX = (fieldBox.left + fieldBox.width / 2 - grainBox.left) / DOT;
-      const pivotY = (fieldBox.top + fieldBox.height / 2 - grainBox.top) / DOT;
-      const styles = getComputedStyle(field);
+      // its centre, so its bounding box's centre is the pivot. Read off the
+      // first grain, in its frame, so the replayed rows are its rows exactly.
+      const pivotX = (fieldBox.left + fieldBox.width / 2 - firstBox.left) / DOT;
+      const pivotY = (fieldBox.top + fieldBox.height / 2 - firstBox.top) / DOT;
+      const styles = getComputedStyle(firstField);
       const matrix = new DOMMatrixReadOnly(styles.transform === "none" ? undefined : styles.transform).inverse();
       const ink = parseColour(getComputedStyle(grain).getPropertyValue("--gradient-shade") || "#555555");
 
-      const key = [width, height, pivotX.toFixed(1), pivotY.toFixed(1), matrix.toString(), ink.join()].join("|");
-      if (key === lastKey) return;
-      lastKey = key;
+      const key = [width, height, above, pivotX.toFixed(1), pivotY.toFixed(1), matrix.toString(), ink.join()].join("|");
+      // Kept on the element rather than in this effect: a remount with the
+      // canvas still in place (React does this in development) would
+      // otherwise redraw the same picture.
+      if (key === canvas.dataset.inkKey) return;
+      canvas.dataset.inkKey = key;
 
       canvas.width = width;
       canvas.height = height;
       const context = canvas.getContext("2d");
       if (!context) return;
 
-      const rows = height + WARM_UP;
+      const skip = WARM_UP + above;
+      const rows = height + skip;
       const values = new Float32Array(width * rows);
       const { a, b, c, d } = matrix;
       for (let y = 0; y < rows; y += 1) {
@@ -135,8 +151,8 @@ export function GrainInk({ className }: { className: string }) {
             values[index + width] += (error * 5) / 16;
             if (x + step >= 0 && x + step < width) values[index + width + step] += error / 16;
           }
-          if (on && y >= WARM_UP) {
-            const out = (index - WARM_UP * width) * 4;
+          if (on && y >= skip) {
+            const out = (index - skip * width) * 4;
             data[out] = ink[0];
             data[out + 1] = ink[1];
             data[out + 2] = ink[2];
@@ -150,12 +166,26 @@ export function GrainInk({ className }: { className: string }) {
     };
 
     let frame = 0;
+    // Nothing draws until the fonts are in (below), including the call a
+    // ResizeObserver makes as soon as it starts observing.
+    let ready = false;
     const schedule = () => {
+      if (!ready) return;
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(draw);
     };
 
-    draw();
+    // The first draw waits for the fonts: the boxes the seam is aimed
+    // between are sized by their type, so the angle can still move until
+    // the faces are in, and every move before the canvas exists is free —
+    // the PNG field just turns with it. Drawing straight away meant drawing
+    // at one angle and again at the next, a visible change each time.
+    let cancelled = false;
+    document.fonts.ready.then(() => {
+      if (cancelled) return;
+      ready = true;
+      schedule();
+    });
     // Size changes, and the seam's angle and pivot, which
     // use-seam-alignment.ts writes as custom properties on :root and on the
     // scene.
@@ -167,6 +197,7 @@ export function GrainInk({ className }: { className: string }) {
     if (scene) mutations.observe(scene, { attributes: true, attributeFilter: ["style"] });
 
     return () => {
+      cancelled = true;
       cancelAnimationFrame(frame);
       resize.disconnect();
       mutations.disconnect();

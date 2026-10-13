@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, type ReactNode } from "react";
-import { useSeamAlignment } from "@/components/seam/use-seam-alignment";
+import { SEAM_ANGLE_SCRIPT, useSeamAlignment } from "@/components/seam/use-seam-alignment";
 import { useVisibleHeight } from "@/components/seam/use-visible-height";
 import { GrainInk } from "./grain-ink";
 import styles from "./landing-seam.module.css";
@@ -11,7 +11,7 @@ type LandingSeamProps = {
   positioning: ReactNode;
   caseStudyHead: ReactNode;
   caseStudy: ReactNode;
-  /** Everything after the hero, rendered in the mirrored scene below the fold. */
+  /** Everything after the hero, rendered in the second scene below the fold. */
   more: ReactNode;
 };
 
@@ -44,8 +44,8 @@ export function LandingSeam({
   // Rendered once per section: the paper, and the ink the dither cuts
   // into. It was six layers — four turbulence fields multiplying into
   // five plateaus, plus a tinting pass — and the ramp those built now
-  // arrives whole in the PNG. The mirrored section flips them with a
-  // transform, so nothing differs here.
+  // arrives whole in the PNG. The second section moves its field's pivot
+  // up to the first one's (CSS), so nothing differs here.
   const grain = (
     <div className={`seam-grain ${styles.grain}`} aria-hidden="true">
       <div className={`seam-grain-base ${styles.grainBase}`} />
@@ -63,6 +63,12 @@ export function LandingSeam({
 
   return (
     <main>
+      {/* Covers the page until both grains have drawn their canvas
+          (.loader in landing-seam.module.css hides itself with :has()). */}
+      <div className={`seam-loader ${styles.loader}`} aria-hidden="true" />
+      <noscript>
+        <style>{`.seam-loader { display: none !important; }`}</style>
+      </noscript>
       <section
         ref={sceneRef}
         id="seam-scene"
@@ -126,17 +132,24 @@ export function LandingSeam({
         </div>
       </section>
 
-      {/* The same gradient again, mirrored along the x axis, with the rest
-          of the work on it. It used to be content-free and aria-hidden —
+      {/* Sets --seam-angle before the first paint (see SEAM_ANGLE_SCRIPT).
+          Server HTML only: React never runs a script it renders on the
+          client, and the hook takes over at hydration anyway. */}
+      <script dangerouslySetInnerHTML={{ __html: SEAM_ANGLE_SCRIPT }} />
+
+      {/* The same gradient carried on below the fold, with the rest of the
+          work on it. It used to be content-free and aria-hidden —
           the composition continuing past the fold and nothing more. It is
           a landmark now, named the way #story is (aria-label, no rendered
           heading), holding every published piece after the hero as a pair
           of a circle and a square (components/landing/more-work.tsx).
 
-          The flip is on the GRAIN, not on the section: a scaleY(-1) on the
-          section would turn the pairs upside down with the background. The
-          angle is still shared — the hook writes --seam-angle to :root and
-          both grains read it — so the two seams stay parallel. */}
+          It was a mirror of the first scene; it is now the first scene's
+          field continued, about the same pivot (.sceneMirrored .grainField),
+          so the texture runs on across the fold. The angle is shared — the
+          hook writes --seam-angle to :root and both grains read it. The id
+          and class keep the old "mirrored" name for the tests that key on
+          them. */}
       {/* aria-labelledby, not aria-label: the section has a visible heading
           now, and naming it something else would give a screen reader
           "More work" for a region titled PROJECTS. */}

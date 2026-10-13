@@ -262,22 +262,18 @@
    image-rendering: pixelated is load-bearing. The dither is one dot per
    image pixel; resampling it smoothly averages dots back into the grey
    the bitmap conversion existed to destroy. */
-/* The second section. Its ink FIELD is reflected across the fold, below:
-   the same dither, flipped, about the line where the first scene ends, so
-   the two seams meet there and read as one V rather than a repeat.
+/* The second section. Its ink is the first scene's, carried on: the same
+   field, about the same pivot, at the same angle, so the fan the hero opens
+   keeps going down the page with no joint at the fold. The pivot sits above
+   this scene, so below the fold every ray points down-right and the tone
+   settles into an even mid-grey further down — that is the design, not a
+   gap.
 
-   The flip used to be on the section itself, when the section held nothing
-   but the grain; then on .grain, as a scaleY(-1) about its own centre. That
-   is a reflection across the fold only while this scene is exactly as tall
-   as the first. It is taller on a phone — the pairs stack and run past one
-   screen — so the axis slid to the middle of a 1500px box, the pivot landed
-   near the page's end, and the whole top of this scene came out one flat
-   tone against the first scene's light corner: a hard horizontal edge at
-   the fold. So the flip is now on the field, about the pivot, with the
-   pivot itself placed where the first scene's pivot reflects to
-   (.sceneMirrored .grainField, after .grainField). The "More work" pairs
-   still carry no transform. --seam-angle needs no restating: the hook
-   writes it to :root, and both fields inherit it from there. */
+   It used to be the first scene reflected across the fold (a scaleY(-1) on
+   the field about a pivot placed where the first one reflects to), so the
+   two seams met there as one V. The class keeps its old name; ids and tests
+   still key on #seam-scene-mirrored. --seam-angle needs no restating: the
+   hook writes it to :root, and both fields inherit it from there. */
 .sceneMirrored {
   /* Under the first scene, so the disc's trail crosses the fold on top of
      it rather than behind it. */
@@ -407,24 +403,11 @@
   transform-origin: center;
 }
 
-/* The mirrored scene's field: the first scene's pattern reflected across
-   the fold. Reflecting a point across the line y = 100lvh sends the pivot
-   at --gradient-center-y (from the first scene's top) to
-   100lvh - --gradient-center-y from THIS scene's top — that is the `top`
-   below — and flips the pattern about a horizontal line through it,
-   which is what scaleY(-1) does to a square centred on its own pivot.
-   rotate() applies first (right to left), so it is the rotated ramp that
-   is flipped, the same way a mirror would show the first scene.
-
-   Read from the CSS declaration, not from what the hook writes: the hook
-   sets --gradient-center-y inline on the FIRST scene only, and on a phone
-   both scenes resolve the same svh-based value from the branch below, so
-   the two pivots agree. On desktop the hook clears its inline value and
-   both read .scene's default. */
 /* The canvas that redraws the ink at one dot per CSS pixel
    (components/landing/grain-ink.tsx). Until it has drawn, the PNG field
    above is the ink; once it has, the field stays as geometry only — its
-   box and transform are what the canvas reads — and stops painting. */
+   box and transform are what the canvas reads — and stops painting. The
+   swap happens under .loader, which covers the page until it is done. */
 .grainInk {
   image-rendering: pixelated;
 }
@@ -433,9 +416,79 @@
   visibility: hidden;
 }
 
+/* The page loader: paper over everything until every grain on the page has
+   its canvas, so the first thing seen is the finished background rather
+   than the PNG and then the swap. Pure CSS, from the server HTML: it hides
+   itself with :has() the moment no .seam-grain is left without
+   data-ink="canvas" (grain-ink.tsx sets it after drawing).
+
+   Two ways out besides that. A <noscript> style removes it when there is
+   no JavaScript to draw a canvas (landing-seam.tsx). And `loader-give-up`
+   hides it after 4s whatever happens, so a canvas that never draws costs a
+   wait, not the page. */
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  background: var(--color-seam-canvas, #f2f2f2);
+  animation: loader-give-up 0s linear 4s forwards;
+}
+
+.loader::before {
+  content: "";
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background: #000;
+  animation: loader-pulse 900ms ease-in-out infinite alternate;
+}
+
+main:not(:has(.grain:not([data-ink="canvas"]))) .loader {
+  display: none;
+}
+
+@keyframes loader-give-up {
+  to {
+    visibility: hidden;
+  }
+}
+
+@keyframes loader-pulse {
+  from {
+    opacity: 0.15;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loader::before {
+    animation: none;
+  }
+}
+
+/* The second scene's field: the first scene's pivot, in this scene's
+   coordinates. The fold is 100lvh down the page, so a pivot
+   --gradient-center-y below the first scene's top is that much minus 100lvh
+   from this one's — above it. Same rotation, no flip.
+
+   Read from the CSS declaration, not from what the hook writes: the hook
+   sets --gradient-center-y inline on the FIRST scene only, and on a phone
+   both scenes resolve the same svh-based value from the branch below, so
+   the two pivots agree. On desktop the hook clears its inline value and
+   both read .scene's default.
+
+   Twice the side: the pivot is most of a screen above this scene, and the
+   PNG (the first paint, before grain-ink.tsx draws) has to reach this
+   scene's foot from there — on a phone, where the pairs stack, that is
+   well past one screen. The canvas computes every pixel from the pivot and
+   does not care about the square's size. */
 .sceneMirrored .grainField {
-  top: calc(100lvh - var(--gradient-center-y));
-  transform: scaleY(-1) rotate(var(--seam-angle, 50deg));
+  --dither-size: 500vmax;
+  top: calc(var(--gradient-center-y) - 100lvh);
 }
 
 /* A corner, not a box: where the pair sits and how wide it is. Its height
@@ -929,7 +982,8 @@
    because the corner is the ink side on every desktop viewport measured.
    Selectable: it sits in the band under the disc, clear of the disc's hit
    area, so it takes the pointer like any other copy. The halo is the arc
-   headline's, so the two white settings over the disc read as one. */
+   headline's soft one with a tight, near-opaque one under it: small caps at
+   14px over the grain needed more lift than the headline's larger type. */
 .boxCaseStudy :global(.seam-standfirst) {
   position: absolute;
   right: 0;
@@ -944,7 +998,7 @@
   line-height: 1.3;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.75));
+  filter: drop-shadow(0 0 1.5px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 6px rgba(0, 0, 0, 0.85));
 }
 
 .boxCaseStudy :global(.seam-standfirst)::after {
@@ -1402,6 +1456,13 @@
   position: relative;
   box-sizing: border-box;
   padding: var(--edge-top) var(--edge-right) var(--edge-bottom) var(--edge-left);
+  /* At least the scene's height, as a column, so the backlog wedge can be
+     pushed to the foot (margin-top: auto in backlog-wedge.module.css) and
+     its red triangle sits on the scene's bottom edge. Sized to the content
+     alone, a short grid left the triangle floating above it. */
+  display: flex;
+  flex-direction: column;
+  min-height: 100lvh;
   /* Further below the fold than --edge-top alone. iOS Safari draws the
      document on through the glass of its bottom toolbar, past the layout
      viewport's edge, so the first thing in this scene showed up under the
@@ -1423,6 +1484,9 @@
      last row sits on the red rather than under it. */
   position: relative;
   z-index: 1;
+  /* The least air above the backlog wedge, which takes the rest
+     (margin-top: auto) when the scene is taller than its content. */
+  margin-bottom: max(var(--edge-top), 4rem);
   --pair-columns: repeat(
     auto-fill,
     minmax(

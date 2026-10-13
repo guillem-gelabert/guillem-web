@@ -14,12 +14,15 @@
   isolation: isolate;
   width: var(--wedge-copy);
   max-width: 100%;
-  margin-top: max(var(--edge-top), 4rem);
+  /* To the foot of .more (a column at least the scene's height), so the
+     triangle's bottom edge is the scene's. The list above holds the
+     minimum gap as its margin-bottom. */
+  margin-top: auto;
   color: #fff;
 }
 
 /* The red field: a right triangle in the scene's bottom-left corner, its
-   hypotenuse parallel to the mirrored seam. left/bottom are the negative of
+   hypotenuse parallel to the seam. left/bottom are the negative of
    .more's padding, so the triangle's two straight edges are the scene's
    own. The hypotenuse falls from the top-left at 1/tan(angle) per px of
    width, so to clear the copy's top-right corner it has to START that

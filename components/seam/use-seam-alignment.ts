@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type RefObject } from "react";
+import { useLayoutEffect, type RefObject } from "react";
 
 type ElementRef = RefObject<HTMLElement | null>;
 
@@ -47,7 +47,10 @@ export function useSeamAlignment(
   seamStartRef: ElementRef,
   seamEndRef: ElementRef,
 ) {
-  useEffect(() => {
+  // A layout effect, so hydration rotates the field before the browser
+  // paints again. SEAM_ANGLE_SCRIPT below has usually set the same value
+  // before the first paint already; this keeps it current from here on.
+  useLayoutEffect(() => {
     const scene = sceneRef.current;
     const seamStart = seamStartRef.current;
     const seamEnd = seamEndRef.current;
@@ -142,3 +145,38 @@ export function useSeamAlignment(
     };
   }, [seamStartRef, seamEndRef, sceneRef]);
 }
+
+// The desktop branch of alignSeam above, as a classic script for the server
+// HTML. It runs during parsing, straight after the first scene's markup and
+// before the first paint, so the PNG field is already at the seam's angle
+// when the page first shows — not at the stylesheet's 50deg fallback, then
+// turned once hydration runs the hook. Phones take their angle from CSS, so
+// it does nothing there. Keep the two in step.
+export const SEAM_ANGLE_SCRIPT = `(function () {
+  if (matchMedia(${JSON.stringify(MOBILE_QUERY)}).matches) return;
+  var scene = document.getElementById("seam-scene");
+  var start = document.getElementById("seam-nameplate");
+  var end = document.getElementById("seam-case-study");
+  if (!scene || !start || !end) return;
+  var styles = getComputedStyle(scene);
+  var sceneRect = scene.getBoundingClientRect();
+  function length(property, extent) {
+    var declared = styles.getPropertyValue(property).trim();
+    if (!declared) return extent / 2;
+    var probe = document.createElement("div");
+    probe.style.cssText = "position:absolute;visibility:hidden;pointer-events:none";
+    probe.style.width = declared;
+    scene.appendChild(probe);
+    var resolved = probe.getBoundingClientRect().width;
+    probe.remove();
+    return isFinite(resolved) ? resolved : extent / 2;
+  }
+  var cx = length("--gradient-center-desktop-x", sceneRect.width);
+  var cy = length("--gradient-center-desktop-y", sceneRect.height);
+  var a = start.getBoundingClientRect();
+  var b = end.getBoundingClientRect();
+  var gx = (a.right + b.left) / 2 - sceneRect.left;
+  var gy = (a.bottom + b.top) / 2 - sceneRect.top;
+  var angle = Math.atan2(gx - cx, -(gy - cy)) * (180 / Math.PI);
+  document.documentElement.style.setProperty("--seam-angle", angle + "deg");
+})();`;

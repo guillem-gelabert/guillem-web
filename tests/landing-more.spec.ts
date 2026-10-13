@@ -12,8 +12,8 @@ import { WORK } from "../lib/work";
 // What these pin is the structure a third entry has to keep: the scene is
 // a real landmark, one link per pair named by the title, the two tags
 // present, the circle genuinely square, the square the circle's width, the
-// grid's column count following the width, and the background still
-// mirrored while the content reads upright.
+// grid's column count following the width, and the background carrying
+// on from the hero while the content reads upright.
 
 const [hero, ...more] = WORK;
 
@@ -336,54 +336,40 @@ test("each pair is a circle beside a square of the same side, on one row at 1440
   }
 });
 
-test("the background is mirrored across the fold, the content is not", async ({ page }) => {
-  // The flip used to sit on the section, which would turn any content
-  // inside it upside down; then on the grain, as a scaleY(-1) about the
-  // grain's own centre, which is a reflection across the fold only while
-  // this scene is exactly one screen tall — on a phone it is taller and the
-  // seam broke at the fold. It lives on the ink FIELD now: a reflection
-  // (determinant -1) composed with the seam's rotation, about a pivot placed
-  // where the first scene's pivot reflects to. The section, the grain and
-  // the list carry no transform.
+test("the background carries on across the fold, the content is upright", async ({ page }) => {
+  // The second scene's field is the first one's continued: same pivot in
+  // page coordinates, same rotation, no flip. It used to be a reflection
+  // across the fold (determinant -1, pivot mirrored below it).
   const transforms = await page.evaluate(() => {
     const first = document.querySelector("#seam-scene") as HTMLElement;
     const scene = document.querySelector("#seam-scene-mirrored") as HTMLElement;
     const grain = scene.querySelector(".seam-grain") as HTMLElement;
     const list = scene.querySelector("ol") as HTMLElement;
-    const det = (el: Element) => {
-      const m = new DOMMatrixReadOnly(getComputedStyle(el).transform);
-      return m.a * m.d - m.b * m.c;
-    };
+    const field = (root: HTMLElement) => root.querySelector(".seam-grain-field") as HTMLElement;
     const pivot = (root: HTMLElement) => {
-      const field = root.querySelector(".seam-grain-field") as HTMLElement;
-      const f = field.getBoundingClientRect();
-      const r = root.getBoundingClientRect();
       // The field is a square centred on its pivot; the transform is about
       // that centre, so the bounding box's centre IS the pivot.
-      return f.top + f.height / 2 - r.top;
+      const f = field(root).getBoundingClientRect();
+      return { x: f.left + f.width / 2, y: f.top + f.height / 2 };
     };
     return {
       scene: getComputedStyle(scene).transform,
       grain: getComputedStyle(grain).transform,
       list: getComputedStyle(list).transform,
-      firstFieldDet: det(first.querySelector(".seam-grain-field")!),
-      mirroredFieldDet: det(grain.querySelector(".seam-grain-field")!),
+      firstField: getComputedStyle(field(first)).transform,
+      secondField: getComputedStyle(field(scene)).transform,
       firstPivot: pivot(first),
-      mirroredPivot: pivot(scene),
-      firstHeight: first.getBoundingClientRect().height,
+      secondPivot: pivot(scene),
     };
   });
   expect(transforms.scene).toBe("none");
   expect(transforms.grain).toBe("none");
   expect(transforms.list).toBe("none");
-  // A rotation keeps orientation; a rotation composed with one flip reverses it.
-  expect(transforms.firstFieldDet).toBeCloseTo(1, 3);
-  expect(transforms.mirroredFieldDet).toBeCloseTo(-1, 3);
-  // The pivots are mirror images across the fold: as far below it as the
-  // first one is above it.
-  expect(
-    Math.abs(transforms.mirroredPivot - (transforms.firstHeight - transforms.firstPivot)),
-  ).toBeLessThanOrEqual(1);
+  // One rotation, the same in both scenes.
+  expect(transforms.secondField).toBe(transforms.firstField);
+  // One pivot: both fields centre on the same point of the page.
+  expect(Math.abs(transforms.secondPivot.x - transforms.firstPivot.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(transforms.secondPivot.y - transforms.firstPivot.y)).toBeLessThanOrEqual(1);
 });
 
 test("the grid fills the scene inside its insets and the first pair starts at the top-left", async ({
