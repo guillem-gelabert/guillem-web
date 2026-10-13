@@ -74,6 +74,17 @@ test("on a phone each grain's canvas is one dot per CSS pixel and the fold is in
       }),
     );
 
+    // What shows is the <img> of each canvas (grain-ink.tsx): its pixels
+    // must land one per CSS pixel too.
+    const images = await page.evaluate(() =>
+      [...document.querySelectorAll<HTMLImageElement>(".seam-grain-ink-image")].map((image) => {
+        const box = image.getBoundingClientRect();
+        return { natural: [image.naturalWidth, image.naturalHeight], css: [box.width, box.height] };
+      }),
+    );
+    expect(images).toHaveLength(inks.length);
+    for (const image of images) expect(image.css).toEqual(image.natural);
+
     for (const ink of inks) {
       // Exactly, in whole pixels: a canvas stretched over a fractional box
       // is what iOS Safari smoothed and shifted.

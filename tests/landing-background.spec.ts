@@ -448,7 +448,8 @@ test("redraws the ink at one dot per CSS pixel, on the PNG's own ramp", async ({
       return {
         canvas: [canvas.width, canvas.height],
         css: [grain.clientWidth, grain.clientHeight],
-        rendering: getComputedStyle(canvas).imageRendering,
+        // The canvas is drawn on; the <img> beside it is what shows.
+        rendering: getComputedStyle(grain.querySelector("img.seam-grain-ink-image")!).imageRendering,
         fieldVisibility: getComputedStyle(field).visibility,
         justClockwise: density(20),
         justBefore: density(340),

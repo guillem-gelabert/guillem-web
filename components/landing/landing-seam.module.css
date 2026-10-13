@@ -410,8 +410,24 @@
    above is the ink; once it has, the field stays as geometry only — its
    box and transform are what the canvas reads — and stops painting. The
    swap happens under .loader, which covers the page until it is done. */
+/* Drawn on, never shown: the image below shows it (grain-ink.tsx says why).
+   visibility rather than display, so it keeps the box tests and /?debug
+   measure. */
 .grainInk {
+  visibility: hidden;
+}
+
+/* The ink as shown. Its size and top are set inline in whole CSS pixels.
+   max-width: none against Tailwind preflight's img { max-width: 100% }. */
+.grainInkImage {
+  max-width: none;
   image-rendering: pixelated;
+}
+
+/* No src until the first draw has decoded, and an <img> without one can
+   paint a broken-image frame in some engines. */
+.grainInkImage:not([src]) {
+  visibility: hidden;
 }
 
 .grain[data-ink="canvas"] .grainField {

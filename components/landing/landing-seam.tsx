@@ -53,7 +53,10 @@ export function LandingSeam({
       <div className={`seam-grain-field ${styles.grainField}`} />
       {/* The same ink at one dot per CSS pixel, drawn once hydrated; the
           field above is the first paint and the geometry it reads. */}
-      <GrainInk className={`seam-grain-ink ${styles.grainInk}`} />
+      <GrainInk
+        className={`seam-grain-ink ${styles.grainInk}`}
+        imageClassName={`seam-grain-ink-image ${styles.grainInkImage}`}
+      />
     </div>
   );
 

@@ -75,15 +75,24 @@ function mulberry32(seed: number) {
   };
 }
 
-export function GrainInk({ className }: { className: string }) {
+type GrainInkProps = {
+  /** The canvas the pass is drawn on. Hidden; tests and /?debug read it. */
+  className: string;
+  /** The image that shows it. */
+  imageClassName: string;
+};
+
+export function GrainInk({ className, imageClassName }: GrainInkProps) {
   const ref = useRef<HTMLCanvasElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
 
   useLayoutEffect(() => {
     const canvas = ref.current;
+    const shown = imageRef.current;
     const grain = canvas?.parentElement;
     const field = grain?.querySelector<HTMLElement>(".seam-grain-field");
-    if (!canvas || !grain || !field) return;
-
+    if (!canvas || !shown || !grain || !field) return;
+    let cancelled = false;
 
     const draw = () => {
       const box = grain.getBoundingClientRect();
@@ -97,10 +106,19 @@ export function GrainInk({ className }: { className: string }) {
       // notwithstanding. At exactly its own size the canvas maps 1:1 onto CSS
       // pixels; ceil, so it never falls short, and .grain clips the rest. Its
       // top is snapped to a whole pixel of the page for the same reason.
+      //
+      // That was not enough on its own: on the same phone the canvas was
+      // still drawn a pixel low and smoothed, with its grain's paper exactly
+      // where it should be. iOS composites a 2D canvas as a layer of its
+      // own and placed this one off the pixel grid. So the canvas is only
+      // where the pass is drawn; what shows is an <img> of it, which is
+      // painted in place like everything else on the page.
       const pageTop = box.top + window.scrollY;
-      canvas.style.top = `${Math.round(pageTop) - pageTop}px`;
-      canvas.style.width = `${width * DOT}px`;
-      canvas.style.height = `${height * DOT}px`;
+      for (const element of [canvas, shown]) {
+        element.style.top = `${Math.round(pageTop) - pageTop}px`;
+        element.style.width = `${width * DOT}px`;
+        element.style.height = `${height * DOT}px`;
+      }
       const first = document.querySelector<HTMLElement>(".seam-grain") ?? grain;
       const firstField = first.querySelector<HTMLElement>(".seam-grain-field") ?? field;
       const firstBox = first.getBoundingClientRect();
@@ -176,8 +194,24 @@ export function GrainInk({ className }: { className: string }) {
         }
       }
       context.putImageData(image, 0, 0);
-      // The PNG field steps aside once the canvas has the ink.
-      grain.dataset.ink = "canvas";
+      // A data: URL, not a blob: one — the CSP's img-src allows data: only
+      // (lib/csp.ts). Decoded before it is shown, and the PNG field steps
+      // aside only once it is, so there is no frame without ink.
+      const url = canvas.toDataURL("image/png");
+      const decoded = new Image();
+      decoded.src = url;
+      decoded
+        .decode()
+        .catch(() => undefined)
+        .then(() => {
+          // Not tied to this effect's lifetime: after a remount (React does
+          // this in development) the next effect finds the same key and
+          // skips the draw, so this swap is the only one coming. A newer
+          // draw supersedes it, though.
+          if (canvas.dataset.inkKey !== key) return;
+          shown.src = url;
+          grain.dataset.ink = "canvas";
+        });
     };
 
     let frame = 0;
@@ -195,7 +229,6 @@ export function GrainInk({ className }: { className: string }) {
     // the faces are in, and every move before the canvas exists is free —
     // the PNG field just turns with it. Drawing straight away meant drawing
     // at one angle and again at the next, a visible change each time.
-    let cancelled = false;
     document.fonts.ready.then(() => {
       if (cancelled) return;
       ready = true;
@@ -219,5 +252,11 @@ export function GrainInk({ className }: { className: string }) {
     };
   }, []);
 
-  return <canvas ref={ref} aria-hidden="true" className={className} />;
+  return (
+    <>
+      <canvas ref={ref} aria-hidden="true" className={className} />
+      {/* eslint-disable-next-line @next/next/no-img-element -- a data: URL drawn on the client, nothing to optimise */}
+      <img ref={imageRef} alt="" aria-hidden="true" className={imageClassName} />
+    </>
+  );
 }
