@@ -3,7 +3,7 @@
 import { useRef, type ReactNode } from "react";
 import { SEAM_ANGLE_SCRIPT, useSeamAlignment } from "@/components/seam/use-seam-alignment";
 import { useVisibleHeight } from "@/components/seam/use-visible-height";
-import { GrainInk } from "./grain-ink";
+import { usePageInk } from "./page-ink";
 import styles from "./landing-seam.module.css";
 
 type LandingSeamProps = {
@@ -34,30 +34,17 @@ export function LandingSeam({
   caseStudy,
   more,
 }: LandingSeamProps) {
+  const pageRef = useRef<HTMLElement>(null);
   const sceneRef = useRef<HTMLElement>(null);
+  const fieldRef = useRef<HTMLDivElement>(null);
   const seamStartRef = useRef<HTMLDivElement>(null);
   const seamEndRef = useRef<HTMLDivElement>(null);
 
   useSeamAlignment(sceneRef, seamStartRef, seamEndRef);
   useVisibleHeight();
-
-  // Rendered once per section: the paper, and the ink the dither cuts
-  // into. It was six layers — four turbulence fields multiplying into
-  // five plateaus, plus a tinting pass — and the ramp those built now
-  // arrives whole in the PNG. The second section moves its field's pivot
-  // up to the first one's (CSS), so nothing differs here.
-  const grain = (
-    <div className={`seam-grain ${styles.grain}`} aria-hidden="true">
-      <div className={`seam-grain-base ${styles.grainBase}`} />
-      <div className={`seam-grain-field ${styles.grainField}`} />
-      {/* The same ink at one dot per CSS pixel, drawn once hydrated; the
-          field above is the first paint and the geometry it reads. */}
-      <GrainInk
-        className={`seam-grain-ink ${styles.grainInk}`}
-        imageClassName={`seam-grain-ink-image ${styles.grainInkImage}`}
-      />
-    </div>
-  );
+  // The ink for the whole page, drawn once hydrated as <main>'s own
+  // background (page-ink.ts). Both sections are transparent over it.
+  usePageInk(pageRef, sceneRef, fieldRef);
 
   const stack = `seam-stack ${styles.stack}`;
   const box = `seam-box ${styles.box}`;
@@ -65,9 +52,9 @@ export function LandingSeam({
   const content = `seam-content ${styles.content}`;
 
   return (
-    <main>
-      {/* Covers the page until both grains have drawn their canvas
-          (.loader in landing-seam.module.css hides itself with :has()). */}
+    <main ref={pageRef} id="seam-page" className={`seam-page ${styles.page}`}>
+      {/* Covers the page until its ink has drawn (.loader in
+          landing-seam.module.css hides itself off main's data-ink). */}
       <div className={`seam-loader ${styles.loader}`} aria-hidden="true" />
       <noscript>
         <style>{`.seam-loader { display: none !important; }`}</style>
@@ -77,7 +64,14 @@ export function LandingSeam({
         id="seam-scene"
         className={`seam-scene ${styles.scene}`}
       >
-        {grain}
+        {/* The hero's dither field: the first paint, before page-ink.ts has
+            drawn, and after that the geometry it reads — its box is centred
+            on the pivot and its transform is the seam's rotation. The one
+            field on the page; the section below has only main's paper until
+            the raster arrives. .grain clips it to this scene. */}
+        <div className={`seam-grain ${styles.grain}`} aria-hidden="true">
+          <div ref={fieldRef} className={`seam-grain-field ${styles.grainField}`} />
+        </div>
 
         <div
           id="seam-stack-nameplate"
@@ -148,11 +142,11 @@ export function LandingSeam({
           of a circle and a square (components/landing/more-work.tsx).
 
           It was a mirror of the first scene; it is now the first scene's
-          field continued, about the same pivot (.sceneMirrored .grainField),
-          so the texture runs on across the fold. The angle is shared — the
-          hook writes --seam-angle to :root and both grains read it. The id
-          and class keep the old "mirrored" name for the tests that key on
-          them. */}
+          ink continued. It paints nothing of its own: the ink is one raster
+          on <main> (page-ink.ts), computed about the hero's pivot all the
+          way down, so the texture runs on across the fold with no layer
+          boundary there to open. The id and class keep the old "mirrored"
+          name for the tests that key on them. */}
       {/* aria-labelledby, not aria-label: the section has a visible heading
           now, and naming it something else would give a screen reader
           "More work" for a region titled PROJECTS. */}
@@ -161,7 +155,6 @@ export function LandingSeam({
         className={`seam-scene seam-scene-mirrored ${styles.scene} ${styles.sceneMirrored}`}
         id="seam-scene-mirrored"
       >
-        {grain}
         <div id="seam-more" className={`seam-more ${styles.more}`}>
           <h2 id="seam-more-title" className={`seam-more-title ${styles.moreTitle}`}>
             Projects

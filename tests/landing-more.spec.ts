@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { NOTES } from "../lib/notes";
 import { WORK } from "../lib/work";
+import { waitForInk } from "./page-ink";
 
 // The second scene. It was content-free and aria-hidden — the composition
 // continuing past the fold — and it now holds every published piece after
@@ -256,8 +257,8 @@ test("each pair is a circle beside a square of the same side, on one row at 1440
   // five copies of that pair (three rows at two columns); the row script in
   // pair-rows.tsx re-marks on the list's resize, so wait for a flipped row.
   // After hydration, or React's hydration pass throws the clones away: the
-  // background canvas having drawn (grain-ink.tsx) means effects have run.
-  await page.waitForFunction(() => document.querySelectorAll('.seam-grain[data-ink="canvas"]').length === 2);
+  // background raster having drawn (page-ink.ts) means effects have run.
+  await waitForInk(page);
   await page.evaluate(() => {
     const list = document.querySelector("#seam-more ol") as HTMLElement;
     const pair = list.firstElementChild!;
@@ -337,39 +338,40 @@ test("each pair is a circle beside a square of the same side, on one row at 1440
 });
 
 test("the background carries on across the fold, the content is upright", async ({ page }) => {
-  // The second scene's field is the first one's continued: same pivot in
-  // page coordinates, same rotation, no flip. It used to be a reflection
-  // across the fold (determinant -1, pivot mirrored below it).
-  const transforms = await page.evaluate(() => {
-    const first = document.querySelector("#seam-scene") as HTMLElement;
+  // One raster for the whole page, painted on <main> (page-ink.ts), so the
+  // ink below the fold is the hero's continued — same pivot, same rotation,
+  // one pass — with no element boundary at the fold for iOS to open a
+  // hairline along. It used to be a field and a canvas per scene, the second
+  // a continuation of the first and before that a reflection of it across
+  // the fold (determinant -1, pivot mirrored below it).
+  await waitForInk(page);
+  const measured = await page.evaluate(() => {
+    const main = document.querySelector("main") as HTMLElement;
     const scene = document.querySelector("#seam-scene-mirrored") as HTMLElement;
-    const grain = scene.querySelector(".seam-grain") as HTMLElement;
     const list = scene.querySelector("ol") as HTMLElement;
-    const field = (root: HTMLElement) => root.querySelector(".seam-grain-field") as HTMLElement;
-    const pivot = (root: HTMLElement) => {
-      // The field is a square centred on its pivot; the transform is about
-      // that centre, so the bounding box's centre IS the pivot.
-      const f = field(root).getBoundingClientRect();
-      return { x: f.left + f.width / 2, y: f.top + f.height / 2 };
-    };
+    const styles = getComputedStyle(main);
+    const box = main.getBoundingClientRect();
     return {
+      fields: document.querySelectorAll(".seam-grain-field").length,
+      heroFields: document.querySelectorAll("#seam-scene .seam-grain-field").length,
+      layers: [...styles.backgroundImage.matchAll(/url\("data:image\/png;base64,/g)].length,
+      size: styles.backgroundSize,
+      box: { width: box.width, height: box.height },
+      // Neither scene paints a background of its own over main's.
+      sceneBackgrounds: [...document.querySelectorAll<HTMLElement>("section.seam-scene")].map(
+        (section) => getComputedStyle(section).backgroundImage,
+      ),
       scene: getComputedStyle(scene).transform,
-      grain: getComputedStyle(grain).transform,
       list: getComputedStyle(list).transform,
-      firstField: getComputedStyle(field(first)).transform,
-      secondField: getComputedStyle(field(scene)).transform,
-      firstPivot: pivot(first),
-      secondPivot: pivot(scene),
     };
   });
-  expect(transforms.scene).toBe("none");
-  expect(transforms.grain).toBe("none");
-  expect(transforms.list).toBe("none");
-  // One rotation, the same in both scenes.
-  expect(transforms.secondField).toBe(transforms.firstField);
-  // One pivot: both fields centre on the same point of the page.
-  expect(Math.abs(transforms.secondPivot.x - transforms.firstPivot.x)).toBeLessThanOrEqual(1);
-  expect(Math.abs(transforms.secondPivot.y - transforms.firstPivot.y)).toBeLessThanOrEqual(1);
+  expect(measured.fields).toBe(1);
+  expect(measured.heroFields).toBe(1);
+  expect(measured.layers).toBe(1);
+  expect(measured.size).toBe(`${Math.round(measured.box.width)}px ${Math.ceil(measured.box.height)}px`);
+  expect(measured.sceneBackgrounds).toEqual(["none", "none"]);
+  expect(measured.scene).toBe("none");
+  expect(measured.list).toBe("none");
 });
 
 test("the grid fills the scene inside its insets and the first pair starts at the top-left", async ({

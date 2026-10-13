@@ -1,9 +1,86 @@
+/* <main>, and the one surface the landing's background is painted on. The
+   paper is its background-color, from the server HTML; the ink is its
+   background-image, a raster page-ink.ts draws once hydrated at one dot per
+   CSS pixel and sets inline — its size, and its position when a tall page
+   needs it cut into bands. The two sections are transparent over it.
+
+   One element, so one layer. The ink used to be a canvas per section, each
+   promoted to its own compositing layer, and iOS Safari opened a hairline of
+   the page between the two along the fold — on a pinch-zoom especially,
+   where each layer is scaled by a fractional factor on its own. However the
+   two were placed, overlapped or snapped, the boundary was still there to
+   open. A background has none: the fold is a row in the middle of one image.
+
+   The colour tokens live here rather than on .scene so this element can
+   read them; both scenes inherit them from it. */
+.page {
+  /* Two colours do the work, paper and ink, the way a riso print has
+     them: --gradient-base is the paper the whole page sits on, and
+     --gradient-shade is the ink the dither punches holes in. Every tone
+     between them is a dot density in the PNG, not a colour here — which
+     is why there is no mid-hue in the stack.
+
+     Neutral grey, and a deliberately SOFT ink. Both are chosen against
+     the contrast they produce rather than by eye: paper against ink is
+     6.66:1, down from 14.59:1 when this was cream on near-black, which
+     is the reduction asked for — and still clear of WCAG AA's 4.5:1 for
+     the 14px standfirst, which has to hold on either ground. Pushing the
+     ink lighter than this starts trading that away (#6b6b6b is 4.76:1,
+     with no margin left for a lighter paper).
+
+     Equal R/G/B on purpose: no hue at all. The dither is the only thing
+     with any structure in this composition, so any cast in the two ends
+     shows up as a tint across the whole field rather than as a colour
+     you chose.
+
+     Nothing here is transparent. Riso ink is down or it is not, so the
+     dark half is lightened by moving the INK, never by lowering the
+     layer's alpha — an alpha would let the paper through the dots and
+     turn them grey, which is the exact look the bitmap conversion exists
+     to avoid.
+
+     The blend-mode workaround these tokens used to encode is gone with
+     the feTurbulence fields. mix-blend-mode: color took hue and
+     saturation from the tinting layer but LIGHTNESS from underneath, so
+     pure white and pure black plateaus came through untinted and read as
+     grey; the light-to-dark orange tinting ramp existed to give the
+     extremes a hue to carry. Painting the ink instead of blending it
+     makes that structural rather than compensated.
+
+     --gradient-colour was the middle of that ramp and nothing reads it
+     now. It stays as the name of the composition's hue — the one value a
+     re-colouring starts from — and is the only token here that is still
+     warm, so it is also the reminder of what this used to be. */
+  --gradient-tint: var(--color-seam-canvas, #f2f2f2);
+  --gradient-shade: #555555;
+  --gradient-base: var(--gradient-tint);
+  --gradient-colour: #ff8000;
+
+  /* Not a stacking context — no z-index — so the scenes' own z-index still
+     orders the disc's trail across the fold. */
+  position: relative;
+  background-color: var(--gradient-base);
+  background-repeat: no-repeat;
+  /* Load-bearing, for the reason .grainField gives below: the raster is one
+     dot per CSS pixel, so on a 2x or 3x screen each dot is scaled up by a
+     whole factor, and smoothing it would average the dots back into grey. */
+  image-rendering: pixelated;
+}
+
+/* image-rendering inherits, and the raster is the only image it is meant
+   for here — the disc's capture is a photograph. Handed back to the default
+   one level down, at zero specificity, so any rule that sets it on an
+   element (the shading, the field) still wins. */
+:where(.page > *) {
+  image-rendering: auto;
+}
+
 .scene {
   /* The inset the BOXES sit at. Nothing about the background reads it —
-     .grain is inset: 0 and paints the full scene — so raising these pushes
-     content off an edge without letterboxing the gradient. Desktop has no
-     safe areas to respect; the phone block near the end of this file raises
-     all four to clear the notch and the home indicator. */
+     the ink is painted on <main> (.page) edge to edge — so raising these
+     pushes content off an edge without letterboxing the gradient. Desktop
+     has no safe areas to respect; the phone block near the end of this file
+     raises all four to clear the notch and the home indicator. */
   --edge: clamp(1rem, 3.5vw, 12rem);
   /* The top inset alone is raised: the nameplate is the tallest thing in
      the scene and it wants more air above it than the sides need beside
@@ -13,12 +90,12 @@
   /* The boxed layout: past --container-page (app/globals.css, the same cap
      every other route's <main> carries) the two sides take up the extra
      width, so the stacks and the projects grid sit inside a centred frame
-     while .grain still paints the full scene. Zero below the cap. Sides
+     while the background still paints the full page. Zero below the cap. Sides
      only — the top and bottom insets are about the viewport's height. */
   --page-inset: max(0px, (100vw - var(--container-page)) / 2);
   --edge-left: calc(var(--edge) + var(--page-inset));
   --edge-right: calc(var(--edge) + var(--page-inset));
-  /* Paint is full-bleed, content is safe. The scene and its .grain paint to
+  /* Paint is full-bleed, content is safe. The page's background paints to
      the physical edges (viewport-fit=cover in the root layouts, 100lvh
      below); only the two corner stacks read the safe-area tokens, through
      their --edge-* insets in the phone block at the end of this file.
@@ -147,54 +224,13 @@
   --gradient-center-mobile-landscape-y: 92svh;
   --gradient-center-x: var(--gradient-center-desktop-x);
   --gradient-center-y: var(--gradient-center-desktop-y);
-  /* Two colours do the work, paper and ink, the way a riso print has
-     them: --gradient-base is the paper the whole scene sits on, and
-     --gradient-shade is the ink the dither punches holes in. Every tone
-     between them is a dot density in the PNG, not a colour here — which
-     is why there is no mid-hue in the stack.
-
-     Neutral grey, and a deliberately SOFT ink. Both are chosen against
-     the contrast they produce rather than by eye: paper against ink is
-     6.66:1, down from 14.59:1 when this was cream on near-black, which
-     is the reduction asked for — and still clear of WCAG AA's 4.5:1 for
-     the 14px standfirst, which has to hold on either ground. Pushing the
-     ink lighter than this starts trading that away (#6b6b6b is 4.76:1,
-     with no margin left for a lighter paper).
-
-     Equal R/G/B on purpose: no hue at all. The dither is the only thing
-     with any structure in this composition, so any cast in the two ends
-     shows up as a tint across the whole field rather than as a colour
-     you chose.
-
-     Nothing here is transparent. Riso ink is down or it is not, so the
-     dark half is lightened by moving the INK, never by lowering the
-     layer's alpha — an alpha would let the paper through the dots and
-     turn them grey, which is the exact look the bitmap conversion exists
-     to avoid.
-
-     The blend-mode workaround these tokens used to encode is gone with
-     the feTurbulence fields. mix-blend-mode: color took hue and
-     saturation from the tinting layer but LIGHTNESS from underneath, so
-     pure white and pure black plateaus came through untinted and read as
-     grey; the light-to-dark orange tinting ramp existed to give the
-     extremes a hue to carry. Painting the ink instead of blending it
-     makes that structural rather than compensated.
-
-     --gradient-colour was the middle of that ramp and nothing reads it
-     now. It stays as the name of the composition's hue — the one value a
-     re-colouring starts from — and is the only token here that is still
-     warm, so it is also the reminder of what this used to be. */
-  --gradient-tint: var(--color-seam-canvas, #f2f2f2);
-  --gradient-shade: #555555;
-  --gradient-base: var(--gradient-tint);
-  --gradient-colour: #ff8000;
 
   position: relative;
   width: 100%;
   /* 100lvh, not 100dvh: the large viewport reaches behind the bottom browser
-     chrome, so the grain paints under the toolbar and the home indicator.
-     The scene's box, and .grain's inset: 0 inside it, are the only things
-     sized in lvh; every anchor that has to stay clear of the toolbar is svh
+     chrome, so the fold — and the ink above it — sits under the toolbar and
+     the home indicator. The scene's box, and .grain's inset: 0 inside it,
+     are the only things sized in lvh; every anchor that has to stay clear of the toolbar is svh
      or carries --chrome-bottom. */
   height: 100lvh;
   min-height: 100lvh;
@@ -209,8 +245,9 @@
      axis still has to be clipped — a poster-scale nameplate at a 320px
      viewport is what would otherwise give the page a horizontal scrollbar,
      which tests/landing.spec.ts and tests/landing-viewport.spec.ts both
-     measure. Nothing else in here overflows vertically: .grain is inset: 0,
-     and every .box clips its own content except the case study's. */
+     measure. Nothing else in here overflows vertically: .grain is inset: 0
+     and clips the field, and every .box clips its own content except the
+     case study's. */
   overflow-x: clip;
   overflow-y: visible;
   /* Above the mirrored scene below it. Both are siblings and the mirrored
@@ -219,9 +256,10 @@
      lifting the overflow alone just moved the problem from a hard edge to
      being covered. */
   z-index: 1;
-  /* Deliberately unpainted: .grainBase covers the scene, including the
-     safe-area bands the composition runs under, so a background here
-     would only be a second opaque layer nothing can see.
+  /* Deliberately unpainted: the paper and the ink are both <main>'s (.page),
+     including under the safe-area bands the composition runs under, and a
+     background here would be a second layer with a boundary at the fold —
+     the very thing painting on <main> exists to remove.
 
      It used to matter far more than that. .content carried
      mix-blend-mode: difference, which composites against whatever has
@@ -264,32 +302,35 @@
    image-rendering: pixelated is load-bearing. The dither is one dot per
    image pixel; resampling it smoothly averages dots back into the grey
    the bitmap conversion existed to destroy. */
-/* The second section. Its ink is the first scene's, carried on: the same
-   field, about the same pivot, at the same angle, so the fan the hero opens
-   keeps going down the page with no joint at the fold. The pivot sits above
-   this scene, so below the fold every ray points down-right and the tone
-   settles into an even mid-grey further down — that is the design, not a
-   gap.
+/* The second section. Its ink is the first scene's, carried on: the raster
+   on <main> (.page) is computed about the hero's pivot at the hero's angle
+   all the way down, so the fan the hero opens keeps going down the page
+   with no joint at the fold. The pivot sits above this scene, so below the
+   fold every ray points down-right and the tone settles into an even
+   mid-grey further down — that is the design, not a gap. This scene paints
+   nothing of its own.
 
    It used to be the first scene reflected across the fold (a scaleY(-1) on
-   the field about a pivot placed where the first one reflects to), so the
-   two seams met there as one V. The class keeps its old name; ids and tests
-   still key on #seam-scene-mirrored. --seam-angle needs no restating: the
-   hook writes it to :root, and both fields inherit it from there. */
+   a field of its own about a pivot placed where the first one reflects
+   to), so the two seams met there as one V. The class keeps its old name;
+   ids and tests still key on #seam-scene-mirrored. */
 .sceneMirrored {
   /* Under the first scene, so the disc's trail crosses the fold on top of
      it rather than behind it. */
   z-index: 0;
   /* A screen tall, and taller if the pairs need it. .scene fixes height
      at 100lvh for the fold; this one holds copy — two paragraphs a pair —
-     and on a phone that copy runs past one screen. The grain is inset: 0,
-     so it covers whatever height this comes to. On a desktop the pairs fit
-     and this is exactly 100lvh, which tests/landing-trail.spec.ts's
-     two-scenes page height still relies on. */
+     and on a phone that copy runs past one screen. The ink is main's, and
+     page-ink.ts sizes it to main's box, so it covers whatever height this
+     comes to. On a desktop the pairs fit and this is exactly 100lvh, which
+     tests/landing-trail.spec.ts's two-scenes page height still relies on. */
   height: auto;
   min-height: 100lvh;
 }
 
+/* The hero's dither field and its clip. Only the hero has one: it is the
+   first paint, before page-ink.ts has drawn, and the geometry the raster is
+   computed from after. */
 .grain {
   position: absolute;
   inset: 0;
@@ -307,46 +348,26 @@
      field (this element is inset: 0, so its box IS the scene's) while
      leaving the scene itself open for the trail. */
   overflow: hidden;
-  /* A compositing layer for each grain, so iOS Safari places both the same
-     way. Without it, on an iPhone 17 Pro, the second grain's ink came out a
-     pixel below its paper and smoothed: a row of bare paper along the fold
-     and blurred dots under it, with every box measuring exactly right. Of
-     four variants tried on the phone (/?debug, since removed) this one and
-     dropping the scenes' z-index cured it; the z-index is what lets the
-     disc's trail cross the fold on top, so this is the one kept. */
-  will-change: transform;
 }
 
-/* Also the scene's backstop: .scene paints nothing, so this is what covers
-   every pixel the composition runs under, including its phone bleed. It is
-   the paper the ink sits on — every white pixel of the dither is this colour
-   showing through. */
-.grainBase {
-  background: var(--gradient-base);
-}
-
-.grain > * {
-  position: absolute;
-  inset: 0;
-}
-
-/* The ink. A flat fill the dither punches holes in, so the mask is the
-   only thing deciding coverage.
+/* The ink, until the raster replaces it. A flat fill the dither punches
+   holes in, so the mask is the only thing deciding coverage.
 
    THE ELEMENT IS THE SQUARE, and that is the load-bearing part. A mask
    is clipped to its element's box, so an inset: 0 layer — viewport
    shaped, viewport sized — cannot hold a mask big enough to still cover
    the far corner once rotated: the overhang is simply cut off, and the
    ink survives only where the two boxes happen to overlap. So this layer
-   overrides the inset: 0 it inherits from `.grain > *` and becomes a
-   --dither-size square centred on the pivot instead. The mask then fills
-   it edge to edge (mask-size: 100%), the square's own centre IS the
+   is a --dither-size square centred on the pivot instead. The mask then
+   fills it edge to edge (mask-size: 100%), the square's own centre IS the
    pivot, and rotation about that centre is exactly the rotation the seam
-   needs.
+   needs. That is also why page-ink.ts reads its geometry here: the centre
+   of this element's bounding box is the pivot, and its computed transform
+   is the angle.
 
-   .grain (inset: 0) and .scene (overflow: hidden) are what keep the
-   overhang from becoming scrollable: the square is absolutely positioned
-   inside a box that clips. */
+   .grain (inset: 0, overflow: hidden) is what keeps the overhang from
+   becoming scrollable: the square is absolutely positioned inside a box
+   that clips. */
 .grainField {
   /* Sized on the diagonal so the square still reaches the far corner at
      every rotation. The pivot sits near a corner, so the radius it has to
@@ -372,10 +393,8 @@
   --dither-image: url("/seam-dither-desktop.png");
 
   /* Centre the square on the pivot: place its top-left half a side up
-     and left of the pivot, and let width/height do the rest. inset: auto
-     first, to drop the inherited inset: 0 — left/top alone would still
-     be fighting right/bottom. */
-  inset: auto;
+     and left of the pivot, and let width/height do the rest. */
+  position: absolute;
   left: var(--gradient-center-x);
   top: var(--gradient-center-y);
   width: var(--dither-size);
@@ -413,43 +432,25 @@
   transform-origin: center;
 }
 
-/* The canvas that redraws the ink at one dot per CSS pixel
-   (components/landing/grain-ink.tsx). Until it has drawn, the PNG field
-   above is the ink; once it has, the field stays as geometry only — its
-   box and transform are what the canvas reads — and stops painting. The
-   swap happens under .loader, which covers the page until it is done. */
-/* Drawn on, never shown: the image below shows it (grain-ink.tsx).
-   visibility rather than display, so it keeps the box the tests measure. */
-.grainInk {
+/* The raster that redraws the ink at one dot per CSS pixel
+   (components/landing/page-ink.ts), as main's background. Until it has
+   drawn, the PNG field above is the hero's ink; once it has, the field
+   stays as geometry only — its box and transform are what the raster is
+   computed from — and stops painting. The swap happens under .loader, which
+   covers the page until it is done. */
+.page[data-ink="canvas"] .grainField {
   visibility: hidden;
 }
 
-/* The ink as shown. Its size and top are set inline in whole CSS pixels.
-   max-width: none against Tailwind preflight's img { max-width: 100% }. */
-.grainInkImage {
-  max-width: none;
-  image-rendering: pixelated;
-}
-
-/* No src until the first draw has decoded, and an <img> without one can
-   paint a broken-image frame in some engines. */
-.grainInkImage:not([src]) {
-  visibility: hidden;
-}
-
-.grain[data-ink="canvas"] .grainField {
-  visibility: hidden;
-}
-
-/* The page loader: paper over everything until every grain on the page has
-   its canvas, so the first thing seen is the finished background rather
-   than the PNG and then the swap. Pure CSS, from the server HTML: it hides
-   itself with :has() the moment no .seam-grain is left without
-   data-ink="canvas" (grain-ink.tsx sets it after drawing).
+/* The page loader: paper over everything until the page's ink has drawn,
+   so the first thing seen is the finished background rather than the PNG
+   and then the swap. Pure CSS, from the server HTML: it hides itself the
+   moment main carries data-ink="canvas" (page-ink.ts sets it once the
+   raster has decoded and is main's background).
 
    Two ways out besides that. A <noscript> style removes it when there is
-   no JavaScript to draw a canvas (landing-seam.tsx). And `loader-give-up`
-   hides it after 4s whatever happens, so a canvas that never draws costs a
+   no JavaScript to draw the raster (landing-seam.tsx). And `loader-give-up`
+   hides it after 4s whatever happens, so a raster that never draws costs a
    wait, not the page. */
 .loader {
   position: fixed;
@@ -470,7 +471,7 @@
   animation: loader-pulse 900ms ease-in-out infinite alternate;
 }
 
-main:not(:has(.grain:not([data-ink="canvas"]))) .loader {
+.page[data-ink="canvas"] .loader {
   display: none;
 }
 
@@ -495,50 +496,13 @@ main:not(:has(.grain:not([data-ink="canvas"]))) .loader {
   }
 }
 
-/* The second scene's field: the first scene's pivot, in this scene's
-   coordinates. The fold is 100lvh down the page, so a pivot
-   --gradient-center-y below the first scene's top is that much minus 100lvh
-   from this one's — above it. Same rotation, no flip.
-
-   Read from the CSS declaration, not from what the hook writes: the hook
-   sets --gradient-center-y inline on the FIRST scene only, and on a phone
-   both scenes resolve the same svh-based value from the branch below, so
-   the two pivots agree. On desktop the hook clears its inline value and
-   both read .scene's default.
-
-   Twice the side: the pivot is most of a screen above this scene, and the
-   PNG (the first paint, before grain-ink.tsx draws) has to reach this
-   scene's foot from there — on a phone, where the pairs stack, that is
-   well past one screen. The canvas computes every pixel from the pivot and
-   does not care about the square's size. */
-/* The second grain starts 2px up, under the first scene (which stacks
-   above it, z-index 1). Each grain is its own layer (.grain), and a
-   pinch-zoom on iOS scales the two by a fractional factor, which opened a
-   hairline of the page between them along the fold. The rows it reaches up
-   into are the same pass the first grain drew (grain-ink.tsx replays it
-   from the first grain's top), so the overlap is texture, not a seam. */
-.sceneMirrored {
-  --grain-overlap: 2px;
-}
-
-.sceneMirrored > .grain {
-  top: calc(-1 * var(--grain-overlap));
-}
-
-/* + --grain-overlap: the field is placed in its grain, which starts that
-   much above this scene. */
-.sceneMirrored .grainField {
-  --dither-size: 500vmax;
-  top: calc(var(--gradient-center-y) - 100lvh + var(--grain-overlap));
-}
-
 /* A corner, not a box: where the pair sits and how wide it is. Its height
    is whatever its two boxes come to, so an aside that needs another line
    grows the corner rather than shrinking the name above it. */
 /* Neither this nor .grain carries a z-index. Both are positioned, so paint
    order alone stacks them, and the stacks come later in the markup. A
    z-index on either one makes it a stacking context: on .grain it would
-   seal the gradient away from .content's difference blend, and on .stack it
+   seal the field away from .content's difference blend, and on .stack it
    would trap that blend inside its own box, where there is nothing to blend
    against. */
 .stack {
@@ -1788,8 +1752,8 @@ main:not(:has(.grain:not([data-ink="canvas"]))) .loader {
 }
 
 /* Both phone orientations: the boxes take the safe area, the background
-   does not. Only these four variables change, and .grain is inset: 0 and
-   reads none of them, so the gradient keeps running edge to edge — under
+   does not. Only these four variables change, and the ink on <main> reads
+   none of them, so the gradient keeps running edge to edge — under
    the notch and the home indicator — while the name and the case study
    clear both. Landscape puts the notch beside the content, portrait above
    it; the same four maxima cover each, since env() is 0px on the sides that
@@ -1863,7 +1827,7 @@ main:not(:has(.grain:not([data-ink="canvas"]))) .loader {
 
 /* iOS Safari on a phone: unscrolled, the strip behind the status bar shows
    the body colour, not the page (app/globals.css sets it white there). The
-   first scene's grain fades into that white over --status-fade at the top,
+   hero's ink fades into that white over --status-fade at the top,
    so the strip reads as the composition's edge rather than a band, and the
    nameplate drops by half of it so a band of plain grain still sits
    between the fade and the name. Not the whole fade: its fainter half
@@ -1882,7 +1846,10 @@ main:not(:has(.grain:not([data-ink="canvas"]))) .loader {
       );
     }
 
-    :global(html:not([data-ios-browser])) .scene:not(.sceneMirrored) > .grain::after {
+    /* On .grain, the hero's own layer under its content: it is inset: 0 on
+       the scene, and it outlives the field it clips — only the field is
+       hidden once the raster is main's background. */
+    :global(html:not([data-ios-browser])) .grain::after {
       content: "";
       position: absolute;
       inset: 0 0 auto;

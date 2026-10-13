@@ -1,4 +1,5 @@
 import { expect, test, webkit, type Browser } from "@playwright/test";
+import { loadInk, waitForInk } from "./page-ink";
 
 // The seam's ink and the story corner on a phone, in WebKit — the engine an
 // iPhone runs.
@@ -7,8 +8,10 @@ import { expect, test, webkit, type Browser } from "@playwright/test";
 // changing size on refresh, and a light row along the fold. The disc came
 // from use-visible-height.ts trusting every visualViewport reading; the
 // readings are played back below. The row needed the phone itself (it never
-// showed in WebKit here) and was cured by a compositing layer per grain,
-// which the first test pins.
+// showed in WebKit here). A compositing layer per grain cured it until a
+// pinch-zoom opened it again as a hairline between the two layers; the ink
+// is now one raster on <main> (page-ink.ts), so there is no second layer at
+// the fold at all, and the first test pins that.
 
 const PHONE = { width: 402, height: 874 };
 
@@ -33,11 +36,7 @@ async function openPhone(browser: Browser, stub?: Stub) {
     await route.fulfill({ response, headers });
   });
   await page.goto("/");
-  await page.waitForFunction(
-    () =>
-      document.querySelectorAll('.seam-grain[data-ink="canvas"]').length ===
-      document.querySelectorAll(".seam-grain").length,
-  );
+  await waitForInk(page);
   // use-visible-height.ts writes, if at all, once its readings settle (500ms).
   await page.waitForTimeout(700);
   return { context, page };
@@ -51,69 +50,46 @@ test.afterAll(async () => {
   await browser.close();
 });
 
-test("on a phone each grain's canvas is one dot per CSS pixel and the fold is inked", async () => {
+test("on a phone the page's ink is one raster, one dot per CSS pixel, and the fold is inked", async () => {
   const { context, page } = await openPhone(browser);
 
   try {
-    const inks = await page.evaluate(() =>
-      [...document.querySelectorAll<HTMLCanvasElement>(".seam-grain-ink")].map((canvas) => {
-        const box = canvas.getBoundingClientRect();
-        const grain = canvas.parentElement!.getBoundingClientRect();
-        const context = canvas.getContext("2d")!;
-        const inked = (y: number) => {
-          const row = context.getImageData(0, y, canvas.width, 1).data;
-          let n = 0;
-          for (let i = 3; i < row.length; i += 4) if (row[i]! > 0) n += 1;
-          return n / canvas.width;
-        };
-        return {
-          intrinsic: [canvas.width, canvas.height],
-          css: [box.width, box.height],
-          grain: grain.height,
-          top: inked(0),
-          bottom: inked(canvas.height - 1),
-        };
-      }),
-    );
-
-    // What shows is the <img> of each canvas (grain-ink.tsx): its pixels
-    // must land one per CSS pixel too.
-    const images = await page.evaluate(() =>
-      [...document.querySelectorAll<HTMLImageElement>(".seam-grain-ink-image")].map((image) => {
-        const box = image.getBoundingClientRect();
-        return { natural: [image.naturalWidth, image.naturalHeight], css: [box.width, box.height] };
-      }),
-    );
-    expect(images).toHaveLength(inks.length);
-    for (const image of images) expect(image.css).toEqual(image.natural);
-
-    // And the second grain reaches under the first, so a pinch-zoom cannot
-    // open a hairline between the two layers.
-    const overlap = await page.evaluate(() => {
-      const second = document.getElementById("seam-scene-mirrored")!;
-      return second.getBoundingClientRect().top - second.querySelector(".seam-grain")!.getBoundingClientRect().top;
-    });
-    expect(overlap).toBe(2);
-
-    // The cure for the row at the fold on iOS: each grain its own layer.
-    expect(
-      await page.evaluate(() =>
-        [...document.querySelectorAll(".seam-grain")].map((grain) => getComputedStyle(grain).willChange),
-      ),
-    ).toEqual(["transform", "transform"]);
-
-    for (const ink of inks) {
-      // Exactly, in whole pixels: a canvas stretched over a fractional box
-      // is what iOS Safari smoothed and shifted.
-      expect(ink.css).toEqual(ink.intrinsic);
-      expect(Math.abs(ink.css[1]! - ink.grain)).toBeLessThanOrEqual(1);
+    const raster = await loadInk(page);
+    // Every layer is exactly its image's size, in whole pixels: an image
+    // stretched over a fractional box is what iOS Safari smoothed and
+    // shifted. One layer on this page; more only if it outgrows a canvas,
+    // and then they are bands of the full width stacked edge to edge.
+    let next = 0;
+    for (const layer of raster.layers) {
+      expect(layer.width).toBe(raster.width);
+      expect(layer.left).toBe(0);
+      expect(layer.top).toBe(next);
+      next += layer.height;
     }
+    expect(next).toBe(raster.height);
+    // And the whole of it is main's box, in whole pixels.
+    expect(raster.width).toBe(Math.round(raster.box.width));
+    expect(raster.height).toBe(Math.ceil(raster.box.height));
+
     // The last row above the fold and the first below it both sit in the
     // dark half of the fan, so neither is bare paper.
-    expect(inks[0]!.bottom).toBeGreaterThan(0.2);
-    expect(inks[1]!.top).toBeGreaterThan(0.2);
+    const edge = await page.evaluate(() => {
+      const ink = (window as unknown as { __ink: HTMLCanvasElement }).__ink;
+      const context = ink.getContext("2d")!;
+      const main = document.querySelector("main")!.getBoundingClientRect();
+      const y = Math.round(document.getElementById("seam-scene-mirrored")!.getBoundingClientRect().top - main.top);
+      const inked = (row: number) => {
+        const data = context.getImageData(0, row, ink.width, 1).data;
+        let n = 0;
+        for (let i = 3; i < data.length; i += 4) if (data[i]! > 0) n += 1;
+        return n / ink.width;
+      };
+      return { above: inked(y - 1), below: inked(y) };
+    });
+    expect(edge.above).toBeGreaterThan(0.2);
+    expect(edge.below).toBeGreaterThan(0.2);
 
-    // And on screen, not just in the canvas: no row at the fold may come
+    // And on screen, not just in the raster: no row at the fold may come
     // out as bare paper.
     const fold = await page.evaluate(() => document.getElementById("seam-scene-mirrored")!.getBoundingClientRect().top + scrollY);
     await page.evaluate((y) => scrollTo(0, y - 200), fold);
