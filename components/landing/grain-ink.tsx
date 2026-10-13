@@ -51,6 +51,14 @@ function parseColour(value: string): [number, number, number] {
 // pattern is the same on every load.
 const JITTER = 0.18;
 
+// Error diffusion starts cold: its first row has no error carried down from
+// above, so it comes out as a near-solid line of ink. At the top of the page
+// that is invisible, but the mirrored scene's top edge is the fold, where it
+// drew a dark rule between the two scenes. So the pass starts this many rows
+// above the canvas, on the same ramp (the tone is defined everywhere), and
+// those rows are thrown away.
+const WARM_UP = 24;
+
 function mulberry32(seed: number) {
   return () => {
     seed = (seed + 0x6d2b79f5) | 0;
@@ -93,10 +101,11 @@ export function GrainInk({ className }: { className: string }) {
       const context = canvas.getContext("2d");
       if (!context) return;
 
-      const values = new Float32Array(width * height);
+      const rows = height + WARM_UP;
+      const values = new Float32Array(width * rows);
       const { a, b, c, d } = matrix;
-      for (let y = 0; y < height; y += 1) {
-        const dy = y + 0.5 - pivotY;
+      for (let y = 0; y < rows; y += 1) {
+        const dy = y - WARM_UP + 0.5 - pivotY;
         for (let x = 0; x < width; x += 1) {
           const dx = x + 0.5 - pivotX;
           // Back into the PNG's frame (y down), then the angle clockwise
@@ -111,7 +120,7 @@ export function GrainInk({ className }: { className: string }) {
       const image = context.createImageData(width, height);
       const data = image.data;
       const random = mulberry32(0x5eed);
-      for (let y = 0; y < height; y += 1) {
+      for (let y = 0; y < rows; y += 1) {
         const forward = y % 2 === 0;
         const step = forward ? 1 : -1;
         for (let i = 0; i < width; i += 1) {
@@ -121,13 +130,13 @@ export function GrainInk({ className }: { className: string }) {
           const on = old >= 0.5 + (random() - 0.5) * JITTER;
           const error = old - (on ? 1 : 0);
           if (x + step >= 0 && x + step < width) values[index + step] += (error * 7) / 16;
-          if (y + 1 < height) {
+          if (y + 1 < rows) {
             if (x - step >= 0 && x - step < width) values[index + width - step] += (error * 3) / 16;
             values[index + width] += (error * 5) / 16;
             if (x + step >= 0 && x + step < width) values[index + width + step] += error / 16;
           }
-          if (on) {
-            const out = index * 4;
+          if (on && y >= WARM_UP) {
+            const out = (index - WARM_UP * width) * 4;
             data[out] = ink[0];
             data[out + 1] = ink[1];
             data[out + 2] = ink[2];
