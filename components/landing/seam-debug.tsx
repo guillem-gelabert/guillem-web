@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 // the viewport units, what the stylesheet derives from them, and the
 // canvases' sizes, with the lowest and highest each has reached.
 
-const VERSION = "debug-1";
+const VERSION = "debug-2";
 
 type Row = { now: number; min: number; max: number };
 
@@ -24,6 +24,7 @@ function probe(parent: Element, property: string, value: string) {
 
 export function SeamDebug() {
   const [rows, setRows] = useState<[string, Row][] | null>(null);
+  const [topmost, setTopmost] = useState("off screen");
 
   useEffect(() => {
     if (!new URLSearchParams(location.search).has("debug")) return;
@@ -40,24 +41,54 @@ export function SeamDebug() {
         ["innerHeight", window.innerHeight],
         ["vv.height", viewport?.height ?? NaN],
         ["vv.width", viewport?.width ?? NaN],
-        ["vv.scale", viewport?.scale ?? NaN],
-        ["vv.offsetTop", viewport?.offsetTop ?? NaN],
         ["100lvh", probe(document.body, "height", "100lvh")],
         ["100svh", probe(document.body, "height", "100svh")],
         ["100dvh", probe(document.body, "height", "100dvh")],
         ["--visible-height", Number.parseFloat(document.documentElement.style.getPropertyValue("--visible-height"))],
         ["chrome-bottom", probe(scene, "width", "var(--chrome-bottom)")],
         ["edge-bottom", probe(scene, "width", "var(--edge-bottom)")],
-        ["safe-top", probe(scene, "width", "var(--safe-top)")],
-        ["safe-bottom", probe(scene, "width", "var(--safe-bottom)")],
         ["scene.height", scene.getBoundingClientRect().height],
         ["disc", document.querySelector(".seam-shot-shadow")?.getBoundingClientRect().width ?? NaN],
       ];
-      document.querySelectorAll<HTMLCanvasElement>(".seam-grain-ink").forEach((canvas, i) => {
+      const canvases = [...document.querySelectorAll<HTMLCanvasElement>(".seam-grain-ink")];
+      canvases.forEach((canvas, i) => {
         values.push([`grain${i}.height`, canvas.parentElement!.getBoundingClientRect().height]);
         // 150 is the canvas default before its first draw, not a reading.
         if (canvas.dataset.inkKey) values.push([`canvas${i}.height`, canvas.height]);
       });
+      // The fold: where each side's box and canvas end and start, in page
+      // coordinates, and how much of the canvas row either side of it is ink.
+      const inked = (canvas: HTMLCanvasElement, y: number) => {
+        if (!canvas.dataset.inkKey) return NaN;
+        const row = canvas.getContext("2d")!.getImageData(0, y, canvas.width, 1).data;
+        let n = 0;
+        for (let i = 3; i < row.length; i += 4) if (row[i]! > 0) n += 1;
+        return n / canvas.width;
+      };
+      const [above, below] = canvases;
+      if (above && below) {
+        const pageY = (element: Element, edge: "top" | "bottom") =>
+          element.getBoundingClientRect()[edge] + window.scrollY;
+        values.push(["grain0.bottom", pageY(above.parentElement!, "bottom")]);
+        values.push(["canvas0.bottom", pageY(above, "bottom")]);
+        values.push(["grain1.top", pageY(below.parentElement!, "top")]);
+        values.push(["canvas1.top", pageY(below, "top")]);
+        values.push(["canvas0.lastInk", inked(above, above.height - 1)]);
+        values.push(["canvas1.row0Ink", inked(below, 0)]);
+        values.push(["canvas1.row1Ink", inked(below, 1)]);
+        // What paints topmost on the first row below the fold, when it is
+        // on screen.
+        const y = below.parentElement!.getBoundingClientRect().top + 0.5;
+        if (y > 0 && y < window.innerHeight) {
+          setTopmost(
+            document
+              .elementsFromPoint(window.innerWidth / 2, y)
+              .slice(0, 3)
+              .map((element) => element.className.toString().split(" ")[0] || element.tagName)
+              .join(" > "),
+          );
+        }
+      }
       for (const [name, now] of values) {
         const row = seen.get(name);
         const rounded = Math.round(now * 100) / 100;
@@ -114,6 +145,7 @@ export function SeamDebug() {
             `${name.padEnd(17)}${String(row.now).padStart(8)}${String(row.min).padStart(8)}${String(row.max).padStart(8)}`,
         )
         .join("\n")}
+      {`\nat fold: ${topmost}`}
     </pre>
   );
 }

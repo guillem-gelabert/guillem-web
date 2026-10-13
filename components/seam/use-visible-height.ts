@@ -3,45 +3,50 @@
 import { useEffect } from "react";
 
 // Writes --visible-height to :root: the height of what the browser actually
-// shows between its bars, read from visualViewport. The landing's
-// --chrome-bottom is 100lvh minus this, and the story corner is sized to fit
-// above it.
+// shows between its bars with the toolbar expanded, read from
+// visualViewport. The landing's --chrome-bottom is 100lvh minus this (capped
+// at 100svh), and the story corner is sized to fit above it.
 //
 // 100svh is meant to be that same number, and on most loads it is. On some
 // iOS loads it is not — Safari once reported 776 for a 714pt visible area,
-// and Chrome put the "New story" badge under its toolbar — while
-// visualViewport.height was right every time. Until this runs, the CSS falls
-// back to 100svh.
+// and Chrome put the "New story" badge under its toolbar. Until this runs,
+// the CSS falls back to 100svh.
 //
-// Read once on load, and again only when the phone turns. It used to follow
-// every visualViewport resize and keep the smallest height seen, so the
-// toolbar collapsing mid-scroll could not grow the composition. That made
-// it a ratchet: any reading under the real height while Safari scrolled
-// shrank the story corner for good, and on an iPhone 17 Pro the disc went
-// from ~150px to ~60px over a few scrolls. Nothing a scroll does is a
-// reason to re-lay the hero out, so nothing a scroll does is read.
-// Pinch-zoom (scale !== 1) shrinks the visual viewport without the screen
-// getting any smaller, so a reading taken zoomed is skipped.
+// The LARGEST height seen while the page is at the top. Not the first one:
+// on an iPhone 17 Pro (iOS 26) the first reading on some loads was 561 for
+// a 714 visible area, and the disc came out 86px instead of 220. Not the
+// smallest either: that was a ratchet, and the same low readings shrank the
+// story corner for good. Only at the top, because scrolling collapses the
+// toolbar and the visual viewport grows by its height; the stylesheet's
+// 100svh cap covers a collapse that happens without a scroll. A width change
+// (rotation) starts over, and pinch-zoom (scale !== 1) is ignored, since it
+// shrinks the visual viewport without the screen getting any smaller.
 export function useVisibleHeight() {
   useEffect(() => {
     const viewport = window.visualViewport;
     if (!viewport) return;
 
     const root = document.documentElement;
-    const measure = () => {
+    let width = viewport.width;
+    let largest = 0;
+
+    const update = () => {
       if (viewport.scale !== 1) return;
-      root.style.setProperty("--visible-height", `${viewport.height}px`);
+      if (viewport.width !== width) {
+        width = viewport.width;
+        largest = 0;
+      }
+      if (window.scrollY > 0 || viewport.height <= largest) return;
+      largest = viewport.height;
+      root.style.setProperty("--visible-height", `${largest}px`);
     };
 
-    measure();
-    // The new size is not in visualViewport yet when the media query flips,
-    // so the reading waits for the next resize after it.
-    const orientation = window.matchMedia("(orientation: portrait)");
-    const turned = () => viewport.addEventListener("resize", measure, { once: true });
-    orientation.addEventListener("change", turned);
+    update();
+    viewport.addEventListener("resize", update);
+    window.addEventListener("resize", update);
     return () => {
-      orientation.removeEventListener("change", turned);
-      viewport.removeEventListener("resize", measure);
+      viewport.removeEventListener("resize", update);
+      window.removeEventListener("resize", update);
       root.style.removeProperty("--visible-height");
     };
   }, []);

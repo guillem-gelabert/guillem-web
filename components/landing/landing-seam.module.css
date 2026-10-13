@@ -44,8 +44,10 @@
      --visible-height is the measured visible height
      (components/seam/use-visible-height.ts); 100svh is the same thing in
      theory and the fallback before JavaScript, but some iOS loads report it
-     too tall. A token for the same testability reason as --safe-*. */
-  --chrome-bottom: calc(100lvh - var(--visible-height, 100svh));
+     too tall. Capped at 100svh all the same, so a toolbar that collapses
+     while the page sits at the top cannot grow the composition under it.
+     A token for the same testability reason as --safe-*. */
+  --chrome-bottom: calc(100lvh - min(100svh, var(--visible-height, 100svh)));
   /* The viewport's own proportion as a plain number: >1 landscape, 1
      square, <1 portrait. --nameplate-width and --aside-ratio both read it,
      and it has to be declared before them. */

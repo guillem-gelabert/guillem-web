@@ -81,6 +81,30 @@ test("on a phone each grain's canvas is one dot per CSS pixel and the fold is in
     // dark half of the fan, so neither is bare paper.
     expect(inks[0]!.bottom).toBeGreaterThan(0.2);
     expect(inks[1]!.top).toBeGreaterThan(0.2);
+
+    // And on screen, not just in the canvas: no row at the fold may come
+    // out as bare paper.
+    const fold = await page.evaluate(() => document.getElementById("seam-scene-mirrored")!.getBoundingClientRect().top + scrollY);
+    await page.evaluate((y) => scrollTo(0, y - 200), fold);
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+    const top = await page.evaluate(() => document.getElementById("seam-scene-mirrored")!.getBoundingClientRect().top);
+    const shot = await page.screenshot({ clip: { x: 0, y: top - 6, width: PHONE.width, height: 12 }, scale: "css" });
+    const rows = await page.evaluate(async (data) => {
+      const image = await createImageBitmap(await (await fetch(`data:image/png;base64,${data}`)).blob());
+      const canvas = new OffscreenCanvas(image.width, image.height);
+      const context = canvas.getContext("2d")!;
+      context.drawImage(image, 0, 0);
+      const out: number[] = [];
+      for (let y = 0; y < image.height; y += 1) {
+        const row = context.getImageData(0, y, image.width, 1).data;
+        let dark = 0;
+        for (let i = 0; i < row.length; i += 4) if (row[i]! < 170) dark += 1;
+        out.push(dark / image.width);
+      }
+      return out;
+    }, shot.toString("base64"));
+    console.log("fold rows", top, rows.map((r) => r.toFixed(2)).join(" "));
+    for (const row of rows) expect(row).toBeGreaterThan(0.2);
   } finally {
     await context.close();
   }
@@ -113,13 +137,39 @@ test("on a phone the story corner keeps its size when only the height changes", 
   }
 });
 
+// The other half: on some iOS loads the first reading is far under the
+// real height (561 for 714 on an iPhone 17 Pro) and the right one only
+// arrives with a later resize. The disc has to come back to full size.
+test("on a phone a low first reading of the visible height does not stick", async () => {
+  const { context, page } = await openPhone(browser);
+
+  try {
+    const read = () =>
+      page.evaluate(() => ({
+        token: document.documentElement.style.getPropertyValue("--visible-height"),
+        disc: document.querySelector(".seam-shot")!.getBoundingClientRect().width,
+      }));
+    const full = await read();
+
+    await page.setViewportSize({ width: PHONE.width, height: 561 });
+    await page.reload();
+    await page.waitForFunction(() => document.documentElement.style.getPropertyValue("--visible-height") === "561px");
+    await page.setViewportSize(PHONE);
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+
+    expect(await read()).toEqual(full);
+  } finally {
+    await context.close();
+  }
+});
+
 // Temporary, with components/landing/seam-debug.tsx.
 test("the debug readout shows at /?debug", async () => {
   const { context, page } = await openPhone(browser);
   try {
     await page.goto("/?debug");
-    await expect(page.locator("pre", { hasText: "debug-1" })).toContainText("vv.height");
-    console.log(await page.locator("pre", { hasText: "debug-1" }).textContent());
+    await expect(page.locator("pre", { hasText: "debug-2" })).toContainText("vv.height");
+    console.log(await page.locator("pre", { hasText: "debug-2" }).textContent());
   } finally {
     await context.close();
   }
