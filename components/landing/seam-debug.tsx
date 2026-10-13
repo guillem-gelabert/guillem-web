@@ -8,7 +8,20 @@ import { useEffect, useState } from "react";
 // the viewport units, what the stylesheet derives from them, and the
 // canvases' sizes, with the lowest and highest each has reached.
 
-const VERSION = "debug-2";
+const VERSION = "debug-3";
+
+// Variants for the light row at the fold, one per suspect, picked with
+// /?debug&fold=<name>. Each is a stylesheet laid over the page.
+const FOLD_VARIANTS: Record<string, string> = {
+  // The second scene's PNG field: rotated, masked, 500vmax square, hidden.
+  nofield: ".seam-scene-mirrored .seam-grain-field { display: none !important; }",
+  // Both grains on layers of their own, so neither is placed differently.
+  layers: ".seam-grain { will-change: transform; }",
+  // No stacking contexts on the two scenes.
+  flat: ".seam-scene { z-index: auto !important; }",
+  // The second grain starts 2px up, under the first scene.
+  overlap: ".seam-scene-mirrored > .seam-grain { top: -2px !important; }",
+};
 
 type Row = { now: number; min: number; max: number };
 
@@ -25,9 +38,22 @@ function probe(parent: Element, property: string, value: string) {
 export function SeamDebug() {
   const [rows, setRows] = useState<[string, Row][] | null>(null);
   const [topmost, setTopmost] = useState("off screen");
+  // Read on the client only, and nothing renders until the first reading,
+  // so the server's "none" never meets a different client value.
+  const [fold] = useState(() => {
+    if (typeof window === "undefined") return "none";
+    const variant = new URLSearchParams(location.search).get("fold") ?? "";
+    return FOLD_VARIANTS[variant] ? variant : "none";
+  });
 
   useEffect(() => {
-    if (!new URLSearchParams(location.search).has("debug")) return;
+    const params = new URLSearchParams(location.search);
+    if (!params.has("debug")) return;
+    if (fold !== "none") {
+      const style = document.createElement("style");
+      style.textContent = FOLD_VARIANTS[fold]!;
+      document.head.appendChild(style);
+    }
     const seen = new Map<string, Row>();
     let frame = 0;
 
@@ -118,7 +144,7 @@ export function SeamDebug() {
       window.visualViewport?.removeEventListener("resize", schedule);
       window.visualViewport?.removeEventListener("scroll", schedule);
     };
-  }, []);
+  }, [fold]);
 
   if (!rows) return null;
   return (
@@ -138,7 +164,7 @@ export function SeamDebug() {
         whiteSpace: "pre",
       }}
     >
-      {`${VERSION}            now     min     max\n`}
+      {`${VERSION} fold=${fold}`.padEnd(17) + `${"now".padStart(8)}${"min".padStart(8)}${"max".padStart(8)}\n`}
       {rows
         .map(
           ([name, row]) =>

@@ -27,7 +27,23 @@ import { useEffect } from "react";
 // resting one, and following it drew the disc tiny and then grew it in
 // front of you on every refresh. Until a value is written the stylesheet
 // uses 100svh, which was right on that phone from the start.
+//
+// And only when it differs from what is already in effect by a real
+// margin. The same phone reported 712 on one load and 714 on the next for
+// the same screen, and following that moved the disc by a couple of pixels
+// on refresh. Off by less than this, 100svh (or the value already written)
+// stays; the readings this exists for were off by 60px and more.
 const SETTLE_MS = 250;
+const MARGIN_PX = 16;
+
+function smallViewportHeight() {
+  const probe = document.createElement("div");
+  probe.style.cssText = "position:absolute;visibility:hidden;pointer-events:none;height:100svh";
+  document.body.appendChild(probe);
+  const height = probe.getBoundingClientRect().height;
+  probe.remove();
+  return height;
+}
 export function useVisibleHeight() {
   useEffect(() => {
     const viewport = window.visualViewport;
@@ -37,7 +53,12 @@ export function useVisibleHeight() {
     let width = viewport.width;
     let largest = 0;
     let timer: ReturnType<typeof setTimeout> | undefined;
-    const write = () => root.style.setProperty("--visible-height", `${largest}px`);
+    const write = () => {
+      const current =
+        Number.parseFloat(root.style.getPropertyValue("--visible-height")) || smallViewportHeight();
+      if (Math.abs(largest - current) < MARGIN_PX) return;
+      root.style.setProperty("--visible-height", `${largest}px`);
+    };
 
     const update = () => {
       if (viewport.scale !== 1) return;

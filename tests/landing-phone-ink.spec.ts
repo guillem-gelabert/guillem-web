@@ -13,7 +13,9 @@ import { expect, test, webkit, type Browser } from "@playwright/test";
 
 const PHONE = { width: 402, height: 874 };
 
-async function openPhone(browser: Browser) {
+type Stub = { low?: number; jitter: number };
+
+async function openPhone(browser: Browser, stub?: Stub) {
   const context = await browser.newContext({
     viewport: PHONE,
     hasTouch: true,
@@ -21,6 +23,7 @@ async function openPhone(browser: Browser) {
     deviceScaleFactor: 3,
   });
   const page = await context.newPage();
+  if (stub) await page.addInitScript(stubVisualViewport, stub);
   // The CSP's upgrade-insecure-requests sends WebKit to https://localhost
   // (Chromium exempts localhost, WebKit does not), so it is dropped here.
   await page.route("**/*", async (route) => {
@@ -36,8 +39,8 @@ async function openPhone(browser: Browser) {
       document.querySelectorAll('.seam-grain[data-ink="canvas"]').length ===
       document.querySelectorAll(".seam-grain").length,
   );
-  // use-visible-height.ts writes once its readings have settled.
-  await page.waitForFunction(() => document.documentElement.style.getPropertyValue("--visible-height") !== "");
+  // use-visible-height.ts writes, if at all, once its readings settle (250ms).
+  await page.waitForTimeout(400);
   return { context, page };
 }
 
@@ -134,7 +137,6 @@ test("on a phone the story corner keeps its size when only the height changes", 
         disc: document.querySelector(".seam-shot")!.getBoundingClientRect().width,
       }));
     const before = await read();
-    expect(before.token).not.toBe("");
 
     // What a toolbar sliding in and out does to the visual viewport, lower
     // each time — the sequence that used to ratchet the disc down.
@@ -151,43 +153,68 @@ test("on a phone the story corner keeps its size when only the height changes", 
   }
 });
 
-// The other half: on some iOS loads the first reading is far under the
-// real height (561 for 714 on an iPhone 17 Pro) and the right one only
-// arrives with a later resize. The disc has to come back to full size.
-test("on a phone a low first reading of the visible height does not stick", async () => {
-  const { context, page } = await openPhone(browser);
+// What the iPhone 17 Pro's visualViewport reported, played back: a first
+// reading far under the real height (561 for 714) that corrects itself
+// with a resize a moment later, and readings a couple of pixels either side
+// of the real one. Neither may move the story corner. The stub answers
+// `low` for the first 100ms after the first read, then the real height
+// plus `jitter`, and fires the resize Safari fires.
+// Runs in the page before its own scripts, so it records every write.
+function stubVisualViewport({ low, jitter }: Stub) {
+  const real = Object.getOwnPropertyDescriptor(VisualViewport.prototype, "height")!.get!;
+  let first: number | undefined;
+  const w = window as unknown as { __written: string[] };
+  w.__written = [];
+  Object.defineProperty(VisualViewport.prototype, "height", {
+    get(this: VisualViewport) {
+      if (first === undefined) {
+        first = performance.now();
+        setTimeout(() => window.visualViewport!.dispatchEvent(new Event("resize")), 100);
+      }
+      if (low !== undefined && performance.now() - first < 100) return low;
+      return real.call(this) + jitter;
+    },
+  });
+  const setProperty = CSSStyleDeclaration.prototype.setProperty;
+  CSSStyleDeclaration.prototype.setProperty = function (this: CSSStyleDeclaration, name: string, ...rest: [string | null, string?]) {
+    if (name === "--visible-height") w.__written.push(String(rest[0]));
+    return setProperty.call(this, name, ...rest);
+  };
+}
 
-  try {
-    const read = () =>
-      page.evaluate(() => ({
-        token: document.documentElement.style.getPropertyValue("--visible-height"),
-        disc: document.querySelector(".seam-shot")!.getBoundingClientRect().width,
-      }));
-    const full = await read();
+for (const [name, stub] of [
+  ["a low first reading", { low: 561, jitter: 0 }],
+  ["a reading 2px short", { jitter: -2 }],
+] as const) {
+  test(`on a phone ${name} of the visible height leaves the disc alone`, async () => {
+    const plain = await openPhone(browser);
+    const disc = () =>
+      document.querySelector(".seam-shot")!.getBoundingClientRect().width;
+    const full = await plain.page.evaluate(disc);
+    await plain.context.close();
 
-    await page.setViewportSize({ width: PHONE.width, height: 561 });
-    await page.reload();
-    await page.waitForFunction(() => document.documentElement.style.getPropertyValue("--visible-height") === "561px");
-    await page.setViewportSize(PHONE);
-    await page.waitForFunction(
-      (token) => document.documentElement.style.getPropertyValue("--visible-height") === token,
-      full.token,
-    );
-    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
-
-    expect(await read()).toEqual(full);
-  } finally {
-    await context.close();
-  }
-});
+    const { context, page } = await openPhone(browser, stub);
+    try {
+      await page.waitForTimeout(400);
+      expect(await page.evaluate(() => (window as unknown as { __written: string[] }).__written)).toEqual([]);
+      expect(await page.evaluate(disc)).toBe(full);
+    } finally {
+      await context.close();
+    }
+  });
+}
 
 // Temporary, with components/landing/seam-debug.tsx.
 test("the debug readout shows at /?debug", async () => {
   const { context, page } = await openPhone(browser);
   try {
     await page.goto("/?debug");
-    await expect(page.locator("pre", { hasText: "debug-2" })).toContainText("vv.height");
-    console.log(await page.locator("pre", { hasText: "debug-2" }).textContent());
+    await expect(page.locator("pre", { hasText: "debug-3" })).toContainText("vv.height");
+    for (const fold of ["nofield", "layers", "flat", "overlap"]) {
+      await page.goto(`/?debug&fold=${fold}`);
+      await expect(page.locator("pre", { hasText: "debug-3" })).toContainText(`fold=${fold}`);
+      await page.waitForFunction(() => document.querySelectorAll('.seam-grain[data-ink="canvas"]').length === 2);
+    }
   } finally {
     await context.close();
   }
