@@ -13,35 +13,35 @@ import { useEffect } from "react";
 // visualViewport.height was right every time. Until this runs, the CSS falls
 // back to 100svh.
 //
-// Only the SMALLEST height seen is kept: that is the toolbar-expanded state.
-// Following every resize would resize the composition as the toolbar
-// collapses mid-scroll. A width change (rotation) starts over, and pinch-zoom
-// (scale !== 1) is ignored, since it shrinks the visual viewport without the
-// screen getting any smaller.
+// Read once on load, and again only when the phone turns. It used to follow
+// every visualViewport resize and keep the smallest height seen, so the
+// toolbar collapsing mid-scroll could not grow the composition. That made
+// it a ratchet: any reading under the real height while Safari scrolled
+// shrank the story corner for good, and on an iPhone 17 Pro the disc went
+// from ~150px to ~60px over a few scrolls. Nothing a scroll does is a
+// reason to re-lay the hero out, so nothing a scroll does is read.
+// Pinch-zoom (scale !== 1) shrinks the visual viewport without the screen
+// getting any smaller, so a reading taken zoomed is skipped.
 export function useVisibleHeight() {
   useEffect(() => {
     const viewport = window.visualViewport;
     if (!viewport) return;
 
     const root = document.documentElement;
-    let width = viewport.width;
-    let smallest = Infinity;
-
-    const update = () => {
+    const measure = () => {
       if (viewport.scale !== 1) return;
-      if (viewport.width !== width) {
-        width = viewport.width;
-        smallest = Infinity;
-      }
-      if (viewport.height >= smallest) return;
-      smallest = viewport.height;
-      root.style.setProperty("--visible-height", `${smallest}px`);
+      root.style.setProperty("--visible-height", `${viewport.height}px`);
     };
 
-    update();
-    viewport.addEventListener("resize", update);
+    measure();
+    // The new size is not in visualViewport yet when the media query flips,
+    // so the reading waits for the next resize after it.
+    const orientation = window.matchMedia("(orientation: portrait)");
+    const turned = () => viewport.addEventListener("resize", measure, { once: true });
+    orientation.addEventListener("change", turned);
     return () => {
-      viewport.removeEventListener("resize", update);
+      orientation.removeEventListener("change", turned);
+      viewport.removeEventListener("resize", measure);
       root.style.removeProperty("--visible-height");
     };
   }, []);
