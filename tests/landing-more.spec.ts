@@ -57,10 +57,9 @@ test("the mirrored scene is the 'More work' landmark and holds every piece after
     // The title is still printed — as a heading, not a link.
     await expect(item.locator(".seam-pair-title")).toHaveText(entry.title);
     await expect(item.locator(".seam-pair-title a")).toHaveCount(0);
-    // Every tag reaches the page as text; neither the body paragraphs nor
-    // the one-line annotation do — the square is a title and its tags.
+    // The short description and tags render; the longer body stays out.
     for (const paragraph of entry.body) await expect(item).not.toContainText(paragraph);
-    await expect(item).not.toContainText(entry.annotation);
+    await expect(item.locator(".seam-pair-body")).toHaveText(entry.annotation);
     for (const field of entry.domains) await expect(item).toContainText(field);
     await expect(item).toContainText(entry.contentType);
     for (const tool of entry.stack) await expect(item).toContainText(tool);
@@ -69,7 +68,6 @@ test("the mirrored scene is the 'More work' landmark and holds every piece after
     );
     // The domains keep their own class, though every chip is square now.
     await expect(item.locator(".seam-pair-domain")).toHaveCount(entry.domains.length);
-    await expect(item.locator(".seam-pair-body")).toHaveCount(0);
     // The optional colour reveal is a second, decorative image over its
     // declared display shot; a null shot still renders no image at all. Any
     // thumbnail also carries the two sphere shading maps, drawn as canvases

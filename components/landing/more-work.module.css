@@ -203,7 +203,7 @@
   line-height: 1.1;
 }
 
-/* A note's one line under its title (the projects carry none). 4cqw is
+/* The short description under a project or note's title. 4cqw is
    ~24px on the desktop's lone pair. */
 .body {
   margin: 0;

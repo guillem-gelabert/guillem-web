@@ -141,10 +141,8 @@ export function MoreWork() {
                   type is sized against the square it sits in — see
                   more-work.module.css. Weights stay the site's two. */}
               <h3 className={`seam-pair-title ${styles.title}`}>{entry.title}</h3>
-              {/* The foot: the tags along the floor, the arrow in the far
-                  corner. The two body paragraphs that used to sit between
-                  are gone — the square is a title and its tags now, and the
-                  piece speaks for itself at the other end of the arrow. */}
+              <p className={`seam-pair-body ${styles.body}`}>{entry.annotation}</p>
+              {/* The tags and arrow sit along the square's floor. */}
               <div className={`seam-pair-foot ${styles.foot}`}>
                 {/* The tags: the domains, the content type, then the stack.
                     Outlined chips, all rectangular. No separator glyph

@@ -122,7 +122,7 @@ export const WORK: readonly [WorkEntry, WorkEntry] = [
   {
     title: "Real-Time Predictive Defunction Model",
     annotation:
-      "Roughly two people die every second: where they are, when it happens, and who they were.",
+      "A deep dive into the factors that shape where, when and why people die. A live globe combines population data with seasonal patterns, comparing proxies such as climate and neighbouring countries to estimate those patterns where records are missing. Weekly conflict reports add estimates of deaths from war.",
     href: "https://watchpeopledie.live",
     host: "watchpeopledie.live",
     domains: ["Demography", "Statistics"],
