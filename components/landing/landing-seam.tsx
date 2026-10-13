@@ -70,19 +70,6 @@ export function LandingSeam({
       >
         {grain}
 
-        {/* Placeholders, both pointing at "#". There is no German landing —
-            app/(de)/ holds only /texte, and lib/locales.ts and this route's
-            metadata both document the landing as English-only — so neither
-            has a real destination yet. */}
-        <div className={`seam-lang ${styles.lang}`} id="seam-lang">
-          <a className="seam-lang-en" href="#">
-            EN
-          </a>
-          <a className="seam-lang-de" href="#">
-            DE
-          </a>
-        </div>
-
         <div
           id="seam-stack-nameplate"
           className={`${stack} seam-stack-nameplate ${styles.stackNameplate}`}

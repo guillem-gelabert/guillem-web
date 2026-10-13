@@ -353,11 +353,6 @@ test.describe("landing background", () => {
       "color",
       WHITE,
     );
-    // The lang switch is centred ON the seam and rotated across it, so its
-    // two labels sit on opposite grounds by construction — that is the
-    // design of the control, and each link names its own side.
-    await expect(page.locator(".seam-lang-en")).toHaveCSS("color", BLACK);
-    await expect(page.locator(".seam-lang-de")).toHaveCSS("color", WHITE);
   });
 
   test("hands a phone the same full-resolution export as the desktop", async ({

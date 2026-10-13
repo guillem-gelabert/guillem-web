@@ -176,7 +176,6 @@ test("the body face does not trail", async ({ page }) => {
       // The second piece's link, now a pair below the fold rather than a
       // line under the disc. Same rule: small copy stays flat.
       pairLink: read("#seam-scene-mirrored .seam-pair a"),
-      langLabel: read(".seam-lang a"),
     };
   });
 
@@ -184,7 +183,6 @@ test("the body face does not trail", async ({ page }) => {
   expect(shadows.arcGlyphs).toBe("none");
   expect(shadows.badge).toBe("none");
   expect(shadows.pairLink).toBe("none");
-  expect(shadows.langLabel).toBe("none");
 });
 
 // Covers BUILD-05 as a Phase 3 regression: a visitor with

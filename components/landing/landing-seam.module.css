@@ -637,102 +637,6 @@
   bottom: var(--edge-bottom);
 }
 
-/* One rotated container, EN over DE, centred ON the seam so it splits the
-   two labels evenly, turned so the pair reads across the seam rather than
-   along it.
-
-   The rotation is --seam-angle minus 90. In screen coordinates (y down,
-   CSS rotate clockwise) an unrotated column flows (0, 1) and a rotation R
-   sends it to (-sin R, cos R); the ray at S clockwise from north is
-   (sin S, -cos S). Those are perpendicular at R = S +/- 90, and PARALLEL at
-   R = S exactly.
-
-   What matters is the column's flow direction, not the text baseline — the
-   two are 90deg apart, and measuring the baseline instead is what produced
-   two wrong answers here: -S first, then +S, which was parallel.
-
-   The centre, not the top, is placed ON the ray: transform-origin: center
-   plus translate: -50% -50% put the geometric centre of the box at
-   (left, top), and translate is unaffected by transform-origin (it is
-   T(origin) . translate . rotate . T(-origin) — a pure translation
-   commutes with the origin shifts). The earlier version anchored the TOP
-   edge instead, which put both labels on the same side of the seam.
-
-   w and h are pinned in em rather than measured, so this stays pure CSS:
-   EN in Humane at weight 200 and 0.04em tracking is within the 0.5em slot (trailing
-   letter-spacing included; DE is narrower), and two lines at line-height 1
-   plus the 0.15em gap are 2.15em tall, exactly. Rotated by S - 90, the
-   axis-aligned half-extents of that w x h box are:
-     half-x = (w sin S + h cos S) / 2
-     half-y = (w cos S + h sin S) / 2
-
-   The centre can slide along the ray (C = P + t . (sin S, -cos S)) until
-   its half-extents come within --edge of a window edge. S is always in
-   (0deg, 90deg) here — the pivot sits bottom-left, the ray climbs to the
-   upper right — so only the right and the top edges can ever bind; t is
-   the smaller of the two distances that would touch them. 100vw rather
-   than a scene-relative unit: this value feeds both left (a share of
-   width) and top (a share of height), and a single --t cannot be a percent
-   of two different things. */
-.lang {
-  --w: 0.5em;
-  --h: 2.15em;
-  --sin: sin(var(--seam-angle, 50deg));
-  --cos: cos(var(--seam-angle, 50deg));
-  --half-x: calc((var(--w) * var(--sin) + var(--h) * var(--cos)) / 2);
-  --half-y: calc((var(--w) * var(--cos) + var(--h) * var(--sin)) / 2);
-  --t: min(
-    calc(
-      (100vw - var(--edge-right) - var(--half-x) - var(--gradient-center-x)) /
-        var(--sin)
-    ),
-    calc(
-      (var(--gradient-center-y) - var(--edge-top) - var(--half-y)) /
-        var(--cos)
-    )
-  );
-
-  position: absolute;
-  top: calc(var(--gradient-center-y) - var(--t) * var(--cos));
-  left: calc(var(--gradient-center-x) + var(--t) * var(--sin));
-  width: var(--w);
-  height: var(--h);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.15em;
-  /* Humane ships only the wght variable axis. Use its lighter coordinate
-     explicitly, then tighten tracking to make the label narrower without
-     distorting its glyphs with scaleX. */
-  font-family: var(--font-display);
-  font-size: clamp(2rem, 4vw, 4.5rem);
-  font-variation-settings: "wght" 200;
-  font-weight: 200;
-  letter-spacing: 0.04em;
-  line-height: 1;
-  transform-origin: center;
-  rotate: calc(var(--seam-angle, 50deg) - 90deg);
-  translate: -50% -50%;
-}
-
-/* The pair is centred ON the seam and rotated across it, so the two labels
-   land on opposite grounds by construction — that IS the design of this
-   control. It is also why the blend is not missed here: the split is not
-   a hazard to work around but the thing being drawn, and because EN and DE
-   are separate elements each can simply name the colour of the ground it
-   sits on. Paper above the seam, ink below it. */
-.lang :global(.seam-lang-en) {
-  color: #000;
-}
-
-.lang :global(.seam-lang-de) {
-  color: #fff;
-}
-
-
-
-
-
 /* The nameplate's whole type spec, kept with the box it is measured
    against. It used to be a .text-nameplate role in globals.css, but the
    role had exactly one caller and it was in here, and its viewport clamp
@@ -1023,8 +927,9 @@
 /* The standfirst: the annotation in the band below the disc, right-aligned
    to the box's edge, .text-label's spec, with a short rule under it. White,
    because the corner is the ink side on every desktop viewport measured.
-   pointer-events: none for the reason .seam-shot gives: it must not take
-   clicks meant for the disc's link beside it. */
+   Selectable: it sits in the band under the disc, clear of the disc's hit
+   area, so it takes the pointer like any other copy. The halo is the arc
+   headline's, so the two white settings over the disc read as one. */
 .boxCaseStudy :global(.seam-standfirst) {
   position: absolute;
   right: 0;
@@ -1039,7 +944,7 @@
   line-height: 1.3;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  pointer-events: none;
+  filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.75));
 }
 
 .boxCaseStudy :global(.seam-standfirst)::after {
@@ -1111,8 +1016,8 @@
    half's arc (216 of 254.5 user units, measured with getComputedTextLength
    against the path's getTotalLength). Caps run wider and light Jost wants
    more air between them, so the size comes down to keep the line on the
-   arc: at 12 units with 0.08em tracking — the language switch's tracking —
-   it is 222 units, 87%. 14 units would already be 98% and 15 would overrun.
+   arc: at 12 units with 0.08em tracking it is 222 units, 87%. 14 units
+   would already be 98% and 15 would overrun.
    The measure is in user units, so it is the same share at every viewport.
 
    text-transform on SVG <text> is honoured by every engine this site
@@ -1822,17 +1727,6 @@
   }
 
   .boxCaseStudy :global(.seam-standfirst) {
-    display: none;
-  }
-
-  /* No language switch on a phone. Both links still point at "#" — there
-     is no German landing to go to — and on a 393px screen the pair sits
-     over the name's corner with nothing to offer. display: none rather
-     than visibility: it takes the two anchors out of the tab order and
-     the accessibility tree as well as off the screen. Comes back with the
-     desktop layout, where it is centred on the seam by the .lang rule
-     above. */
-  .lang {
     display: none;
   }
 
