@@ -190,28 +190,46 @@ export function MoreWork() {
             </div>
           </li>
         ))}
-        {/* The writing: the same pair, cut down to what a note has.
-            No thumbnail yet, so the circle is the flat fill a work entry with
-            shot: null gets; no page yet, so no link; one subtitle instead of
-            two paragraphs; and at most one tag, TIL or Book — a post has
-            none, so it has no tag row either. */}
         {NOTES.map((note, index) => (
           <li
             key={note.title}
             className={`seam-pair seam-pair-note ${styles.pair}`}
             style={hoverStyle(more.length + index)}
           >
-            <div className={`seam-pair-circle ${styles.circle}`} aria-hidden="true" />
+            <div
+              className={`seam-pair-circle ${styles.circle}`}
+              aria-hidden={note.shot === null ? "true" : undefined}
+            >
+              {note.shot === null ? null : (
+                // eslint-disable-next-line @next/next/no-img-element -- static asset with intrinsic dimensions
+                <img
+                  src={note.shot.src}
+                  alt={note.shot.alt}
+                  width={note.shot.width}
+                  height={note.shot.height}
+                  loading="lazy"
+                  className={`seam-pair-shot ${styles.shot}`}
+                />
+              )}
+            </div>
             <div className={`seam-pair-square ${styles.square}`}>
               <h3 className={`seam-pair-title ${styles.title}`}>{note.title}</h3>
               <p className={`seam-pair-body ${styles.body}`}>{note.subtitle}</p>
-              {note.tag === null ? null : (
-                <div className={`seam-pair-foot ${styles.foot}`}>
+              <div className={`seam-pair-foot ${styles.foot}`}>
+                {note.tag === null ? null : (
                   <p className={`seam-pair-tags ${styles.tags}`}>
                     <span className={styles.tag}>{note.tag}</span>
                   </p>
-                </div>
-              )}
+                )}
+                <a
+                  className={`link-quiet seam-pair-link ${styles.projectLink}`}
+                  href={note.href}
+                  aria-label={`Read: ${note.title}`}
+                  style={{ marginInlineStart: "auto" }}
+                >
+                  →
+                </a>
+              </div>
             </div>
           </li>
         ))}

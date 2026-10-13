@@ -8,6 +8,11 @@ duplicate `.planning/`'s detail. Update the three lists below when a phase or pl
 
 ## Done
 
+- **Embeddings article** (2026-10-13) — finished in Guillem's voice, with six interactive
+  placeholders, checked examples and primary sources; added a pixel-art thumbnail,
+  social image and homepage link. Production build and focused browser checks pass.
+  The full suite still includes older homepage/contact assertions that need updating.
+
 - **Phase 1: Deploy Foundation & Design System** (2026-08-29) — live Next.js on Railway, the
   typographic design system, the scroll-driven heading trail.
 - **Phase 2: Content Pipeline** (2026-08-31) — MDX/Markdown loader, `/writing` + `/texte` routes

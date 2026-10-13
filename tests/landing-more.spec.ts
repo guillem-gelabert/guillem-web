@@ -78,12 +78,13 @@ test("the mirrored scene is the 'More work' landmark and holds every piece after
     await expect(item.locator("canvas.seam-pair-shade")).toHaveCount(entry.shot === null ? 0 : 2);
   }
 
-  // The writing: the same pair with no link, no thumbnail, one subtitle and
-  // at most one tag — TIL or Book, none on a post.
   for (const [index, note] of NOTES.entries()) {
     const item = items.nth(more.length + index);
-    await expect(item.locator("a")).toHaveCount(0);
-    await expect(item.locator("img")).toHaveCount(0);
+    await expect(item.getByRole("link", { name: `Read: ${note.title}` })).toHaveAttribute("href", note.href);
+    await expect(item.locator("img")).toHaveCount(note.shot === null ? 0 : 1);
+    if (note.shot) {
+      await expect(item.getByRole("img", { name: note.shot.alt })).toHaveAttribute("src", note.shot.src);
+    }
     await expect(item.locator(".seam-pair-title")).toHaveText(note.title);
     await expect(item.locator(".seam-pair-body")).toHaveText(note.subtitle);
     await expect(item.locator(".seam-pair-tags > *")).toHaveText(note.tag === null ? [] : [note.tag]);

@@ -66,6 +66,7 @@ test("the homepage renders only the requested content, in order", async ({ page 
       note.title,
       note.subtitle,
       ...(note.tag === null ? [] : [note.tag.toUpperCase()]),
+      "→",
     ]),
     // Last, the backlog wedge: its heading with the count, then the names.
     // Without a database the page serves lib/backlog.tsx's seed, which is
@@ -230,7 +231,7 @@ test("all links are keyboard focusable and meet the 24px target floor", async ({
   // pair's title in the mirrored one. The mailto link this used to count is not on the seam
   // landing at all — /cv and the contact block own it.
   const links = page.locator("main a");
-  const count = WORK.length;
+  const count = WORK.length + NOTES.length;
   await expect(links).toHaveCount(count);
 
   for (let index = 0; index < count; index += 1) {
