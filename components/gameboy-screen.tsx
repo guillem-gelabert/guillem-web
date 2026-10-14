@@ -12,6 +12,15 @@ const DP = { grid: 0.3, gap: 1, shadow: 0.2 };
 const GHOST = { decay: 0.85, taps: [0.55, 0.3, 0.15] };
 const LUMA = [0.299, 0.587, 0.114];
 
+type Shades = readonly [string, string, string, string];
+type Cfg = { shades: Shades; gain: number; decay: number; grid: number; shadow: number; dot: number };
+
+// The two answers from gameboy.guillem.ch on 2026-10-14, for the ?tune panel.
+const PRESETS: { label: string; shades: Shades }[] = [
+  { label: "11:29:36 (t 0.44)", shades: ["#adc44f", "#8ba238", "#3d5b35", "#162d16"] },
+  { label: "11:33:45 (t 0.17)", shades: ["#a2bf28", "#8ba81f", "#355f32", "#123412"] },
+];
+
 const hex = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
 const luma = (c: number[]) => c[0] * LUMA[0] + c[1] * LUMA[1] + c[2] * LUMA[2];
 const smoothstep = (a: number, b: number, x: number) => {
@@ -24,9 +33,9 @@ const smoothstep = (a: number, b: number, x: number) => {
  * px and is what every font size on the page is a multiple of. N = 3 on a
  * 2x display gives dots a shade finer than a DMG's 83 per inch.
  */
-function dotSize() {
+function dotSize(dot: number) {
   const dpr = window.devicePixelRatio || 1;
-  const N = Math.max(1, Math.round(1.5 * dpr));
+  const N = Math.max(1, Math.round(dot * dpr));
   return { N, S: N / dpr, dpr };
 }
 
@@ -46,21 +55,41 @@ export function GameboyScreen({
   const page = useRef<HTMLDivElement>(null);
   const taps = useRef<(SVGFEOffsetElement | null)[]>([]);
   const [S, setS] = useState(1.5);
+  const [cfg, setCfg] = useState<Cfg>({ shades, gain: 1, decay: GHOST.decay, grid: DP.grid, shadow: DP.shadow, dot: 1.5 });
+  const presets = PRESETS.some((p) => p.shades.join() === shades.join()) ? PRESETS : [{ label: "post", shades }, ...PRESETS];
+  const cfgRef = useRef(cfg);
+  useEffect(() => {
+    cfgRef.current = cfg;
+  }, [cfg]);
+  const [tune, setTune] = useState(false);
 
-  const rgb = shades.map(hex);
+  useEffect(() => {
+    // after paint, so the server-rendered page and the first client render agree
+    const id = requestAnimationFrame(() => setTune(new URLSearchParams(location.search).has("tune")));
+    return () => cancelAnimationFrame(id);
+  }, []);
+
+  // a preset swap re-points the page's paper and ink too
+  useEffect(() => {
+    const root = document.documentElement.style;
+    root.setProperty("--color-paper", cfg.shades[0]);
+    root.setProperty("--color-ink", cfg.shades[3]);
+  }, [cfg.shades]);
+
+  const rgb = cfg.shades.map(hex);
   const paperLum = Math.max(luma(rgb[0]), 0.35);
   // discrete bins run dark → light, so the table is the palette reversed
   const table = (ch: number) => [...rgb].reverse().map((c) => c[ch].toFixed(4)).join(" ");
 
+  const { grid, dot } = cfg;
   useEffect(() => {
     const el = canvas.current;
     const ctx = el?.getContext("2d");
     if (!el || !ctx) return;
-    let S = 1.5;
 
     const draw = () => {
-      const d = dotSize();
-      S = d.S;
+      const d = dotSize(dot);
+      const S = d.S;
       setS(S);
       document.documentElement.style.setProperty("--gb-dot", `${S}px`);
       el.width = Math.round(innerWidth * d.dpr);
@@ -79,7 +108,7 @@ export function GameboyScreen({
       const img = tctx.createImageData(N, N);
       for (let y = 0; y < N; y++)
         for (let x = 0; x < N; x++) {
-          const k = DP.grid * (1 - cov(x) * cov(y)); // share reading as gap, mixed toward the white substrate
+          const k = grid * (1 - cov(x) * cov(y)); // share reading as gap, mixed toward the white substrate
           const o = (y * N + x) * 4;
           img.data[o] = img.data[o + 1] = img.data[o + 2] = 255;
           img.data[o + 3] = Math.round(k * 255);
@@ -94,7 +123,10 @@ export function GameboyScreen({
     };
     draw();
     addEventListener("resize", draw);
+    return () => removeEventListener("resize", draw);
+  }, [grid, dot]);
 
+  useEffect(() => {
     // Ghosting + whole-dot scrolling. Last frame's image is this frame's
     // image shifted by the scroll delta, so an echo of the previous frame
     // is the content offset by -velocity, snapped to the dot grid.
@@ -103,16 +135,18 @@ export function GameboyScreen({
     let vel = 0;
     let raf = 0;
     const tick = () => {
+      const { decay, gain, dot } = cfgRef.current;
+      const S = dotSize(dot).S;
       const top = scrollY;
       const dy = top - last;
       last = top;
-      vel = still ? 0 : vel * GHOST.decay + dy * (1 - GHOST.decay);
+      vel = still ? 0 : vel * decay + dy * (1 - decay);
       if (Math.abs(vel) < 0.05) vel = 0;
       const frac = top - Math.floor(top / S) * S;
       if (page.current) page.current.style.transform = `translateY(${frac.toFixed(3)}px)`;
       taps.current.forEach((t, i) => {
         if (!t) return;
-        const px = String(-Math.round((vel * (i + 1)) / S) * S);
+        const px = String(-Math.round((vel * gain * (i + 1)) / S) * S);
         if (t.getAttribute("dy") !== px) t.setAttribute("dy", px);
       });
       raf = requestAnimationFrame(tick);
@@ -120,7 +154,6 @@ export function GameboyScreen({
     raf = requestAnimationFrame(tick);
 
     return () => {
-      removeEventListener("resize", draw);
       cancelAnimationFrame(raf);
       document.documentElement.style.removeProperty("--gb-dot");
     };
@@ -172,7 +205,7 @@ export function GameboyScreen({
             <feFuncA type="linear" slope={(-1 / paperLum).toFixed(4)} intercept="1" />
           </feComponentTransfer>
           <feComponentTransfer in="opac" result="shadow">
-            <feFuncA type="linear" slope={DP.shadow} />
+            <feFuncA type="linear" slope={cfg.shadow} />
           </feComponentTransfer>
           <feComposite in="shadow" in2="quant" operator="over" result="shaded" />
           {/* 4. back to transparent: keep only where glyphs, ghosts or their shadow are */}
@@ -191,6 +224,52 @@ export function GameboyScreen({
       <div ref={page} className="gb-page">
         {children}
       </div>
+      {tune ? <Tune cfg={cfg} setCfg={setCfg} presets={presets} /> : null}
     </>
+  );
+}
+
+/** The demo page's control panel, shown with ?tune in the URL. */
+function Tune({ cfg, setCfg, presets }: { cfg: Cfg; setCfg: (c: Cfg) => void; presets: typeof PRESETS }) {
+  const num = (key: keyof Cfg, min: number, max: number, step: number) => (
+    <label className="gb-tune-row">
+      <span>{key}</span>
+      <span>{(cfg[key] as number).toFixed(2)}</span>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={cfg[key] as number}
+        onChange={(e) => setCfg({ ...cfg, [key]: parseFloat(e.target.value) })}
+      />
+    </label>
+  );
+  return (
+    <div className="gb-tune" aria-label="Screen tuning">
+      <label className="gb-tune-row">
+        <span>shades</span>
+        <span />
+        <select
+          value={cfg.shades.join(" ")}
+          onChange={(e) => {
+            const p = presets.find((x) => x.shades.join(" ") === e.target.value);
+            if (p) setCfg({ ...cfg, shades: p.shades });
+          }}
+        >
+          {presets.map((p) => (
+            <option key={p.label} value={p.shades.join(" ")}>
+              {p.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      {num("gain", 0, 3, 0.1)}
+      {num("decay", 0, 0.95, 0.05)}
+      {num("grid", 0, 1, 0.05)}
+      {num("shadow", 0, 1, 0.05)}
+      {num("dot", 1, 3, 0.5)}
+      <div className="gb-tune-shades">{cfg.shades.join(" ")}</div>
+    </div>
   );
 }
