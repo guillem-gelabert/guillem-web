@@ -13,7 +13,12 @@ export type PostFrontmatter = {
   translationKey: string;
   draft?: boolean;
   type?: "post" | "case-study";
+  /** Per-post paper and ink, as #rrggbb. Overrides the site tokens on that
+   *  post's route only (components/post-palette.tsx). */
+  palette?: { paper: string; ink: string };
 };
+
+const HEX_COLOUR = /^#[0-9a-f]{6}$/i;
 
 export type PostEntry = { slug: string; frontmatter: PostFrontmatter };
 
@@ -67,6 +72,13 @@ export function assertFrontmatter(fm: unknown, file: string): asserts fm is Post
     }
     if (f.type !== undefined && f.type !== "post" && f.type !== "case-study") {
       problems.push("type must be 'post' or 'case-study'");
+    }
+    if (f.palette !== undefined) {
+      const pal = f.palette as Partial<{ paper: unknown; ink: unknown }> | null;
+      const okHex = (v: unknown) => typeof v === "string" && HEX_COLOUR.test(v);
+      if (!pal || typeof pal !== "object" || !okHex(pal.paper) || !okHex(pal.ink)) {
+        problems.push("palette must be { paper, ink } as #rrggbb colours");
+      }
     }
   }
 

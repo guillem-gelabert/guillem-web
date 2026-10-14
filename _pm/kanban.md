@@ -8,6 +8,11 @@ duplicate `.planning/`'s detail. Update the three lists below when a phase or pl
 
 ## Done
 
+- **Embeddings article palette** (2026-10-14) — the post now carries a `palette` front-matter
+  field (paper #adc44f, ink #162d16), the colour Pau picked on gameboy.guillem.ch: 44% of the
+  way from the DMG palette to the Pocket one. Validated as hex in `lib/content.ts`, applied by
+  `components/post-palette.tsx` as a `:root` override on that route only.
+
 - **Embeddings article** (2026-10-13) — finished in Guillem's voice, with six interactive
   placeholders, checked examples and primary sources; added a pixel-art thumbnail,
   social image and homepage link. Production build and focused browser checks pass.
