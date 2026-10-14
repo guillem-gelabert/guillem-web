@@ -12,8 +12,9 @@
    which is also --color-paper, so blocks meet without a seam. */
 .gb-screen {
   --gb-dot: 1.5px;
-  --gb-body: calc(var(--gb-dot) * 16);
-  --gb-line: calc(var(--gb-dot) * 24);
+  --gb-em: 16;
+  --gb-body: calc(var(--gb-dot) * var(--gb-em));
+  --gb-line: calc(var(--gb-dot) * round(var(--gb-em) * 1.5, 1));
 }
 
 .gb-screen header,

@@ -13,7 +13,7 @@ const GHOST = { decay: 0.85, taps: [0.55, 0.3, 0.15] };
 const LUMA = [0.299, 0.587, 0.114];
 
 type Shades = readonly [string, string, string, string];
-type Cfg = { shades: Shades; gain: number; decay: number; grid: number; shadow: number; dot: number };
+type Cfg = { shades: Shades; gain: number; decay: number; grid: number; gap: number; shadow: number; dot: number; em: number };
 
 // The two answers from gameboy.guillem.ch on 2026-10-14, for the ?tune panel.
 const PRESETS: { label: string; shades: Shades }[] = [
@@ -55,7 +55,7 @@ export function GameboyScreen({
   const page = useRef<HTMLDivElement>(null);
   const taps = useRef<(SVGFEOffsetElement | null)[]>([]);
   const [S, setS] = useState(1.5);
-  const [cfg, setCfg] = useState<Cfg>({ shades, gain: 1, decay: GHOST.decay, grid: DP.grid, shadow: DP.shadow, dot: 1.5 });
+  const [cfg, setCfg] = useState<Cfg>({ shades, gain: 1, decay: GHOST.decay, grid: DP.grid, gap: DP.gap, shadow: DP.shadow, dot: 1.5, em: 16 });
   const presets = PRESETS.some((p) => p.shades.join() === shades.join()) ? PRESETS : [{ label: "post", shades }, ...PRESETS];
   const cfgRef = useRef(cfg);
   useEffect(() => {
@@ -81,7 +81,12 @@ export function GameboyScreen({
   // discrete bins run dark → light, so the table is the palette reversed
   const table = (ch: number) => [...rgb].reverse().map((c) => c[ch].toFixed(4)).join(" ");
 
-  const { grid, dot } = cfg;
+  // body size in dots; the stylesheet derives the line height from it
+  useEffect(() => {
+    document.documentElement.style.setProperty("--gb-em", String(cfg.em));
+  }, [cfg.em]);
+
+  const { grid, gap, dot } = cfg;
   useEffect(() => {
     const el = canvas.current;
     const ctx = el?.getContext("2d");
@@ -98,7 +103,7 @@ export function GameboyScreen({
       // the shader's coverage: a dot lights [0, lit) of its cell per axis,
       // measured over one output pixel; below ~3 px per cell the grid folds
       const N = d.N;
-      const lit = Math.min(1, Math.max(1e-3, 1 - DP.gap / N));
+      const lit = Math.min(1, Math.max(1e-3, 1 - gap / N));
       const fold = smoothstep(2, 2.9, N);
       const cov = (i: number) => 1 + (Math.min(1, Math.max(0, lit * N - i)) - 1) * fold;
       const tile = document.createElement("canvas");
@@ -124,7 +129,7 @@ export function GameboyScreen({
     draw();
     addEventListener("resize", draw);
     return () => removeEventListener("resize", draw);
-  }, [grid, dot]);
+  }, [grid, gap, dot]);
 
   useEffect(() => {
     // Ghosting + whole-dot scrolling. Last frame's image is this frame's
@@ -267,8 +272,10 @@ function Tune({ cfg, setCfg, presets }: { cfg: Cfg; setCfg: (c: Cfg) => void; pr
       {num("gain", 0, 3, 0.1)}
       {num("decay", 0, 0.95, 0.05)}
       {num("grid", 0, 1, 0.05)}
+      {num("gap", 0.25, 2, 0.05)}
       {num("shadow", 0, 1, 0.05)}
       {num("dot", 1, 3, 0.5)}
+      {num("em", 10, 24, 1)}
       <div className="gb-tune-shades">{cfg.shades.join(" ")}</div>
     </div>
   );
