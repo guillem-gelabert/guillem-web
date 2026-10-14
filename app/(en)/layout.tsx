@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { humane } from "../fonts/humane";
 import { ibmPlexMono } from "../fonts/ibm-plex-mono";
 import { jost } from "../fonts/jost";
+import { yore } from "../fonts/yore";
 import { SmearHeadingProvider } from "@/components/smear-heading/smear-heading-provider";
 import { rootMetadata } from "@/lib/metadata";
 import "../globals.css";
@@ -48,7 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`${humane.variable} ${ibmPlexMono.variable} ${jost.variable}`}
+      className={`${humane.variable} ${ibmPlexMono.variable} ${jost.variable} ${yore.variable}`}
       suppressHydrationWarning
     >
       <head>

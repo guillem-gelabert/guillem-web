@@ -14,9 +14,21 @@ export type PostFrontmatter = {
   draft?: boolean;
   type?: "post" | "case-study";
   /** Per-post paper and ink, as #rrggbb. Overrides the site tokens on that
-   *  post's route only (components/post-palette.tsx). */
-  palette?: { paper: string; ink: string };
+   *  post's route only (components/post-palette.tsx). Flat keys, not a
+   *  nested block: the test oracles read front-matter one line at a time. */
+  paper?: string;
+  ink?: string;
+  /** Four #rrggbb shades, lightest first, space-separated. */
+  shades?: string;
+  /** "gameboy": the post renders through components/gameboy-screen.tsx —
+   *  four shades, dot matrix, dot shadow, ghosting. Needs shades. */
+  theme?: "gameboy";
 };
+
+export function shadesOf(fm: PostFrontmatter): [string, string, string, string] | null {
+  const s = fm.shades?.trim().split(/\s+/);
+  return s && s.length === 4 ? (s as [string, string, string, string]) : null;
+}
 
 const HEX_COLOUR = /^#[0-9a-f]{6}$/i;
 
@@ -73,12 +85,21 @@ export function assertFrontmatter(fm: unknown, file: string): asserts fm is Post
     if (f.type !== undefined && f.type !== "post" && f.type !== "case-study") {
       problems.push("type must be 'post' or 'case-study'");
     }
-    if (f.palette !== undefined) {
-      const pal = f.palette as Partial<{ paper: unknown; ink: unknown }> | null;
-      const okHex = (v: unknown) => typeof v === "string" && HEX_COLOUR.test(v);
-      if (!pal || typeof pal !== "object" || !okHex(pal.paper) || !okHex(pal.ink)) {
-        problems.push("palette must be { paper, ink } as #rrggbb colours");
+    const okHex = (v: unknown) => typeof v === "string" && HEX_COLOUR.test(v);
+    if ((f.paper === undefined) !== (f.ink === undefined)) {
+      problems.push("paper and ink come together");
+    }
+    if (f.paper !== undefined && !okHex(f.paper)) problems.push("paper must be a #rrggbb colour");
+    if (f.ink !== undefined && !okHex(f.ink)) problems.push("ink must be a #rrggbb colour");
+    if (f.shades !== undefined) {
+      const parts = typeof f.shades === "string" ? f.shades.trim().split(/\s+/) : [];
+      if (parts.length !== 4 || !parts.every(okHex)) {
+        problems.push("shades must be four #rrggbb colours, lightest first, space-separated");
       }
+    }
+    if (f.theme !== undefined) {
+      if (f.theme !== "gameboy") problems.push("theme must be 'gameboy'");
+      else if (f.shades === undefined) problems.push("theme gameboy needs shades");
     }
   }
 

@@ -7,9 +7,8 @@ import type { PostFrontmatter } from "@/lib/content";
  * Values are validated as #rrggbb in assertFrontmatter, so the inline style
  * cannot carry anything but a colour.
  */
-export function PostPalette({ palette }: { palette: PostFrontmatter["palette"] }) {
-  if (!palette) return null;
-  return (
-    <style>{`:root{--color-paper:${palette.paper};--color-ink:${palette.ink}}`}</style>
-  );
+export function PostPalette({ frontmatter }: { frontmatter: PostFrontmatter }) {
+  const { paper, ink } = frontmatter;
+  if (!paper || !ink) return null;
+  return <style>{`:root{--color-paper:${paper};--color-ink:${ink}}`}</style>;
 }

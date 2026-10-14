@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { findBySlug, loadPostModule, publishedFor, translationOf } from "@/lib/content";
+import { findBySlug, loadPostModule, publishedFor, shadesOf, translationOf } from "@/lib/content";
 import { indexPath, postPath, UI } from "@/lib/locales";
 import { Prose } from "@/components/prose";
 import { SmearTitle } from "@/components/smear-title";
 import { PostMeta } from "@/components/post-meta";
 import { PostPalette } from "@/components/post-palette";
+import { GameboyScreen } from "@/components/gameboy-screen";
 import { postOpenGraph } from "@/lib/metadata";
 
 // This route carries no client directive. Phase 1 marked whole pages as
@@ -64,6 +65,18 @@ export async function generateMetadata({
   };
 }
 
+// The Game Boy wrapper only when the post asks for it; a fragment otherwise,
+// so the untouched layout keeps its exact DOM for every other post.
+function Screen({
+  shades,
+  children,
+}: {
+  shades: readonly [string, string, string, string] | null;
+  children: React.ReactNode;
+}) {
+  return shades ? <GameboyScreen shades={shades}>{children}</GameboyScreen> : <>{children}</>;
+}
+
 export default async function WritingPost({
   params,
 }: {
@@ -80,9 +93,14 @@ export default async function WritingPost({
   const { default: Post } = await loadPostModule(slug);
   const twin = await translationOf(entry);
 
+  const gameboy = entry.frontmatter.theme === "gameboy" ? shadesOf(entry.frontmatter) : null;
+
   return (
-    <main className="mx-auto flex w-full max-w-page flex-col gap-3xl px-lg py-3xl">
-      <PostPalette palette={entry.frontmatter.palette} />
+    <main
+      className={`mx-auto flex w-full max-w-page flex-col gap-3xl px-lg py-3xl${gameboy ? " gb-screen" : ""}`}
+    >
+      <PostPalette frontmatter={entry.frontmatter} />
+      <Screen shades={gameboy}>
       <header className="flex flex-col gap-2xl">
         <Link href={indexPath("de")} className="text-label link-quiet inline-block py-xs">
           {UI.de.backLink}
@@ -105,6 +123,7 @@ export default async function WritingPost({
       <Prose>
         <Post />
       </Prose>
+      </Screen>
     </main>
   );
 }

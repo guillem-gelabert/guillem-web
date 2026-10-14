@@ -1,0 +1,153 @@
+/* Theme: gameboy. Imported by components/gameboy-screen.tsx, so it only
+   ships on routes that render it. Kept out of app/globals.css on purpose:
+   that file's type budget (tests/unit/prose-contract.test.ts) is the
+   site's, and this is a screen, not a type decision.
+
+   ----------
+   Every length is a whole number of Game Boy dots: --gb-dot is one dot in
+   CSS px, set by the component from devicePixelRatio (1.5px on a 2x
+   display). Each prose block carries the #gb-screen filter on its own, so
+   the browser rasterises paragraph-sized regions, never the whole article.
+   The flood inside the filter makes each block opaque in the paper shade,
+   which is also --color-paper, so blocks meet without a seam. */
+.gb-screen {
+  --gb-dot: 1.5px;
+  --gb-body: calc(var(--gb-dot) * 16);
+  --gb-line: calc(var(--gb-dot) * 24);
+}
+
+.gb-screen header,
+.gb-screen .prose-site > * {
+  filter: url(#gb-screen);
+}
+
+.gb-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3xl);
+  will-change: transform;
+}
+
+.gb-grid {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 40;
+}
+
+.gb-screen .text-heading {
+  font-family: var(--font-yore), monospace;
+  font-size: calc(var(--gb-dot) * 32);
+  font-weight: 400;
+  line-height: calc(var(--gb-dot) * 40);
+  letter-spacing: 0;
+}
+
+.gb-screen .text-standfirst,
+.gb-screen .prose-site,
+.gb-screen .prose-site p,
+.gb-screen .prose-site li,
+.gb-screen .prose-site blockquote,
+.gb-screen .prose-site figcaption {
+  font-size: var(--gb-body);
+  line-height: var(--gb-line);
+}
+
+.gb-screen .prose-site h2,
+.gb-screen .prose-site h3 {
+  font-family: var(--font-yore), monospace;
+  font-size: calc(var(--gb-dot) * 16);
+  line-height: calc(var(--gb-dot) * 24);
+  text-transform: none;
+  letter-spacing: 0;
+  border-bottom-width: calc(var(--gb-dot) * 2);
+}
+
+.gb-screen .prose-site pre,
+.gb-screen .prose-site code {
+  font-size: calc(var(--gb-dot) * 12);
+  line-height: calc(var(--gb-dot) * 16);
+}
+
+.gb-screen .prose-site a {
+  text-decoration-thickness: var(--gb-dot);
+  text-underline-offset: calc(var(--gb-dot) * 2);
+}
+
+/* Block layout from design/gameboy-demo.html: a 640px reading column and
+   every margin, padding and border rounded to whole dots with CSS round(). */
+.gb-screen {
+  padding: round(48px, var(--gb-dot)) round(16px, var(--gb-dot)) round(96px, var(--gb-dot));
+  gap: round(48px, var(--gb-dot));
+}
+
+.gb-screen .gb-page {
+  gap: round(48px, var(--gb-dot));
+}
+
+.gb-screen header {
+  gap: round(32px, var(--gb-dot));
+}
+
+.gb-screen header > div,
+.gb-screen header > div > div {
+  gap: round(16px, var(--gb-dot));
+}
+
+.gb-screen .prose-site {
+  max-width: round(640px, var(--gb-dot));
+}
+
+.gb-screen .text-standfirst {
+  max-width: round(640px, var(--gb-dot));
+}
+
+.gb-screen .prose-site p,
+.gb-screen .prose-site ul,
+.gb-screen .prose-site ol {
+  margin: 0 0 calc(var(--gb-dot) * 16);
+}
+
+.gb-screen .prose-site h2 {
+  margin: calc(var(--gb-dot) * 32) 0 calc(var(--gb-dot) * 16);
+  padding-bottom: calc(var(--gb-dot) * 8);
+}
+
+.gb-screen .prose-site h3 {
+  margin: calc(var(--gb-dot) * 24) 0 calc(var(--gb-dot) * 8);
+}
+
+.gb-screen .prose-site blockquote {
+  margin: 0 0 calc(var(--gb-dot) * 16);
+  padding-left: calc(var(--gb-dot) * 8);
+  border-left: calc(var(--gb-dot) * 2) solid var(--color-ink);
+}
+
+.gb-screen .prose-site pre {
+  margin: 0 0 calc(var(--gb-dot) * 16);
+  padding: calc(var(--gb-dot) * 8);
+  border-radius: 0;
+}
+
+.gb-screen .prose-site figure {
+  margin: 0 0 calc(var(--gb-dot) * 16);
+  border: calc(var(--gb-dot) * 2) solid var(--color-ink);
+}
+
+.gb-screen .prose-site figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+}
+
+.gb-screen .prose-site figcaption {
+  padding: calc(var(--gb-dot) * 4) calc(var(--gb-dot) * 8);
+}
+
+.gb-screen ::selection {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}

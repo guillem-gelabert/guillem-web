@@ -8,6 +8,11 @@ duplicate `.planning/`'s detail. Update the three lists below when a phase or pl
 
 ## Done
 
+- **Embeddings article, Game Boy screen** (2026-10-14) — `theme: gameboy` renders a post through
+  `components/gameboy-screen.tsx`: dmg-perfect's four-shade quantise and dot shadow as an SVG
+  filter per block, the dot matrix as a fixed canvas, scroll-velocity ghosting with offsets snapped
+  to whole dots, Yore in Peril for headings, every length in dots. Theme CSS lives in its own file
+  so globals.css's type budget stays the site's.
 - **Embeddings article palette** (2026-10-14) — the post now carries a `palette` front-matter
   field (paper #adc44f, ink #162d16), the colour Pau picked on gameboy.guillem.ch: 44% of the
   way from the DMG palette to the Pocket one. Validated as hex in `lib/content.ts`, applied by
