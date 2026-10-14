@@ -149,6 +149,8 @@
   color: #555;
 }
 
+/* Figures run the full column; the quantiser re-snaps their pixels to the
+   four shades whatever the scale. */
 .gb-screen .prose-site figure {
   margin: 0 0 calc(var(--gb-dot) * 16);
   border: calc(var(--gb-dot) * 2) solid var(--color-ink);

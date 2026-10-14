@@ -9,7 +9,7 @@ import "./gameboy-screen.css";
 const DP = { grid: 0.3, gap: 1, shadow: 0.2 };
 // Ghosting: the panel's response time as a low-pass on scroll velocity, and
 // three echoes of the frame 1, 2 and 3 steps back at these strengths.
-const GHOST = { decay: 0.85, taps: [0.55, 0.3, 0.15] };
+const GHOST = { decay: 0.85, taps: [0.6, 0.45, 0.3] };
 const LUMA = [0.299, 0.587, 0.114];
 
 type Shades = readonly [string, string, string, string];
@@ -78,8 +78,16 @@ export function GameboyScreen({
 
   const rgb = cfg.shades.map(hex);
   const paperLum = Math.max(luma(rgb[0]), 0.35);
-  // discrete bins run dark → light, so the table is the palette reversed
-  const table = (ch: number) => [...rgb].reverse().map((c) => c[ch].toFixed(4)).join(" ");
+  // feComponentTransfer's discrete bins are uniform, but the shades are not
+  // evenly spaced in luma (paper sits near 0.69, not 1), so a 32-bin table
+  // places each cut at the midpoint between neighbouring shades. A pixel
+  // already painted in one of the shades then maps to itself.
+  const lums = rgb.map(luma); // light → dark
+  const cuts = [1, 2, 3].map((i) => (lums[i - 1] + lums[i]) / 2); // descending
+  const BINS = 32;
+  const shadeAt = (l: number) => (l >= cuts[0] ? 0 : l >= cuts[1] ? 1 : l >= cuts[2] ? 2 : 3);
+  const table = (ch: number) =>
+    Array.from({ length: BINS }, (_, b) => rgb[shadeAt((b + 0.5) / BINS)][ch].toFixed(4)).join(" ");
 
   // body size in dots; the stylesheet derives the line height from it
   useEffect(() => {
