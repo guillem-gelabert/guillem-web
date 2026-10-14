@@ -84,8 +84,12 @@
   gap: round(48px, var(--gb-dot));
 }
 
+/* One centred 640px column for header and prose alike, as the demo page. */
 .gb-screen .gb-page {
   gap: round(48px, var(--gb-dot));
+  width: 100%;
+  max-width: round(640px, var(--gb-dot));
+  margin: 0 auto;
 }
 
 .gb-screen header {
@@ -123,13 +127,26 @@
 .gb-screen .prose-site blockquote {
   margin: 0 0 calc(var(--gb-dot) * 16);
   padding-left: calc(var(--gb-dot) * 8);
-  border-left: calc(var(--gb-dot) * 2) solid var(--color-ink);
+  border-left: calc(var(--gb-dot) * 2) solid #555;
 }
 
+/* The demo's surfaces: code on the second shade, quotes and the standfirst
+   in the third. Source greys are chosen to land in those quantiser bins. */
 .gb-screen .prose-site pre {
   margin: 0 0 calc(var(--gb-dot) * 16);
   padding: calc(var(--gb-dot) * 8);
   border-radius: 0;
+  background: #9a9a9a;
+}
+
+.gb-screen .prose-site :not(pre) > code {
+  background: #9a9a9a;
+  padding: 0 calc(var(--gb-dot) * 2);
+}
+
+.gb-screen .text-standfirst,
+.gb-screen .prose-site blockquote {
+  color: #555;
 }
 
 .gb-screen .prose-site figure {
