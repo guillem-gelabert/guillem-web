@@ -83,6 +83,44 @@ const nextConfig: NextConfig = {
     ];
   },
 
+  // Redirects inherited from the retired guillem-edge Cloudflare Worker,
+  // which used to front guillemgelabert.com and proxy here. The apex and
+  // www now point straight at this service, so the Worker's two jobs that
+  // still matter move here:
+  //   - the GDP story and its legacy prefixes live on
+  //     ib-gdp.guillemgelabert.com; old apex links 302 there with path and
+  //     query preserved (Next forwards the query string itself). Kept a
+  //     302, as the Worker had it, until the move is declared permanent.
+  //   - www is not canonical: 301 to the apex.
+  // Story rules come first so a www story link reaches the new host in one
+  // hop, matching the Worker's order.
+  async redirects() {
+    const storyPrefixes = [
+      "/everyone-in-mallorca-agrees-on-one-thing",
+      "/a-mallorca-ho-sap-tothom",
+      "/auf-mallorca-weiss-es-jeder",
+      "/en",
+      "/ca",
+      "/de",
+      "/split",
+      "/review",
+      "/ib-gdp",
+    ];
+    return [
+      ...storyPrefixes.map((prefix) => ({
+        source: `${prefix}/:path*`,
+        destination: `https://ib-gdp.guillemgelabert.com${prefix}/:path*`,
+        statusCode: 302 as const,
+      })),
+      {
+        source: "/:path*",
+        has: [{ type: "host" as const, value: "www.guillemgelabert.com" }],
+        destination: "https://guillemgelabert.com/:path*",
+        statusCode: 301 as const,
+      },
+    ];
+  },
+
   // Deliberately NOT shipped, each for a stated reason (D-4.1):
   //   - X-Frame-Options: superseded by this policy's `frame-ancestors`.
   //     The author's own 2020 writing on this header is stale on exactly
