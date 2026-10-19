@@ -7,13 +7,10 @@ import "./gameboy-screen.css";
 // re-expressed for DOM text. The shader's parameters, with grading left
 // neutral so the palette is what the reader sees.
 const DP = { grid: 0.3, gap: 1, shadow: 0.2 };
-// Ghosting: the panel's response time as a low-pass on scroll velocity, and
-// three echoes of the frame 1, 2 and 3 steps back at these strengths.
-const GHOST = { decay: 0.85, taps: [0.6, 0.45, 0.3] };
 const LUMA = [0.299, 0.587, 0.114];
 
 type Shades = readonly [string, string, string, string];
-type Cfg = { shades: Shades; gain: number; decay: number; grid: number; gap: number; shadow: number; dot: number; em: number };
+type Cfg = { shades: Shades; grid: number; gap: number; shadow: number; dot: number; em: number };
 
 // The two answers from gameboy.guillem.ch on 2026-10-14, for the ?tune panel.
 const PRESETS: { label: string; shades: Shades }[] = [
@@ -53,9 +50,8 @@ export function GameboyScreen({
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const page = useRef<HTMLDivElement>(null);
-  const taps = useRef<(SVGFEOffsetElement | null)[]>([]);
   const [S, setS] = useState(1.5);
-  const [cfg, setCfg] = useState<Cfg>({ shades, gain: 1, decay: GHOST.decay, grid: DP.grid, gap: DP.gap, shadow: DP.shadow, dot: 1.5, em: 16 });
+  const [cfg, setCfg] = useState<Cfg>({ shades, grid: DP.grid, gap: DP.gap, shadow: DP.shadow, dot: 1.5, em: 16 });
   const presets = PRESETS.some((p) => p.shades.join() === shades.join()) ? PRESETS : [{ label: "post", shades }, ...PRESETS];
   const cfgRef = useRef(cfg);
   useEffect(() => {
@@ -140,48 +136,27 @@ export function GameboyScreen({
   }, [grid, gap, dot]);
 
   useEffect(() => {
-    // Ghosting + whole-dot scrolling. Last frame's image is this frame's
-    // image shifted by the scroll delta, so an echo of the previous frame
-    // is the content offset by -velocity, snapped to the dot grid.
+    // Whole-dot scrolling only. The old ghosting mutated feOffset dy on
+    // every block every frame, which re-ran the whole filter graph for each
+    // block and made scrolling unusable on phones; the static quantiser is
+    // rasterised once and merely moves.
     const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const effectsMQ = matchMedia("(max-width: 640px), (hover: none) and (pointer: coarse)");
-    let effectsEnabled = !effectsMQ.matches;
-    let last = scrollY;
-    let vel = 0;
     let raf = 0;
-
-    const onEffectsChange = () => {
-      effectsEnabled = !effectsMQ.matches;
-      if (!effectsEnabled && page.current) page.current.style.transform = "";
-    };
-    effectsMQ.addEventListener("change", onEffectsChange);
+    let lastFrac = NaN;
 
     const tick = () => {
-      const top = scrollY;
-      const dy = top - last;
-      last = top;
-
-      if (effectsEnabled) {
-        const { decay, gain, dot } = cfgRef.current;
-        const S = dotSize(dot).S;
-        vel = still ? 0 : vel * decay + dy * (1 - decay);
-        if (Math.abs(vel) < 0.05) vel = 0;
-        const frac = top - Math.floor(top / S) * S;
+      const S = dotSize(cfgRef.current.dot).S;
+      const frac = scrollY - Math.floor(scrollY / S) * S;
+      if (frac !== lastFrac) {
+        lastFrac = frac;
         if (page.current) page.current.style.transform = `translateY(${frac.toFixed(3)}px)`;
-        taps.current.forEach((t, i) => {
-          if (!t) return;
-          const px = String(-Math.round((vel * gain * (i + 1)) / S) * S);
-          if (t.getAttribute("dy") !== px) t.setAttribute("dy", px);
-        });
       }
-
       raf = requestAnimationFrame(tick);
     };
-    raf = requestAnimationFrame(tick);
+    if (!still) raf = requestAnimationFrame(tick);
 
     return () => {
       cancelAnimationFrame(raf);
-      effectsMQ.removeEventListener("change", onEffectsChange);
       document.documentElement.style.removeProperty("--gb-dot");
     };
   }, []);
@@ -192,28 +167,13 @@ export function GameboyScreen({
   return (
     <>
       <svg width="0" height="0" aria-hidden="true" style={{ position: "absolute" }}>
-        {/* The region reaches above and below the block so ghosts have room
-            to trail; it stays transparent outside the glyphs (no flood), so
-            neighbouring blocks never paint over each other. */}
-        <filter id="gb-screen" colorInterpolationFilters="sRGB" x="-5%" y="-30%" width="110%" height="160%">
-          {/* 1. ghost echoes, dy driven per frame */}
-          {GHOST.taps.map((a, i) => (
-            <feOffset key={i} in="SourceGraphic" dy="0" result={`g${i}`} ref={(n) => { taps.current[i] = n; }} />
-          ))}
-          {GHOST.taps.map((a, i) => (
-            <feComponentTransfer key={i} in={`g${i}`} result={`g${i}f`}>
-              <feFuncA type="linear" slope={a} />
-            </feComponentTransfer>
-          ))}
-          <feMerge result="ghosted">
-            <feMergeNode in="g2f" />
-            <feMergeNode in="g1f" />
-            <feMergeNode in="g0f" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-          {/* 2. flatten on paper, reduce to luma, snap to the four shades */}
+        {/* The region only has to hold the dot shadow's offset; it stays
+            transparent outside the glyphs (no flood), so neighbouring
+            blocks never paint over each other. */}
+        <filter id="gb-screen" colorInterpolationFilters="sRGB" x="-2%" y="-8%" width="104%" height="116%">
+          {/* 1. flatten on paper, reduce to luma, snap to the four shades */}
           <feFlood floodColor="#fff" result="paper" />
-          <feComposite in="ghosted" in2="paper" operator="over" result="flat" />
+          <feComposite in="SourceGraphic" in2="paper" operator="over" result="flat" />
           <feColorMatrix
             in="flat"
             type="matrix"
@@ -225,7 +185,7 @@ export function GameboyScreen({
             <feFuncG type="discrete" tableValues={table(1)} />
             <feFuncB type="discrete" tableValues={table(2)} />
           </feComponentTransfer>
-          {/* 3. dot shadow: darker dots cast, offset (0.45, 0.85) of a cell, opacity 1 - lum/paper */}
+          {/* 2. dot shadow: darker dots cast, offset (0.45, 0.85) of a cell, opacity 1 - lum/paper */}
           <feOffset in="quant" dx={dx} dy={dy} result="qoff" />
           <feColorMatrix in="qoff" type="luminanceToAlpha" result="qlum" />
           <feComponentTransfer in="qlum" result="opac">
@@ -235,8 +195,8 @@ export function GameboyScreen({
             <feFuncA type="linear" slope={cfg.shadow} />
           </feComponentTransfer>
           <feComposite in="shadow" in2="quant" operator="over" result="shaded" />
-          {/* 4. back to transparent: keep only where glyphs, ghosts or their shadow are */}
-          <feComponentTransfer in="ghosted" result="mask">
+          {/* 3. back to transparent: keep only where glyphs or their shadow are */}
+          <feComponentTransfer in="SourceGraphic" result="mask">
             <feFuncA type="discrete" tableValues="0 1 1 1 1 1 1 1 1 1" />
           </feComponentTransfer>
           <feOffset in="mask" dx={dx} dy={dy} result="maskoff" />
@@ -291,8 +251,6 @@ function Tune({ cfg, setCfg, presets }: { cfg: Cfg; setCfg: (c: Cfg) => void; pr
           ))}
         </select>
       </label>
-      {num("gain", 0, 3, 0.1)}
-      {num("decay", 0, 0.95, 0.05)}
       {num("grid", 0, 1, 0.05)}
       {num("gap", 0.25, 2, 0.05)}
       {num("shadow", 0, 1, 0.05)}
