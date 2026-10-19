@@ -144,30 +144,44 @@ export function GameboyScreen({
     // image shifted by the scroll delta, so an echo of the previous frame
     // is the content offset by -velocity, snapped to the dot grid.
     const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const effectsMQ = matchMedia("(max-width: 640px), (hover: none) and (pointer: coarse)");
+    let effectsEnabled = !effectsMQ.matches;
     let last = scrollY;
     let vel = 0;
     let raf = 0;
+
+    const onEffectsChange = () => {
+      effectsEnabled = !effectsMQ.matches;
+      if (!effectsEnabled && page.current) page.current.style.transform = "";
+    };
+    effectsMQ.addEventListener("change", onEffectsChange);
+
     const tick = () => {
-      const { decay, gain, dot } = cfgRef.current;
-      const S = dotSize(dot).S;
       const top = scrollY;
       const dy = top - last;
       last = top;
-      vel = still ? 0 : vel * decay + dy * (1 - decay);
-      if (Math.abs(vel) < 0.05) vel = 0;
-      const frac = top - Math.floor(top / S) * S;
-      if (page.current) page.current.style.transform = `translateY(${frac.toFixed(3)}px)`;
-      taps.current.forEach((t, i) => {
-        if (!t) return;
-        const px = String(-Math.round((vel * gain * (i + 1)) / S) * S);
-        if (t.getAttribute("dy") !== px) t.setAttribute("dy", px);
-      });
+
+      if (effectsEnabled) {
+        const { decay, gain, dot } = cfgRef.current;
+        const S = dotSize(dot).S;
+        vel = still ? 0 : vel * decay + dy * (1 - decay);
+        if (Math.abs(vel) < 0.05) vel = 0;
+        const frac = top - Math.floor(top / S) * S;
+        if (page.current) page.current.style.transform = `translateY(${frac.toFixed(3)}px)`;
+        taps.current.forEach((t, i) => {
+          if (!t) return;
+          const px = String(-Math.round((vel * gain * (i + 1)) / S) * S);
+          if (t.getAttribute("dy") !== px) t.setAttribute("dy", px);
+        });
+      }
+
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
 
     return () => {
       cancelAnimationFrame(raf);
+      effectsMQ.removeEventListener("change", onEffectsChange);
       document.documentElement.style.removeProperty("--gb-dot");
     };
   }, []);
