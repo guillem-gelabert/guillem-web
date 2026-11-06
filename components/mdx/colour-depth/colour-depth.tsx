@@ -209,18 +209,7 @@ export function ColourDepth({ src, alt, width, height }: Props) {
 
       <section className={`${styles.window} ${styles.colour}`}>
         <div className={styles.title}>Colour</div>
-        <div className={styles.swatch}>
-          <span className={styles.chip} style={{ background: fill }} aria-hidden="true" />
-          <output
-            className={styles.rgb}
-            data-testid="rgb"
-            aria-label={`Red ${levels[0]}, green ${levels[1]}, blue ${levels[2]}, out of ${max}`}
-          >
-            <span data-ch="R">{levels[0]}</span>
-            <span data-ch="G">{levels[1]}</span>
-            <span data-ch="B">{levels[2]}</span>
-          </output>
-        </div>
+        <span className={styles.chip} style={{ background: fill }} aria-hidden="true" data-testid="chip" />
         <div className={styles.sliders}>
           {CHANNELS.map((c, i) => (
             <label key={c.key} className={styles.channel} data-ch={c.key}>

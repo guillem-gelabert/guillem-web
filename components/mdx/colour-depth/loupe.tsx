@@ -1,18 +1,17 @@
 "use client";
 
 import { useEffect, useRef, type RefObject } from "react";
-import { snapByte, toHex, toLevel } from "./depth";
+import { snapByte, toHex } from "./depth";
 import styles from "./colour-depth.module.css";
 
 /** Source pixels across the loupe: few enough that each one reads as a block. */
-const SPAN = 15;
+const SPAN = 7;
 /** Loupe diameter in CSS px. */
-const SIZE = 96;
+const SIZE = 48;
 
 /**
  * A magnifier that follows the pointer over the picture: a square of the
- * quantised pixels around it, framed in the colour under the pointer, with
- * that colour's R, G and B levels beneath. Moves with the pointer by writing styles
+ * quantised pixels around it, framed in the colour under the pointer. Moves with the pointer by writing styles
  * directly, so hovering never re-renders the explorer.
  */
 export function Loupe({
@@ -26,7 +25,6 @@ export function Loupe({
 }) {
   const loupe = useRef<HTMLDivElement>(null);
   const lens = useRef<HTMLCanvasElement>(null);
-  const label = useRef<HTMLSpanElement>(null); // holds one span per channel
   // the last pointer position in source pixels, so a depth change redraws in place
   const last = useRef<{ x: number; y: number; cx: number; cy: number } | null>(null);
 
@@ -34,9 +32,8 @@ export function Loupe({
     const src = source.current;
     const box = loupe.current;
     const out = lens.current;
-    const tag = label.current;
     const ctx = out?.getContext("2d");
-    if (!src || !box || !out || !ctx || !tag || !original) return;
+    if (!src || !box || !out || !ctx || !original) return;
 
     const dpr = window.devicePixelRatio || 1;
     out.width = out.height = Math.round(SIZE * dpr);
@@ -57,10 +54,6 @@ export function Loupe({
       const bytes = [original.data[o], original.data[o + 1], original.data[o + 2]];
       box.style.setProperty("--hover", toHex([snapByte(bytes[0], bits), snapByte(bytes[1], bits), snapByte(bytes[2], bits)]));
       box.style.transform = `translate(${p.cx}px, ${p.cy}px)`;
-      bytes.forEach((byte, i) => {
-        const el = tag.children[i];
-        if (el) el.textContent = String(toLevel(byte, bits));
-      });
     };
 
     let frame = 0;
@@ -109,11 +102,6 @@ export function Loupe({
   return (
     <div ref={loupe} className={styles.loupe} hidden aria-hidden="true" data-testid="loupe">
       <canvas ref={lens} className={styles.lens} />
-      <span ref={label} className={styles.loupeRgb}>
-        <span data-ch="R" />
-        <span data-ch="G" />
-        <span data-ch="B" />
-      </span>
     </div>
   );
 }

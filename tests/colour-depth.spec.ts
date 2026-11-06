@@ -24,7 +24,7 @@ test.describe("colour-depth explorer", () => {
     await expect(page.getByTestId("stat-colours")).toHaveText("8");
     await expect(page.getByTestId("channel-R")).toHaveAttribute("max", "1");
     // At 1 bit every channel is all or nothing.
-    await expect(page.getByTestId("rgb")).toHaveText(/^[01]{3}$/);
+    for (const ch of ["R", "G", "B"]) await expect(page.getByTestId(`channel-${ch}`)).toHaveValue(/^[01]$/);
     // the cube draws only the picture's colours: at most 8 at 1 bit
     // (it reads "…" until the picture has loaded, so wait for a number)
     await expect(page.getByTestId("stat-used")).toHaveText(/^[2-8]$/);
@@ -43,11 +43,11 @@ test.describe("colour-depth explorer", () => {
     await expect
       .poll(() => photo.evaluate((c: HTMLCanvasElement) => c.getContext("2d")!.getImageData(600, 1000, 1, 1).data[3]))
       .toBe(255);
-    const rgb = page.getByTestId("rgb");
-    const before = await rgb.textContent();
+    const chip = page.getByTestId("chip");
+    const before = await chip.evaluate((el) => getComputedStyle(el).backgroundColor);
     const box = (await photo.boundingBox())!;
     await page.mouse.click(box.x + box.width * 0.5, box.y + box.height * 0.85); // the pitch
-    await expect(rgb).not.toHaveText(before ?? "");
+    await expect.poll(() => chip.evaluate((el) => getComputedStyle(el).backgroundColor)).not.toBe(before);
   });
 
   test("hovering the picture shows the loupe with the colour under the pointer", async ({ page }) => {
@@ -62,8 +62,10 @@ test.describe("colour-depth explorer", () => {
     const box = (await photo.boundingBox())!;
     await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.85);
     await expect(loupe).toBeVisible();
-    await expect(loupe).toHaveText(/^\d{1,3}\d{1,3}\d{1,3}$/);
-    expect(await loupe.evaluate((el) => el.textContent)).not.toMatch(/#/);
+    // a 48px square with no numbers in it
+    await expect(loupe).toHaveText("");
+    const lens = (await loupe.locator("canvas").boundingBox())!;
+    expect([lens.width, lens.height]).toEqual([48, 48]);
     await page.mouse.move(box.x - 40, box.y - 40);
     await expect(loupe).toBeHidden();
   });
@@ -72,8 +74,7 @@ test.describe("colour-depth explorer", () => {
     for (const width of [1440, 390]) {
       await page.setViewportSize({ width, height: 900 });
       await page.goto(ROUTE);
-      const rgb = page.getByTestId("rgb");
-      const windowBox = rgb.locator("xpath=ancestor::section[1]");
+      const windowBox = page.getByTestId("chip").locator("xpath=ancestor::section[1]");
       await windowBox.scrollIntoViewIfNeeded();
       const sizes = new Set<string>();
       for (const stop of ["0", "4", "5"]) {
@@ -81,8 +82,7 @@ test.describe("colour-depth explorer", () => {
         for (const level of ["0", "1"]) {
           await page.getByTestId("channel-G").fill(level);
           const box = (await windowBox.boundingBox())!;
-          const readout = (await rgb.boundingBox())!;
-          sizes.add(`${box.width}×${box.height} ${readout.width}`);
+          sizes.add(`${box.width}×${box.height}`);
         }
       }
       expect([...sizes], `at ${width}px`).toHaveLength(1);
