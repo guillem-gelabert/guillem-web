@@ -1,0 +1,404 @@
+/* An NES-style screen: black backdrop, white-framed windows with their
+   title on the frame, Departure Mono at 11px so each font pixel is one CSS
+   px. Colours are NES palette entries. The global .colour-depth class
+   exempts the explorer from the Game Boy quantiser (gameboy-screen.css),
+   so these are the colours the reader sees. Every length is a whole px. */
+.root {
+  --black: #000;
+  --white: #fcfcfc;
+  --grey: #bcbcbc;
+  --dim: #7c7c7c;
+  --shadow: #3c3c3c;
+  --red: #f83800;
+  --green: #58d854;
+  --blue: #3cbcfc;
+  --yellow: #f8b800;
+  /* the Game Boy page sets every element's family from this variable */
+  --gb-body-font: var(--font-departure-mono), monospace;
+
+  display: grid;
+  gap: 16px;
+  margin: 0 0 24px;
+  padding: 14px 8px 8px;
+  background: var(--black);
+  color: var(--white);
+  font-family: var(--gb-body-font);
+  font-size: 11px;
+  line-height: 16px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  /* the loupe may run past the picture's edge; never past the explorer's */
+  overflow: clip;
+}
+
+/* --- windows ---------------------------------------------------------- */
+
+.window {
+  position: relative;
+  min-width: 0;
+  margin: 0;
+  padding: 12px 8px 8px;
+  border: 2px solid var(--white);
+  box-shadow: inset 0 0 0 2px var(--black), inset 0 0 0 3px var(--shadow);
+}
+
+.title {
+  position: absolute;
+  top: -9px;
+  left: 8px;
+  padding: 0 4px;
+  background: var(--black);
+  color: var(--white);
+}
+
+/* --- depth ------------------------------------------------------------ */
+
+/* The depth slider: the shared meter in white, its stops labelled
+   underneath. A label sits where the thumb's centre lands for its stop,
+   which travels from 3 px to (width − 3 px). */
+.depth {
+  --c: var(--white);
+}
+
+.root .depth input[type="range"] {
+  background:
+    linear-gradient(to right, var(--c) calc(var(--thumb) / 2 + (100% - var(--thumb)) * var(--frac)), transparent 0)
+      no-repeat
+      var(--black);
+  background-clip: padding-box;
+}
+
+.stops {
+  position: relative;
+  height: 20px;
+  margin: 0 2px;
+}
+
+.stops span {
+  position: absolute;
+  top: 4px;
+  left: calc(3px + (100% - 6px) * var(--at));
+  transform: translateX(-50%);
+  color: var(--dim);
+}
+
+/* a tick from the meter down to each label */
+.stops span::before {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  width: 2px;
+  height: 3px;
+  margin-left: -1px;
+  background: var(--dim);
+}
+
+.stops span[data-current] {
+  color: var(--white);
+}
+
+.stops span[data-current]::before {
+  background: var(--white);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 4px 0 0;
+}
+
+.stats div {
+  min-width: 0;
+}
+
+.stats dt,
+.stats dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.stats dt {
+  color: var(--dim);
+}
+
+/* --- cube and picture ------------------------------------------------- */
+
+.panels {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.cube {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  color: var(--white);
+  cursor: grab;
+}
+
+.cube:active {
+  cursor: grabbing;
+}
+
+.cube:focus-visible,
+.photo canvas:focus-visible {
+  outline: 2px solid var(--yellow);
+  outline-offset: 2px;
+}
+
+.cubeCanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.axisLabel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.axisLabel[data-axis="r"] {
+  color: var(--red);
+}
+
+.axisLabel[data-axis="g"] {
+  color: var(--green);
+}
+
+.axisLabel[data-axis="b"] {
+  color: var(--blue);
+}
+
+.hint {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+  color: var(--dim);
+}
+
+/* the cube's hint: the count on the left, "drag" pushed right */
+.hint > span[aria-hidden] {
+  margin-left: auto;
+}
+
+.photo {
+  position: relative;
+}
+
+.photo canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  cursor: crosshair;
+  image-rendering: pixelated;
+}
+
+/* the loupe draws its own centre, so a mouse needs no cursor of its own */
+@media (hover: hover) {
+  .photo canvas {
+    cursor: none;
+  }
+}
+
+/* --- loupe: a square magnifier centred on the pointer ------------------------ */
+
+.loupe {
+  position: absolute;
+  top: -48px;
+  left: -48px;
+  z-index: 2;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  width: 96px;
+  pointer-events: none;
+}
+
+.loupe[hidden] {
+  display: none;
+}
+
+/* square, framed once in the colour of the centre pixel */
+.lens {
+  box-sizing: border-box;
+  width: 96px;
+  height: 96px;
+  border: 4px solid var(--hover, var(--white));
+  image-rendering: pixelated;
+}
+
+/* one source pixel, boxed, at the centre */
+.loupe::after {
+  content: "";
+  position: absolute;
+  top: 45px;
+  left: 45px;
+  width: 6px;
+  height: 6px;
+  outline: 1px solid var(--white);
+  box-shadow: 0 0 0 2px var(--black);
+}
+
+.loupeRgb {
+  display: flex;
+  gap: 6px;
+  padding: 0 4px;
+  border: 2px solid var(--white);
+  background: var(--black);
+}
+
+/* the eyedropper's cursor: a white box ringed in black, NES sprite style */
+.marker {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--white);
+  box-shadow: 0 0 0 2px var(--black), inset 0 0 0 2px var(--black);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* --- colour ----------------------------------------------------------- */
+
+.colour {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.swatch {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+}
+
+.chip {
+  width: 66px;
+  height: 44px;
+  border: 2px solid var(--white);
+  box-shadow: inset 0 0 0 2px var(--black);
+}
+
+/* Three cells wide enough for 65535 at every depth, so the window keeps
+   one size whatever the numbers are. */
+.rgb {
+  display: grid;
+  grid-template-columns: repeat(3, 5ch);
+  gap: 11px;
+  font-size: 22px;
+  line-height: 22px;
+}
+
+.rgb > span {
+  text-align: right;
+}
+
+/* channel-coloured numbers, in the readout and the loupe alike */
+.root [data-ch="R"] {
+  --c: var(--red);
+}
+
+.root [data-ch="G"] {
+  --c: var(--green);
+}
+
+.root [data-ch="B"] {
+  --c: var(--blue);
+}
+
+.rgb > span,
+.loupeRgb > span {
+  color: var(--c);
+}
+
+.sliders {
+  display: grid;
+  gap: 6px;
+}
+
+.channel {
+  display: grid;
+  grid-template-columns: 11px minmax(0, 1fr) 77px;
+  gap: 8px;
+  align-items: center;
+}
+
+.channel output {
+  text-align: right;
+}
+
+.channel > span {
+  color: var(--c);
+}
+
+/* A framed meter: filled in the channel's colour up to the thumb, with a
+   tick every 8 px. --frac (0–1) is set inline. The fill stops at the
+   thumb's centre, which travels from 3 px to (width − 3 px). */
+.root input[type="range"] {
+  --thumb: 6px;
+  appearance: none;
+  -webkit-appearance: none;
+  display: block;
+  width: 100%;
+  height: 16px;
+  margin: 0;
+  border: 2px solid var(--white);
+  background:
+    linear-gradient(
+        to right,
+        var(--c) calc(var(--thumb) / 2 + (100% - var(--thumb)) * var(--frac)),
+        transparent 0
+      )
+      no-repeat,
+    repeating-linear-gradient(to right, transparent 0 7px, var(--shadow) 7px 8px) var(--black);
+  background-clip: padding-box;
+  cursor: pointer;
+}
+
+.root input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: var(--thumb);
+  height: 12px;
+  border: 0;
+  border-radius: 0;
+  background: var(--white);
+  box-shadow: 0 0 0 1px var(--black);
+}
+
+.root input[type="range"]::-moz-range-thumb {
+  width: var(--thumb);
+  height: 12px;
+  border: 0;
+  border-radius: 0;
+  background: var(--white);
+  box-shadow: 0 0 0 1px var(--black);
+}
+
+.root input[type="range"]:focus-visible {
+  outline: 2px solid var(--yellow);
+  outline-offset: 1px;
+}
+
+/* --- phones ----------------------------------------------------------- */
+
+@media (max-width: 560px) {
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .colour {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

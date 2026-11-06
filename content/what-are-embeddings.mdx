@@ -1,6 +1,6 @@
 ---
-title: "What Are Embeddings"
-standfirst: "A colour has three coordinates. A footballer can have 29. Once we give things positions on a map, we can start measuring how similar they are."
+title: "Maps for Things That Aren't Places"
+standfirst: "How far apart are two colours? How can I go from <worse player> to Mbappé? Once we place things on a map, we can start measuring how similar or different they are."
 date: "2026-09-11"
 lang: en
 translationKey: embeddings-1-what-are-embeddings
@@ -10,11 +10,12 @@ theme: gameboy
 paper: "#adc44f"
 ink: "#162d16"
 shades: "#adc44f #8ba238 #3d5b35 #162d16"
+titleImage: "/figures/what-are-embeddings/title.png"
 ---
 
-When Spotify looks for your next song, one place it looks is a map. The things on it are songs, and being close can mean that people tend to put them in the same playlists. Somewhere near what you've been listening to, there might be something you'd like to hear next.
+When Spotify looks for your next song, it reads a map. The things on it are songs, and being close means that people put them in the same playlists. Somewhere near what you've been listening to, there's something you'd like to hear next.
 
-A computer looking for Jason Bourne's face in a CCTV feed could use a similar trick. Give each face a place on a map, then look for the ones close to his. But what kind of map has a place for a face? Does it have north and south?
+A computer looking for Jason Bourne's face in a CCTV feed uses the same trick. Give each face a place on a map, then look for the ones close to his. But what kind of map has a place for a face? Does it have north and south?
 
 <Figure
   src="/figures/what-are-embeddings/memscan.gif"
@@ -23,13 +24,16 @@ A computer looking for Jason Bourne's face in a CCTV feed could use a similar tr
   height={144}
 />
 
-On an ordinary map, a place has two coordinates: latitude tells us how far north or south it is, longitude how far east or west. We agree on where to start counting, at the equator and the Greenwich meridian, and two numbers are enough to find a place anywhere on Earth.
+On an ordinary map, a place has two coordinates, to pieces of information:
 
-Take this ship, for example. Its crew has scurvy and needs lemons. We need to get them to the nearest port. The ship sits at `[0, 0]`, and we're measuring kilometres east and north from there. West and south get negative numbers.
+1. How far north or south a place is -> Latitude
+2. How far east or west a place is -> Longitude
 
-Pick a port and check the distance before setting sail. For once, all the routes are clear and the wind is behaving.
+_How far_ relative to what? Well, we agreed to start counting at the equator and the Greenwich meridian —obviously chosen for pure, objective and mathematical reasons—. With just these two numbers we can find any place on Earth. With coordinates it's also trivial to calculate distances between two points or compare directions.
 
-> **Interactive placeholder 1: Get the crew to the lemons.** A port 3 km east and 4 km north is 5 km away. A port only 1 km east but 6 km north is farther away, at about 6.1 km.
+`[longitude, latiude]` work just [spheric geometry caveat] like the X and Y coordinates that we can draw on a plane. In mathematics a list of numbers is called a vector. In the case of `[longitude, latitude]` and `[x, y]` we would talk about vectors of length two, because they have 2 coordinates, relative to two axes.
+
+> **Interactive placeholder 1:** A port 3 km east and 4 km north is 5 km away. A port only 1 km east but 6 km north is farther away, at about 6.1 km. On hover on a port the distance and bearing are shown.
 
 {/*
   INTERACTIVE 1: PortMap
@@ -41,93 +45,22 @@ Pick a port and check the distance before setting sail. For once, all the routes
   A Sail button animates the route; allow retry. Show the result without requiring animation.
 */}
 
-The port nearest to us east-to-west isn't necessarily the nearest overall. We need both numbers. Pythagoras gives us the distance: square the difference on each axis, add the squares, then take the square root. Three squared plus four squared is twenty-five, whose square root is five. Five kilometres to the lemons.
+The colours on that map can be expressed as coordinates too. You might have heard of the RGB system. A colour has three numbers telling the screen how much Red, Green and Blue light to use. Each channel runs from 0 to 255. Green is `[0, 255, 0]`, black is `[0, 0, 0]`, and white is `[255, 255, 255]`. On a screen, little red, green and blue subpixels work together to produce the colour you see. From your chair they blend into one point; up close you can see the separate lights.
 
-We've flattened this little sea to keep the calculation simple. On Earth, we'd have to account for its curvature, and a degree of longitude doesn't cover the same distance everywhere. Here, two numbers per port were enough to find our destination.
+Here each vector gives us three pieces of information, so in order to visualize them a we'll have to move from a plane up to a cube. This one shows \~16 million colours (255 x 255 x 255 possible combinations of red, green and blue). If we used values from 0 to 10 instead it would only be able to render 1000 different individual shades. We can go as high or low as we want, but we would always have to choose between higher colour accuracy and higher file size.
 
-Our lovely crew can get back to pillaging, conquering and spreading the word of God. All in a nice retro console look.
+Pick a colour from the image to see where it sits in the cube. You can change it's components with the sliders and increase or decrease the colour space.
 
-The colours on that console have coordinates too. In the familiar RGB system, a colour has three numbers telling the screen how much red, green and blue light to use. In the usual 8-bit representation, each channel runs from 0 to 255. Green is `[0, 255, 0]`, black is `[0, 0, 0]`, and white is `[255, 255, 255]`.
+<ColourDepth
+  src="/figures/what-are-embeddings/nintendo-world-cup.png"
+  alt="Painted cover art for Nintendo World Cup: a striker in red volleys a star-patterned ball towards a diving goalkeeper in a floodlit stadium, under a yellow title banner."
+  width={1254}
+  height={1254}
+/>
 
-There are 256 choices for each of the three channels. Multiply them together and you get 16,777,216 combinations. On a typical screen, little red, green and blue subpixels work together to produce the colour you see. From your chair they blend into one point; up close you can see the separate lights.
+You can see how we could call this a map, and how the position of colours _makes sense_: Black and white sit at opposite corners. Colours with similar RGB values sit near each other. We can measure the distance (or similarity) between them as we did with the ports. Even though the distance isn't in meters or leagues it still describes something close to what we parcieve as similarity between colours.
 
-Turn the red and green channels all the way up, leave blue off, and you get yellow:
-
-```text
-   Red   Green   Blue
-  [255,      0,     0]  red light
-+ [  0,    255,     0]  green light
-  -------------------
-  [255,    255,     0]  yellow
-```
-
-We're combining light here. If you try this with paint, you'll be disappointed. This combination is simple, though mixing arbitrary screen colours takes more care: the [RGB values we normally use aren't proportional to the amount of light emitted](https://www.w3.org/Graphics/Color/srgb).
-
-Three numbers give us three axes, so we can put all these colours inside a cube. Pick a colour, then move one of its sliders and follow the point.
-
-> **Interactive placeholder 2: A colour as three coordinates.** RGB sliders control a colour swatch, a magnified subpixel view and a point in a rotatable cube. Raising only red moves the point along one axis.
-
-{/*
-  INTERACTIVE 2: RGBWorkbench
-  Linked R/G/B sliders (integer 0–255), numeric inputs, swatch and illustrative RGB subpixels.
-  Rotatable cube with labelled axes; start with a sparse grid of sample colours and one
-  selected point. Presets: black, white, red, green, blue, yellow. Add a random-colour button.
-  Keep the selected coordinates visible when the cube rotates; camera movement changes
-  the view, never the numbers. Provide keyboard controls and a static labelled fallback.
-  Do not describe encoded RGB 128 as half the physical light of 255, or channel addition
-  as a general blending algorithm. The yellow preset simply sets R=255, G=255, B=0.
-*/}
-
-Black and white sit at opposite corners. Colours with similar RGB values sit near each other. We can measure the distance between them as we did with the ports, with one more difference to square and add.
-
-This gives us a way to make our picture look older. The original Nintendo Entertainment System had a much smaller palette: 64 colour codes, several of which produced the same black. Its [colour hardware](https://www.nesdev.org/wiki/PPU_palettes) was more complicated than a box of RGB values, but we can use an RGB approximation of its palette for this experiment.
-
-For every pixel in our image, we'll find the nearest colour the palette offers and use that instead. Press play to watch the picture being rebuilt.
-
-> **Interactive placeholder 3: Repaint the image with the NES palette.** Each pixel is replaced by its nearest available colour. A close-up shows the original pixel, the palette candidates and the winning distance.
-
-{/*
-  INTERACTIVE 3: PaletteQuantiser
-  Original image on the left, converted image on the right; play, pause, step, reset and speed.
-  Show one pixel's RGB coordinates and compare squared Euclidean distances to palette entries.
-  Link to the RGB cube view with the source point, candidate points and nearest connection.
-  Accumulate the colours used below the image. Provide a completed static comparison.
-  Use and identify one documented NES RGB palette approximation, with duplicate colours
-  handled consistently. Do not hard-code a claim of 54 unique colours.
-  Caption: palette conversion only; this does not emulate the NES's tile/sprite restrictions.
-*/}
-
-The computer doesn't need to know whether a pixel belongs to a face, a tree or the sky. It compares three numbers with three other numbers and keeps the smallest distance. Repeat that for every pixel and a whole image has been redrawn.
-
-You might disagree with some of its choices. Equal distances in RGB don't always look equally different to our eyes; [other colour spaces](https://www.w3.org/TR/css-color-4/#color-spaces) try to account for that. “Nearest” has a precise answer once we've chosen our coordinates and our way of measuring. Whether that answer looks right is another question.
-
-A colour splits neatly into ingredients: this much red, this much green, this much blue. A song doesn't. A breakup ballad and a stadium anthem can use the same guitar, the same drums, the same voice, and still feel nothing alike. We could try placing songs between sad and happy, or between sleepy and danceable. The ends of those axes would be ideas.
-
-Wave Race 64, Nintendo's jet ski game, puts something like this on its tuning screen. Engine runs from Dash, for quick starts, to Top End, for a higher maximum speed. Grip goes from Loose to Tight, trading speed for less slipping in turns. Handling runs from Light to Heavy, changing how far you have to push the stick to turn. The [manual explains all three](https://www.nintendo.com/eu/media/downloads/games_8/emanuals/nintendo_8/Manual_Nintendo64_WaveRace64_EN.pdf#page=5).
-
-Which end is the good one? You pick the one that suits how you ride. You might want a quick start and sensitive steering; someone else might want speed and steadier controls. A position on these axes describes a preference. Hold on to that idea of a direction with a meaning. We'll use it again.
-
-The four riders have different strengths. Ayumi Stewart has five stars for acceleration and two for maximum speed. Dave Mariner has the opposite ratings for those two skills. I've used the manual's ratings to give the riders approximate positions along our three axes. Set your preferences and see whose profile comes closest.
-
-> **Interactive placeholder 4: Find your Wave Race rider.** Three sliders move your preferred setup through a space containing the four riders. The nearest rider lights up as your preferences change.
-
-{/*
-  INTERACTIVE 4: WaveRaceRiders
-  This is an explanatory model derived from the manual, not a reconstruction of game physics
-  or the game's actual custom-tuning values. State that in the visible caption.
-  All axes span -1 to +1. Engine (Dash → Top End) = (speed - acceleration) / 4;
-  Grip (Loose → Tight) = (grip - 3) / 2; Handling (Light → Heavy) = (3 - handling) / 2.
-  Manual stars, ordered speed/acceleration/grip/handling:
-  Ryota 4/3/4/3; Dave 5/2/2/1; Ayumi 2/5/3/4; Miles 3/3/1/5.
-  Resulting coordinates, ordered engine/grip/handling:
-  Ryota [0.25, 0.5, 0]; Dave [0.75, -0.5, 1]; Ayumi [-0.75, 0, -0.5]; Miles [0, -1, -1].
-  Equal-weight Euclidean distance; show each coordinate and the nearest rider, including ties.
-  Manual source: printed pages 7–8, PDF pages 4–5. Collision stability is omitted from this model.
-*/}
-
-Your preferred setup gets coordinates just as the riders do, even if none of them matches it exactly. We had the same situation with the palette: you asked for a colour, and the computer found the closest one available. Here, the answer changes when your preferences move.
-
-Football games give us far more axes. In the EA Sports FC 26 data I'm using, there are 29 detailed outfield attributes, from sprint speed and stamina to finishing and sliding tackles. Each is rated out of 99. The player card summarises them in six headline numbers: pace, shooting, passing, dribbling, defending and physical.
+Football games give us far more axes. In EA Sports FC 26, every outfield player is rated on 29 attributes, from sprint speed and stamina to finishing and sliding tackles. Each is rated out of 99. The player card summarises them in six headline numbers: pace, shooting, passing, dribbling, defending and physical.
 
 Six is too many for a cube. It fits on a radar chart. Choose two players and compare their shapes.
 
@@ -143,7 +76,7 @@ Six is too many for a cube. It fits on a radar chart. Choose two players and com
   Use the same IDs and snapshot as PlayerSearch. No goalkeeper attributes in either view.
 */}
 
-I love the spider chart. You can see the _shape_ of a player in an _Augenblick_. A winger might stretch towards pace and dribbling, a centre-back towards defending and physical. Two players with the same overall rating can have very different shapes, because that one number hides what each is good at.
+I love the spider chart. You can see the _shape_ of a player in an _Augenblick_. A winger stretches towards pace and dribbling, a centre-back towards defending and physical. Two players with the same overall rating can have very different shapes, because that one number hides what each is good at.
 
 Add more players and the shapes pile up into a tangle. Spread 29 attributes around the edge and it gets harder still. We could draw thousands of these, but we wouldn't learn much from looking at them.
 
@@ -182,11 +115,7 @@ Position, club and price don't enter the calculation. Nor does the overall ratin
 | 3.22 | James Maddison | Spurs | €42.0m |
 | 3.23 | Morgan Gibbs-White | Nott'm Forest | €38.0m |
 
-The ratings are a saved FC 26 snapshot; the values come from the game's September 2025 data. They're useful for this experiment, rather less useful for telling Liverpool what Barcelona would accept today.
-
-Olise, Saka and Foden appear even though the data lists them on the right flank. We never told the calculation to prefer a midfielder. Their ratings brought them here. The one that catches my eye is fourth: Dani Olmo is almost as close as Saka, and his €62m valuation is less than half Wirtz's €150.5m. A _Schnäppchen_, at least inside the game.
-
-But “almost as close” still hides differences. Olmo's stamina is 65 to Wirtz's 87; his sprint speed is 69 to Wirtz's 79. If we're trying to replace someone who runs all match, that gap matters. Giving stamina more weight would change the distances and might change our shortlist.
+Olise, Saka and Foden appear even though the data lists them on the right flank. We never told the calculation to prefer a midfielder. Their ratings brought them here. The one that catches my eye is fourth: Dani Olmo is almost as close as Saka, and his €62m valuation is less than half Wirtz's €150.5m. That's a _Schnäppchen_ if I've ever seen one.
 
 We've been building simple embeddings since the scurvy ship.
 
@@ -198,7 +127,7 @@ So far, someone has chosen every axis and given it a name. Red, grip, sprint spe
 
 We can train a model to assign the coordinates for us. Show it examples of what should count as similar and let it adjust how it turns those examples into numbers. For faces, we'd want it to keep the differences that help distinguish one person from another, while ignoring a change in lighting or a new haircut.
 
-[FaceNet](https://arxiv.org/abs/1503.03832), published in 2015, learned to represent faces with 128 numbers. Its training compared an image of a person with another image of that person and one of somebody else, rewarding distances that put the matching pair closer together. Once trained, it could give coordinates to a face it had never seen before. Our fictional Bourne-hunting computer could then compare a face from the CCTV feed with the one in its files, even when the camera angle changed. How well it learned those distinctions would determine how often it got the match wrong.
+[FaceNet](https://arxiv.org/abs/1503.03832), published in 2015, learned to represent faces with 128 numbers. Its training compared an image of a person with another image of that person and one of somebody else, rewarding distances that put the matching pair closer together. Once trained, it could give coordinates to a face it had never seen before. Our fictional Bourne-hunting computer could then compare a face from the CCTV feed with the one in its files, even when the camera angle changed.
 
 For songs, one source of training examples is the playlists people make. Spotify has [described models that learn from tracks appearing together in playlists, as well as from the audio itself](https://research.atspotify.com/2025/9/generalized-user-representations-for-large-scale-recommendations). A map learned from audio can group songs that sound alike. One learned from playlists might bring together songs that people keep choosing for the same occasions. The recommendation system can search these maps for candidates, then decide which ones to play you.
 
@@ -208,6 +137,6 @@ Text can be mapped too. A [sentence embedding model](https://arxiv.org/abs/1908.
 
 We can still measure a learned space, but reading its coordinates is harder. Nobody has to decide that number 17 means sad or number 203 means danceable. A useful distinction might be spread across many numbers at once. The model's training determines which relationships the space preserves, just as our choice of football ratings determined which players appeared near Wirtz.
 
-This is where the Wave Race sliders come back. A direction through a learned space can sometimes have a meaning we recognise, even if it doesn't follow any single axis. We might find that songs towards one end feel calmer and songs towards the other feel more energetic. We'd have to check the songs to know whether that reading holds. There's no printed label waiting for us at the end of the line.
+This is where the Wave Race sliders come back. A direction through a learned space can have a meaning we recognise, even if it doesn't follow any single axis. We might find that songs towards one end feel calmer and songs towards the other feel more energetic. There's no printed label waiting for us at the end of the line.
 
 We started with a map we could see and ended with spaces we can only calculate our way around. I'd still like to see where the footballers ended up. In the next part, _Embeddings in Fewer Dimensions_, we'll try squeezing their 29 coordinates onto a flat map, and see which neighbours stay together when we do.

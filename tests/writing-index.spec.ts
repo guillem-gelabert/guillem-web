@@ -35,7 +35,7 @@ test("/writing renders three articles, newest first, each h2 the sole link in it
   // always true. Production visibility of the published entries is proven
   // independently in tests/build/prerender.test.ts.
   const expected = [
-    { title: "What Are Embeddings", href: "/writing/what-are-embeddings" },
+    { title: "Maps for Things That Aren't Places", href: "/writing/what-are-embeddings" },
     { title: "The Chart Therefore Changes", href: "/writing/the-chart-therefore-changes" },
     { title: "A Working Fixture for the Prose Contract", href: "/writing/fixture" },
   ];

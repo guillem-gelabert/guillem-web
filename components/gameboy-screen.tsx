@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { coralPixels } from "@/app/fonts/coral-pixels";
+import { geistPixel } from "@/app/fonts/geist-pixel";
 import "./gameboy-screen.css";
 
 // dmg-perfect v11 (sinedied, MIT), the shader behind the Game Boy look,
@@ -16,6 +18,35 @@ type Cfg = { shades: Shades; grid: number; gap: number; shadow: number; dot: num
 const PRESETS: { label: string; shades: Shades }[] = [
   { label: "11:29:36 (t 0.44)", shades: ["#adc44f", "#8ba238", "#3d5b35", "#162d16"] },
   { label: "11:33:45 (t 0.17)", shades: ["#a2bf28", "#8ba81f", "#355f32", "#123412"] },
+];
+
+// The ?dev picker's faces. next/font ones by family; the rest are files in
+// design/fonts, served in development by app/api/dev-fonts. "" keeps the
+// stylesheet's own face.
+const NEXT_FONTS: Record<string, string> = { "geist-pixel": geistPixel.style.fontFamily };
+const FONTS = [
+  "geist-pixel",
+  "yore-in-peril.ttf",
+  "yore-in-peril-m-lord.ttf",
+  "yore-in-peril-m-lord-mono.ttf",
+  "16-bit-dreams-mono.ttf",
+  "access-denied.ttf",
+  "access-denied-mono.ttf",
+  "detectives-n-dames.ttf",
+  "detectives-n-dames-mono.ttf",
+  "eaten-by-grues.ttf",
+  "eaten-by-grues-mono.ttf",
+  "ittiest-bittiest.ttf",
+  "itty-bitty.ttf",
+  "lanky-git-mono.ttf",
+  "lord-flimbington.ttf",
+  "lord-flimbington-mono.ttf",
+  "mythos-maximus.ttf",
+  "mythos-maximus-mono.ttf",
+  "that-s-delaware-mono.ttf",
+  "DepartureMono.otf",
+  "PixelOperator.ttf",
+  "PixelOperator-Bold.ttf",
 ];
 
 const hex = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
@@ -51,17 +82,22 @@ export function GameboyScreen({
   const canvas = useRef<HTMLCanvasElement>(null);
   const page = useRef<HTMLDivElement>(null);
   const [S, setS] = useState(1.5);
-  const [cfg, setCfg] = useState<Cfg>({ shades, grid: DP.grid, gap: DP.gap, shadow: DP.shadow, dot: 1.5, em: 16 });
+  const [cfg, setCfg] = useState<Cfg>({ shades, grid: DP.grid, gap: DP.gap, shadow: DP.shadow, dot: 1.5, em: 13 });
   const presets = PRESETS.some((p) => p.shades.join() === shades.join()) ? PRESETS : [{ label: "post", shades }, ...PRESETS];
   const cfgRef = useRef(cfg);
   useEffect(() => {
     cfgRef.current = cfg;
   }, [cfg]);
   const [tune, setTune] = useState(false);
+  const [dev, setDev] = useState(false);
 
   useEffect(() => {
     // after paint, so the server-rendered page and the first client render agree
-    const id = requestAnimationFrame(() => setTune(new URLSearchParams(location.search).has("tune")));
+    const id = requestAnimationFrame(() => {
+      const q = new URLSearchParams(location.search);
+      setTune(q.has("tune"));
+      setDev(q.has("dev"));
+    });
     return () => cancelAnimationFrame(id);
   }, []);
 
@@ -208,15 +244,20 @@ export function GameboyScreen({
         </filter>
       </svg>
       <canvas ref={canvas} className="gb-grid" aria-hidden="true" />
-      <div ref={page} className="gb-page">
+      <div ref={page} className={`gb-page ${geistPixel.variable} ${coralPixels.variable}`}>
         {children}
       </div>
-      {tune ? <Tune cfg={cfg} setCfg={setCfg} presets={presets} /> : null}
+      {tune || dev ? (
+        <div className="gb-tune" aria-label="Screen tuning">
+          {dev ? <Fonts /> : null}
+          {tune ? <Tune cfg={cfg} setCfg={setCfg} presets={presets} /> : null}
+        </div>
+      ) : null}
     </>
   );
 }
 
-/** The demo page's control panel, shown with ?tune in the URL. */
+/** The demo page's screen controls, shown with ?tune in the URL. */
 function Tune({ cfg, setCfg, presets }: { cfg: Cfg; setCfg: (c: Cfg) => void; presets: typeof PRESETS }) {
   const num = (key: keyof Cfg, min: number, max: number, step: number) => (
     <label className="gb-tune-row">
@@ -233,7 +274,7 @@ function Tune({ cfg, setCfg, presets }: { cfg: Cfg; setCfg: (c: Cfg) => void; pr
     </label>
   );
   return (
-    <div className="gb-tune" aria-label="Screen tuning">
+    <>
       <label className="gb-tune-row">
         <span>shades</span>
         <span />
@@ -257,6 +298,56 @@ function Tune({ cfg, setCfg, presets }: { cfg: Cfg; setCfg: (c: Cfg) => void; pr
       {num("dot", 1, 3, 0.5)}
       {num("em", 10, 24, 1)}
       <div className="gb-tune-shades">{cfg.shades.join(" ")}</div>
-    </div>
+    </>
+  );
+}
+
+/**
+ * The ?dev font picker: loads a face from design/fonts on demand and points
+ * --gb-heading-font or --gb-body-font at it (see gameboy-screen.css), plus
+ * Geist Pixel's ELSH axis.
+ */
+function Fonts() {
+  const [faces, setFaces] = useState({ heading: "", body: "" });
+  const [elsh, setElsh] = useState(0);
+
+  useEffect(() => {
+    document.documentElement.style.setProperty("--gb-elsh", String(elsh));
+  }, [elsh]);
+
+  const pick = async (role: keyof typeof faces, file: string) => {
+    setFaces((f) => ({ ...f, [role]: file }));
+    const root = document.documentElement.style;
+    if (!file) return root.removeProperty(`--gb-${role}-font`);
+    if (NEXT_FONTS[file]) return root.setProperty(`--gb-${role}-font`, NEXT_FONTS[file]);
+    const family = `gb-dev-${file.replace(/\.\w+$/, "")}`;
+    if (![...document.fonts].some((f) => f.family === family)) {
+      document.fonts.add(await new FontFace(family, `url(/api/dev-fonts/${file})`).load());
+    }
+    root.setProperty(`--gb-${role}-font`, `"${family}"`);
+  };
+
+  return (
+    <>
+      {(["heading", "body"] as const).map((role) => (
+        <label key={role} className="gb-tune-row">
+          <span>{role}</span>
+          <span />
+          <select value={faces[role]} onChange={(e) => pick(role, e.target.value)}>
+            <option value="">default</option>
+            {FONTS.map((f) => (
+              <option key={f} value={f}>
+                {f.replace(/\.\w+$/, "")}
+              </option>
+            ))}
+          </select>
+        </label>
+      ))}
+      <label className="gb-tune-row">
+        <span>ELSH</span>
+        <span>{elsh}</span>
+        <input type="range" min={0} max={100} step={1} value={elsh} onChange={(e) => setElsh(Number(e.target.value))} />
+      </label>
+    </>
   );
 }

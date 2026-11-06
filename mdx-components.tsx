@@ -1,6 +1,7 @@
 import { isValidElement } from "react";
 import type { MDXComponents } from "mdx/types";
 import { Aside } from "@/components/mdx/aside";
+import { ColourDepth } from "@/components/mdx/colour-depth/colour-depth";
 import { Figure } from "@/components/mdx/figure";
 
 /**
@@ -19,9 +20,9 @@ function codeSampleLabel(children: React.ReactNode): string {
   return language ? `Code sample: ${language}` : "Code sample";
 }
 
-// Figure and Aside are the entire shipped MDX component map (D-08's "MDX
-// may import arbitrary React components" stays true, but the default prose
-// path requires none of them).
+// Figure and Aside are the prose components; ColourDepth is the embeddings
+// article's colour-depth explorer (D-08's "MDX may import arbitrary React
+// components" stays true, but the default prose path requires none of them).
 //
 // Shiki emits style="background-color:#ffffff;color:#0e1116" on <pre>.
 // Turbopack forbids function-valued `transformers` in next.config.ts, so strip it here.
@@ -29,6 +30,7 @@ function codeSampleLabel(children: React.ReactNode): string {
 const components: MDXComponents = {
   Figure,
   Aside,
+  ColourDepth,
   pre: ({ style: _shikiBackground, children, ...props }: React.ComponentPropsWithoutRef<"pre">) => (
     <pre {...props} role="region" aria-label={codeSampleLabel(children)}>
       {children}

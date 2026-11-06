@@ -12,7 +12,7 @@
    which is also --color-paper, so blocks meet without a seam. */
 .gb-screen {
   --gb-dot: 1.5px;
-  --gb-em: 16;
+  --gb-em: 13;
   --gb-body: calc(var(--gb-dot) * var(--gb-em));
   --gb-line: calc(var(--gb-dot) * round(var(--gb-em) * 1.5, 1));
 }
@@ -20,6 +20,12 @@
 .gb-screen header,
 .gb-screen .prose-site > * {
   filter: url(#gb-screen);
+}
+
+/* The colour-depth explorer is about colour, so it keeps its own: no
+   four-shade quantiser. The dot grid above the page still covers it. */
+.gb-screen .prose-site > .colour-depth {
+  filter: none;
 }
 
 .gb-page {
@@ -38,12 +44,29 @@
   z-index: 40;
 }
 
+/* Every piece of text in Coral Pixels, which has 13 font pixels to the em:
+   sizes are 13 × n dots so each font pixel covers n whole dots. Regular
+   only; no synthesised bold or italic smearing the pixels. --gb-body-font
+   is the ?dev picker's override. */
+.gb-screen .gb-page,
+.gb-screen .gb-page * {
+  font-family: var(--gb-body-font, var(--font-coral-pixels));
+  font-synthesis: none;
+}
+
+.gb-screen .text-label {
+  font-size: calc(var(--gb-dot) * 13);
+  line-height: calc(var(--gb-dot) * 20);
+}
+
+/* The title: 39 dots is 13 font pixels of 3 dots each. */
 .gb-screen .text-heading {
-  font-family: var(--font-yore), monospace;
-  font-size: calc(var(--gb-dot) * 32);
+  font-family: var(--gb-heading-font, var(--font-coral-pixels)), monospace;
+  font-size: calc(var(--gb-dot) * 39);
   font-weight: 400;
-  line-height: calc(var(--gb-dot) * 40);
+  line-height: calc(var(--gb-dot) * 48);
   letter-spacing: 0;
+  text-align: center;
 }
 
 .gb-screen .text-standfirst,
@@ -56,11 +79,17 @@
   line-height: var(--gb-line);
 }
 
+/* Geist Pixel's pixel shape, 0-100; set by the ?dev slider. Faces without
+   the axis ignore it. */
+.gb-page {
+  font-variation-settings: "ELSH" var(--gb-elsh, 0);
+}
+
 .gb-screen .prose-site h2,
 .gb-screen .prose-site h3 {
-  font-family: var(--font-yore), monospace;
-  font-size: calc(var(--gb-dot) * 16);
-  line-height: calc(var(--gb-dot) * 24);
+  font-family: var(--gb-heading-font, var(--font-coral-pixels)), monospace;
+  font-size: calc(var(--gb-dot) * 26);
+  line-height: calc(var(--gb-dot) * 32);
   text-transform: none;
   letter-spacing: 0;
   border-bottom-width: calc(var(--gb-dot) * 2);
@@ -68,8 +97,8 @@
 
 .gb-screen .prose-site pre,
 .gb-screen .prose-site code {
-  font-size: calc(var(--gb-dot) * 12);
-  line-height: calc(var(--gb-dot) * 16);
+  font-size: calc(var(--gb-dot) * 13);
+  line-height: calc(var(--gb-dot) * 20);
 }
 
 .gb-screen .prose-site a {
@@ -203,6 +232,17 @@
 
 .gb-tune-shades {
   opacity: 0.6;
+}
+
+/* A lettering image as the title: one image pixel per dot, centred, and
+   never wider than the column. */
+.gb-screen .title-image img {
+  display: block;
+  width: calc(var(--gb-dot) * var(--title-w));
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+  image-rendering: pixelated;
 }
 
 /* Narrow screens: the dot-based heading is wider than a phone viewport.

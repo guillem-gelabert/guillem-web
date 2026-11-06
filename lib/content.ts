@@ -23,6 +23,9 @@ export type PostFrontmatter = {
   /** "gameboy": the post renders through components/gameboy-screen.tsx —
    *  four shades, dot matrix, dot shadow, ghosting. Needs shades. */
   theme?: "gameboy";
+  /** A PNG under public/ shown as the h1 in place of the set title, which
+   *  becomes its alt text (components/post-title.tsx). */
+  titleImage?: string;
 };
 
 export function shadesOf(fm: PostFrontmatter): [string, string, string, string] | null {
@@ -100,6 +103,9 @@ export function assertFrontmatter(fm: unknown, file: string): asserts fm is Post
     if (f.theme !== undefined) {
       if (f.theme !== "gameboy") problems.push("theme must be 'gameboy'");
       else if (f.shades === undefined) problems.push("theme gameboy needs shades");
+    }
+    if (f.titleImage !== undefined && (typeof f.titleImage !== "string" || !/^\/[\w/.-]+\.png$/.test(f.titleImage))) {
+      problems.push("titleImage must be a /path/to/file.png under public/");
     }
   }
 

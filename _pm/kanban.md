@@ -243,6 +243,16 @@ to break Floyd–Steinberg's lattice.
   lines 1–54 got typo and compile fixes only. `tests/writing-index.spec.ts` now expects three entries
   on `/writing`, newest first.
 
+- **Writing: colour-depth explorer in "What Are Embeddings"** (2026-11-05) — placeholder 2 is now
+  `<ColourDepth>` (`components/mdx/colour-depth/`): a depth slider snapping to 1, 2, 3, 4, 8 and 16 bits drives a three.js RGB cube
+  (one point per colour the picture uses at that depth, selected colour reached by an R → G → B path in
+  the channel colours), a hover loupe on the picture, the Nintendo World Cup cover quantised live (click to pick a colour), stats, and R/G/B sliders
+  snapped to the depth. Styled as an NES screen (black backdrop, white-framed windows, NES palette,
+  framed meter sliders) in Departure Mono at 11px
+  (`app/fonts/departure-mono.ts`, OFL, 22 KB woff2). Exempt from the Game Boy quantiser via `.colour-depth`; the dot grid still covers it.
+  `three` is a new dependency, loaded only on this route. Tests: `tests/unit/colour-depth.test.ts`,
+  `tests/colour-depth.spec.ts`.
+
 ## Next
 
 - **v1.0 is complete.** The next action is the user's, not an executor's: fill the five values, do

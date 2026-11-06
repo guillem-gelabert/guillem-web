@@ -28,7 +28,8 @@
     "remark-frontmatter": "^5.0.0",
     "remark-gfm": "^4.0.1",
     "remark-mdx-frontmatter": "^5.2.0",
-    "shiki": "^4.4.3"
+    "shiki": "^4.4.3",
+    "three": "^0.187.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
@@ -37,6 +38,7 @@
     "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/three": "^0.187.0",
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
     "tailwindcss": "^4",
