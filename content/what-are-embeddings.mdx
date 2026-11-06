@@ -24,14 +24,14 @@ A computer looking for Jason Bourne's face in a CCTV feed uses the same trick. G
   height={144}
 />
 
-On an ordinary map, a place has two coordinates, to pieces of information:
+On an ordinary map, a place has two coordinates, two pieces of information:
 
 1. How far north or south a place is -> Latitude
 2. How far east or west a place is -> Longitude
 
 _How far_ relative to what? Well, we agreed to start counting at the equator and the Greenwich meridian —obviously chosen for pure, objective and mathematical reasons—. With just these two numbers we can find any place on Earth. With coordinates it's also trivial to calculate distances between two points or compare directions.
 
-`[longitude, latiude]` work just [spheric geometry caveat] like the X and Y coordinates that we can draw on a plane. In mathematics a list of numbers is called a vector. In the case of `[longitude, latitude]` and `[x, y]` we would talk about vectors of length two, because they have 2 coordinates, relative to two axes.
+`[longitude, latitude]` work just like the X and Y coordinates that we can draw on a plane. In mathematics a list of numbers is called a vector. In the case of `[longitude, latitude]` and `[x, y]` we would talk about vectors of length two, because they have 2 coordinates, relative to two axes.
 
 > **Interactive placeholder 1:** A port 3 km east and 4 km north is 5 km away. A port only 1 km east but 6 km north is farther away, at about 6.1 km. On hover on a port the distance and bearing are shown.
 
@@ -47,9 +47,9 @@ _How far_ relative to what? Well, we agreed to start counting at the equator and
 
 The colours on that map can be expressed as coordinates too. You might have heard of the RGB system. A colour has three numbers telling the screen how much Red, Green and Blue light to use. Each channel runs from 0 to 255. Green is `[0, 255, 0]`, black is `[0, 0, 0]`, and white is `[255, 255, 255]`. On a screen, little red, green and blue subpixels work together to produce the colour you see. From your chair they blend into one point; up close you can see the separate lights.
 
-Here each vector gives us three pieces of information, so in order to visualize them a we'll have to move from a plane up to a cube. This one shows \~16 million colours (255 x 255 x 255 possible combinations of red, green and blue). If we used values from 0 to 10 instead it would only be able to render 1000 different individual shades. We can go as high or low as we want, but we would always have to choose between higher colour accuracy and higher file size.
+Here each vector gives us three pieces of information, so in order to visualize them we'll have to move from a plane up to a cube. This one shows \~16 million colours (256 x 256 x 256 possible combinations of red, green and blue). If we used values from 0 to 9 instead it would only be able to render 1000 different individual shades. We can go as high or low as we want, but we would always have to choose between higher colour accuracy and higher file size.
 
-Pick a colour from the image to see where it sits in the cube. You can change it's components with the sliders and increase or decrease the colour space.
+Pick a colour from the image to see where it sits in the cube. You can change its components with the sliders and increase or decrease the colour space.
 
 <ColourDepth
   src="/figures/what-are-embeddings/nintendo-world-cup.png"
@@ -58,7 +58,7 @@ Pick a colour from the image to see where it sits in the cube. You can change it
   height={1254}
 />
 
-You can see how we could call this a map, and how the position of colours _makes sense_: Black and white sit at opposite corners. Colours with similar RGB values sit near each other. We can measure the distance (or similarity) between them as we did with the ports. Even though the distance isn't in meters or leagues it still describes something close to what we parcieve as similarity between colours.
+You can see how we could call this a map, and how the position of colours _makes sense_: Black and white sit at opposite corners. Colours with similar RGB values sit near each other. We can measure the distance (or similarity) between them as we did with the ports. Even though the distance isn't in meters or leagues it still describes something close to what we perceive as similarity between colours.
 
 Football games give us far more axes. In EA Sports FC 26, every outfield player is rated on 29 attributes, from sprint speed and stamina to finishing and sliding tackles. Each is rated out of 99. The player card summarises them in six headline numbers: pace, shooting, passing, dribbling, defending and physical.
 
@@ -80,7 +80,7 @@ I love the spider chart. You can see the _shape_ of a player in an _Augenblick_.
 
 Add more players and the shapes pile up into a tangle. Spread 29 attributes around the edge and it gets harder still. We could draw thousands of these, but we wouldn't learn much from looking at them.
 
-You don't need to see a space to measure it. The calculation that got our crew to the lemons still works: take the difference on each axis, square it, add the squares up, take the square root. For a colour we used three differences. For a footballer we can use all 29. There's no step that asks us to imagine a 29-dimensional cube.
+You don't need to see a space to measure it. The calculation we used for the ports still works: take the difference on each axis, square it, add the squares up, take the square root. For a colour we used three differences. For a footballer we can use all 29. There's no step that asks us to imagine a 29-dimensional cube.
 
 Imagine Florian Wirtz gets injured and Liverpool needs someone who plays like him. We could look through attacking midfielders one by one, or we could calculate how far every player is from Wirtz and sort the results.
 
@@ -117,13 +117,13 @@ Position, club and price don't enter the calculation. Nor does the overall ratin
 
 Olise, Saka and Foden appear even though the data lists them on the right flank. We never told the calculation to prefer a midfielder. Their ratings brought them here. The one that catches my eye is fourth: Dani Olmo is almost as close as Saka, and his €62m valuation is less than half Wirtz's €150.5m. That's a _Schnäppchen_ if I've ever seen one.
 
-We've been building simple embeddings since the scurvy ship.
+We've been building simple embeddings since the ports.
 
 An embedding represents something as a list of numbers, placing it in a space where useful relationships can be measured. That list is also called a _vector_. A port got two numbers, a colour got three, a footballer got 29. In our examples, nearby points have similar coordinates, and we've used that to look for similar things.
 
-The search has a name too: _nearest neighbours_. We've used it to find a replacement for a colour and a replacement for Wirtz. In both cases, we had to decide which differences mattered before we could ask the computer to measure them.
+The search has a name too: _nearest neighbours_. We've used it to find a replacement for Wirtz. To do that, we had to decide which differences mattered before we could ask the computer to measure them.
 
-So far, someone has chosen every axis and given it a name. Red, grip, sprint speed. This is manageable for game characters with rating tables. How would we do it for a face? We could try measuring noses and the distance between eyes, but then we'd have to decide how to handle a head turned sideways, a different expression or bad lighting.
+So far, someone has chosen every axis and given it a name. Latitude, red, sprint speed. This is manageable for game characters with rating tables. How would we do it for a face? We could try measuring noses and the distance between eyes, but then we'd have to decide how to handle a head turned sideways, a different expression or bad lighting.
 
 We can train a model to assign the coordinates for us. Show it examples of what should count as similar and let it adjust how it turns those examples into numbers. For faces, we'd want it to keep the differences that help distinguish one person from another, while ignoring a change in lighting or a new haircut.
 
@@ -137,6 +137,6 @@ Text can be mapped too. A [sentence embedding model](https://arxiv.org/abs/1908.
 
 We can still measure a learned space, but reading its coordinates is harder. Nobody has to decide that number 17 means sad or number 203 means danceable. A useful distinction might be spread across many numbers at once. The model's training determines which relationships the space preserves, just as our choice of football ratings determined which players appeared near Wirtz.
 
-This is where the Wave Race sliders come back. A direction through a learned space can have a meaning we recognise, even if it doesn't follow any single axis. We might find that songs towards one end feel calmer and songs towards the other feel more energetic. There's no printed label waiting for us at the end of the line.
+A direction through a learned space can have a meaning we recognise, even if it doesn't follow any single axis. We might find that songs towards one end feel calmer and songs towards the other feel more energetic. There's no printed label waiting for us at the end of the line.
 
 We started with a map we could see and ended with spaces we can only calculate our way around. I'd still like to see where the footballers ended up. In the next part, _Embeddings in Fewer Dimensions_, we'll try squeezing their 29 coordinates onto a flat map, and see which neighbours stay together when we do.
