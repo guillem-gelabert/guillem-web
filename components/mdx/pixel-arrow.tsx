@@ -2,20 +2,20 @@
 // glyphs and a fallback "→" arrives as a smooth outline among pixel letters.
 // Coral Pixels has 13 font pixels to the em (77 units on a 1000 em), so one
 // viewBox unit here is 1/13 em: at the Game Boy body size that is exactly
-// one dot. Sits on the baseline, seven pixels tall like the x-height
-// letters, with a 2-pixel stroke like the font's own ">". The real "→"
+// one dot. Sits on the baseline in a box as tall as the x-height letters,
+// drawn with a 1-pixel stroke, centred on the x-height. The real "→"
 // stays in the text for screen readers and copy-paste.
 const ROWS = [
-  "....##..",
-  ".....##.",
-  "########",
-  "########",
-  ".....##.",
-  "....##..",
-  "........",
+  ".......",
+  "....#..",
+  ".....#.",
+  "######.",
+  ".....#.",
+  "....#..",
+  ".......",
 ];
 
-const WIDTH = 9; // eight drawn columns and one of spacing, as the font's glyphs carry
+const WIDTH = 7; // six drawn columns and one of spacing
 const HEIGHT = ROWS.length;
 
 export function PixelArrow() {
