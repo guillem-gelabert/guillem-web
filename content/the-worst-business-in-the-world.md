@@ -1,17 +1,18 @@
 ---
-title: "The Worst Business in the World"
-standfirst: "John Hempton, the short seller who was early on Wirecard, thinks AI will transform the world and still has the worst investment profile he has ever seen."
+title: "John Hempton on AI"
+standfirst: "John Hempton, the short seller who was among the first to call out Wirecard, thinks AI will transform the world and that it still has the worst investment profile he has ever seen."
 date: "2026-11-10"
 lang: en
 translationKey: ai-worst-business
 draft: false
 type: post
+theme: mazzucato
 ---
 
-Because of an ideological bias I'd rather not have, I like to think that AI is a bubble and that it will burst soon. Biases are better not fed; on the contrary, I think the wise thing is to look for people who are smarter and better read than you are, or who hold the opposite opinions. Unfortunately, at the mercy of the algorithmic gods, I ended up at [this interview](https://joewalker.substack.com/p/fibre-optics-mark-ii-why-data-centres) with John Hempton (an investor who specialises in short selling and was one of the first to expose the irregularities at Wirecard), which gave me the worldly satisfaction of finding arguments that justify my fanatical positions.
+Thanks to an ideological bias I'd rather not have, I take some pleasure in thinking that AI is a bubble and that it will burst before long. Biases shouldn't be fed. If anything, I think the wise thing is to seek out people who are smarter and better read than you are, or who hold the opposite view. Unfortunately, at the mercy of the algorithmic gods, I landed on [this interview](https://joewalker.substack.com/p/fibre-optics-mark-ii-why-data-centres) with [John Hempton](https://en.wikipedia.org/wiki/John_Hempton) (a short investor who was among the first to expose the irregularities at Wirecard), which gave me the worldly satisfaction of finding arguments that justify my fanatical views.
 
-Like almost everyone who has used the latest models, Hempton is *incredibly impressed with the technology*. He's convinced it's the technology with the biggest impact of his lifetime and that it will transform the world beyond recognition. On the other hand, and unlike almost everyone else (the Swiss National Bank included), he says it has *the worst investment profile he has ever seen*.
+Like almost everyone who has used the latest models, Hempton is *unbelievably impressed with the technology*. He's convinced it is the most consequential technology of his lifetime and that it will change the world beyond recognition. Yet, unlike almost everyone else (the Swiss National Bank included), he says it has *the worst investment profile he has ever seen*.
 
-What makes him say so is a recipe that, in his view, always leads to *the worst business in the world*: high upfront investment (capex), competition, a low marginal cost and constant technological progress. In this scenario, companies act on incentives that are rational from the point of view of their own profit but catastrophic for the sector as a whole. Competition pushes them to cut prices (inference prices for the AI labs, compute prices for the *hyperscalers*), and the low marginal cost means that, in the short term, cutting them pays better than keeping capacity idle. Constant technical innovation makes it hard for a single provider to corner the market, encourages new and better models and speeds up the depreciation of chips.
+What leads him to say so is a recipe that, in his view, always ends in *the worst business in the world*: heavy upfront capital expenditure (capex), competition, low marginal costs and constant technological progress. Under those conditions, companies respond to incentives that are rational for each firm's own bottom line but catastrophic for the industry as a whole. Competition forces them to cut prices (inference prices for the AI labs, compute prices for the *hyperscalers*), and with marginal costs so low, in the short run it pays to cut prices rather than leave capacity sitting idle. Constant technical innovation makes it hard for any single provider to corner the market, paves the way for new and better models and makes chips depreciate faster.
 
-There's a curious parallel, and above all a contrast, with the mechanism Mariana Mazzucato criticises, whereby the initial investment and risk of any technological revolution fall on the state, while the returns end up in the hands of private investors. If Hempton is right, AI will go through a similar process that, ironically, will extract value from investors and share it out among consumers.
+There is a curious parallel, and above all a contrast, with the mechanism Mariana Mazzucato criticises, in which the state shoulders the early investment and risk of every technological revolution while the rewards accrue to private investors. If Hempton is right, with AI we will see a similar process, one that, ironically, extracts value from investors and hands it to consumers.

@@ -21,8 +21,10 @@ export type PostFrontmatter = {
   /** Four #rrggbb shades, lightest first, space-separated. */
   shades?: string;
   /** "gameboy": the post renders through components/gameboy-screen.tsx —
-   *  four shades, dot matrix, dot shadow, ghosting. Needs shades. */
-  theme?: "gameboy";
+   *  four shades, dot matrix, dot shadow, ghosting. Needs shades.
+   *  "mazzucato": components/value-screen.tsx — the design system of the
+   *  Value of Everything reader's summary (navy, cream panel, globe). */
+  theme?: "gameboy" | "mazzucato";
   /** A PNG under public/ shown as the h1 in place of the set title, which
    *  becomes its alt text (components/post-title.tsx). */
   titleImage?: string;
@@ -101,8 +103,11 @@ export function assertFrontmatter(fm: unknown, file: string): asserts fm is Post
       }
     }
     if (f.theme !== undefined) {
-      if (f.theme !== "gameboy") problems.push("theme must be 'gameboy'");
-      else if (f.shades === undefined) problems.push("theme gameboy needs shades");
+      if (f.theme !== "gameboy" && f.theme !== "mazzucato") {
+        problems.push("theme must be 'gameboy' or 'mazzucato'");
+      } else if (f.theme === "gameboy" && f.shades === undefined) {
+        problems.push("theme gameboy needs shades");
+      }
     }
     if (f.titleImage !== undefined && (typeof f.titleImage !== "string" || !/^\/[\w/.-]+\.png$/.test(f.titleImage))) {
       problems.push("titleImage must be a /path/to/file.png under public/");

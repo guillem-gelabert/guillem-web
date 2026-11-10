@@ -150,7 +150,7 @@ test("/texte renders four articles separated by three hrs, reverse-chronological
   // content/nur-auf-deutsch.md (2026-08-29).
   const titles = await articles.locator("h2").allTextContents();
   expect(titles).toEqual([
-    "Das schlechteste Geschäft der Welt",
+    "John Hempton über KI",
     "Die Darstellung ändert sich",
     "Eine Musterseite für die Textvorlage",
     "Nur auf Deutsch: ein Text ohne Übersetzung",

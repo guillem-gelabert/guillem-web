@@ -8,6 +8,7 @@ import { PostTitle } from "@/components/post-title";
 import { PostMeta } from "@/components/post-meta";
 import { PostPalette } from "@/components/post-palette";
 import { GameboyScreen } from "@/components/gameboy-screen";
+import { ValueScreen } from "@/components/value-screen";
 import { postOpenGraph } from "@/lib/metadata";
 
 // This route carries no client directive. Phase 1 marked whole pages as
@@ -80,6 +81,26 @@ export default async function WritingPost({
 
   const { default: Post } = await loadPostModule(slug);
   const twins = await translationsOf(entry);
+
+  if (entry.frontmatter.theme === "mazzucato") {
+    return (
+      <ValueScreen
+        backHref={indexPath("de")}
+        backLabel={UI.de.backLink}
+        title={entry.frontmatter.title}
+        meta={
+          <PostMeta
+            locale="de"
+            date={entry.frontmatter.date}
+            translations={translationLinks(twins)}
+            draft={entry.frontmatter.draft}
+          />
+        }
+      >
+        <Post />
+      </ValueScreen>
+    );
+  }
 
   const gameboy = entry.frontmatter.theme === "gameboy" ? shadesOf(entry.frontmatter) : null;
 

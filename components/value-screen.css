@@ -1,0 +1,246 @@
+/* Theme: mazzucato. Imported by components/value-screen.tsx, so it only
+   loads on posts that use it. Tokens and measurements from
+   value-mazzucato/src/theme.css (chapter page: .ch-hero, .panel, .body). */
+
+.vx {
+  --vx-navy: #101838;
+  --vx-cream: #f7f3ec;
+  --vx-ink: #242c47;
+  --vx-accent: #e8472b;
+  --vx-accent-hover: #c8371d;
+  --vx-gold: #e7b53c;
+  --vx-teal: #3fb6c4;
+  --vx-sans: var(--font-archivo), system-ui, sans-serif;
+  --vx-serif: var(--font-source-serif-4), Georgia, serif;
+  --vx-mono: ui-monospace, Menlo, Consolas, monospace;
+
+  position: relative;
+  min-height: 100vh;
+  background: var(--vx-navy);
+  color: var(--vx-ink);
+  font-family: var(--vx-serif);
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The page behind the theme: Safari's bar colour and the overscroll. */
+body:has(.vx) {
+  background: #101838;
+}
+
+.vx ::selection {
+  background: rgba(232, 71, 43, 0.28);
+}
+
+/* ---------- Background ---------- */
+.vx-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.vx-dash {
+  position: absolute;
+  inset: -100px 0 0 -60px;
+  opacity: 0.55;
+}
+.vx-dash svg {
+  display: block;
+}
+.vx-shape {
+  position: absolute;
+}
+.vx-shape--ring {
+  left: -160px;
+  top: 180px;
+  width: 360px;
+  height: 360px;
+  border: 2px solid rgba(232, 71, 43, 0.16);
+  border-radius: 50%;
+}
+.vx-shape--square {
+  right: -90px;
+  top: 760px;
+  width: 210px;
+  height: 210px;
+  background: rgba(231, 181, 60, 0.07);
+  transform: rotate(12deg);
+}
+
+/* ---------- Layout ---------- */
+.vx-main {
+  position: relative;
+  z-index: 1;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ---------- Hero ---------- */
+.vx-hero {
+  position: relative;
+  padding: 72px 0 76px;
+}
+.vx-hero-globe {
+  position: absolute;
+  right: -30px;
+  top: 40px;
+  width: 320px;
+  height: 320px;
+  color: var(--vx-accent);
+  opacity: 0.92;
+  pointer-events: none;
+}
+.vx-hero-square {
+  position: absolute;
+  left: -30px;
+  bottom: 20px;
+  width: 120px;
+  height: 120px;
+  background: rgba(63, 182, 196, 0.12);
+  transform: rotate(18deg);
+  pointer-events: none;
+}
+.vx-hero-inner {
+  position: relative;
+  max-width: 760px;
+}
+.vx-back {
+  display: inline-block;
+  padding: 4px 0;
+  font: 700 11px/1 var(--vx-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--vx-teal);
+  text-decoration: none;
+}
+.vx-back:hover,
+.vx-back:focus-visible {
+  color: #fff;
+}
+.vx-title {
+  margin: 22px 0 0;
+  font: 900 clamp(42px, 8vw, 88px) / 0.92 var(--vx-sans);
+  color: #fff;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+.vx-meta {
+  margin: 34px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.vx-meta-dot {
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--vx-accent);
+}
+/* PostMeta's own line, restyled as the handoff's mono meta row. */
+.vx-meta .text-label {
+  margin: 0;
+  font: 600 11px/1.8 var(--vx-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+}
+.vx-meta .text-label a {
+  font: inherit;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+}
+.vx-meta .text-label a:hover,
+.vx-meta .text-label a:focus-visible {
+  color: var(--vx-accent);
+}
+
+/* ---------- Reading panel ---------- */
+.vx-panel {
+  position: relative;
+  background: var(--vx-cream);
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -2px 60px rgba(0, 0, 0, 0.3);
+  padding: clamp(28px, 5vw, 64px) clamp(22px, 6vw, 80px) clamp(28px, 5vw, 56px);
+}
+.vx-body {
+  max-width: 640px;
+  margin: 0 auto;
+}
+.vx-body p {
+  margin: 0 0 26px;
+  font: 400 clamp(17px, 2.2vw, 19px) / 1.68 var(--vx-serif);
+  color: var(--vx-ink);
+  text-wrap: pretty;
+}
+.vx-body p:last-child {
+  margin-bottom: 0;
+}
+.vx-body > p:first-child::first-letter {
+  float: left;
+  margin: 14px 10px 0 0;
+  font-family: var(--vx-sans);
+  font-weight: 600;
+  font-size: 44px;
+  line-height: 0;
+  color: var(--vx-accent);
+}
+.vx-body em {
+  font-style: italic;
+}
+.vx-body a {
+  color: var(--vx-accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.vx-body a:hover {
+  color: var(--vx-accent-hover);
+}
+.vx-body h2 {
+  margin: 44px 0 18px;
+  font: 800 clamp(24px, 3.4vw, 30px) / 1.1 var(--vx-sans);
+  color: var(--vx-navy);
+  letter-spacing: -0.01em;
+}
+
+/* ---------- Footer ---------- */
+.vx-footer {
+  position: relative;
+  z-index: 1;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 40px 24px 60px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+.vx-footer-mark {
+  display: flex;
+  color: var(--vx-accent);
+}
+.vx-footer-credit {
+  padding: 4px 0;
+  font: 600 12px/1.4 var(--vx-mono);
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.55);
+  text-decoration: none;
+}
+.vx-footer-credit:hover,
+.vx-footer-credit:focus-visible {
+  color: #fff;
+}
+
+@media (max-width: 640px) {
+  .vx-hero {
+    padding-top: 48px;
+  }
+  .vx-hero-globe {
+    right: -90px;
+    top: 20px;
+    width: 220px;
+    height: 220px;
+    opacity: 0.6;
+  }
+}

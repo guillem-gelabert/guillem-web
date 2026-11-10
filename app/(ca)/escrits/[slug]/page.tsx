@@ -8,6 +8,7 @@ import { PostTitle } from "@/components/post-title";
 import { PostMeta } from "@/components/post-meta";
 import { PostPalette } from "@/components/post-palette";
 import { GameboyScreen } from "@/components/gameboy-screen";
+import { ValueScreen } from "@/components/value-screen";
 import { postOpenGraph } from "@/lib/metadata";
 
 // app/(de)/texte/[slug]/page.tsx's twin. See that file for why there is no
@@ -62,6 +63,26 @@ export default async function WritingPost({
 
   const { default: Post } = await loadPostModule(slug);
   const twins = await translationsOf(entry);
+
+  if (entry.frontmatter.theme === "mazzucato") {
+    return (
+      <ValueScreen
+        backHref={indexPath("ca")}
+        backLabel={UI.ca.backLink}
+        title={entry.frontmatter.title}
+        meta={
+          <PostMeta
+            locale="ca"
+            date={entry.frontmatter.date}
+            translations={translationLinks(twins)}
+            draft={entry.frontmatter.draft}
+          />
+        }
+      >
+        <Post />
+      </ValueScreen>
+    );
+  }
 
   const gameboy = entry.frontmatter.theme === "gameboy" ? shadesOf(entry.frontmatter) : null;
 

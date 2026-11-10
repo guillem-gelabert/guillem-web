@@ -12,6 +12,10 @@ duplicate `.planning/`'s detail. Update the three lists below when a phase or pl
   (`app/(ca)`, 404 at `/escrits/no-trobat`), language links and hreflang now list every twin
   instead of assuming one. The Hempton post shipped in Catalan, English and German under
   `translationKey: ai-worst-business`. No Catalan OG card yet: `/escrits` uses the English one.
+- **`theme: mazzucato`** (2026-11-10) — `components/value-screen.tsx` renders a post in the design
+  system of the Value of Everything reader's summary (`~/Developer/personal/value-mazzucato`):
+  navy page, dashed vermilion stripes, globe hero in Archivo, cream panel in Source Serif 4.
+  Static (no parallax). Used by the three Hempton posts.
 
 - **Embeddings article, Game Boy screen** (2026-10-14) — `theme: gameboy` renders a post through
   `components/gameboy-screen.tsx`: dmg-perfect's four-shade quantise and dot shadow as an SVG

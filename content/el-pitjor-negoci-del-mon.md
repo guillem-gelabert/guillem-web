@@ -1,14 +1,15 @@
 ---
-title: "El pitjor negoci del món"
+title: "John Hempton sobre la IA"
 standfirst: "John Hempton, l'inversor que va ser dels primers a denunciar Wirecard, creu que la IA transformarà el món i que, així i tot, té el pitjor perfil d'inversió que ha vist mai."
 date: "2026-11-10"
 lang: ca
 translationKey: ai-worst-business
 draft: false
 type: post
+theme: mazzucato
 ---
 
-Per mor d’un biaix ideològic que preferiria no tenir, em satisfà pensar que la IA és una bombolla i que esclatarà d’aquí a poc. Els biaixos no convé alimentar-los; al contrari, crec que el més savi és cercar gent més intel·ligent i llegida que un mateix, o amb opinions oposades a les pròpies. Desgraciadament, a mercè dels Déus algorítmics, he arribat a [aquesta entrevista](https://joewalker.substack.com/p/fibre-optics-mark-ii-why-data-centres) amb John Hempton —un inversor especialitzat en vendes en curt que va ser dels primers a denunciar les irregularitats de Wirecard—, que m’ha donat la satisfacció mundana de trobar arguments que justifiquen les meves posicions fanàtiques.
+Per mor d’un biaix ideològic que preferiria no tenir, em satisfà pensar que la IA és una bombolla i que esclatarà d’aquí a poc. Els biaixos no convé alimentar-los; al contrari, crec que el més savi és cercar gent més intel·ligent i llegida que un mateix, o amb opinions oposades a les pròpies. Desgraciadament, a mercè dels Déus algorítmics, he arribat a [aquesta entrevista](https://joewalker.substack.com/p/fibre-optics-mark-ii-why-data-centres) amb [John Hempton](https://en.wikipedia.org/wiki/John_Hempton) —un inversor especialitzat en vendes en curt que va ser dels primers a denunciar les irregularitats de Wirecard—, que m’ha donat la satisfacció mundana de trobar arguments que justifiquen les meves posicions fanàtiques.
 
 Com gairebé tothom que ha emprat els darrers models, Hempton està *increïblement impressionat amb la tecnologia*. Està convençut que és la tecnologia amb més impacte de la seva vida i que transformarà el món fins a fer-lo irreconeixible. D’altra banda —i a diferència de gairebé tothom (inclòs el Banc Nacional Suís)—, diu que té *el pitjor perfil d’inversió que ha vist mai*.
 
