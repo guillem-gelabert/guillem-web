@@ -1,5 +1,5 @@
 ---
-title: "John Hempton on AI"
+title: "John Hempton on the Financials of AI"
 standfirst: "John Hempton, the short seller who was among the first to call out Wirecard, thinks AI will transform the world and that it still has the worst investment profile he has ever seen."
 date: "2026-11-10"
 lang: en

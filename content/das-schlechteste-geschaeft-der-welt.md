@@ -1,5 +1,5 @@
 ---
-title: "John Hempton über KI"
+title: "John Hempton über die Finanzen der KI"
 standfirst: "John Hempton, der Leerverkäufer, der als einer der Ersten vor Wirecard warnte, glaubt, dass KI die Welt verändern wird und trotzdem das schlechteste Investmentprofil hat, das er je gesehen hat."
 date: "2026-11-10"
 lang: de

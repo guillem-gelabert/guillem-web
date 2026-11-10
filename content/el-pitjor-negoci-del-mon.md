@@ -1,5 +1,5 @@
 ---
-title: "John Hempton sobre la IA"
+title: "John Hempton sobre les finances de la IA"
 standfirst: "John Hempton, l'inversor que va ser dels primers a denunciar Wirecard, creu que la IA transformarà el món i que, així i tot, té el pitjor perfil d'inversió que ha vist mai."
 date: "2026-11-10"
 lang: ca
