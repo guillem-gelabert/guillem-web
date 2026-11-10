@@ -35,6 +35,7 @@ import path from "node:path";
 
 const EN_LAYOUT_PATH = path.join(process.cwd(), "app/(en)/layout.tsx");
 const DE_LAYOUT_PATH = path.join(process.cwd(), "app/(de)/layout.tsx");
+const CA_LAYOUT_PATH = path.join(process.cwd(), "app/(ca)/layout.tsx");
 const EN_LAYOUT_SRC = readFileSync(EN_LAYOUT_PATH, "utf8");
 const DE_LAYOUT_SRC = readFileSync(DE_LAYOUT_PATH, "utf8");
 
@@ -101,6 +102,7 @@ test("G2-G6, G11, G14: robots is a BICONDITIONAL on the seven blocking values, n
   const layouts: readonly [string, string][] = [
     ["app/(en)/layout.tsx", EN_LAYOUT_SRC],
     ["app/(de)/layout.tsx", DE_LAYOUT_SRC],
+    ["app/(ca)/layout.tsx", readFileSync(CA_LAYOUT_PATH, "utf8")],
   ];
 
   for (const [name, source] of layouts) {
@@ -144,7 +146,7 @@ const FILES_DECLARING_ROBOTS = SCAN_ROOTS.flatMap((root) => walk(path.join(proce
   .filter((file) => ROBOTS_DECLARATION.test(readFileSync(file, "utf8")))
   .sort();
 
-const FLIP_TARGETS = [EN_LAYOUT_PATH, DE_LAYOUT_PATH].sort();
+const FLIP_TARGETS = [EN_LAYOUT_PATH, DE_LAYOUT_PATH, CA_LAYOUT_PATH].sort();
 
 // /type is a deliberately permanent noindex (Phase 1 D-05) — if plan
 // 06-07 has landed and given it its own robots: { index: false }
@@ -152,12 +154,12 @@ const FLIP_TARGETS = [EN_LAYOUT_PATH, DE_LAYOUT_PATH].sort();
 // the two files a FIND-02 flip edits.
 const TYPE_PAGE_PATH = path.join(process.cwd(), "app/(en)/type/page.tsx");
 
-test("robots: is declared in exactly the two root layouts a FIND-02 flip must edit", () => {
+test("robots: is declared in exactly the three root layouts a FIND-02 flip must edit", () => {
   const flipDeclarations = FILES_DECLARING_ROBOTS.filter((file) => FLIP_TARGETS.includes(file));
   assert.equal(
     flipDeclarations.length,
-    2,
-    `expected robots: in exactly the two root layouts, found: ${FILES_DECLARING_ROBOTS.join(", ")}`,
+    3,
+    `expected robots: in exactly the three root layouts, found: ${FILES_DECLARING_ROBOTS.join(", ")}`,
   );
   assert.deepEqual(flipDeclarations, FLIP_TARGETS);
 

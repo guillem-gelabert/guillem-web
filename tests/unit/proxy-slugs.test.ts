@@ -34,7 +34,7 @@ import type { Locale, PostEntry, PostFrontmatter } from "../../lib/content.ts";
 // publishedFor() does except the MDX-component load, which the slug-set
 // question never touches.
 
-const LOCALES: readonly Locale[] = ["en", "de"];
+const LOCALES: readonly Locale[] = ["en", "de", "ca"];
 
 const CONTENT_DIR = path.join(process.cwd(), "content");
 

@@ -34,7 +34,7 @@ import path from "node:path";
 // resolution-only, not a behaviour change.
 import { NextResponse, type NextRequest } from "next/server.js";
 import type { Locale } from "./lib/content.ts";
-import { NOT_FOUND_SLUG, PATH_TOKEN } from "./lib/locales.ts";
+import { localeForSegment, NOT_FOUND_SLUG, PATH_TOKEN } from "./lib/locales.ts";
 
 export const config = {
   // One segment only, so /writing/a/b matches no route here and correctly
@@ -42,7 +42,7 @@ export const config = {
   // this to also cover the .rsc / .segments request variants, so
   // client-side navigations are intercepted the same way as a hard load
   // (verified in .next/server/functions-config-manifest.json).
-  matcher: ["/writing/:slug", "/texte/:slug"],
+  matcher: ["/writing/:slug", "/texte/:slug", "/escrits/:slug"],
 };
 
 // ASVS V12: a fixed, module-scope directory constant derived from
@@ -127,7 +127,7 @@ export function isPublished(locale: Locale, slug: string): boolean {
 
 export function proxy(request: NextRequest) {
   const [segment, slug = ""] = request.nextUrl.pathname.split("/").filter(Boolean);
-  const locale: Locale = segment === PATH_TOKEN.de ? "de" : "en";
+  const locale: Locale = localeForSegment(segment) ?? "en";
 
   if (isPublished(locale, slug)) return NextResponse.next();
 

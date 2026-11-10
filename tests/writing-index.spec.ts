@@ -113,15 +113,15 @@ test("the standfirst under the headline computes to weight 530", async ({ page }
 // content/die-darstellung-aendert-sich.mdx is visible here either way. Its
 // PRODUCTION visibility (the branch actually shipped, draft: false) is
 // proven independently in tests/build/prerender.test.ts instead.
-test("/texte renders three articles separated by two hrs, reverse-chronological, all three h2s sharing one class list", async ({
+test("/texte renders four articles separated by three hrs, reverse-chronological, all h2s sharing one class list", async ({
   page,
 }) => {
   await page.goto("/texte");
   await page.evaluate(() => document.fonts.ready);
 
   const articles = page.locator("article");
-  await expect(articles).toHaveCount(3);
-  await expect(page.locator("hr")).toHaveCount(2);
+  await expect(articles).toHaveCount(4);
+  await expect(page.locator("hr")).toHaveCount(3);
 
   // "the existing <hr> rule" means the Prose Contract's hairline, not a
   // second, heavier one. Scoping the stroke to .prose-site left the index's
@@ -143,12 +143,14 @@ test("/texte renders three articles separated by two hrs, reverse-chronological,
   expect(hrStyle.width).toBe("1px");
   expect(hrStyle.style).toBe("solid");
 
-  // Order: content/die-darstellung-aendert-sich.mdx (2026-08-31, the
-  // published case study) sorts first, then the two still-draft fixtures
+  // Order: content/das-schlechteste-geschaeft-der-welt.md (2026-11-10)
+  // sorts first, then content/die-darstellung-aendert-sich.mdx (2026-08-31,
+  // the published case study), then the two still-draft fixtures
   // by date descending — content/musterseite.mdx (2026-08-30), then
   // content/nur-auf-deutsch.md (2026-08-29).
   const titles = await articles.locator("h2").allTextContents();
   expect(titles).toEqual([
+    "Das schlechteste Geschäft der Welt",
     "Die Darstellung ändert sich",
     "Eine Musterseite für die Textvorlage",
     "Nur auf Deutsch: ein Text ohne Übersetzung",
@@ -158,7 +160,7 @@ test("/texte renders three articles separated by two hrs, reverse-chronological,
     els.map((el) => el.className),
   );
   expect(classLists[0]).toBe(classLists[1]);
-  expect(classLists[1]).toBe(classLists[2]);
+  expect(new Set(classLists).size).toBe(1);
 });
 
 // Amendment A2: the dead end Phase 3's contents-nav Writing entry creates

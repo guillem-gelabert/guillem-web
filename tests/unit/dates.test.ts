@@ -9,7 +9,7 @@ import { test } from "node:test";
 process.env.TZ = "America/Los_Angeles";
 
 const locales = await import("../../lib/locales.ts");
-const { formatPostDate, indexPath, postPath, otherLocale, UI } = locales;
+const { formatPostDate, indexPath, postPath, otherLocales, UI } = locales;
 
 test("formatPostDate renders the English format", () => {
   assert.equal(formatPostDate("2026-08-29", "en"), "29 August 2026");
@@ -35,17 +35,18 @@ test("postPath returns the localised post segment", () => {
   assert.equal(postPath("de", "musterseite"), "/texte/musterseite");
 });
 
-test("otherLocale returns the opposite locale", () => {
-  assert.equal(otherLocale("en"), "de");
-  assert.equal(otherLocale("de"), "en");
+test("otherLocales returns every other locale", () => {
+  assert.deepEqual(otherLocales("en"), ["de", "ca"]);
+  assert.deepEqual(otherLocales("de"), ["en", "ca"]);
+  assert.deepEqual(otherLocales("ca"), ["en", "de"]);
 });
 
-test("UI defines all ten copy keys with non-empty strings for both locales", () => {
+test("UI defines all ten copy keys with non-empty strings for every locale", () => {
   const keys = [
     "indexKicker",
     "indexDescription",
     "backLink",
-    "switchLabel",
+    "readIn",
     "emptyHeading",
     "emptyBody",
     "notFoundHeading",
@@ -54,7 +55,7 @@ test("UI defines all ten copy keys with non-empty strings for both locales", () 
     "homeLink",
   ] as const;
 
-  for (const locale of ["en", "de"] as const) {
+  for (const locale of ["en", "de", "ca"] as const) {
     for (const key of keys) {
       const value = UI[locale][key];
       assert.equal(typeof value, "string");

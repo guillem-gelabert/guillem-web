@@ -53,4 +53,5 @@ export const SITE_NAME = "Guillem Gelabert";
 export const SITE_DESCRIPTION: Record<Locale, string> = {
   en: "Data visualisation, writing and interactive work by Guillem Gelabert.",
   de: "Datenvisualisierung, Texte und interaktive Arbeiten von Guillem Gelabert.",
+  ca: "Visualització de dades, textos i treballs interactius de Guillem Gelabert.",
 };

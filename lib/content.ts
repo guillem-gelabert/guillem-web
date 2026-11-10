@@ -2,7 +2,7 @@ import { readdir } from "node:fs/promises";
 import path from "node:path";
 import type { ComponentType } from "react";
 
-export const LOCALES = ["en", "de"] as const;
+export const LOCALES = ["en", "de", "ca"] as const;
 export type Locale = (typeof LOCALES)[number];
 
 export type PostFrontmatter = {
@@ -238,8 +238,9 @@ export function selectForLocale(entries: PostEntry[], lang: Locale): PostEntry[]
 }
 
 /**
- * D-06/D-07: the translation is the entry sharing translationKey in the
- * other locale, and never the same locale — or null when there is none.
+ * D-06/D-07: the translation is the entry sharing translationKey in another
+ * locale, and never the same locale — or null when there is none. With three
+ * locales this returns the first such entry; routes use findTranslations.
  */
 export function findTranslation(entry: PostEntry, entries: PostEntry[]): PostEntry | null {
   return (
@@ -285,7 +286,23 @@ export async function publishedFor(lang: Locale): Promise<PostEntry[]> {
  * switch in production even though a published twin existed. The only
  * symptom would have been a missing link.
  */
-export async function translationOf(entry: PostEntry): Promise<PostEntry | null> {
+export async function translationsOf(entry: PostEntry): Promise<PostEntry[]> {
   const visible = (await allPosts()).filter(isVisible);
-  return findTranslation(entry, visible);
+  return findTranslations(entry, visible);
+}
+
+/**
+ * Every locale's twin of an entry, at most one per locale (the first match in
+ * `entries`' order, which is newest first for allPosts), in LOCALES order.
+ */
+export function findTranslations(entry: PostEntry, entries: PostEntry[]): PostEntry[] {
+  return LOCALES.flatMap((locale) => {
+    if (locale === entry.frontmatter.lang) return [];
+    const twin = entries.find(
+      (candidate) =>
+        candidate.frontmatter.translationKey === entry.frontmatter.translationKey &&
+        candidate.frontmatter.lang === locale,
+    );
+    return twin ? [twin] : [];
+  });
 }

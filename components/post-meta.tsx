@@ -5,7 +5,8 @@ import { LanguageSwitch } from "@/components/language-switch";
 type PostMetaProps = {
   locale: Locale;
   date: string;
-  switchHref: string | null;
+  /** One language link per twin; empty when the post has none. */
+  translations: { locale: Locale; href: string }[];
   /**
    * A REQUIRED key with an optional value, not an optional key. `draft?:
    * boolean` let components/landing/featured-slot.tsx omit it silently,
@@ -21,19 +22,19 @@ type PostMetaProps = {
 };
 
 // Date, language switch and dev-only draft marker on one Label-role line.
-export function PostMeta({ locale, date, switchHref, draft }: PostMetaProps) {
+export function PostMeta({ locale, date, translations, draft }: PostMetaProps) {
   // One predicate, imported — never a second inline copy of D-11 (WR-07).
   const showDraftMarker = draft === true && showDrafts();
 
   return (
     <p className="text-label">
       <time dateTime={date}>{formatPostDate(date, locale)}</time>
-      {switchHref ? (
-        <>
+      {translations.map(({ locale: to, href }) => (
+        <span key={to}>
           {" · "}
-          <LanguageSwitch from={locale} href={switchHref} />
-        </>
-      ) : null}
+          <LanguageSwitch to={to} href={href} />
+        </span>
+      ))}
       {showDraftMarker ? (
         <>
           {" · "}

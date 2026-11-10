@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Fragment } from "react";
 import Link from "next/link";
 import { publishedFor } from "@/lib/content";
-import { indexPath, otherLocale, postPath, UI } from "@/lib/locales";
+import { indexAlternates, indexPath, otherLocales, postPath, UI } from "@/lib/locales";
 import { LanguageSwitch } from "@/components/language-switch";
 import { SmearTitle } from "@/components/smear-title";
 import { PostMeta } from "@/components/post-meta";
@@ -16,11 +16,7 @@ export function generateMetadata(): Metadata {
     description: UI.en.indexDescription,
     alternates: {
       canonical: indexPath("en"),
-      languages: {
-        en: indexPath("en"),
-        de: indexPath("de"),
-        "x-default": indexPath("en"),
-      },
+      languages: indexAlternates(),
     },
     // lib/metadata.ts's routeOpenGraph supplies this route's own og:url
     // without hand-restating og:type/og:site_name/og:locale — see that
@@ -46,7 +42,9 @@ export default async function WritingIndex() {
       </Link>
       <div className="flex flex-row items-baseline gap-md">
         <h1 className="text-label">{UI[locale].indexKicker}</h1>
-        <LanguageSwitch from={locale} href={indexPath(otherLocale(locale))} />
+        {otherLocales(locale).map((to) => (
+          <LanguageSwitch key={to} to={to} href={indexPath(to)} />
+        ))}
       </div>
       {entries.length === 0 ? (
         <div className="flex flex-col gap-md">
@@ -68,7 +66,7 @@ export default async function WritingIndex() {
               </SmearTitle>
               <div className="flex flex-col gap-md">
                 <p className="max-w-prose text-standfirst">{entry.frontmatter.standfirst}</p>
-                {/* switchHref is always null here: the always-present
+                {/* translations is always empty here: the always-present
                     index-level language switch on the kicker line already
                     satisfies I18N-01's "index switcher always rendered"
                     rule. A second link inside the article would put a
@@ -77,7 +75,7 @@ export default async function WritingIndex() {
                 <PostMeta
                   locale={locale}
                   date={entry.frontmatter.date}
-                  switchHref={null}
+                  translations={[]}
                   draft={entry.frontmatter.draft}
                 />
               </div>

@@ -41,8 +41,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticEntries: MetadataRoute.Sitemap = [
     { url: SITE_ROOT },
     { url: abs("/cv") },
-    { url: abs(indexPath("en")) },
-    { url: abs(indexPath("de")) },
+    ...LOCALES.map((locale) => ({ url: abs(indexPath(locale)) })),
   ];
 
   const postEntries = (

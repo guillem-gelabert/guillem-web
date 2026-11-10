@@ -743,8 +743,7 @@ test("the sitemap's post entries equal lib/content.ts's real published selection
   const staticUrls = new Set([
     SITE_URL.origin,
     new URL("/cv", SITE_URL).toString(),
-    new URL(indexPath("en"), SITE_URL).toString(),
-    new URL(indexPath("de"), SITE_URL).toString(),
+    ...(LOCALES as readonly Locale[]).map((locale) => new URL(indexPath(locale), SITE_URL).toString()),
   ]);
   const actualPostUrls = new Set(locs.filter((loc) => !staticUrls.has(loc)));
 

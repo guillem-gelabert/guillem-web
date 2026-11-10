@@ -8,6 +8,11 @@ duplicate `.planning/`'s detail. Update the three lists below when a phase or pl
 
 ## Done
 
+- **Catalan locale + "El pitjor negoci del món"** (2026-11-10) — third locale `ca` at `/escrits`
+  (`app/(ca)`, 404 at `/escrits/no-trobat`), language links and hreflang now list every twin
+  instead of assuming one. The Hempton post shipped in Catalan, English and German under
+  `translationKey: ai-worst-business`. No Catalan OG card yet: `/escrits` uses the English one.
+
 - **Embeddings article, Game Boy screen** (2026-10-14) — `theme: gameboy` renders a post through
   `components/gameboy-screen.tsx`: dmg-perfect's four-shade quantise and dot shadow as an SVG
   filter per block, the dot matrix as a fixed canvas, scrolling snapped to whole dots, Yore in

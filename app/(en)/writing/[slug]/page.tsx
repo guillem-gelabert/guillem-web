@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { findBySlug, loadPostModule, publishedFor, shadesOf, translationOf } from "@/lib/content";
-import { indexPath, postPath, UI } from "@/lib/locales";
+import { findBySlug, loadPostModule, publishedFor, shadesOf, translationsOf } from "@/lib/content";
+import { indexPath, postAlternates, postPath, translationLinks, UI } from "@/lib/locales";
 import { Prose } from "@/components/prose";
 import { PostTitle } from "@/components/post-title";
 import { PostMeta } from "@/components/post-meta";
@@ -35,21 +35,12 @@ export async function generateMetadata({
   const entry = findBySlug(await publishedFor("en"), slug);
   if (!entry) return {};
 
-  const twin = await translationOf(entry);
-  const languages: Record<string, string> = {
-    en: postPath("en", entry.slug),
-  };
-  if (twin) {
-    languages.de = postPath("de", twin.slug);
-  }
-  languages["x-default"] = postPath("en", entry.slug);
-
   return {
     title: entry.frontmatter.title,
     description: entry.frontmatter.standfirst,
     alternates: {
       canonical: postPath("en", entry.slug),
-      languages,
+      languages: postAlternates(entry, await translationsOf(entry)),
     },
     // postOpenGraph, not routeOpenGraph: this is the one segment with a
     // card of its own. The generic helper would name the locale's site-wide
@@ -88,7 +79,7 @@ export default async function WritingPost({
   if (!entry) notFound();
 
   const { default: Post } = await loadPostModule(slug);
-  const twin = await translationOf(entry);
+  const twins = await translationsOf(entry);
 
   const gameboy = entry.frontmatter.theme === "gameboy" ? shadesOf(entry.frontmatter) : null;
 
@@ -114,7 +105,7 @@ export default async function WritingPost({
             <PostMeta
               locale="en"
               date={entry.frontmatter.date}
-              switchHref={twin ? postPath("de", twin.slug) : null}
+              translations={translationLinks(twins)}
               draft={entry.frontmatter.draft}
             />
           </div>

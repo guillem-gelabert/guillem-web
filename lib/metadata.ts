@@ -7,6 +7,7 @@ import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "./site";
 const OG_LOCALE: Record<Locale, string> = {
   en: "en_GB",
   de: "de_DE",
+  ca: "ca_ES",
 };
 
 /**
@@ -31,6 +32,11 @@ const SITE_CARD: Record<Locale, { url: string; alt: string }> = {
   de: {
     url: "/og/site-de.png",
     alt: "Guillem Gelabert — Datenvisualisierung, Texte und interaktive Arbeiten.",
+  },
+  // No Catalan card captured yet: the English one, with a Catalan alt.
+  ca: {
+    url: "/og/site-en.png",
+    alt: "Guillem Gelabert — visualització de dades, textos i treballs interactius.",
   },
 };
 
