@@ -24,8 +24,8 @@ export type PostFrontmatter = {
    *  four shades, dot matrix, dot shadow, ghosting. Needs shades. */
   theme?: "gameboy";
   /** A seamless tile under public/backgrounds/, repeated behind the post at
-   *  full strength, with the header and text on white panels over it and
-   *  the text in three columns on desktop (components/post-backdrop.tsx). */
+   *  full strength, with the header and text on white panels over it
+   *  (components/post-backdrop.tsx). */
   backdrop?: string;
   /** Keep the standfirst out of the page. It still feeds the meta
    *  description and link previews. */

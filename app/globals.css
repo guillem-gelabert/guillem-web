@@ -494,43 +494,16 @@ body:has(.seam-scene) {
 }
 
 /* A post with a backdrop (components/post-backdrop.tsx): the dream runs at
-   full strength behind the page, and the text sits on white. The header is
-   one white panel. The body is one white panel on small screens and, from
-   1024px, three newspaper columns, each on its own white band with the
-   dream showing in the gutters between them. CSS columns cannot give a
-   column its own box, so the bands are a gradient laid out on the same
-   arithmetic as the columns: each band is a column plus --band-pad either
-   side, and the gutter left showing is --band-gap minus two pads. */
+   full strength behind the page, and the text sits on white. The header and
+   the body are each one white panel, one reading measure wide (65ch of the
+   body face, as .prose-site, plus the padding), so on a wide screen the
+   dream fills the rest of the row. The panels set the body face only so
+   that their ch is the prose's ch; every line inside keeps its own role. */
 .backdrop-panel,
-.backdrop-columns {
+.backdrop-text {
   background: var(--color-paper);
   padding: var(--spacing-lg);
-}
-
-.backdrop-columns .prose-site {
-  max-width: none;
-}
-
-.backdrop-columns .prose-site > :first-child {
-  margin-top: 0;
-}
-
-@media (min-width: 1024px) {
-  .backdrop-columns {
-    --band-pad: var(--spacing-lg);
-    --band-gap: 96px;
-    --band-col: calc((100% - 2 * var(--band-pad) - 2 * var(--band-gap)) / 3);
-    column-count: 3;
-    column-gap: var(--band-gap);
-    background: linear-gradient(
-      to right,
-      var(--color-paper) 0 calc(2 * var(--band-pad) + var(--band-col)),
-      transparent calc(2 * var(--band-pad) + var(--band-col)) calc(var(--band-col) + var(--band-gap)),
-      var(--color-paper) calc(var(--band-col) + var(--band-gap))
-        calc(2 * var(--band-col) + var(--band-gap) + 2 * var(--band-pad)),
-      transparent calc(2 * var(--band-col) + var(--band-gap) + 2 * var(--band-pad))
-        calc(2 * var(--band-col) + 2 * var(--band-gap)),
-      var(--color-paper) calc(2 * var(--band-col) + 2 * var(--band-gap))
-    );
-  }
+  font-family: var(--font-body);
+  font-size: 18px;
+  max-width: calc(65ch + 2 * var(--spacing-lg));
 }

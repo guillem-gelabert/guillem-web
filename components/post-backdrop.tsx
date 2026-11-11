@@ -8,7 +8,7 @@
 // features are a fixed pixel size, and halving it for retina made them too
 // fine to read as a dream. It shows at full strength: the text never sits
 // on it, only on the white panels app/globals.css gives a backdrop post
-// (.backdrop-panel, .backdrop-columns).
+// (.backdrop-panel, .backdrop-text).
 export function PostBackdrop({ src }: { src: string | undefined }) {
   if (!src) return null;
   return (

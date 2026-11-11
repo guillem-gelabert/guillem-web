@@ -117,7 +117,7 @@ export default async function WritingPost({
         </div>
       </header>
       {backdrop ? (
-        <div className="backdrop-columns">
+        <div className="backdrop-text">
           <Prose>
             <Post />
           </Prose>
