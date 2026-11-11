@@ -9,6 +9,10 @@ type: post
 theme: pink-paper
 kicker: "Künstliche Intelligenz"
 hideStandfirst: true
+leadImage: "/work/hempton-dream.webp"
+leadImageAlt: "John Hemptons Porträt, durch DeepDream geschickt, bis nur noch der Umriss seines Kopfes bleibt, gefüllt mit Hundegesichtern und Augen."
+leadCaption: "John Hempton, durch DeepDream."
+pullQuote: "Das schlechteste Investmentprofil, das er je gesehen hat"
 ---
 
 Wegen einer ideologischen Voreingenommenheit, die ich lieber nicht hätte, gefällt mir der Gedanke, dass KI eine Blase ist und bald platzen wird. Vorurteile sollte man nicht füttern. Klüger ist es, glaube ich, Leute zu suchen, die intelligenter und belesener sind als man selbst oder die das Gegenteil denken. Leider bin ich, den Göttern des Algorithmus ausgeliefert, bei [diesem Interview](https://joewalker.substack.com/p/fibre-optics-mark-ii-why-data-centres) mit [John Hempton](https://en.wikipedia.org/wiki/John_Hempton) gelandet, einem Leerverkäufer, der als einer der Ersten die Unregelmässigkeiten bei Wirecard anprangerte. Es hat mir die weltliche Genugtuung verschafft, Argumente zu finden, die meine fanatischen Ansichten rechtfertigen.

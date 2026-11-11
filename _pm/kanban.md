@@ -322,6 +322,12 @@ to break Floyd–Steinberg's lattice.
   rule, Georgia 20px body with teal links, grey sans meta. No masthead/logo/name. Replaces the
   DeepDream backdrop: `backdrop` field, post-backdrop component/CSS/spec and the tile removed
   (the dream stays as the grid thumbnail). Tests: `tests/pink-paper.spec.ts`.
+  Then reworked into a newspaper front page (no masthead, no invented content): small-caps top
+  bar + double rules, bold display headline, text in two justified hyphenated columns beside the
+  DeepDream portrait as lead photo (new `leadImage`/`leadImageAlt`/`leadCaption`) and a pull
+  quote from the post's own text (`pullQuote`), an "Inside" column linking the locale's other
+  posts, a bold "Guillem Gelabert, <date> —" byline opening the first paragraph (MDX `p`
+  override), and A.I. for AI in the English post and its grid entry.
 
 ## Next
 

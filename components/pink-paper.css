@@ -1,21 +1,23 @@
-/* Theme: pink-paper (components/pink-paper.tsx). Imported by that
-   component, so it only loads on posts that use it. Everything is scoped
-   to .pp, and the page behind it takes the paper through body:has(.pp). */
+/* Theme: pink-paper (components/pink-paper.tsx): a newspaper front page.
+   Imported by that component, so it only loads on posts that use it.
+   Everything is scoped to .pp, and the page behind it takes the paper
+   through body:has(.pp). */
 
 .pp {
   --color-paper: #fff1e5;
   --color-ink: #33302e;
   --pp-headline: #1a1817;
-  --pp-rule: #ccc1b7;
+  --pp-rule: #4d4845;
+  --pp-rule-light: #ccc1b7;
   --pp-muted: #66605c;
+  --pp-red: #990f3d;
   --pp-link: #0d7680;
-  --pp-kicker: #0f5499;
-  --pp-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
   --pp-serif: Georgia, "Times New Roman", serif;
+  --pp-display: var(--font-source-serif-4), var(--pp-serif);
 
-  max-width: 44rem;
+  max-width: 90rem;
   margin: 0 auto;
-  padding: 24px 20px 96px;
+  padding: 16px 20px 80px;
   color: var(--color-ink);
 }
 
@@ -23,76 +25,109 @@ body:has(.pp) {
   background: #fff1e5;
 }
 
+/* ---------- Top bar: back link, section, date; then a double rule ---------- */
+.pp-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 24px;
+  padding: 6px 0 8px;
+  border-bottom: 4px double var(--pp-rule);
+  font: 400 15px/1.4 var(--pp-serif);
+  font-variant: small-caps;
+  letter-spacing: 0.06em;
+}
 .pp-back {
-  display: inline-block;
   padding: 4px 0;
-  font: 400 14px/1.4 var(--pp-sans);
-  color: var(--pp-muted);
+  color: var(--color-ink);
   text-decoration: none;
 }
 .pp-back:hover,
 .pp-back:focus-visible {
-  color: var(--pp-headline);
   text-decoration: underline;
 }
-
-.pp-header {
-  padding-bottom: 20px;
-  margin-bottom: 28px;
-  border-bottom: 1px solid var(--pp-rule);
+.pp-kicker {
+  margin: 0;
+  color: var(--pp-red);
+}
+.pp-meta .text-label {
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: none;
+  color: var(--color-ink);
+}
+.pp-meta a {
+  color: inherit;
 }
 
-.pp-kicker {
-  margin: 32px 0 10px;
-  font: 600 18px/1.2 var(--pp-sans);
-  color: var(--pp-kicker);
+/* ---------- Sheet: the story, and the Inside column ---------- */
+.pp-sheet {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 32px;
+  padding: 24px 0 28px;
+  border-bottom: 4px double var(--pp-rule);
 }
 
 .pp-headline {
   margin: 0;
-  font-family: var(--font-source-serif-4), var(--pp-serif);
+  font-family: var(--pp-display);
   font-optical-sizing: auto;
-  font-weight: 500;
-  font-size: clamp(34px, 6vw, 52px);
-  line-height: 1.08;
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  font-size: clamp(40px, 7vw, 86px);
+  line-height: 1;
+  letter-spacing: -0.015em;
   color: var(--pp-headline);
   text-wrap: balance;
 }
 
 .pp-standfirst {
-  margin: 16px 0 0;
-  font: 400 22px/1.35 var(--pp-serif);
+  margin: 18px 0 0;
+  font: italic 400 24px/1.3 var(--pp-display);
   color: var(--color-ink);
 }
 
-.pp-meta {
-  margin-top: 20px;
-}
-.pp-meta .text-label {
-  font: 400 14px/1.4 var(--pp-sans);
-  letter-spacing: normal;
-  text-transform: none;
-  color: var(--pp-muted);
-}
-.pp-meta a {
-  color: var(--pp-muted);
+.pp-lede {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 28px;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--pp-rule);
 }
 
-/* The body: Georgia at 20px, the column already narrow enough to be the
-   measure. */
+/* The text: newspaper setting. Justified and hyphenated (the root layouts
+   set <html lang>, which hyphens: auto needs), no gap between paragraphs,
+   an indent on every paragraph after the first. */
 .pp .prose-site {
   max-width: none;
   font-family: var(--pp-serif);
-  font-size: 20px;
-  line-height: 1.6;
+  font-size: 17px;
+  line-height: 1.5;
   color: var(--color-ink);
+  hyphens: auto;
 }
 .pp .prose-site p {
   font-family: var(--pp-serif);
-  font-size: 20px;
-  line-height: 1.6;
-  margin: 0 0 22px;
+  font-size: 17px;
+  line-height: 1.5;
+  margin: 0;
+  text-indent: 1.2em;
+}
+.pp .prose-site > p:first-child,
+.pp .prose-site > :first-child p:first-child {
+  text-indent: 0;
+}
+.pp .prose-site em {
+  font-family: var(--pp-serif);
+}
+/* The byline that opens the first paragraph (bylineComponents in
+   pink-paper.tsx): a true bold, over the site prose's 530 for <strong>. */
+.pp .prose-site strong.pp-byline {
+  font-family: var(--pp-serif);
+  font-weight: 700;
+  color: var(--pp-headline);
 }
 .pp .prose-site a,
 .pp .prose-site a:hover {
@@ -103,6 +138,85 @@ body:has(.pp) {
 .pp .prose-site a:hover {
   text-decoration-color: var(--pp-link);
 }
-.pp .prose-site em {
-  font-family: var(--pp-serif);
+
+/* ---------- Lead photo and pull quote ---------- */
+.pp-figure {
+  margin: 0;
+}
+.pp-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--pp-rule);
+}
+.pp-figure figcaption {
+  margin-top: 6px;
+  font: 400 13px/1.4 var(--pp-serif);
+  color: var(--pp-muted);
+}
+.pp-pull {
+  margin: 20px 0 0;
+  padding: 4px 0 0 18px;
+  border-left: 1px solid var(--pp-rule);
+}
+.pp-pull p {
+  margin: 0;
+  font: italic 400 28px/1.2 var(--pp-display);
+  color: var(--pp-headline);
+}
+
+/* ---------- Inside ---------- */
+.pp-inside-title {
+  margin: 0 0 10px;
+  font: 700 26px/1.1 var(--pp-display);
+  color: var(--pp-red);
+}
+.pp-inside {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pp-inside li {
+  padding: 8px 0;
+  border-top: 1px solid var(--pp-rule-light);
+  font: 400 17px/1.35 var(--pp-serif);
+}
+.pp-inside li::before {
+  content: "• ";
+}
+.pp-inside a {
+  color: var(--color-ink);
+  text-decoration: none;
+}
+.pp-inside a:hover,
+.pp-inside a:focus-visible {
+  text-decoration: underline;
+}
+
+/* ---------- Desktop: the front page ---------- */
+@media (min-width: 1024px) {
+  /* Only when there is an Inside column: a locale with no other posts
+     gets the story across the whole sheet. */
+  .pp-sheet:has(.pp-side) {
+    grid-template-columns: minmax(0, 1fr) 16rem;
+  }
+  .pp-side {
+    padding-left: 28px;
+    border-left: 1px solid var(--pp-rule);
+  }
+  /* The text takes the larger share, so each of its two columns stays
+     around 45 characters and the pair stays short. */
+  .pp-lede {
+    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+  }
+  .pp-body .prose-site {
+    column-count: 2;
+    column-gap: 24px;
+    column-rule: 1px solid var(--pp-rule-light);
+    text-align: justify;
+  }
+  .pp-aside {
+    padding-left: 24px;
+    border-left: 1px solid var(--pp-rule);
+  }
 }

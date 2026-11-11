@@ -85,8 +85,24 @@ export default async function WritingPost({
   if (entry.frontmatter.theme === "pink-paper") {
     return (
       <PinkPaperArticle
+        locale="en"
         backLabel={UI.en.homeLink}
         kicker={entry.frontmatter.kicker}
+        lead={
+          entry.frontmatter.leadImage
+            ? {
+                src: entry.frontmatter.leadImage,
+                alt: entry.frontmatter.leadImageAlt ?? "",
+                caption: entry.frontmatter.leadCaption,
+              }
+            : undefined
+        }
+        pullQuote={entry.frontmatter.pullQuote}
+        inside={(await publishedFor("en"))
+          .filter((post) => post.frontmatter.translationKey !== entry.frontmatter.translationKey)
+          .sort((a, b) => b.frontmatter.date.localeCompare(a.frontmatter.date))
+          .slice(0, 4)
+          .map((post) => ({ title: post.frontmatter.title, href: postPath("en", post.slug) }))}
         title={entry.frontmatter.title}
         standfirst={entry.frontmatter.hideStandfirst ? undefined : entry.frontmatter.standfirst}
         meta={
@@ -97,9 +113,9 @@ export default async function WritingPost({
             draft={entry.frontmatter.draft}
           />
         }
-      >
-        <Post />
-      </PinkPaperArticle>
+        date={entry.frontmatter.date}
+        post={Post}
+      />
     );
   }
 

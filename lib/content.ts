@@ -25,8 +25,15 @@ export type PostFrontmatter = {
    *  "pink-paper": components/pink-paper.tsx — set like a business paper's
    *  article: salmon paper, kicker, display-serif headline, Georgia body. */
   theme?: "gameboy" | "pink-paper";
-  /** The topic line over the headline (theme pink-paper). */
+  /** The section line in the top bar (theme pink-paper). */
   kicker?: string;
+  /** Theme pink-paper's lead photo: an image under public/, 640x640, its
+   *  alt text and an optional caption. */
+  leadImage?: string;
+  leadImageAlt?: string;
+  leadCaption?: string;
+  /** Theme pink-paper's pull quote: a phrase from the post's own text. */
+  pullQuote?: string;
   /** Keep the standfirst out of the page. It still feeds the meta
    *  description and link previews. */
   hideStandfirst?: boolean;
@@ -114,8 +121,17 @@ export function assertFrontmatter(fm: unknown, file: string): asserts fm is Post
         problems.push("theme gameboy needs shades");
       }
     }
-    if (f.kicker !== undefined && (typeof f.kicker !== "string" || !f.kicker)) {
-      problems.push("kicker must be a non-empty string");
+    for (const key of ["kicker", "leadImageAlt", "leadCaption", "pullQuote"] as const) {
+      if (f[key] !== undefined && (typeof f[key] !== "string" || !f[key])) {
+        problems.push(`${key} must be a non-empty string`);
+      }
+    }
+    if (f.leadImage !== undefined) {
+      if (typeof f.leadImage !== "string" || !/^\/[\w/.-]+\.(webp|png|jpg)$/.test(f.leadImage)) {
+        problems.push("leadImage must be a /path/to/file.webp|png|jpg under public/");
+      } else if (!f.leadImageAlt) {
+        problems.push("leadImage needs leadImageAlt");
+      }
     }
     if (f.hideStandfirst !== undefined && typeof f.hideStandfirst !== "boolean") {
       problems.push("hideStandfirst must be true or false");
