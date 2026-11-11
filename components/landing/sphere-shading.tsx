@@ -50,13 +50,15 @@ const MIN_ELEVATION = (35 * Math.PI) / 180;
 // How fast the light catches up with the pointer, as a time constant.
 const EASE_MS = 50;
 
-// Shadow: Lambert diffuse over an ambient floor, then an exposure,
-//   tone = min(1, EXPOSURE * (AMBIENT + (1 - AMBIENT) * max(0, N.L)))
-// AMBIENT is the fill light: the side turned away from the light keeps that
-// much of its tone instead of going solid black. EXPOSURE sets the white
-// point: everything within about 40deg of the light clips to no dots at
-// all, as the picture underneath is already the lit surface.
-const AMBIENT = 0.12;
+// Shadow: Lambert diffuse over a hemisphere ambient, then an exposure,
+//   tone = min(1, EXPOSURE * (AMBIENT * (1 + N.L) / 2 + (1 - AMBIENT) * max(0, N.L)))
+// AMBIENT is the fill light, and it comes from the light's side of the sky:
+// it is AMBIENT/2 at the terminator and falls to 0 on the point facing
+// straight away, so the dark side keeps a gradient instead of a flat floor.
+// EXPOSURE sets the white point: everything within about 40deg of the light
+// clips to no dots at all, as the picture underneath is already the lit
+// surface.
+const AMBIENT = 0.3;
 const EXPOSURE = 1.3;
 
 // Highlight: Blinn-Phong specular for a viewer straight above the page,
@@ -143,6 +145,7 @@ function draw(sphere: Sphere) {
   const sx = sphere.offset & mask;
   const sy = (sphere.offset >> 6) & mask;
   const diffuse = 1 - AMBIENT;
+  const fill = AMBIENT / 2;
   for (let y = 0; y < size; y += 1) {
     const row = y * size;
     const tileRow = ((y + sy) & mask) * BLUE_NOISE_SIZE;
@@ -154,7 +157,7 @@ function draw(sphere: Sphere) {
         continue;
       }
       const lambert = nx[x] * lx + yTerm + z * lz;
-      const tone = EXPOSURE * (AMBIENT + (lambert > 0 ? diffuse * lambert : 0));
+      const tone = EXPOSURE * (fill * (1 + lambert) + (lambert > 0 ? diffuse * lambert : 0));
       shadow[row + x] = tone < tile[tileRow + ((x + sx) & mask)] ? BLACK : 0;
     }
   }
