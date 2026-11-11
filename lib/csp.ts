@@ -99,9 +99,14 @@ export function buildCsp({ dev }: { dev: boolean }): string {
     ],
     // Identical in dev and prod — see "TWO inline-style consumers" above.
     ["style-src", ["'self'", "'unsafe-inline'"]],
-    ["img-src", ["'self'", "data:"]],
+    // blob: for glTF textures. GLTFLoader hands images embedded in a .glb to
+    // the browser as blob: URLs: <img> in Safari (img-src), fetch() into
+    // createImageBitmap elsewhere (connect-src). Only same-origin script can
+    // mint a blob: URL, so this admits no new origin. Reader: the PES
+    // avatars in components/mdx/player-radar.
+    ["img-src", ["'self'", "data:", "blob:"]],
     ["font-src", ["'self'"]],
-    ["connect-src", dev ? ["'self'", "ws:"] : ["'self'"]],
+    ["connect-src", dev ? ["'self'", "blob:", "ws:"] : ["'self'", "blob:"]],
     ["frame-ancestors", ["'none'"]],
     ["base-uri", ["'self'"]],
     ["form-action", ["'none'"]],

@@ -12,7 +12,7 @@ test("buildCsp({dev:false}) equals the exact production policy, character for ch
   // table — an assertion that imported its expected value from the same
   // function under test would prove nothing.
   const expected =
-    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; object-src 'none'; upgrade-insecure-requests";
+    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; object-src 'none'; upgrade-insecure-requests";
   assert.equal(buildCsp({ dev: false }), expected);
 });
 

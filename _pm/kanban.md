@@ -8,6 +8,14 @@ duplicate `.planning/`'s detail. Update the three lists below when a phase or pl
 
 ## Done
 
+- **Embeddings article, interactive 5: player radar** (2026-11-11) — `<PlayerRadar />` replaces
+  placeholder 5. EA FC26 ratings on a 0–99 radar (6 headline or 29 search attributes, up to five
+  overlays, full table), with each player standing above it as a PES 6 avatar from
+  `~/Developer/personal/pes-avatars`, dithered into the page's four shades by its own shader.
+  24 curated players baked by `scripts/bake-pes-players.py` (9.2 MB under
+  `public/figures/what-are-embeddings/pes/`). CSP gains `blob:` in img-src/connect-src for the
+  glTF textures.
+
 - **Catalan locale + "El pitjor negoci del món"** (2026-11-10) — third locale `ca` at `/escrits`
   (`app/(ca)`, 404 at `/escrits/no-trobat`), language links and hreflang now list every twin
   instead of assuming one. The Hempton post shipped in Catalan, English and German under

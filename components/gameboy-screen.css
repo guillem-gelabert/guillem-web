@@ -28,6 +28,12 @@
   filter: none;
 }
 
+/* The player radar's avatars animate, so the radar filters its static
+   parts itself and quantises the canvas in a shader (player-radar.module.css). */
+.gb-screen .prose-site > .player-radar {
+  filter: none;
+}
+
 .gb-page {
   display: flex;
   flex-direction: column;

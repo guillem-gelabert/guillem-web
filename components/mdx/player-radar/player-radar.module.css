@@ -1,0 +1,267 @@
+/* Interactive 5 on the Game Boy page. The root escapes the page's
+   per-block filter (gameboy-screen.css) because the avatar canvas animates
+   and re-running an SVG filter every frame is what made phones unusable;
+   the canvas is quantised by its own shader instead. The static parts opt
+   back into the filter one by one, so they get the same dot shadow as the
+   prose. Every length is a whole number of dots. */
+.root {
+  --d: var(--gb-dot, 1.5px);
+  --shade-0: var(--gb-shade-0, #adc44f);
+  --shade-1: var(--gb-shade-1, #8ba238);
+  --shade-2: var(--gb-shade-2, #3d5b35);
+  --shade-3: var(--gb-shade-3, #162d16);
+
+  display: grid;
+  gap: calc(var(--d) * 12);
+  margin: 0 0 calc(var(--d) * 16);
+  color: var(--shade-3);
+  font-size: calc(var(--d) * 13);
+  line-height: calc(var(--d) * 20);
+  font-variant-numeric: tabular-nums;
+  /* the outermost avatar names may run past the column on a phone */
+  overflow-x: clip;
+}
+
+.controls,
+.names,
+.body,
+.note {
+  filter: url(#gb-screen);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* --- controls --------------------------------------------------------- */
+
+.controls {
+  display: grid;
+  gap: calc(var(--d) * 8);
+}
+
+.root .roster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--d) * 6) calc(var(--d) * 12);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* .root .x outranks the prose layer's ".prose-site li + li" spacing */
+.root .slot {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--d) * 4);
+  margin: 0;
+}
+
+.key {
+  display: inline-block;
+  flex: none;
+  width: calc(var(--d) * 18);
+  height: calc(var(--d) * 8);
+}
+
+.root select,
+.root button {
+  font: inherit;
+  color: var(--shade-3);
+  background: var(--shade-0);
+  border: var(--d) solid var(--shade-3);
+  border-radius: 0;
+  padding: 0 calc(var(--d) * 4);
+  height: calc(var(--d) * 18);
+  cursor: pointer;
+}
+
+.root select {
+  appearance: none;
+  padding-right: calc(var(--d) * 12);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--shade-3) 50%),
+    linear-gradient(135deg, var(--shade-3) 50%, transparent 50%);
+  background-position:
+    calc(100% - var(--d) * 7) 50%,
+    calc(100% - var(--d) * 4) 50%;
+  background-size: calc(var(--d) * 3) calc(var(--d) * 3);
+  background-repeat: no-repeat;
+}
+
+.root button:disabled {
+  color: var(--shade-1);
+  border-color: var(--shade-1);
+  cursor: default;
+}
+
+.root select:focus-visible,
+.root button:focus-visible {
+  outline: calc(var(--d) * 2) solid var(--shade-2);
+  outline-offset: var(--d);
+}
+
+.root .remove {
+  width: calc(var(--d) * 18);
+  padding: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: calc(var(--d) * 8);
+}
+
+.toggle {
+  display: flex;
+}
+
+.toggle button + button {
+  margin-left: calc(var(--d) * -1);
+}
+
+/* The selected view is dark text on shade 1: light text on a dark fill
+   loses its strokes to the filter's dot shadow. */
+.root .toggle button[aria-checked="true"] {
+  background: var(--shade-1);
+}
+
+/* --- avatars ---------------------------------------------------------- */
+
+.strip {
+  position: relative;
+  height: calc(var(--d) * 160);
+  margin-bottom: calc(var(--d) * 24);
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  background: var(--shade-0);
+}
+
+.root .names {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: calc(var(--d) * 20);
+  margin: calc(var(--d) * 2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.root .names li {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--d) * 3);
+  margin: 0;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.strip[data-count="4"] .names .key,
+.strip[data-count="5"] .names .key {
+  display: none;
+}
+
+/* --- radar and table -------------------------------------------------- */
+
+.body {
+  display: grid;
+  gap: calc(var(--d) * 12);
+  justify-items: center;
+}
+
+.radar {
+  display: block;
+  width: 100%;
+  max-width: calc(var(--d) * 280);
+  overflow: visible;
+}
+
+.axisLabel {
+  font-size: 17px;
+  cursor: default;
+}
+
+.body[data-detailed] .axisLabel {
+  font-size: 11px;
+}
+
+.ringLabel {
+  font-size: 11px;
+}
+
+.tableWrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.root .table {
+  width: 100%;
+  margin: 0;
+  border-collapse: collapse;
+}
+
+/* The article's own table style (globals.css .prose-site th/td), tightened
+   so five players fit beside the attribute names. */
+.root .table th,
+.root .table td {
+  padding: calc(var(--d) * 2) calc(var(--d) * 4);
+  font-size: 14px;
+  line-height: calc(var(--d) * 14);
+  font-weight: 400;
+  text-align: right;
+  text-transform: none;
+  letter-spacing: 0;
+  white-space: nowrap;
+  border-bottom: var(--d) solid var(--shade-1);
+}
+
+.root .table thead th {
+  text-transform: uppercase;
+  border-bottom-color: var(--shade-3);
+}
+
+.root .table th:first-child,
+.root .table td:first-child {
+  padding-left: 0;
+}
+
+.root .table th:last-child,
+.root .table td:last-child {
+  padding-right: 0;
+}
+
+.root .table th[scope="row"],
+.root .table thead th:first-child {
+  text-align: left;
+}
+
+.table thead th span {
+  vertical-align: middle;
+  margin-left: calc(var(--d) * 2);
+}
+
+.table thead th .key {
+  vertical-align: middle;
+}
+
+.table tbody tr[data-hovered] {
+  background: var(--shade-1);
+}
+
+.note {
+  margin: 0;
+  color: var(--shade-2);
+}

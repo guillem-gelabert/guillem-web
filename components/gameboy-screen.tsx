@@ -106,6 +106,8 @@ export function GameboyScreen({
     const root = document.documentElement.style;
     root.setProperty("--color-paper", cfg.shades[0]);
     root.setProperty("--color-ink", cfg.shades[3]);
+    // the four shades by name, for components that draw in them directly
+    cfg.shades.forEach((shade, i) => root.setProperty(`--gb-shade-${i}`, shade));
   }, [cfg.shades]);
 
   const rgb = cfg.shades.map(hex);
