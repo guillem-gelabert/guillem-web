@@ -64,6 +64,8 @@ const SIZE = 200;
 const C = SIZE / 2;
 const R = 70;
 const RINGS = [20, 40, 60, 80];
+// the radar-grid sprite's height in viewBox units: corner to corner, plus its rim
+const GRID_H = 2 * R + 6;
 
 const bySlug = new Map(data.players.map((p) => [p.slug, p]));
 const sorted = [...data.players].sort((a, b) => a.name.localeCompare(b.name));
@@ -126,7 +128,9 @@ function Card({
         <div>
           <dt>Nationality</dt>
           <dd>
-            <Flag nation={player.nation} className={styles.flag} />
+            <span className={styles.flagFrame}>
+              <Flag nation={player.nation} className={styles.flag} />
+            </span>
           </dd>
         </div>
         <div>
@@ -201,7 +205,7 @@ export function PlayerRadar() {
       data-detailed={detailed ? "" : undefined}
     >
       <div className={styles.titleBar} aria-hidden="true">
-        <span>Player Comparison</span>
+        <div className={styles.title} />
       </div>
 
       <div className={styles.pitch}>
@@ -213,10 +217,33 @@ export function PlayerRadar() {
           <Card side={0} player={players[0]} other={players[1]} onPick={(s) => pick(0, s)} />
 
           <svg className={styles.radar} viewBox={`0 0 ${SIZE} ${SIZE}`} role="img" aria-label={title} data-testid="radar">
-            <polygon points={ring(n, SCALE)} className={styles.radarPlate} />
-            {RINGS.map((r) => (
-              <polygon key={r} points={ring(n, r)} className={styles.radarRing} />
-            ))}
+            <defs>
+              <filter id="player-radar-glow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="2.2" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+            {detailed ? (
+              <>
+                <polygon points={ring(n, SCALE)} className={styles.radarPlate} />
+                {RINGS.map((r) => (
+                  <polygon key={r} points={ring(n, r)} className={styles.radarRing} />
+                ))}
+              </>
+            ) : (
+              // the sheet's hexagon, rim and rings included, sized so its
+              // outer corners sit on the 99 ring
+              <image
+                href="/figures/what-are-embeddings/pes-ui/radar-grid.webp"
+                x={C - (GRID_H * 145) / 173 / 2}
+                y={C - GRID_H / 2}
+                width={(GRID_H * 145) / 173}
+                height={GRID_H}
+              />
+            )}
             {axes.map((axis, i) => {
               const [x, y] = at(i, n, SCALE);
               return (
@@ -237,6 +264,7 @@ export function PlayerRadar() {
                 points={values(p).map((v, i) => at(i, n, v).join(",")).join(" ")}
                 className={styles.radarShape}
                 style={{ fill: SIDES[k].colour, stroke: SIDES[k].colour }}
+                filter="url(#player-radar-glow)"
                 data-testid="series"
               />
             ))}

@@ -26,6 +26,15 @@ const EXTRAS: [string, number][] = [
 // Every change of clip, and every repeat, is a crossfade this long (at most
 // a third of the clip), so no seam ever shows as a jump.
 const FADE = 0.4;
+// The camera's angle down onto the pitch.
+const TILT = (10 * Math.PI) / 180;
+// The contact shadow (three.js's webgl_shadow_contact): how deep a strip of
+// pitch it covers, how high above the pitch a body still darkens it, how
+// dark, and how soft.
+const SHADOW_DEPTH = 1.6;
+const SHADOW_HEIGHT = 0.9;
+const SHADOW_DARKNESS = 2.2;
+const SHADOW_BLUR = 1;
 // One full turn on the spot every SPIN seconds.
 const SPIN = 30;
 
@@ -53,15 +62,18 @@ const SLOT = 0.8;
  * `--slot-1`… as a share of its width (default: the centres of equal
  * slots), so a media query can move them to the edges or into a strip.
  *
- * Colour management is ignored on purpose (the RGB cube on the same page
- * switches it off globally): textures are sampled as stored and lit there.
+ * Every texture is marked sRGB so face, hair, skin and kit are decoded
+ * the same way and match where they meet.
  */
 export async function createStage(host: HTMLElement, canvas: HTMLCanvasElement): Promise<Stage> {
-  const [THREE, { GLTFLoader }, { clone: cloneSkinned }] = await Promise.all([
-    import("three"),
-    import("three/addons/loaders/GLTFLoader.js"),
-    import("three/addons/utils/SkeletonUtils.js"),
-  ]);
+  const [THREE, { GLTFLoader }, { clone: cloneSkinned }, { HorizontalBlurShader }, { VerticalBlurShader }] =
+    await Promise.all([
+      import("three"),
+      import("three/addons/loaders/GLTFLoader.js"),
+      import("three/addons/utils/SkeletonUtils.js"),
+      import("three/addons/shaders/HorizontalBlurShader.js"),
+      import("three/addons/shaders/VerticalBlurShader.js"),
+    ]);
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
   renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
@@ -86,34 +98,96 @@ export async function createStage(host: HTMLElement, canvas: HTMLCanvasElement):
     const h = box.max.y - box.min.y;
     const y = (box.max.y + box.min.y) / 2;
     viewH = h * (1 + 2 * MARGIN);
-    camera.position.set(0, y + 0.3, 8);
+    // looking down a little, so the pitch, and the shadow on it, shows
+    camera.position.set(0, y + Math.tan(TILT) * 8, 8);
     camera.lookAt(0, y, 0);
     ground = box.min.y;
+    shadows.position.y = ground;
     framed = true;
   };
 
-  // The contact shadow: a soft dark ellipse at the boots. The camera sees
-  // the pitch almost edge-on, so it is drawn facing the camera, squashed,
-  // and before everything else so the boots stand on it.
-  const shadowTexture = (() => {
-    const c = document.createElement("canvas");
-    c.width = c.height = 128;
-    const ctx = c.getContext("2d")!;
-    const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
-    g.addColorStop(0, "rgba(0,0,0,0.75)");
-    g.addColorStop(0.45, "rgba(0,0,0,0.45)");
-    g.addColorStop(1, "rgba(0,0,0,0)");
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, 128, 128);
-    return new THREE.CanvasTexture(c);
-  })();
-  const shadowGeometry = new THREE.PlaneGeometry(1, 1);
-  const shadowMaterial = new THREE.MeshBasicMaterial({
-    map: shadowTexture,
-    transparent: true,
-    depthTest: false,
-    depthWrite: false,
-  });
+  // The contact shadow. A camera under the pitch looks up at the players
+  // and draws them in black, more opaque the closer to the ground, into a
+  // texture; two blur passes soften it; a plane on the pitch shows it. It
+  // is redrawn every frame, so it follows the boots as they move and turn.
+  const shadows = new THREE.Group();
+  world.add(shadows);
+  const shadowTarget = new THREE.WebGLRenderTarget(1024, 256);
+  shadowTarget.texture.generateMipmaps = false;
+  const blurTarget = new THREE.WebGLRenderTarget(1024, 256);
+  blurTarget.texture.generateMipmaps = false;
+  const shadowPlaneGeometry = new THREE.PlaneGeometry(1, 1).rotateX(Math.PI / 2);
+  const shadowPlane = new THREE.Mesh(
+    shadowPlaneGeometry,
+    new THREE.MeshBasicMaterial({ map: shadowTarget.texture, transparent: true, depthWrite: false }),
+  );
+  shadowPlane.renderOrder = -1;
+  shadowPlane.scale.y = -1; // the shadow camera looks up, so its picture is mirrored
+  shadows.add(shadowPlane);
+  // The blurs run on a quad of their own: a plane drawn with the shadow
+  // camera, as the three.js example does, sits on that camera's near plane
+  // and can be clipped away whole.
+  const blurQuadGeometry = new THREE.PlaneGeometry(2, 2);
+  const blurQuad = new THREE.Mesh(blurQuadGeometry);
+  const blurCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 2);
+  blurCamera.position.z = 1;
+  const shadowCamera = new THREE.OrthographicCamera(-1, 1, SHADOW_DEPTH / 2, -SHADOW_DEPTH / 2, 0, SHADOW_HEIGHT);
+  shadowCamera.rotation.x = Math.PI / 2;
+  shadows.add(shadowCamera);
+  const depthMaterial = new THREE.MeshDepthMaterial();
+  depthMaterial.onBeforeCompile = (shader) => {
+    shader.uniforms.darkness = { value: SHADOW_DARKNESS };
+    shader.fragmentShader = `uniform float darkness;\n${shader.fragmentShader.replace(
+      "gl_FragColor = vec4( vec3( 1.0 - fragCoordZ ), opacity );",
+      "gl_FragColor = vec4( vec3( 0.0 ), ( 1.0 - fragCoordZ ) * darkness );",
+    )}`;
+  };
+  depthMaterial.depthTest = false;
+  depthMaterial.depthWrite = false;
+  const horizontalBlur = new THREE.ShaderMaterial(HorizontalBlurShader);
+  horizontalBlur.depthTest = false;
+  const verticalBlur = new THREE.ShaderMaterial(VerticalBlurShader);
+  verticalBlur.depthTest = false;
+
+  // the pitch strip spans the whole stage, whatever its width
+  const sizeShadows = (width: number) => {
+    shadowPlane.scale.set(width, -1, SHADOW_DEPTH);
+    shadowCamera.left = -width / 2;
+    shadowCamera.right = width / 2;
+    shadowCamera.updateProjectionMatrix();
+    const w = 1024;
+    const h = Math.max(64, Math.round((w * SHADOW_DEPTH) / width));
+    shadowTarget.setSize(w, h);
+    blurTarget.setSize(w, h);
+  };
+
+  const blurShadow = (amount: number) => {
+    blurQuad.material = horizontalBlur;
+    horizontalBlur.uniforms.tDiffuse.value = shadowTarget.texture;
+    horizontalBlur.uniforms.h.value = amount / 256;
+    renderer.setRenderTarget(blurTarget);
+    renderer.render(blurQuad, blurCamera);
+    blurQuad.material = verticalBlur;
+    verticalBlur.uniforms.tDiffuse.value = blurTarget.texture;
+    // the target is about four times wider than tall: the same reach in
+    // metres needs four times the step vertically
+    verticalBlur.uniforms.v.value = (amount / 256) * (shadowTarget.width / shadowTarget.height);
+    renderer.setRenderTarget(shadowTarget);
+    renderer.render(blurQuad, blurCamera);
+  };
+
+  const drawShadows = () => {
+    shadowPlane.visible = false;
+    world.overrideMaterial = depthMaterial;
+    renderer.setRenderTarget(shadowTarget);
+    renderer.clear();
+    renderer.render(world, shadowCamera);
+    world.overrideMaterial = null;
+    blurShadow(SHADOW_BLUR);
+    blurShadow(SHADOW_BLUR * 0.4);
+    renderer.setRenderTarget(null);
+    shadowPlane.visible = true;
+  };
 
   const gltfLoader = new GLTFLoader();
   const textureLoader = new THREE.TextureLoader();
@@ -128,6 +202,10 @@ export async function createStage(host: HTMLElement, canvas: HTMLCanvasElement):
       textures.set(
         url,
         textureLoader.loadAsync(BASE + url).then((t) => {
+          // sRGB, like the face and hair maps GLTFLoader marks for itself:
+          // left unmarked, kit and skin are encoded twice and come out paler
+          // than the face they meet at the neck
+          t.colorSpace = THREE.SRGBColorSpace;
           t.flipY = false;
           t.wrapS = t.wrapT = THREE.RepeatWrapping;
           return t;
@@ -198,12 +276,6 @@ export async function createStage(host: HTMLElement, canvas: HTMLCanvasElement):
     turn.add(model);
     const root = new THREE.Group();
     root.add(turn);
-    // outside the turning group: the shadow stays put while the player spins
-    const shadow = new THREE.Mesh(shadowGeometry, shadowMaterial);
-    shadow.scale.set(0.95, 0.16, 1);
-    shadow.position.set(0, ground + 0.01, 0);
-    shadow.renderOrder = -1;
-    root.add(shadow);
     let hash = 0;
     for (const ch of key) hash = (hash * 31 + ch.charCodeAt(0)) % 10_000;
     const avatar: Avatar = {
@@ -276,6 +348,7 @@ export async function createStage(host: HTMLElement, canvas: HTMLCanvasElement):
     camera.top = halfW / aspect;
     camera.bottom = -halfW / aspect;
     camera.updateProjectionMatrix();
+    sizeShadows(halfW * 2);
     layout();
   };
 
@@ -335,6 +408,7 @@ export async function createStage(host: HTMLElement, canvas: HTMLCanvasElement):
         a.turn.rotation.y = a.spin;
       }
     }
+    drawShadows();
     renderer.render(world, camera);
   };
 
@@ -370,9 +444,14 @@ export async function createStage(host: HTMLElement, canvas: HTMLCanvasElement):
       sizer.disconnect();
       for (const a of ready.values()) a.mixer.stopAllAction();
       void Promise.all([...textures.values()]).then((ts) => ts.forEach((t) => t.dispose()));
-      shadowTexture.dispose();
-      shadowGeometry.dispose();
-      shadowMaterial.dispose();
+      shadowTarget.dispose();
+      blurTarget.dispose();
+      shadowPlaneGeometry.dispose();
+      blurQuadGeometry.dispose();
+      (shadowPlane.material as Three.Material).dispose();
+      depthMaterial.dispose();
+      horizontalBlur.dispose();
+      verticalBlur.dispose();
       renderer.dispose();
     },
   };
