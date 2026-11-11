@@ -793,12 +793,14 @@ test("the circles' shading is lit from the mouse, and stays put under reduced mo
     });
 
   const y = box.y + box.height / 2;
+  // The specular highlight sits where the surface faces halfway between the
+  // light and the viewer, so it only travels part way towards the pointer.
   await page.mouse.move(box.x + box.width * 0.1, y);
-  await expect.poll(async () => (await centroids()).highlight).toBeLessThan(0.4);
+  await expect.poll(async () => (await centroids()).highlight).toBeLessThan(0.47);
   const left = await centroids();
 
   await page.mouse.move(box.x + box.width * 0.9, y, { steps: 5 });
-  await expect.poll(async () => (await centroids()).highlight).toBeGreaterThan(0.6);
+  await expect.poll(async () => (await centroids()).highlight).toBeGreaterThan(0.53);
   const right = await centroids();
   // The shadow falls on the side away from the light.
   expect(left.shadow).toBeGreaterThan(0.5);
@@ -807,8 +809,8 @@ test("the circles' shading is lit from the mouse, and stays put under reduced mo
   // Reduced motion: the light eases back to the fixed upper-left one and no
   // longer follows the pointer.
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect.poll(async () => (await centroids()).highlight).toBeLessThan(0.4);
+  await expect.poll(async () => (await centroids()).highlight).toBeLessThan(0.47);
   await page.mouse.move(box.x + box.width * 0.95, y + 5, { steps: 5 });
   await page.waitForTimeout(300);
-  expect((await centroids()).highlight).toBeLessThan(0.4);
+  expect((await centroids()).highlight).toBeLessThan(0.47);
 });

@@ -20,7 +20,7 @@ import { BLUE_NOISE_SIZE, blueNoise } from "./blue-noise";
 // pointer, raised LIGHT_HEIGHT radii above the page, so every circle on the
 // page turns towards the same cursor. At rest — no pointer yet, the pointer
 // out of the window, a touch screen, or reduced motion — the light is the
-// fixed upper-left one the original PNGs were fitted to.
+// fixed upper-left one the original PNGs were lit from.
 //
 // That rules out error diffusion. Floyd-Steinberg carries every pixel's
 // error to its neighbours, so the smallest change of light reshuffles every
@@ -41,8 +41,6 @@ const DOT = 1; // CSS px per dither dot
 const AZ = (230 * Math.PI) / 180;
 const EL = (65 * Math.PI) / 180;
 const REST: Vec = [Math.cos(EL) * Math.cos(AZ), Math.cos(EL) * Math.sin(AZ), Math.sin(EL)];
-// Shadow: Lambert term, gained by 1.3 into white.
-const SHADOW_GAIN = 1.3;
 
 // The pointer light, in units of the sphere's radius. At this height a
 // pointer just outside the circle's upper-left rim gives the resting light.
@@ -52,24 +50,24 @@ const MIN_ELEVATION = (35 * Math.PI) / 180;
 // How fast the light catches up with the pointer, as a time constant.
 const EASE_MS = 50;
 
-// Highlight: a super-Gaussian ellipse peaking at 0.6, so even its core is a
-// dither, not a fill. At rest it sits up and left with its long axis at
-// 140deg. It moves with the light: its distance from the centre grows with
-// the light's tilt, and it stays across the light's direction. It rounds off
-// as it reaches the centre, where a highlight on a sphere is a disc.
-const HL_X = -0.404;
-const HL_Y = -0.471;
-const HL_ANGLE = (139.7 * Math.PI) / 180;
-const HL_MAJOR = 0.303;
-const HL_MINOR = 0.173;
+// Shadow: Lambert diffuse over an ambient floor, then an exposure,
+//   tone = min(1, EXPOSURE * (AMBIENT + (1 - AMBIENT) * max(0, N.L)))
+// AMBIENT is the fill light: the side turned away from the light keeps that
+// much of its tone instead of going solid black. EXPOSURE sets the white
+// point: everything within about 40deg of the light clips to no dots at
+// all, as the picture underneath is already the lit surface.
+const AMBIENT = 0.3;
+const EXPOSURE = 1.3;
+
+// Highlight: Blinn-Phong specular for a viewer straight above the page,
+//   tone = HL_PEAK * max(0, N.H)^SHININESS,  H = normalize(L + V), V = (0,0,1)
+// It peaks where the surface normal is H, round near the centre and drawn
+// out only towards the rim, as the sphere's own foreshortening dictates.
+// SHININESS sets its size; HL_PEAK keeps even its core a dither, not a fill.
+const SHININESS = 12;
 const HL_PEAK = 0.6;
-const HL_REST_RADIUS = Math.hypot(HL_X, HL_Y);
-const HL_REST_AZ = Math.atan2(HL_Y, HL_X);
-const HL_REACH = HL_REST_RADIUS / Math.cos(EL);
-const HL_MAX_RADIUS = 0.75;
-const HL_MIN_MINOR = 0.12;
-// Past this many major radii the blob is below one threshold step.
-const HL_EXTENT = 1.9 * HL_MAJOR;
+// The highlight is drawn only where it rises above one threshold step.
+const HL_FLOOR = 1 / 512;
 
 const BLACK = 0xff000000; // RGBA bytes 0,0,0,255 on a little-endian Uint32Array
 const WHITE = 0xffffffff;
@@ -144,6 +142,7 @@ function draw(sphere: Sphere) {
   const shadow = new Uint32Array(shadowImage.data.buffer);
   const sx = sphere.offset & mask;
   const sy = (sphere.offset >> 6) & mask;
+  const diffuse = 1 - AMBIENT;
   for (let y = 0; y < size; y += 1) {
     const row = y * size;
     const tileRow = ((y + sy) & mask) * BLUE_NOISE_SIZE;
@@ -155,45 +154,40 @@ function draw(sphere: Sphere) {
         continue;
       }
       const lambert = nx[x] * lx + yTerm + z * lz;
-      const tone = lambert > 0 ? SHADOW_GAIN * lambert : 0;
+      const tone = EXPOSURE * (AMBIENT + (lambert > 0 ? diffuse * lambert : 0));
       shadow[row + x] = tone < tile[tileRow + ((x + sx) & mask)] ? BLACK : 0;
     }
   }
 
-  // Highlight: white wherever the blob rises over the threshold, computed
-  // only inside the blob's bounding box.
-  const tilt = Math.hypot(lx, ly);
-  const radius = Math.min(HL_REACH * tilt, HL_MAX_RADIUS);
-  const az = Math.atan2(ly, lx) + (HL_REST_AZ - AZ);
-  const angle = az + (HL_ANGLE - HL_REST_AZ);
-  const cx = radius * Math.cos(az);
-  const cy = radius * Math.sin(az);
-  const cos = Math.cos(angle);
-  const sin = Math.sin(angle);
-  const minor = Math.min(
-    HL_MAJOR,
-    Math.max(HL_MIN_MINOR, HL_MAJOR - (HL_MAJOR - HL_MINOR) * (radius / HL_REST_RADIUS)),
-  );
+  // Highlight: white wherever the specular term rises over the threshold.
+  // Only computed inside the cap where it can: N.H >= cosCap. That cap lies
+  // inside a ball of radius sin(cap) around H cos(cap), so its picture on
+  // the page is inside the disc of that radius around (Hx, Hy) cos(cap).
+  const half = Math.hypot(lx, ly, lz + 1);
+  const hxv = lx / half;
+  const hyv = ly / half;
+  const hzv = (lz + 1) / half;
+  const cosCap = Math.pow(HL_FLOOR / HL_PEAK, 1 / SHININESS);
+  const sinCap = Math.sqrt(1 - cosCap * cosCap);
   const highlight = new Uint32Array(highlightImage.data.buffer);
   highlight.fill(0);
   const toPixel = (n: number) => ((n + 1) / 2) * size;
-  const x0 = Math.max(0, Math.floor(toPixel(cx - HL_EXTENT)));
-  const x1 = Math.min(size, Math.ceil(toPixel(cx + HL_EXTENT)));
-  const y0 = Math.max(0, Math.floor(toPixel(cy - HL_EXTENT)));
-  const y1 = Math.min(size, Math.ceil(toPixel(cy + HL_EXTENT)));
+  const x0 = Math.max(0, Math.floor(toPixel(hxv * cosCap - sinCap)));
+  const x1 = Math.min(size, Math.ceil(toPixel(hxv * cosCap + sinCap)));
+  const y0 = Math.max(0, Math.floor(toPixel(hyv * cosCap - sinCap)));
+  const y1 = Math.min(size, Math.ceil(toPixel(hyv * cosCap + sinCap)));
   const hx = (sx + BLUE_NOISE_SIZE / 2) & mask;
   const hy = (sy + BLUE_NOISE_SIZE / 2) & mask;
   for (let y = y0; y < y1; y += 1) {
     const row = y * size;
     const tileRow = ((y + hy) & mask) * BLUE_NOISE_SIZE;
-    const dy = ny[y] - cy;
+    const yTerm = ny[y] * hyv;
     for (let x = x0; x < x1; x += 1) {
-      if (nz[row + x] < 0) continue;
-      const dx = nx[x] - cx;
-      const u = (dx * cos + dy * sin) / HL_MAJOR;
-      const v = (-dx * sin + dy * cos) / minor;
-      const d2 = u * u + v * v;
-      const tone = HL_PEAK * Math.exp(-0.5 * d2 * d2);
+      const z = nz[row + x];
+      if (z < 0) continue;
+      const specular = nx[x] * hxv + yTerm + z * hzv;
+      if (specular < cosCap) continue;
+      const tone = HL_PEAK * Math.pow(specular, SHININESS);
       if (tone > tile[tileRow + ((x + hx) & mask)]) highlight[row + x] = WHITE;
     }
   }

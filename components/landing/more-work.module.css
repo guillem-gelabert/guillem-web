@@ -151,7 +151,7 @@
    job. */
 .reveal {
   opacity: 0;
-  transition: opacity 220ms ease-out;
+  transition: opacity 500ms ease-out;
   /* The colour capture is a dither too now (lib/work.ts), so it takes the
      same rule as .shade and the seam's own grain: one dot per image pixel,
      and a smooth resample averages them back into the tone the reduced
