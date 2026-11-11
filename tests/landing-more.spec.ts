@@ -69,19 +69,22 @@ test("the mirrored scene is the 'More work' landmark and holds every piece after
     // The domains keep their own class, though every chip is square now.
     await expect(item.locator(".seam-pair-domain")).toHaveCount(entry.domains.length);
     // The optional colour reveal is a second, decorative image over its
-    // declared display shot; a null shot still renders no image at all. Any
-    // thumbnail also carries the two sphere shading maps, drawn as canvases
-    // at the circle's own size (sphere-shading.tsx).
+    // declared display shot; a null shot still renders no image at all. Every
+    // circle, thumbnail or not, carries the two sphere shading maps, drawn as
+    // canvases at the circle's own size (sphere-shading.tsx).
     await expect(item.locator("img")).toHaveCount(
       entry.shot === null ? 0 : entry.shot.reveal ? 2 : 1,
     );
-    await expect(item.locator("canvas.seam-pair-shade")).toHaveCount(entry.shot === null ? 0 : 2);
+    await expect(item.locator("canvas.seam-pair-shade")).toHaveCount(2);
   }
 
   for (const [index, note] of NOTES.entries()) {
     const item = items.nth(more.length + index);
     await expect(item.getByRole("link", { name: `Read: ${note.title}` })).toHaveAttribute("href", note.href);
-    await expect(item.locator("img")).toHaveCount(note.shot === null ? 0 : 1);
+    await expect(item.locator("img")).toHaveCount(
+      note.shot === null ? 0 : note.shot.reveal ? 2 : 1,
+    );
+    await expect(item.locator("canvas.seam-pair-shade")).toHaveCount(2);
     if (note.shot) {
       await expect(item.getByRole("img", { name: note.shot.alt })).toHaveAttribute("src", note.shot.src);
     }
@@ -203,13 +206,13 @@ test("the globe fills its borderless circle and reveals its colour image from ei
 
   await expect(colour).toHaveCount(1);
   await expect(circle).toHaveCSS("border-top-width", "0px");
-  const bounds = await page.evaluate(() => {
-    const rect = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
+  const bounds = await circle.evaluate((root) => {
+    const rect = (selector: string) => root.querySelector(selector)!.getBoundingClientRect();
     return {
-      circle: rect(".seam-pair-circle"),
+      circle: root.getBoundingClientRect(),
       image: rect(".seam-pair-shot"),
       reveal: rect(".seam-pair-reveal"),
-      shading: [...document.querySelectorAll(".seam-pair-shade")].map((element) =>
+      shading: [...root.querySelectorAll(".seam-pair-shade")].map((element) =>
         element.getBoundingClientRect(),
       ),
     };

@@ -17,10 +17,17 @@ export const NOTES: readonly NoteEntry[] = [
     subtitle: "Finding similar colours, footballers and songs by giving them coordinates.",
     href: "/writing/what-are-embeddings",
     tag: null,
+    // Greyscale at rest and the colour original on hover, like the project
+    // circles (lib/work.ts). The grey is a luminance reduction in linear light.
     shot: {
-      src: "/work/what-are-embeddings.png",
+      src: "/work/what-are-embeddings-bw.png",
       width: 640,
       height: 640,
+      reveal: {
+        src: "/work/what-are-embeddings.png",
+        width: 640,
+        height: 640,
+      },
       alt: "Pixel-art sailing ship following coloured waypoints towards an island with a lemon tree.",
     },
   },

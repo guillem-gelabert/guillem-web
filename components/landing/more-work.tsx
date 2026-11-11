@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import { NOTES } from "@/lib/notes";
-import { WORK } from "@/lib/work";
+import { WORK, type WorkShot } from "@/lib/work";
 import { PairRows } from "./pair-rows";
 import { SphereShading } from "./sphere-shading";
 import styles from "./more-work.module.css";
@@ -73,6 +73,54 @@ function hoverStyle(index: number): CSSProperties {
   return { "--pair-hover": `#${hex}`, "--pair-hover-type": type } as CSSProperties;
 }
 
+// The circle, the same for a project and a note. Its border-radius is the
+// mask, and the fill behind the picture is what shows while shot is null.
+// aria-hidden only when it is that fill — an empty box says nothing a screen
+// reader should hear; a real thumbnail carries its alt.
+//
+// Every circle carries the sphere shading, a picture or not: a shadow map
+// and a highlight map, 1-bit, dithered at the circle's own size
+// (sphere-shading.tsx), over the grey capture and under the colour one.
+// darken drops the shadow map's black in and lets its white pass through;
+// lighten does the same for the highlight's white. Over an empty circle it
+// shades the pair's own fill.
+function PairCircle({ shot }: { shot: WorkShot | null }) {
+  return (
+    <div
+      className={`seam-pair-circle ${styles.circle}`}
+      aria-hidden={shot === null ? "true" : undefined}
+    >
+      {shot === null ? null : (
+        // eslint-disable-next-line @next/next/no-img-element -- no `sharp` at runtime; see components/portrait.tsx
+        <img
+          src={shot.src}
+          alt={shot.alt}
+          width={shot.width}
+          height={shot.height}
+          loading="lazy"
+          className={`seam-pair-shot ${styles.shot}`}
+        />
+      )}
+      <SphereShading
+        shadowClassName={`seam-pair-shade ${styles.shade} ${styles.shadow}`}
+        highlightClassName={`seam-pair-shade ${styles.shade} ${styles.highlight}`}
+      />
+      {shot?.reveal ? (
+        // eslint-disable-next-line @next/next/no-img-element -- decorative duplicate of the described image
+        <img
+          src={shot.reveal.src}
+          alt=""
+          aria-hidden="true"
+          width={shot.reveal.width}
+          height={shot.reveal.height}
+          loading="lazy"
+          className={`seam-pair-reveal ${styles.shot} ${styles.reveal}`}
+        />
+      ) : null}
+    </div>
+  );
+}
+
 export function MoreWork() {
   return (
     // role="list" is required and not redundant: Safari drops list semantics
@@ -82,50 +130,7 @@ export function MoreWork() {
       <ol role="list" className={`seam-more-list ${styles.list}`} style={listStyle}>
         {more.map((entry, index) => (
           <li key={entry.href} className={`seam-pair ${styles.pair}`} style={hoverStyle(index)}>
-            {/* The circle. Its border-radius is the mask, and the fill behind
-                the picture is what shows while shot is null. aria-hidden only
-                when it is that fill — an empty box says nothing a screen
-                reader should hear; a real thumbnail carries its alt. */}
-            <div
-              className={`seam-pair-circle ${styles.circle}`}
-              aria-hidden={entry.shot === null ? "true" : undefined}
-            >
-              {entry.shot === null ? null : (
-                <>
-                  {/* eslint-disable-next-line @next/next/no-img-element -- no `sharp` at runtime; see components/portrait.tsx */}
-                  <img
-                    src={entry.shot.src}
-                    alt={entry.shot.alt}
-                    width={entry.shot.width}
-                    height={entry.shot.height}
-                    loading="lazy"
-                    className={`seam-pair-shot ${styles.shot}`}
-                  />
-                  {/* The sphere shading, over the grey capture and under the
-                      colour one: a shadow map and a highlight map, 1-bit,
-                      dithered at the circle's own size (sphere-shading.tsx).
-                      darken drops the shadow map's black in and lets its
-                      white pass through; lighten does the same for the
-                      highlight's white. */}
-                  <SphereShading
-                    shadowClassName={`seam-pair-shade ${styles.shade} ${styles.shadow}`}
-                    highlightClassName={`seam-pair-shade ${styles.shade} ${styles.highlight}`}
-                  />
-                  {entry.shot.reveal ? (
-                    // eslint-disable-next-line @next/next/no-img-element -- decorative duplicate of the described dither image
-                    <img
-                      src={entry.shot.reveal.src}
-                      alt=""
-                      aria-hidden="true"
-                      width={entry.shot.reveal.width}
-                      height={entry.shot.reveal.height}
-                      loading="lazy"
-                      className={`seam-pair-reveal ${styles.shot} ${styles.reveal}`}
-                    />
-                  ) : null}
-                </>
-              )}
-            </div>
+            <PairCircle shot={entry.shot} />
 
             <div className={`seam-pair-square ${styles.square}`}>
               {/* The title is NOT a link, and the pair is not one either. The
@@ -196,22 +201,7 @@ export function MoreWork() {
             className={`seam-pair seam-pair-note ${styles.pair}`}
             style={hoverStyle(more.length + index)}
           >
-            <div
-              className={`seam-pair-circle ${styles.circle}`}
-              aria-hidden={note.shot === null ? "true" : undefined}
-            >
-              {note.shot === null ? null : (
-                // eslint-disable-next-line @next/next/no-img-element -- static asset with intrinsic dimensions
-                <img
-                  src={note.shot.src}
-                  alt={note.shot.alt}
-                  width={note.shot.width}
-                  height={note.shot.height}
-                  loading="lazy"
-                  className={`seam-pair-shot ${styles.shot}`}
-                />
-              )}
-            </div>
+            <PairCircle shot={note.shot} />
             <div className={`seam-pair-square ${styles.square}`}>
               <h3 className={`seam-pair-title ${styles.title}`}>{note.title}</h3>
               <p className={`seam-pair-body ${styles.body}`}>{note.subtitle}</p>
