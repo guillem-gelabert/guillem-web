@@ -36,6 +36,20 @@ export const NOTES: readonly NoteEntry[] = [
     subtitle: "AI will transform the world and still has the worst investment profile he has ever seen.",
     href: "/writing/the-worst-business-in-the-world",
     tag: null,
-    shot: null,
+    // His portrait run through DeepDream (scripts/deepdream-tile.py, photo
+    // mode), the same treatment as the post's backdrop. Greyscale at rest and
+    // the colour dream on hover; the grey is a luminance reduction in linear
+    // light, as for the other shots.
+    shot: {
+      src: "/work/hempton-dream-bw.webp",
+      width: 640,
+      height: 640,
+      reveal: {
+        src: "/work/hempton-dream.webp",
+        width: 640,
+        height: 640,
+      },
+      alt: "John Hempton's portrait run through DeepDream: his face, glasses and curly hair overgrown with the network's eyes and swirls.",
+    },
   },
 ];

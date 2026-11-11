@@ -12,8 +12,17 @@ vertical stripes, built to repeat exactly.
 
   python scripts/deepdream-tile.py OUT.png --size 1024 --steps 80 --step-size 0.02
 
+It also dreams on a picture rather than the stripes: --start PATH (a square
+image) with --edges reflect, so the edges mirror instead of wrapping. The
+Hempton thumbnail (public/work/hempton-dream{,-bw}.webp: 640px, the grey a
+linear-light luminance) is, from a square crop of his portrait,
+
+  python scripts/deepdream-tile.py OUT.png --start CROP.png --edges reflect \
+    --size 768 --steps 40 --step-size 0.012
+
 Needs tensorflow, pillow and numpy (Python 3.12). The committed tile,
-public/backgrounds/hempton-dream.webp, is that run saved as WebP at quality 78.
+public/backgrounds/hempton-dream.webp, is the first (stripes) run saved as WebP
+at quality 78.
 """
 import argparse
 import numpy as np
@@ -27,6 +36,8 @@ ap.add_argument("--steps", type=int, default=50)
 ap.add_argument("--step-size", type=float, default=0.01)
 ap.add_argument("--layers", default="mixed3,mixed5")
 ap.add_argument("--seed", type=int, default=1)
+ap.add_argument("--start", help="square start image; default is the stripes")
+ap.add_argument("--edges", choices=["wrap", "reflect"], default="wrap")
 args = ap.parse_args()
 
 rng = np.random.default_rng(args.seed)
@@ -66,6 +77,8 @@ PAD = 96
 
 
 def wrap_pad(img, pad):
+    if args.edges == "reflect":
+        return tf.pad(img, [[pad, pad], [pad, pad], [0, 0]], mode="REFLECT")
     img = tf.concat([img[-pad:], img, img[:pad]], axis=0)
     return tf.concat([img[:, -pad:], img, img[:, :pad]], axis=1)
 
@@ -95,7 +108,11 @@ def step(img, step_size):
     return tf.roll(rolled, shift=-shift, axis=[0, 1]), loss
 
 
-img = tf.constant(start_image(args.size) * 2 - 1, tf.float32)  # inception range [-1, 1]
+if args.start:
+    start = np.asarray(Image.open(args.start).convert("RGB").resize((args.size, args.size)), np.float32) / 255
+else:
+    start = start_image(args.size)
+img = tf.constant(start * 2 - 1, tf.float32)  # inception range [-1, 1]
 for octave in range(-2, 1):
     size = int(round(args.size * 1.3**octave))
     img = wrap_resize(img, size)
