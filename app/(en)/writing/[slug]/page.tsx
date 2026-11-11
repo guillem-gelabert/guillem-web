@@ -83,15 +83,16 @@ export default async function WritingPost({
   const twins = await translationsOf(entry);
 
   const gameboy = entry.frontmatter.theme === "gameboy" ? shadesOf(entry.frontmatter) : null;
+  const backdrop = entry.frontmatter.backdrop;
 
   return (
     <main
       className={`mx-auto flex w-full max-w-page flex-col gap-3xl px-lg py-3xl${gameboy ? " gb-screen" : ""}`}
     >
       <PostPalette frontmatter={entry.frontmatter} />
-      <PostBackdrop src={entry.frontmatter.backdrop} />
+      <PostBackdrop src={backdrop} />
       <Screen shades={gameboy}>
-      <header className="flex flex-col gap-2xl">
+      <header className={`flex flex-col gap-2xl${backdrop ? " backdrop-panel" : ""}`}>
         {/* Amendment A3: conformance with Phase 2's own Color section,
             which already reserves the accent for link focus on any
             link. inline-block py-xs is not decoration — this Label-role
@@ -103,7 +104,9 @@ export default async function WritingPost({
         <div className="flex flex-col gap-lg">
           <PostTitle frontmatter={entry.frontmatter} />
           <div className="flex flex-col gap-md">
-            <p className="max-w-prose text-standfirst">{entry.frontmatter.standfirst}</p>
+            {entry.frontmatter.hideStandfirst ? null : (
+              <p className="max-w-prose text-standfirst">{entry.frontmatter.standfirst}</p>
+            )}
             <PostMeta
               locale="en"
               date={entry.frontmatter.date}
@@ -113,9 +116,17 @@ export default async function WritingPost({
           </div>
         </div>
       </header>
-      <Prose>
-        <Post />
-      </Prose>
+      {backdrop ? (
+        <div className="backdrop-columns">
+          <Prose>
+            <Post />
+          </Prose>
+        </div>
+      ) : (
+        <Prose>
+          <Post />
+        </Prose>
+      )}
       </Screen>
     </main>
   );

@@ -23,9 +23,13 @@ export type PostFrontmatter = {
   /** "gameboy": the post renders through components/gameboy-screen.tsx —
    *  four shades, dot matrix, dot shadow, ghosting. Needs shades. */
   theme?: "gameboy";
-  /** A seamless tile under public/backgrounds/, repeated behind the post
-   *  (components/post-backdrop.tsx). */
+  /** A seamless tile under public/backgrounds/, repeated behind the post at
+   *  full strength, with the header and text on white panels over it and
+   *  the text in three columns on desktop (components/post-backdrop.tsx). */
   backdrop?: string;
+  /** Keep the standfirst out of the page. It still feeds the meta
+   *  description and link previews. */
+  hideStandfirst?: boolean;
   /** A PNG under public/ shown as the h1 in place of the set title, which
    *  becomes its alt text (components/post-title.tsx). */
   titleImage?: string;
@@ -115,6 +119,9 @@ export function assertFrontmatter(fm: unknown, file: string): asserts fm is Post
       (typeof f.backdrop !== "string" || !/^\/backgrounds\/[\w.-]+\.(webp|png|jpg)$/.test(f.backdrop))
     ) {
       problems.push("backdrop must be a /backgrounds/file.webp|png|jpg under public/");
+    }
+    if (f.hideStandfirst !== undefined && typeof f.hideStandfirst !== "boolean") {
+      problems.push("hideStandfirst must be true or false");
     }
     if (f.titleImage !== undefined && (typeof f.titleImage !== "string" || !/^\/[\w/.-]+\.png$/.test(f.titleImage))) {
       problems.push("titleImage must be a /path/to/file.png under public/");

@@ -290,6 +290,11 @@ to break Floyd–Steinberg's lattice.
   port of the piece's globe shader and textures (`scripts/render-globe-thumbnail.py`): same
   camera as the old capture (44E 35N, fitted on the static cloud texture), sun moved to 50E 15N
   so Europe, Africa and Asia are lit; the three flashes kept in place. Alt text updated.
+- **Hempton post: full-strength dream, white columns, no lead** (2026-11-11) — the DeepDream
+  backdrop now runs at 100%; header and text sit on white (`.backdrop-panel`,
+  `.backdrop-columns` in app/globals.css), the text in three columns from 1024px with the dream
+  in 48px gutters (bands painted by a gradient on the column arithmetic). New `hideStandfirst`
+  front-matter keeps the lead off the page; it still feeds the meta description.
 
 ## Next
 

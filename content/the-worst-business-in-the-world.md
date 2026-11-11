@@ -7,6 +7,7 @@ translationKey: ai-worst-business
 draft: false
 type: post
 backdrop: "/backgrounds/hempton-dream.webp"
+hideStandfirst: true
 ---
 
 Thanks to an ideological bias I'd rather not have, I take some pleasure in thinking that AI is a bubble and that it will burst before long. Biases shouldn't be fed. If anything, I think the wise thing is to seek out people who are smarter and better read than you are, or who hold the opposite view. Unfortunately, at the mercy of the algorithmic gods, I landed on [this interview](https://joewalker.substack.com/p/fibre-optics-mark-ii-why-data-centres) with [John Hempton](https://en.wikipedia.org/wiki/John_Hempton) (a short investor who was among the first to expose the irregularities at Wirecard), which gave me the worldly satisfaction of finding arguments that justify my fanatical views.
