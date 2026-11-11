@@ -7,7 +7,7 @@ mixed5, gradient ascent, octave scale 1.3). Two changes make it tile:
   network saw across the opposite edge;
 - octave resizes are done on a wrap-padded copy, then cropped.
 
-Start image: the mazzucato theme's ground, navy with red/gold/teal dashed
+Start image: the ground of the Hempton post's former theme (mazzucato), navy with red/gold/teal dashed
 vertical stripes, built to repeat exactly.
 
   python scripts/deepdream-tile.py OUT.png --size 1024 --steps 80 --step-size 0.02

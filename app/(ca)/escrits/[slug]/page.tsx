@@ -8,7 +8,7 @@ import { PostTitle } from "@/components/post-title";
 import { PostMeta } from "@/components/post-meta";
 import { PostPalette } from "@/components/post-palette";
 import { GameboyScreen } from "@/components/gameboy-screen";
-import { ValueScreen } from "@/components/value-screen";
+import { PostBackdrop } from "@/components/post-backdrop";
 import { postOpenGraph } from "@/lib/metadata";
 
 // app/(de)/texte/[slug]/page.tsx's twin. See that file for why there is no
@@ -64,25 +64,6 @@ export default async function WritingPost({
   const { default: Post } = await loadPostModule(slug);
   const twins = await translationsOf(entry);
 
-  if (entry.frontmatter.theme === "mazzucato") {
-    return (
-      <ValueScreen
-        backLabel={UI.ca.homeLink}
-        title={entry.frontmatter.title}
-        meta={
-          <PostMeta
-            locale="ca"
-            date={entry.frontmatter.date}
-            translations={translationLinks(twins)}
-            draft={entry.frontmatter.draft}
-          />
-        }
-      >
-        <Post />
-      </ValueScreen>
-    );
-  }
-
   const gameboy = entry.frontmatter.theme === "gameboy" ? shadesOf(entry.frontmatter) : null;
 
   return (
@@ -90,6 +71,7 @@ export default async function WritingPost({
       className={`mx-auto flex w-full max-w-page flex-col gap-3xl px-lg py-3xl${gameboy ? " gb-screen" : ""}`}
     >
       <PostPalette frontmatter={entry.frontmatter} />
+      <PostBackdrop src={entry.frontmatter.backdrop} />
       <Screen shades={gameboy}>
       <header className="flex flex-col gap-2xl">
         <Link href="/" hrefLang="en" className="text-label link-quiet inline-block py-xs">

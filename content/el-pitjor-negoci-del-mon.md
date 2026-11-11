@@ -6,7 +6,7 @@ lang: ca
 translationKey: ai-worst-business
 draft: false
 type: post
-theme: mazzucato
+backdrop: "/backgrounds/hempton-dream.webp"
 ---
 
 Per mor d’un biaix ideològic que preferiria no tenir, em satisfà pensar que la IA és una bombolla i que esclatarà d’aquí a poc. Els biaixos no convé alimentar-los; al contrari, crec que el més savi és cercar gent més intel·ligent i llegida que un mateix, o amb opinions oposades a les pròpies. Desgraciadament, a mercè dels Déus algorítmics, he arribat a [aquesta entrevista](https://joewalker.substack.com/p/fibre-optics-mark-ii-why-data-centres) amb [John Hempton](https://en.wikipedia.org/wiki/John_Hempton) —un inversor especialitzat en vendes en curt que va ser dels primers a denunciar les irregularitats de Wirecard—, que m’ha donat la satisfacció mundana de trobar arguments que justifiquen les meves posicions fanàtiques.

@@ -281,6 +281,11 @@ to break Floyd–Steinberg's lattice.
   by wrap-padding inside the gradient tape (`scripts/deepdream-tile.py` →
   `public/backgrounds/hempton-dream.webp`, 447 KB). Repeated under the stripes at 22% opacity;
   body text contrast stays ≥ 8.3:1.
+- **Hempton post: mazzucato theme removed** (2026-11-11) — the post (EN/DE/CA) now renders
+  through the plain post layout; only the DeepDream tile stays, via a new `backdrop` front-matter
+  field (`components/post-backdrop.tsx`, fixed, 30% over white, ink ≥ 10:1). Deleted
+  value-screen/value-background/value-screen.css, the Archivo and Source Serif 4 fonts, and
+  `tests/value-screen.spec.ts` (replaced by `tests/post-backdrop.spec.ts`).
 
 ## Next
 

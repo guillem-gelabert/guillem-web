@@ -82,9 +82,11 @@ test("every <PostMeta> call site passes a draft prop (WR-02)", () => {
 
   // Guard against the scanner silently matching nothing — a vacuous pass is
   // exactly how this class of gate rots.
+  // Three: one per locale's post page (the mazzucato theme's three went
+  // with it).
   assert.ok(
-    callSites.length >= 5,
-    `expected at least 5 <PostMeta> call sites, found ${callSites.length} — the scanner has stopped matching`,
+    callSites.length >= 3,
+    `expected at least 3 <PostMeta> call sites, found ${callSites.length} — the scanner has stopped matching`,
   );
 
   for (const { file, element } of callSites) {
