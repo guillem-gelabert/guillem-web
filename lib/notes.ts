@@ -32,7 +32,7 @@ export const NOTES: readonly NoteEntry[] = [
     },
   },
   {
-    title: "John Hempton on the Financials of AI",
+    title: "COMMENT: John Hempton on the Financials of AI",
     subtitle: "AI will transform the world and still has the worst investment profile he has ever seen.",
     href: "/writing/the-worst-business-in-the-world",
     tag: null,
