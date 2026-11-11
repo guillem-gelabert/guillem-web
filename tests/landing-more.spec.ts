@@ -143,6 +143,27 @@ test("the pair's link is the arrow, and stays colour-neutral on hover", async ({
   expect(hover.decoration).toBe("none");
 });
 
+test("every circle fades to its hover state the same way, picture or not", async ({ page }) => {
+  const pairs = page.locator("#seam-more .seam-pair");
+  const count = await pairs.count();
+  const transitions = new Set<string>();
+  for (let index = 0; index < count; index += 1) {
+    const pair = pairs.nth(index);
+    const reveal = pair.locator(".seam-pair-circle .seam-pair-reveal");
+    await expect(reveal, `pair ${index} has one colour layer`).toHaveCount(1);
+    await expect(reveal).toHaveCSS("opacity", "0");
+    transitions.add(
+      await reveal.evaluate((el) => {
+        const style = getComputedStyle(el);
+        return `${style.transitionProperty} ${style.transitionDuration} ${style.transitionTimingFunction}`;
+      }),
+    );
+    await pair.hover();
+    await expect(reveal).toHaveCSS("opacity", "1");
+  }
+  expect([...transitions], "one fade for every circle").toHaveLength(1);
+});
+
 test("every pair hovers its own hue, at the featured badge's saturation and lightness", async ({ page }) => {
   const pairs = page.locator("#seam-more .seam-pair");
   const count = await pairs.count();
@@ -152,10 +173,16 @@ test("every pair hovers its own hue, at the featured badge's saturation and ligh
     await pair.hover();
     const { fill, circle, type } = await pair.evaluate((el) => ({
       fill: getComputedStyle(el.querySelector(".seam-pair-square")!).backgroundColor,
-      circle: getComputedStyle(el.querySelector(".seam-pair-circle")!).backgroundColor,
+      // A circle with no picture shows the hover colour through its fading
+      // fill layer; one with a picture shows its colour capture instead.
+      circle: el.querySelector(".seam-pair-circle img")
+        ? null
+        : getComputedStyle(el.querySelector(".seam-pair-circle .seam-pair-reveal")!).backgroundColor,
       type: getComputedStyle(el.querySelector(".seam-pair-square")!).color,
     }));
-    expect(circle, `pair ${index}: circle and square share the hover fill`).toBe(fill);
+    if (circle !== null) {
+      expect(circle, `pair ${index}: circle and square share the hover fill`).toBe(fill);
+    }
     const [r, g, b] = fill.match(/\d+/g)!.map(Number);
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);

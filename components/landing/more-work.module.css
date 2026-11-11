@@ -87,6 +87,7 @@
    the whole of it. */
 .pair[data-tone="light"] {
   --pair-fill: #fff;
+  --pair-rest-fill: #fff;
   --pair-type: #000;
 }
 
@@ -115,7 +116,10 @@
   border-radius: 50%;
   border: 0;
   overflow: hidden;
-  background: var(--pair-fill);
+  /* The resting fill, not --pair-fill: that one turns to the hover colour
+     at once, and on a circle with no picture it would show the change
+     before .revealFill has faded in over it. */
+  background: var(--pair-rest-fill, #000);
   pointer-events: none;
 }
 
@@ -158,6 +162,13 @@
      one element per circle and it sits over blended siblings, which is the
      case where the browser is least likely to promote it on its own. */
   will-change: opacity;
+}
+
+/* An empty circle's reveal: the pair's hover colour as a plain layer. */
+.revealFill {
+  position: absolute;
+  inset: 0;
+  background: var(--pair-hover, #ee0000);
 }
 
 .pair:hover .reveal,

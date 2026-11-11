@@ -117,7 +117,13 @@ function PairCircle({ shot }: { shot: WorkShot | null }) {
         shadowClassName={`seam-pair-shade ${styles.shade} ${styles.shadow}`}
         highlightClassName={`seam-pair-shade ${styles.shade} ${styles.highlight}`}
       />
-      {shot?.reveal ? (
+      {shot === null ? (
+        // No picture, so no colour capture to fade in: the hover colour
+        // itself fades in instead, on the same layer and timing as a
+        // capture's (.reveal), so every circle in the grid changes the same
+        // way.
+        <div className={`seam-pair-reveal ${styles.reveal} ${styles.revealFill}`} />
+      ) : shot.reveal ? (
         // eslint-disable-next-line @next/next/no-img-element -- decorative duplicate of the described image
         <img
           src={shot.reveal.src}

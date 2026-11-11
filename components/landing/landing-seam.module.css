@@ -1438,6 +1438,8 @@
   --pair-shape-gap: var(--pair-gap);
   --pair-padding: var(--aside-padding);
   --pair-fill: #000;
+  /* What --pair-fill is before hover overrides it (more-work.module.css). */
+  --pair-rest-fill: #000;
   --pair-type: #fff;
   /* 32rem, not the 36rem it was with the narrow gap: with --edge between
      them, 36rem columns drop 1920 to two. 32 keeps 2 at 1366–1440, 3 at
