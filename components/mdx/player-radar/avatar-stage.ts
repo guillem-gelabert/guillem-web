@@ -11,9 +11,33 @@ export type Stage = {
 
 const BASE = "/figures/what-are-embeddings/pes/";
 
-// Curated PES 6 standing motions, alternated so that the two players never
-// sway in lockstep.
-const CLIPS = ["standing_idle_1", "standing_idle_2", "standing_235_106872"];
+// The curated PES 6 motions in body.glb (pes-avatars data/animations.json),
+// all reviewed to loop cleanly. Each player sways, weight shifting from foot
+// to foot, then does one of the extras, then sways again, working through
+// the extras; the second player starts further along the list so the two
+// never do the same thing at once. [clip, times in a row]
+const STAND: [string, number] = ["standing_235_106872", 2]; // sway, 4.5 s
+const EXTRAS: [string, number][] = [
+  ["standing_240_45816", 1], // hand gesture, 8.7 s
+  ["standing_112_149828", 1], // overhead warm-up, 3.8 s
+  ["warmup_123_61212", 1], // side stretch, 4.5 s
+  ["warmup_111_179852", 3], // quick footwork, 1.1 s
+];
+// Every change of clip, and every repeat, is a crossfade this long (at most
+// a third of the clip), so no seam ever shows as a jump.
+const FADE = 0.4;
+// One full turn on the spot every SPIN seconds.
+const SPIN = 30;
+
+function planFor(index: number): string[] {
+  const plan: string[] = [];
+  for (let k = 0; k < EXTRAS.length; k++) {
+    const [clip, times] = EXTRAS[(k + index * 2) % EXTRAS.length];
+    for (let i = 0; i < STAND[1]; i++) plan.push(STAND[0]);
+    for (let i = 0; i < times; i++) plan.push(clip);
+  }
+  return plan;
+}
 
 // Headroom around the tallest avatar, as a share of its height.
 const MARGIN = 0.04;
@@ -89,10 +113,18 @@ export async function createStage(host: HTMLElement, canvas: HTMLCanvasElement):
 
   type Avatar = {
     root: Three.Group;
+    turn: Three.Group;
     mixer: Three.AnimationMixer;
-    actions: Three.AnimationAction[];
-    duration: number;
-    elapsed: number;
+    clips: Map<string, Three.AnimationClip>;
+    // two actions per clip, so a clip can crossfade into a repeat of itself
+    actions: Map<string, Three.AnimationAction>;
+    plan: string[];
+    step: number;
+    slot: number;
+    current: Three.AnimationAction | null;
+    segment: number; // seconds into the current clip
+    length: number; // the current clip's duration
+    spin: number; // radians turned so far
   };
   const avatars = new Map<string, Promise<Avatar | null>>();
   const ready = new Map<string, Avatar>();
@@ -130,18 +162,75 @@ export async function createStage(host: HTMLElement, canvas: HTMLCanvasElement):
     attach.add(head.scene.clone(true));
     if (hair) attach.add(hair.scene.clone(true));
     if (!framed) frameOn(model);
+    // turn on the body's own axis, not on wherever the bind pose's origin is
+    const centre = new THREE.Box3().setFromObject(model).getCenter(new THREE.Vector3());
+    model.position.x -= centre.x;
+    model.position.z -= centre.z;
 
-    const clip = body.animations.find((a) => a.name === CLIPS[index % CLIPS.length]) ?? body.animations[0];
     const mixer = new THREE.AnimationMixer(model);
-    // Two copies overlap at the seam: the extracted clips do not loop cleanly.
-    const actions = [mixer.clipAction(clip), mixer.clipAction(clip.clone())];
-    actions.forEach((a) => a.setLoop(THREE.LoopOnce, 1).play());
-
+    const clips = new Map(body.animations.map((c) => [c.name, c]));
+    const turn = new THREE.Group();
+    turn.add(model);
     const root = new THREE.Group();
-    root.add(model);
+    root.add(turn);
     let hash = 0;
     for (const ch of key) hash = (hash * 31 + ch.charCodeAt(0)) % 10_000;
-    return { root, mixer, actions, duration: clip.duration, elapsed: (hash / 10_000) * clip.duration };
+    const avatar: Avatar = {
+      root,
+      turn,
+      mixer,
+      clips,
+      actions: new Map(),
+      plan: planFor(index),
+      step: 0,
+      slot: 0,
+      current: null,
+      segment: 0,
+      length: 0,
+      spin: 0,
+    };
+    next(avatar);
+    // start somewhere inside the first sway, not on its first frame
+    advance(avatar, (hash / 10_000) * avatar.length * 0.8);
+    return avatar;
+  }
+
+  // The next clip in the avatar's plan, crossfaded in from the current one.
+  function next(a: Avatar) {
+    const name = a.plan[a.step % a.plan.length];
+    a.step++;
+    a.slot ^= 1;
+    const clip = a.clips.get(name) ?? a.clips.values().next().value!;
+    const id = `${clip.name}#${a.slot}`;
+    let action = a.actions.get(id);
+    if (!action) {
+      action = a.mixer.clipAction(a.slot ? clip.clone() : clip);
+      action.setLoop(THREE.LoopOnce, 1);
+      action.clampWhenFinished = true;
+      a.actions.set(id, action);
+    }
+    action.reset().play();
+    // the outgoing clip started this fade with fade(a.length) left to run
+    if (a.current) action.crossFadeFrom(a.current, Math.min(FADE, a.length / 3, clip.duration / 3), false);
+    a.current = action;
+    a.segment = 0;
+    a.length = clip.duration;
+  }
+
+  // Run the avatar's mixer forward, starting each next clip exactly when
+  // the current one has a fade's length left, however long dt is.
+  function advance(a: Avatar, dt: number) {
+    while (dt > 1e-6) {
+      const until = a.length - Math.min(FADE, a.length / 3) - a.segment;
+      if (until <= 0) {
+        next(a);
+        continue;
+      }
+      const step = Math.min(dt, until);
+      a.mixer.update(step);
+      a.segment += step;
+      dt -= step;
+    }
   }
 
   const resize = () => {
@@ -168,6 +257,7 @@ export async function createStage(host: HTMLElement, canvas: HTMLCanvasElement):
       if (!a) return;
       const frac = parseFloat(css.getPropertyValue(`--slot-${i}`)) || (i + 0.5) / roster.length;
       a.root.position.x = (frac * 2 - 1) * halfW;
+      // start turned a little towards the middle; the spin goes on from there
       a.root.rotation.y = THREE.MathUtils.degToRad((0.5 - frac) * 40);
     });
   };
@@ -206,17 +296,13 @@ export async function createStage(host: HTMLElement, canvas: HTMLCanvasElement):
   };
 
   const frame = (delta: number) => {
+    const dt = Math.min(delta, 0.1);
     for (const a of ready.values()) {
-      a.elapsed += Math.min(delta, 0.1);
-      const blend = Math.min(0.35, a.duration / 4);
-      const period = a.duration - blend;
-      const t = ((a.elapsed % period) + period) % period;
-      const incoming = Math.min(1, t / blend);
-      a.actions[0].time = t;
-      a.actions[0].setEffectiveWeight(incoming);
-      a.actions[1].time = Math.min(t + period, a.duration);
-      a.actions[1].setEffectiveWeight(1 - incoming);
-      a.mixer.update(0);
+      if (dt > 0) {
+        advance(a, dt);
+        a.spin += (dt / SPIN) * Math.PI * 2;
+        a.turn.rotation.y = a.spin;
+      }
     }
     renderer.render(world, camera);
   };

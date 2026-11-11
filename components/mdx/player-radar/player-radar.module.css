@@ -1,5 +1,5 @@
 /* Interactive 5, set as a PES 6 comparison screen: a blue title bar, the
-   two players standing either side over a floodlit stadium, slate panels
+   two players standing either side in a floodlit stadium, slate panels
    with light rims, pink for the left player and blue for the right. It
    keeps its own look whatever screen the page is on (gameboy-screen.css
    exempts it from the Game Boy filter), and runs wider than the prose
@@ -66,17 +66,9 @@
 .pitch {
   position: relative;
   padding: 24px 0 28px;
-  background:
-    /* floodlights */
-    radial-gradient(ellipse 9% 5% at 22% 5%, rgb(255 255 255 / 0.95), transparent 70%),
-    radial-gradient(ellipse 9% 5% at 78% 7%, rgb(255 255 255 / 0.95), transparent 70%),
-    radial-gradient(ellipse 70% 35% at 50% 0%, rgb(140 160 210 / 0.35), transparent 70%),
-    /* advertising boards along the touchline */
-    linear-gradient(180deg, transparent 63%, #2c3a58 63%, #1b2640 66%, transparent 66%),
-    /* the pitch, mown in stripes */
-    repeating-linear-gradient(180deg, #3f7c2f 0 22px, #498b37 22px 44px) left bottom / 100% 34% no-repeat,
-    /* the stands */
-    linear-gradient(180deg, #0b1120 0%, #19233a 45%, #2a3550 66%);
+  /* a night stadium, blurred as the game blurs its menu backdrops; the
+     touchline sits behind the avatars' feet */
+  background: #0b1120 url("/figures/what-are-embeddings/stadium.jpg") center 62% / cover no-repeat;
 }
 
 .stage {
@@ -86,8 +78,8 @@
   right: 0;
   height: 470px;
   pointer-events: none;
-  --slot-0: 0.085;
-  --slot-1: 0.915;
+  --slot-0: 0.1;
+  --slot-1: 0.9;
 }
 
 .canvas {
