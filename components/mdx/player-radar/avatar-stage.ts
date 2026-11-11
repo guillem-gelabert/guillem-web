@@ -80,6 +80,7 @@ export async function createStage(host: HTMLElement, canvas: HTMLCanvasElement):
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 20);
   let viewH = 2;
   let framed = false;
+  let ground = 0; // the boots' height in the bind pose
   const frameOn = (model: Three.Object3D) => {
     const box = new THREE.Box3().setFromObject(model);
     const h = box.max.y - box.min.y;
@@ -87,8 +88,32 @@ export async function createStage(host: HTMLElement, canvas: HTMLCanvasElement):
     viewH = h * (1 + 2 * MARGIN);
     camera.position.set(0, y + 0.3, 8);
     camera.lookAt(0, y, 0);
+    ground = box.min.y;
     framed = true;
   };
+
+  // The contact shadow: a soft dark ellipse at the boots. The camera sees
+  // the pitch almost edge-on, so it is drawn facing the camera, squashed,
+  // and before everything else so the boots stand on it.
+  const shadowTexture = (() => {
+    const c = document.createElement("canvas");
+    c.width = c.height = 128;
+    const ctx = c.getContext("2d")!;
+    const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+    g.addColorStop(0, "rgba(0,0,0,0.75)");
+    g.addColorStop(0.45, "rgba(0,0,0,0.45)");
+    g.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 128, 128);
+    return new THREE.CanvasTexture(c);
+  })();
+  const shadowGeometry = new THREE.PlaneGeometry(1, 1);
+  const shadowMaterial = new THREE.MeshBasicMaterial({
+    map: shadowTexture,
+    transparent: true,
+    depthTest: false,
+    depthWrite: false,
+  });
 
   const gltfLoader = new GLTFLoader();
   const textureLoader = new THREE.TextureLoader();
@@ -173,6 +198,12 @@ export async function createStage(host: HTMLElement, canvas: HTMLCanvasElement):
     turn.add(model);
     const root = new THREE.Group();
     root.add(turn);
+    // outside the turning group: the shadow stays put while the player spins
+    const shadow = new THREE.Mesh(shadowGeometry, shadowMaterial);
+    shadow.scale.set(0.95, 0.16, 1);
+    shadow.position.set(0, ground + 0.01, 0);
+    shadow.renderOrder = -1;
+    root.add(shadow);
     let hash = 0;
     for (const ch of key) hash = (hash * 31 + ch.charCodeAt(0)) % 10_000;
     const avatar: Avatar = {
@@ -339,6 +370,9 @@ export async function createStage(host: HTMLElement, canvas: HTMLCanvasElement):
       sizer.disconnect();
       for (const a of ready.values()) a.mixer.stopAllAction();
       void Promise.all([...textures.values()]).then((ts) => ts.forEach((t) => t.dispose()));
+      shadowTexture.dispose();
+      shadowGeometry.dispose();
+      shadowMaterial.dispose();
       renderer.dispose();
     },
   };
