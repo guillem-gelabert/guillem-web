@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
 
 // Interactive 5 in "What Are Embeddings", set as a PES 6 comparison screen:
-// it starts on Wirtz and van Dijk, toggles between 6 and 29 axes, compares
-// exactly two players, and draws their PES avatars in full colour on the
+// it starts on Wirtz and van Dijk, compares exactly two players on the six
+// headline ratings, and draws their PES avatars in full colour on the
 // TFT screen the page has switched to by the time it is in view.
 
 const ROUTE = "/writing/what-are-embeddings";
@@ -22,11 +22,13 @@ test.describe("player radar", () => {
       await expect(rows.nth(i).locator("td").first()).toHaveText(a);
       await expect(rows.nth(i).locator("td").last()).toHaveText(b);
     }
-    // the cards: van Dijk is a 193 cm centre-back
-    await expect(radar.getByLabel("Right player", { exact: true }).locator("dd").first()).toHaveText("193 cm");
+    // the cards: van Dijk is a Dutch centre-back
+    const right = radar.getByLabel("Right player", { exact: true }).first();
+    await expect(right).toContainText("CB");
+    await expect(right).toContainText("Netherlands");
   });
 
-  test("compares exactly two players, in 6 or 29 attributes", async ({ page }) => {
+  test("compares exactly two players", async ({ page }) => {
     await page.goto(ROUTE);
     await page.getByTestId("player-radar").scrollIntoViewIfNeeded();
     await expect(page.getByTestId("series")).toHaveCount(2);
@@ -34,10 +36,8 @@ test.describe("player radar", () => {
     await expect(page.getByTestId("player-1").locator('option[value="deu-wirtz"]')).toBeDisabled();
     await page.getByTestId("player-1").selectOption("fra-kante");
     await expect(page.getByTestId("series")).toHaveCount(2);
-    await page.getByTestId("view-29").click();
-    await expect(page.getByTestId("ratings").locator("tbody tr")).toHaveCount(29);
-    await page.getByTestId("view-6").click();
-    await expect(page.getByTestId("ratings").locator("tbody tr")).toHaveCount(6);
+    // N'Golo Kanté, PAC 77
+    await expect(page.getByTestId("ratings").locator("tbody tr").first().locator("td").last()).toHaveText("77");
   });
 
   test("draws the avatars in full colour on the TFT screen", async ({ page }) => {

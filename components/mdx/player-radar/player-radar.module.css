@@ -1,37 +1,35 @@
 /* Interactive 5, set as a PES 6 comparison screen, built from the sprites
    in /figures/what-are-embeddings/pes-ui (cut from the PES-style asset
-   sheet): the glossy blue header with its title plate, slate panels with
-   silver rims, pink and blue bars in dark tracks, the circle and cross
-   buttons, a night stadium over tiled grass, and a film of noise over all
-   of it. Panels, tracks, bars and badges are 9-sliced with border-image,
-   so their rims stay crisp at any size.
+   sheet): the glossy blue header with its title plate, a large hexagon
+   radar in the middle, the two players standing at the edges of a night
+   stadium, and under the radar a small silver-rimmed card for each:
+   position, number and name, then flag and country.
 
    It keeps its own look whatever screen the page is on (gameboy-screen.css
-   exempts it from the Game Boy filter), and runs wider than the prose
-   column on desktop so the avatars have room beside the cards. */
+   exempts it from the Game Boy filter), runs wider than the prose column
+   on desktop, and scales as one picture: every size inside is a share of
+   its width (cqw), so a phone shows the same screen, smaller. */
+.figure {
+  width: min(880px, calc(100vw - 32px));
+  margin: 0 0 32px calc(50% - min(440px, 50vw - 16px));
+}
+
 .root {
-  --ui: url("/figures/what-are-embeddings/pes-ui/");
-  --left: #ef86bd;
-  --right: #78a6ff;
+  --left: #f07cb8;
+  --right: #6f9cff;
   --text: #f2f4f8;
-  --dim: #a9b2c4;
-  --rule: rgb(196 204 222 / 0.45);
   /* the Game Boy page sets every element's family from this variable */
   --gb-body-font: "Arial Narrow", "Roboto Condensed", "Helvetica Neue", Arial, sans-serif;
 
   container-type: inline-size;
   position: relative;
   isolation: isolate;
-  width: min(880px, calc(100vw - 32px));
-  margin: 0 0 32px calc(50% - min(440px, 50vw - 16px));
   overflow: clip;
   color: var(--text);
   background: #0d121c;
   font-family: var(--gb-body-font);
   font-stretch: condensed;
-  font-size: 16px;
-  line-height: 1.25;
-  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
   text-shadow: 1px 1px 0 rgb(0 0 0 / 0.6);
 }
 
@@ -62,11 +60,9 @@
   position: relative;
   z-index: 2;
   aspect-ratio: 1600 / 106;
-  min-height: 40px;
   background: #050a16 url("/figures/what-are-embeddings/pes-ui/header-bar.webp") center / 100% 100% no-repeat;
 }
 
-/* the title plate rides the bar's right end, as on the game's screen */
 .title {
   position: absolute;
   right: 1.5%;
@@ -77,28 +73,21 @@
   background: url("/figures/what-are-embeddings/pes-ui/title.webp") center / contain no-repeat;
 }
 
-/* --- stadium ----------------------------------------------------------- */
+/* --- the screen ---------------------------------------------------------- */
 
 .pitch {
   position: relative;
-  padding: 22px 0 26px;
-  /* the stadium across the full width, then the sheet's grass tile for
-     whatever runs below it (the 29-attribute view) */
-  background:
-    url("/figures/what-are-embeddings/stadium.jpg") center top / 100% auto no-repeat,
-    url("/figures/what-are-embeddings/pes-ui/grass.webp") 0 0 / 202px 96px repeat,
-    #2f4a1f;
+  aspect-ratio: 1448 / 1000;
+  background: #0b1120 url("/figures/what-are-embeddings/stadium.jpg") center 60% / cover no-repeat;
 }
 
+/* the players stand at the edges, boots near the foot of the screen */
 .stage {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 470px;
+  inset: 3% 0 6% 0;
   pointer-events: none;
-  --slot-0: 0.1;
-  --slot-1: 0.9;
+  --slot-0: 0.14;
+  --slot-1: 0.86;
 }
 
 .canvas {
@@ -107,79 +96,99 @@
   height: 100%;
 }
 
-.layout {
-  position: relative;
-  display: grid;
-  grid-template-columns: 16% minmax(0, 1fr) 180px minmax(0, 1fr) 16%;
-  grid-template-areas:
-    ". left radar right ."
-    ". bars bars bars .";
-  gap: 18px 10px;
-  align-items: center;
+.radar {
+  position: absolute;
+  left: 50%;
+  top: 3%;
+  width: 46%;
+  transform: translateX(-50%);
+  overflow: visible;
 }
 
-/* --- panels: the sheet's panel_bg, 9-sliced ---------------------------- */
+.radarShape {
+  fill-opacity: 0.5;
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
 
-.card,
-.barsPanel {
+.radarLabel {
+  fill: #fff;
+  stroke: rgb(0 0 0 / 0.75);
+  stroke-width: 3px;
+  paint-order: stroke;
+  font-size: 22px;
+  font-weight: 700;
+  font-style: italic;
+  cursor: default;
+}
+
+/* --- cards --------------------------------------------------------------- */
+
+.cards {
+  position: absolute;
+  left: 50%;
+  bottom: 14%;
+  display: flex;
+  gap: 3.5cqw;
+  transform: translateX(-50%);
+}
+
+.card {
+  width: 23.5cqw;
+  padding: 0.4cqw 0.9cqw;
   border: 3px solid transparent;
   border-image: url("/figures/what-are-embeddings/pes-ui/panel.webp") 5 fill / 3px stretch;
   box-shadow: 2px 3px 6px rgb(0 0 0 / 0.45);
+  font-size: max(11px, 2.25cqw);
+  font-style: italic;
 }
 
-.card[data-side="0"] {
-  grid-area: left;
-}
-
-.card[data-side="1"] {
-  grid-area: right;
-}
-
-.cardHead {
+.cardRow {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 6px;
-  border-bottom: 1px solid var(--rule);
+  gap: 0.8cqw;
+  min-height: 3.4cqw;
 }
 
-/* role_cf.png's plate: dark box, silver rim, the red line along its foot
-   (blue on the right player's card) */
+.cardRow + .cardRow {
+  justify-content: center;
+  border-top: 1px solid rgb(196 204 222 / 0.45);
+}
+
+/* role_cf.png's plate: dark box, silver rim, a red line along its foot */
 .badge {
   flex: none;
-  min-width: 42px;
-  padding: 0 4px;
-  font-size: 17px;
+  min-width: 4.6cqw;
+  padding: 0 0.4cqw;
+  font-style: normal;
   font-weight: 700;
+  font-size: 0.85em;
   text-align: center;
   background: linear-gradient(180deg, #2a2f3a, #0b0d12 60%);
   border: 2px solid transparent;
   border-image: url("/figures/what-are-embeddings/pes-ui/role-badge.webp") 5 / 2px stretch;
-  box-shadow: inset 0 -4px 0 #d8202c;
-}
-
-.card[data-side="1"] .badge {
-  box-shadow: inset 0 -4px 0 #3c6cf0;
+  box-shadow: inset 0 -3px 0 #d8202c;
 }
 
 .shirt {
   flex: none;
-  font-size: 19px;
+  font-style: normal;
+  margin-left: 0.4cqw;
 }
 
 .root select {
   min-width: 0;
   flex: 1;
   appearance: none;
-  padding: 0 14px 0 0;
+  padding: 0 1.2cqw 0 0;
   font: inherit;
-  font-size: 19px;
   color: var(--text);
   text-overflow: ellipsis;
   text-shadow: inherit;
+  text-align: center;
   background:
-    linear-gradient(45deg, transparent 50%, var(--dim) 50%) right 5px center / 5px 5px no-repeat,
-    linear-gradient(135deg, var(--dim) 50%, transparent 50%) right 0 center / 5px 5px no-repeat;
+    linear-gradient(45deg, transparent 50%, #a9b2c4 50%) right 0.45cqw center / 0.5cqw 0.5cqw no-repeat,
+    linear-gradient(135deg, #a9b2c4 50%, transparent 50%) right 0 center / 0.5cqw 0.5cqw no-repeat;
   border: 0;
   cursor: pointer;
 }
@@ -189,38 +198,16 @@
   text-shadow: none;
 }
 
-.root select:focus-visible,
-.root button:focus-visible {
+.root select:focus-visible {
   outline: 2px solid #ffd54a;
   outline-offset: 2px;
-}
-
-.facts {
-  margin: 0;
-}
-
-.facts div {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  min-height: 31px;
-  padding: 0 10px;
-  font-size: 17px;
-  border-bottom: 1px solid var(--rule);
-}
-
-.facts div:last-child {
-  border-bottom: 0;
-}
-
-.facts dd {
-  margin: 0;
 }
 
 /* flag_*.png's frame: a thin silver rim and a gloss across the top half */
 .flagFrame {
   position: relative;
   display: block;
+  flex: none;
   box-shadow:
     0 0 0 1px #d6dbe6,
     0 0 0 2px #2a3040;
@@ -235,303 +222,65 @@
 
 .flag {
   display: block;
-  width: 33px;
-  height: 22px;
+  width: 4.2cqw;
+  height: 2.8cqw;
 }
 
-/* --- radar --------------------------------------------------------------- */
-
-.radar {
-  grid-area: radar;
-  display: block;
-  width: 100%;
-  overflow: visible;
-}
-
-/* the 29-attribute view has no sprite: the same plate drawn in SVG */
-.radarPlate {
-  fill: #1d2232;
-  stroke: #b9c0d0;
-  stroke-width: 2.5;
-  stroke-linejoin: round;
-}
-
-.radarRing {
-  fill: none;
-  stroke: rgb(170 180 205 / 0.45);
-  stroke-width: 0.8;
-}
-
-.radarShape {
-  fill-opacity: 0.38;
-  stroke-width: 2;
-  stroke-linejoin: round;
-}
-
-.radarLabel {
-  fill: var(--text);
-  stroke: rgb(0 0 0 / 0.7);
-  stroke-width: 2.5px;
-  paint-order: stroke;
-  font-size: 15px;
-  font-weight: 700;
-  font-style: italic;
-  cursor: default;
-}
-
-.root[data-detailed] .radarLabel {
-  font-size: 8px;
-  font-style: normal;
-  stroke-width: 1.5px;
-}
-
-.radarLabel[data-hovered] {
-  fill: #ffd54a;
-}
-
-/* --- bars ---------------------------------------------------------------- */
-
-.barsPanel {
-  grid-area: bars;
-  padding: 10px 14px;
-}
-
-.root .bars {
-  width: 100%;
-  margin: 0;
-  border-collapse: separate;
-  border-spacing: 0 7px;
-  font-size: inherit;
-}
-
-/* .root .x outranks the prose layer's .prose-site th/td */
-.root .bars th,
-.root .bars td {
-  padding: 0;
-  font-family: inherit;
-  font-size: inherit;
-  font-weight: 400;
-  line-height: 1.2;
-  letter-spacing: 0;
-  text-transform: none;
-  border: 0;
-}
-
-.root .bars .value {
-  width: 3ch;
-  padding: 0 10px;
-  font-size: 24px;
-  text-align: right;
-}
-
-.root .bars td.value:last-child {
-  text-align: left;
-}
-
-/* One long dark track per row, from the left bar's end through the label to
-   the right bar's end: bar_bg.png 9-sliced across the three cells, each
-   cell taking only the rims on its own outer sides. */
-.root .bars .label,
-.root .bars .track {
-  height: 30px;
-  border: 3px solid transparent;
-  border-image-source: url("/figures/what-are-embeddings/pes-ui/bar-track.webp");
-  border-image-slice: 5 fill;
-  border-image-repeat: stretch;
-}
-
-.root .bars .trackLeft {
-  padding: 0 3px 0 4px;
-  text-align: right;
-  border-image-width: 3px 0 3px 3px;
-}
-
-.root .bars .label {
-  width: 9em;
-  padding: 0 6px;
-  font-size: 19px;
-  text-align: center;
+.nation {
+  min-width: 0;
+  margin-left: 1cqw;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
-  border-image-width: 3px 0;
 }
 
-.root .bars .trackRight {
-  padding: 0 4px 0 3px;
-  border-image-width: 3px 3px 3px 0;
+/* --- caption, in the page's own type ------------------------------------ */
+
+.caption {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 20px;
+  opacity: 0.8;
 }
 
-.bar {
-  display: inline-block;
-  height: 20px;
-  vertical-align: middle;
-  border: 3px solid transparent;
-  border-image-slice: 6 fill;
-  border-image-width: 3px;
-  border-image-repeat: stretch;
-}
-
-.trackLeft .bar {
-  border-image-source: url("/figures/what-are-embeddings/pes-ui/bar-red.webp");
-}
-
-.trackRight .bar {
-  border-image-source: url("/figures/what-are-embeddings/pes-ui/bar-blue.webp");
-}
-
-.root .bars tr[data-hovered] .label {
-  color: #ffd54a;
-}
-
-.root[data-detailed] .bars {
-  border-spacing: 0 3px;
-}
-
-.root[data-detailed] .bars .value {
-  font-size: 18px;
-}
-
-.root[data-detailed] .bars .label,
-.root[data-detailed] .bars .track {
-  height: 22px;
-}
-
-.root[data-detailed] .bars .label {
-  font-size: 15px;
-}
-
-.root[data-detailed] .bar {
-  height: 14px;
-}
-
-/* --- footer: footer_bar.png with the circle and cross buttons ---------- */
-
-.footer {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 40px;
-  padding: 12px 28px;
-  background: #0c111b url("/figures/what-are-embeddings/pes-ui/footer-bar.webp") center / 100% 100% no-repeat;
-}
-
-.root .footer button {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0;
-  font: inherit;
-  font-size: 22px;
-  color: var(--text);
-  text-shadow: inherit;
-  background: none;
-  border: 0;
-  cursor: pointer;
-}
-
-.root .footer button:disabled {
-  color: var(--dim);
-  cursor: default;
-}
-
-.circle,
-.cross {
-  flex: none;
-  width: 28px;
-  height: 28px;
-  background: center / contain no-repeat;
-}
-
-.circle {
-  background-image: url("/figures/what-are-embeddings/pes-ui/button-circle.webp");
-}
-
-.cross {
-  background-image: url("/figures/what-are-embeddings/pes-ui/button-cross.webp");
-}
-
-.root .footer button:disabled .circle {
-  opacity: 0.55;
-}
-
-.note {
-  margin-left: auto;
-  font-size: 13px;
-  color: var(--dim);
-}
-
-/* --- phones -------------------------------------------------------------- */
-
-/* No room beside the cards: the players stand in a strip above them, the
-   cards share a row, the radar and the bars run full width. */
-@container (max-width: 680px) {
+/* Phones: a taller screen, stacked: the radar on top, the players side by
+   side under it, the cards at the foot. */
+@container (max-width: 520px) {
   .pitch {
-    padding-top: 0;
-  }
-
-  .stage {
-    position: relative;
-    height: 240px;
-    --slot-0: 0.25;
-    --slot-1: 0.75;
-  }
-
-  .layout {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-areas:
-      "left right"
-      "radar radar"
-      "bars bars";
-    gap: 12px 8px;
-    padding: 0 8px;
+    aspect-ratio: 3 / 4;
   }
 
   .radar {
-    width: min(240px, 70%);
-    justify-self: center;
+    top: 2%;
+    width: 64%;
   }
 
-  .root select,
-  .shirt {
-    font-size: 15px;
+  .stage {
+    inset: 47% 0 21% 0;
+    --slot-0: 0.27;
+    --slot-1: 0.73;
+  }
+
+  .cards {
+    bottom: 3%;
+    gap: 2cqw;
+  }
+
+  .card {
+    width: 46cqw;
+    font-size: max(12px, 4cqw);
+  }
+
+  .cardRow {
+    min-height: 7cqw;
   }
 
   .badge {
-    min-width: 34px;
-    font-size: 14px;
-  }
-
-  .facts div {
-    min-height: 26px;
-    padding: 0 6px;
-    font-size: 14px;
+    min-width: 9cqw;
   }
 
   .flag {
-    width: 27px;
-    height: 18px;
-  }
-
-  .barsPanel {
-    padding: 8px;
-  }
-
-  .root .bars .value {
-    padding: 0 4px;
-    font-size: 18px;
-  }
-
-  .root .bars .label {
-    width: 7.5em;
-    font-size: 14px;
-  }
-
-  .root .footer button {
-    font-size: 17px;
-  }
-
-  .note {
-    margin-left: 0;
+    width: 7cqw;
+    height: 4.7cqw;
   }
 }

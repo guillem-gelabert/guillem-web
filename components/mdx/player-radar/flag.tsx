@@ -86,6 +86,8 @@ const FLAGS: Record<string, { name: string; draw: ReactNode }> = {
   },
 };
 
+export const nationName = (nation: string) => FLAGS[nation]?.name ?? nation;
+
 export function Flag({ nation, className }: { nation: string; className?: string }) {
   const flag = FLAGS[nation];
   if (!flag) return <span className={className}>{nation}</span>;
