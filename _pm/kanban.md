@@ -296,8 +296,8 @@ to break Floyd–Steinberg's lattice.
   tried and reverted the same day. New `hideStandfirst` front-matter keeps the lead off the
   page; it still feeds the meta description.
 - **Hempton grid circle: DeepDream portrait** (2026-11-11) — his portrait (square crop) dreamed
-  with the same script in photo mode (`--start`, `--edges reflect`, 40 steps × 3 octaves at
-  768px), saved as 640px WebP colour + linear-light greyscale (`public/work/hempton-dream*.webp`).
+  with the same script in photo mode (`--start`, `--edges reflect`; strengthened the same day to
+  `mixed4,mixed5`, 100 steps × 4 octaves at 448px, for bigger dogs and eyes), saved as 640px WebP colour + linear-light greyscale (`public/work/hempton-dream*.webp`).
   The grid has no empty circle now.
 
 ## Next

@@ -37,7 +37,8 @@ export const NOTES: readonly NoteEntry[] = [
     href: "/writing/the-worst-business-in-the-world",
     tag: null,
     // His portrait run through DeepDream (scripts/deepdream-tile.py, photo
-    // mode), the same treatment as the post's backdrop. Greyscale at rest and
+    // mode) until it is mostly the network's dog faces and eyes, the same
+    // treatment as the post's backdrop. Greyscale at rest and
     // the colour dream on hover; the grey is a luminance reduction in linear
     // light, as for the other shots.
     shot: {
@@ -49,7 +50,7 @@ export const NOTES: readonly NoteEntry[] = [
         width: 640,
         height: 640,
       },
-      alt: "John Hempton's portrait run through DeepDream: his face, glasses and curly hair overgrown with the network's eyes and swirls.",
+      alt: "John Hempton's portrait run through DeepDream until only the outline of his head is left, filled with dog faces and eyes.",
     },
   },
 ];

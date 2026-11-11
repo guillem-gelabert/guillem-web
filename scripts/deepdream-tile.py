@@ -18,7 +18,10 @@ Hempton thumbnail (public/work/hempton-dream{,-bw}.webp: 640px, the grey a
 linear-light luminance) is, from a square crop of his portrait,
 
   python scripts/deepdream-tile.py OUT.png --start CROP.png --edges reflect \
-    --size 768 --steps 40 --step-size 0.012
+    --size 448 --octaves 4 --steps 100 --step-size 0.02 --layers mixed4,mixed5
+
+then upscaled to 640. Dreaming small and on the deeper layers is what makes
+the dog faces and eyes big against the head.
 
 Needs tensorflow, pillow and numpy (Python 3.12). The committed tile,
 public/backgrounds/hempton-dream.webp, is the first (stripes) run saved as WebP
@@ -38,6 +41,7 @@ ap.add_argument("--layers", default="mixed3,mixed5")
 ap.add_argument("--seed", type=int, default=1)
 ap.add_argument("--start", help="square start image; default is the stripes")
 ap.add_argument("--edges", choices=["wrap", "reflect"], default="wrap")
+ap.add_argument("--octaves", type=int, default=3, help="octaves at 1.3x, ending at --size")
 args = ap.parse_args()
 
 rng = np.random.default_rng(args.seed)
@@ -113,7 +117,7 @@ if args.start:
 else:
     start = start_image(args.size)
 img = tf.constant(start * 2 - 1, tf.float32)  # inception range [-1, 1]
-for octave in range(-2, 1):
+for octave in range(1 - args.octaves, 1):
     size = int(round(args.size * 1.3**octave))
     img = wrap_resize(img, size)
     for i in range(args.steps):
