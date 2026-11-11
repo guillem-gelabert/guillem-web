@@ -4,7 +4,7 @@ import { readFile, readdir } from "node:fs/promises";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { POSITIONING_PLACEHOLDER, WORK } from "../../lib/work.ts";
-import { indexPath, notFoundPath, postPath, UI } from "../../lib/locales.ts";
+import { notFoundPath, postPath } from "../../lib/locales.ts";
 // EMAIL is imported rather than retyped so raw-HTML assertions cannot drift
 // from the address rendered by the reusable obfuscated link.
 import { EMAIL } from "../../lib/contact.ts";
@@ -125,9 +125,8 @@ function getRoutes(): Promise<Map<string, string>> {
 // draft: false (the "DRAFT BRANCH TAKEN" decision recorded in
 // 04-04-SUMMARY.md), so it is a published entry, not a draft — it IS
 // expected to prerender and its title IS expected to appear in build
-// output. That expectation is asserted positively by the
-// "both /writing and /texte render one real published entry" test below
-// and by the I18N-01 test at the end of this file, not by exclusion here.
+// output. That expectation is asserted positively by the I18N-01 test at
+// the end of this file, not by exclusion here.
 // Had Plan 04 instead taken the draft: true escape hatch, this file's own
 // forked history would have required adding "texte/die-darstellung-aendert-sich"
 // and its title to these two arrays instead.
@@ -156,43 +155,18 @@ test("no draft route was prerendered and no draft title appears anywhere in the 
   }
 });
 
-test("both /writing and /texte render one real published entry, not their empty state", async () => {
-  const routes = await getRoutes();
-  const writing = routes.get("writing");
-  const texte = routes.get("texte");
-  assert.ok(writing, "route \"writing\" must exist in the production build");
-  assert.ok(texte, "route \"texte\" must exist in the production build");
-
-  // /writing: Plan 03 published content/the-chart-therefore-changes.mdx
-  // with draft: false, so the English index left n=0 first.
-  assert.ok(writing!.includes("The Chart Therefore Changes"));
-  assert.equal(writing!.includes("Nothing published here yet."), false);
-  assert.equal(writing!.includes("The first piece is being written."), false);
-
-  // /texte: Plan 04 shipped content/die-darstellung-aendert-sich.mdx with
-  // draft: false too — see the DRAFT_ROUTE_KEYS/DRAFT_TITLES comment above
-  // for the recorded decision. Had Plan 04 instead taken the draft: true
-  // escape hatch, this half would stay asserting the empty state exactly
-  // as it did before this test was rewritten — an empty German index would
-  // still be the correct and honest production state under that branch,
-  // not a bug.
-  assert.ok(texte!.includes("Die Darstellung ändert sich"));
-  assert.equal(texte!.includes("Hier ist noch nichts veröffentlicht."), false);
-  assert.equal(texte!.includes("Der erste Text entsteht gerade."), false);
-});
-
 test("per-route language: html lang=en on writing, html lang=de on texte, no locale prefix in either route key", async () => {
   const routes = await getRoutes();
-  const writing = routes.get("writing")!;
-  const texte = routes.get("texte")!;
+  const writing = routes.get("writing/the-chart-therefore-changes")!;
+  const texte = routes.get("texte/die-darstellung-aendert-sich")!;
 
   assert.ok(writing.includes('html lang="en"'));
   assert.ok(texte.includes('html lang="de"'));
 
   // The I18N Contract is explicit: no locale prefix, anywhere. A prefixed
   // key here would mean the route-group split leaked into the URL shape.
-  assert.equal(routes.has("de/texte"), false);
-  assert.equal(routes.has("en/writing"), false);
+  assert.equal(routes.has("de/texte/die-darstellung-aendert-sich"), false);
+  assert.equal(routes.has("en/writing/the-chart-therefore-changes"), false);
 });
 
 /**
@@ -226,8 +200,8 @@ test("per-route language: html lang=en on writing, html lang=de on texte, no loc
  */
 test("robots noindex survived the two-root-layout split — present on both writing and texte", async () => {
   const routes = await getRoutes();
-  const writing = routes.get("writing")!;
-  const texte = routes.get("texte")!;
+  const writing = routes.get("writing/the-chart-therefore-changes")!;
+  const texte = routes.get("texte/die-darstellung-aendert-sich")!;
 
   assert.match(writing, /name="robots"\s+content="[^"]*noindex[^"]*"/);
   assert.match(texte, /name="robots"\s+content="[^"]*noindex[^"]*"/);
@@ -249,16 +223,16 @@ function draftMarkerLine(marker: string): RegExp {
   return new RegExp(`(?:</time>|</a>)\\s*·\\s*(?:<!--\\s*-->\\s*)?${marker}`, "u");
 }
 
-test("no dev-only chrome leaked into either index's meta line", async () => {
+test("no dev-only chrome leaked into a published post's meta line", async () => {
   const routes = await getRoutes();
-  const writing = routes.get("writing")!;
-  const texte = routes.get("texte")!;
+  const writing = routes.get("writing/the-chart-therefore-changes")!;
+  const texte = routes.get("texte/die-darstellung-aendert-sich")!;
 
-  // Production has zero visible entries on either index (all fixtures are
-  // draft), so neither locale's marker may appear on a meta line at all.
-  // Both markers are checked against both routes: "Draft" appearing on
-  // /texte would mean UI.de.draftMarker had regressed to the untranslated
-  // English string, which no other test would notice.
+  // Both posts are published (draft: false), so neither locale's marker may
+  // appear on a meta line at all. Both markers are checked against both
+  // routes: "Draft" appearing on a German post would mean UI.de.draftMarker
+  // had regressed to the untranslated English string, which no other test
+  // would notice.
   for (const [routeKey, html] of [
     ["writing", writing],
     ["texte", texte],
@@ -273,10 +247,10 @@ test("no dev-only chrome leaked into either index's meta line", async () => {
   }
 });
 
-test("locale metadata is emitted from Phase 2, not deferred — canonical plus an x-default alternate on both indexes", async () => {
+test("locale metadata is emitted from Phase 2, not deferred — canonical plus an x-default alternate on both posts", async () => {
   const routes = await getRoutes();
-  const writing = routes.get("writing")!;
-  const texte = routes.get("texte")!;
+  const writing = routes.get("writing/the-chart-therefore-changes")!;
+  const texte = routes.get("texte/die-darstellung-aendert-sich")!;
 
   assert.ok(writing.includes('rel="canonical"'));
   assert.ok(texte.includes('rel="canonical"'));
@@ -523,11 +497,11 @@ test("the German layout's default description reaches no shipped route (WR-06)",
   // route declares its own description, so the layout default is a fallback
   // nothing reaches. If a German route ever loses its own description this
   // fails, rather than silently serving the layout's line.
-  const texte = routes.get("texte");
-  assert.ok(texte, 'route "texte" must exist in the production build');
+  const texte = routes.get("texte/die-darstellung-aendert-sich");
+  assert.ok(texte, 'route "texte/die-darstellung-aendert-sich" must exist in the production build');
   const match = texte!.match(/<meta name="description" content="([^"]*)"/);
-  assert.ok(match, "/texte must carry a meta description");
-  assert.equal(match![1], UI.de.indexDescription);
+  assert.ok(match, "the German post must carry a meta description");
+  assert.ok(match![1].length > 0);
 
   for (const [routeKey, html] of routes) {
     assert.doesNotMatch(
@@ -743,7 +717,6 @@ test("the sitemap's post entries equal lib/content.ts's real published selection
   const staticUrls = new Set([
     SITE_URL.origin,
     new URL("/cv", SITE_URL).toString(),
-    ...(LOCALES as readonly Locale[]).map((locale) => new URL(indexPath(locale), SITE_URL).toString()),
   ]);
   const actualPostUrls = new Set(locs.filter((loc) => !staticUrls.has(loc)));
 
@@ -766,15 +739,13 @@ test("the sitemap's post entries equal lib/content.ts's real published selection
   );
 });
 
-test("the sitemap carries the four static routes, excludes /type and both reserved 404 routes by constant reference, and every loc resolves to the canonical host", async () => {
+test("the sitemap carries the two static routes, excludes /type and the removed writing indexes, and both reserved 404 routes by constant reference, and every loc resolves to the canonical host", async () => {
   const xml = await readBuiltBody("sitemap.xml.body");
   const locs = sitemapLocs(xml);
 
   for (const expected of [
     SITE_URL.origin,
     new URL("/cv", SITE_URL).toString(),
-    new URL(indexPath("en"), SITE_URL).toString(),
-    new URL(indexPath("de"), SITE_URL).toString(),
   ]) {
     assert.ok(locs.includes(expected), `sitemap must include the static route "${expected}"`);
   }
@@ -787,6 +758,9 @@ test("the sitemap carries the four static routes, excludes /type and both reserv
   // absent.
   for (const excludedUrl of [
     new URL("/type", SITE_URL).toString(),
+    new URL("/writing", SITE_URL).toString(),
+    new URL("/texte", SITE_URL).toString(),
+    new URL("/escrits", SITE_URL).toString(),
     new URL(notFoundPath("en"), SITE_URL).toString(),
     new URL(notFoundPath("de"), SITE_URL).toString(),
   ]) {
@@ -841,21 +815,19 @@ test("/'s canonical and the sitemap's site-root loc are the exact same spelling 
   );
 });
 
-// The six routes FIND-01's OG sweep covers — /type is deliberately excluded
+// The four routes FIND-01's OG sweep covers — /type is deliberately excluded
 // here (it is covered separately, below, only for hreflang) because it was
 // never in this plan's OG-tag instruction. hasOwnOgImage records what is
 // MEASURED against the real build, not assumed from the file layout — see
-// the og:image test's own comment for why three of the six read false.
+// the og:image test's own comment for why one of the four reads false.
 const OG_TARGET_ROUTES: readonly { key: string; locale: "en" | "de"; hasOwnOgImage: boolean }[] = [
   { key: "", locale: "en", hasOwnOgImage: true },
   { key: "cv", locale: "en", hasOwnOgImage: false },
-  { key: "writing", locale: "en", hasOwnOgImage: false },
-  { key: "texte", locale: "de", hasOwnOgImage: false },
   { key: "writing/the-chart-therefore-changes", locale: "en", hasOwnOgImage: true },
   { key: "texte/die-darstellung-aendert-sich", locale: "de", hasOwnOgImage: true },
 ] as const;
 
-test("every one of the six discoverability routes carries og:title/description/url/type/site_name/locale, on the canonical host, with the right locale", async () => {
+test("every one of the four discoverability routes carries og:title/description/url/type/site_name/locale, on the canonical host, with the right locale", async () => {
   const routes = await getRoutes();
 
   for (const { key, locale } of OG_TARGET_ROUTES) {
@@ -906,9 +878,8 @@ test("og:image is parsed from the meta tag (never hardcoded) and resolves to a r
 
     // The file convention does NOT cascade. app/(en)/opengraph-image.png sits
     // beside app/(en)/layout.tsx, so it reaches app/(en)/page.tsx at that same
-    // segment but not app/(en)/cv/page.tsx, app/(en)/writing/page.tsx or
-    // app/(de)/texte/page.tsx one segment deeper — plan 06-09 measured zero
-    // og:image tags on those, with twitter:card falling back to "summary".
+    // segment but not app/(en)/cv/page.tsx one segment deeper — plan 06-09
+    // measured zero og:image tags there, with twitter:card falling back to "summary".
     // (app/icon.png DOES cascade; opengraph-image does not.) Closed by giving
     // routeOpenGraph() in lib/metadata.ts an explicit `images` entry pointing
     // at a stable public path (/og/site-{locale}.png) rather than Next's
@@ -988,7 +959,7 @@ test('exactly one rel="icon" ships on / and the Next scaffold favicon.ico is gon
   );
 });
 
-test("every one of the six discoverability routes carries a non-empty title, no two share a title or a description, and the site name never doubles", async () => {
+test("every one of the four discoverability routes carries a non-empty title, no two share a title or a description, and the site name never doubles", async () => {
   const routes = await getRoutes();
   const titles = new Map<string, string>();
   const descriptions = new Map<string, string>();
@@ -1010,18 +981,18 @@ test("every one of the six discoverability routes carries a non-empty title, no 
     descriptions.set(key, descriptionMatch![1]);
   }
 
-  assert.equal(new Set(titles.values()).size, titles.size, "no two of the six routes may share a title");
+  assert.equal(new Set(titles.values()).size, titles.size, "no two of the four routes may share a title");
   assert.equal(
     new Set(descriptions.values()).size,
     descriptions.size,
-    "no two of the six routes may share a description",
+    "no two of the four routes may share a description",
   );
 });
 
-test("/writing and /texte still emit hreflang alternates including x-default; /, /cv and /type deliberately emit none (English-only in v1)", async () => {
+test("posts still emit hreflang alternates including x-default; /, /cv and /type deliberately emit none (English-only in v1)", async () => {
   const routes = await getRoutes();
 
-  for (const key of ["writing", "texte"]) {
+  for (const key of ["writing/the-chart-therefore-changes", "texte/die-darstellung-aendert-sich"]) {
     const html = routes.get(key)!;
     assert.match(html, /hrefLang="x-default"/i, `route "${key}" must emit an x-default alternate`);
   }

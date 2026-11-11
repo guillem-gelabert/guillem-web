@@ -26,16 +26,16 @@ const LOCALE_CASES = [
     lang: "en",
     heading: "Not found",
     body: "That piece doesn't exist here.",
-    backLinkText: "← Writing",
-    backLinkHref: "/writing",
+    backLinkText: "← Guillem Gelabert",
+    backLinkHref: "/",
   },
   {
     path: "/texte/gibt-es-nicht",
     lang: "de",
     heading: "Nicht gefunden",
     body: "Diesen Text gibt es hier nicht.",
-    backLinkText: "← Texte",
-    backLinkHref: "/texte",
+    backLinkText: "← Guillem Gelabert",
+    backLinkHref: "/",
   },
 ];
 
@@ -43,7 +43,7 @@ const LOCALE_CASES = [
 // route at all. Asserted with JavaScript disabled, because the whole point of
 // the file is that the 404 exists in the SERVER HTML — a Playwright context
 // with JS on waits for hydration and would pass against a blank shell.
-const UNMATCHED_PATHS = ["/nope", "/blog", "/de/texte"];
+const UNMATCHED_PATHS = ["/nope", "/blog", "/de/texte", "/writing", "/texte", "/escrits"];
 
 for (const path of UNMATCHED_PATHS) {
   test(`${path} matches no route and renders the global not-found copy without JavaScript`, async ({
@@ -68,17 +68,9 @@ for (const path of UNMATCHED_PATHS) {
       await expect(page.locator("h1")).toHaveText("Not found");
       await expect(page.getByText("That piece doesn't exist here.")).toBeVisible();
 
-      // WR-05: the site root, not the writing index. This boundary is
-      // reached by visitors who were not looking for /writing, and in
-      // production /writing ships "Nothing published here yet." — so the
-      // segment-scoped back link sent them from a mistyped URL to an empty
-      // page with still no route to the site root.
+      // WR-05: the site root. There is no writing index to send them to.
       const backLink = page.getByRole("link", { name: "← Guillem Gelabert" });
       await expect(backLink).toHaveAttribute("href", "/");
-
-      // The global boundary must offer no route into the writing segment:
-      // a second link here would be the dead end WR-05 removed.
-      await expect(page.locator('a[href="/writing"]')).toHaveCount(0);
 
       // Amendment A3 / WCAG 2.5.8, moved here from the LOCALE_CASES /nope
       // row (IN-07) so the assertion sits on the surface it describes.

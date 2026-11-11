@@ -17,8 +17,6 @@ const ROUTES = [
   "/",
   "/cv",
   "/type",
-  "/writing",
-  "/texte",
   "/writing/the-chart-therefore-changes",
   "/texte/die-darstellung-aendert-sich",
   "/writing/does-not-exist",

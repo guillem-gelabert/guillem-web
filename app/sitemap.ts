@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { LOCALES, publishedFor } from "@/lib/content";
 import { SITE_URL } from "@/lib/site";
-import { indexPath, notFoundPath, postPath } from "@/lib/locales";
+import { notFoundPath, postPath } from "@/lib/locales";
 
 /**
  * Trailing-slash decision (06-RESEARCH.md Pitfall 8 / plan 06-05 interfaces
@@ -22,7 +22,7 @@ const SITE_ROOT = SITE_URL.origin; // no trailing slash — see decision above
  * rename cannot leave a stale entry silently in or out:
  *
  * - `/type` is not filtered here because it is never a candidate in the
- *   first place: this file only enumerates the four static routes below and
+ *   first place: this file only enumerates the static routes below and
  *   `publishedFor`'s output, and `/type` is neither. It is Phase 1 D-05's
  *   deliberately non-indexed specimen and is disallowed in robots.ts instead.
  * - Both reserved 404 routes from plan 06-01 (CR-01's proxy rewrite target)
@@ -41,7 +41,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticEntries: MetadataRoute.Sitemap = [
     { url: SITE_ROOT },
     { url: abs("/cv") },
-    ...LOCALES.map((locale) => ({ url: abs(indexPath(locale)) })),
   ];
 
   const postEntries = (

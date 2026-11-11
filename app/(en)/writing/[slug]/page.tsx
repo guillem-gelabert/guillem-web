@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { findBySlug, loadPostModule, publishedFor, shadesOf, translationsOf } from "@/lib/content";
-import { indexPath, postAlternates, postPath, translationLinks, UI } from "@/lib/locales";
+import { postAlternates, postPath, translationLinks, UI } from "@/lib/locales";
 import { Prose } from "@/components/prose";
 import { PostTitle } from "@/components/post-title";
 import { PostMeta } from "@/components/post-meta";
@@ -85,8 +85,7 @@ export default async function WritingPost({
   if (entry.frontmatter.theme === "mazzucato") {
     return (
       <ValueScreen
-        backHref={indexPath("en")}
-        backLabel={UI.en.backLink}
+        backLabel={UI.en.homeLink}
         title={entry.frontmatter.title}
         meta={
           <PostMeta
@@ -116,8 +115,8 @@ export default async function WritingPost({
             link. inline-block py-xs is not decoration — this Label-role
             link on its own line measures an 18.2px line box, under WCAG
             2.5.8's 24px floor; the 4px block padding takes it to 26.2px. */}
-        <Link href={indexPath("en")} className="text-label link-quiet inline-block py-xs">
-          {UI.en.backLink}
+        <Link href="/" className="text-label link-quiet inline-block py-xs">
+          {UI.en.homeLink}
         </Link>
         <div className="flex flex-col gap-lg">
           <PostTitle frontmatter={entry.frontmatter} />

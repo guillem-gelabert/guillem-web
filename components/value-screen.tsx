@@ -12,13 +12,11 @@ import "./value-screen.css";
 // background lives in components/value-background.tsx.
 
 export function ValueScreen({
-  backHref,
   backLabel,
   title,
   meta,
   children,
 }: {
-  backHref: string;
   backLabel: string;
   title: string;
   /** The post's PostMeta line: date and language links. */
@@ -32,7 +30,7 @@ export function ValueScreen({
         <header className="vx-hero">
           <div className="vx-hero-square" aria-hidden="true" />
           <div className="vx-hero-inner">
-            <Link href={backHref} className="vx-back">
+            <Link href="/" className="vx-back" hrefLang="en">
               {backLabel}
             </Link>
             <h1 className="vx-title">{title}</h1>

@@ -19,10 +19,6 @@ export const NOT_FOUND_SLUG: Record<Locale, string> = {
   ca: "no-trobat",
 };
 
-export function indexPath(locale: Locale): string {
-  return `/${PATH_TOKEN[locale]}`;
-}
-
 export function notFoundPath(locale: Locale): string {
   return `/${PATH_TOKEN[locale]}/${NOT_FOUND_SLUG[locale]}`;
 }
@@ -38,17 +34,9 @@ export function otherLocales(locale: Locale): Locale[] {
   return ALL_LOCALES.filter((other) => other !== locale);
 }
 
-/** The locale whose writing index lives at /<segment>, if any. */
+/** The locale whose posts live under /<segment>, if any. */
 export function localeForSegment(segment: string | undefined): Locale | null {
   return ALL_LOCALES.find((locale) => PATH_TOKEN[locale] === segment) ?? null;
-}
-
-/** hreflang alternates for the three writing indexes. */
-export function indexAlternates(): Record<string, string> {
-  const languages: Record<string, string> = {};
-  for (const locale of ALL_LOCALES) languages[locale] = indexPath(locale);
-  languages["x-default"] = indexPath("en");
-  return languages;
 }
 
 /**
@@ -90,20 +78,8 @@ export function formatPostDate(iso: string, locale: Locale): string {
 }
 
 type UiCopy = {
-  indexKicker: string;
-  /**
-   * The index's <meta name="description">. Deliberately NOT emptyBody: that
-   * string is the n = 0 state's on-page copy, and reusing it told every
-   * crawler and link-preview card that nothing is published regardless of how
-   * many posts exist. Phase 6 flips robots to indexable, which is when a
-   * stale description starts appearing in search results.
-   */
-  indexDescription: string;
-  backLink: string;
   /** The link to this locale's version, written in this locale. */
   readIn: string;
-  emptyHeading: string;
-  emptyBody: string;
   notFoundHeading: string;
   notFoundBody: string;
   draftMarker: string;
@@ -111,7 +87,7 @@ type UiCopy = {
    * The site-root back link (`← Guillem Gelabert`), added by Phase 3
    * Amendment A2. Deliberately identical in both locales — unlike every
    * other key here, this is a proper noun, and a translated variant would
-   * be a different affordance for no gain. On /texte the link carries
+   * be a different affordance for no gain. On German and Catalan pages the link carries
    * hrefLang="en", the one declared locale crossing: the landing genuinely
    * only exists in English (UI-SPEC § Localisation).
    */
@@ -120,36 +96,21 @@ type UiCopy = {
 
 export const UI: Record<Locale, UiCopy> = {
   en: {
-    indexKicker: "Writing",
-    indexDescription: "Essays and case studies on data journalism and visualisation.",
-    backLink: "← Writing",
     readIn: "Read in English",
-    emptyHeading: "Nothing published here yet.",
-    emptyBody: "The first piece is being written.",
     notFoundHeading: "Not found",
     notFoundBody: "That piece doesn't exist here.",
     draftMarker: "Draft",
     homeLink: "← Guillem Gelabert",
   },
   de: {
-    indexKicker: "Texte",
-    indexDescription: "Essays und Fallstudien zu Datenjournalismus und Visualisierung.",
-    backLink: "← Texte",
     readIn: "Auf Deutsch lesen",
-    emptyHeading: "Hier ist noch nichts veröffentlicht.",
-    emptyBody: "Der erste Text entsteht gerade.",
     notFoundHeading: "Nicht gefunden",
     notFoundBody: "Diesen Text gibt es hier nicht.",
     draftMarker: "Entwurf",
     homeLink: "← Guillem Gelabert",
   },
   ca: {
-    indexKicker: "Escrits",
-    indexDescription: "Assaigs i estudis de cas sobre periodisme de dades i visualització.",
-    backLink: "← Escrits",
     readIn: "Llegeix-ho en català",
-    emptyHeading: "Encara no hi ha res publicat.",
-    emptyBody: "S'està escrivint el primer text.",
     notFoundHeading: "No trobat",
     notFoundBody: "Aquest text no existeix.",
     draftMarker: "Esborrany",

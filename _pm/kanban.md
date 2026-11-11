@@ -262,6 +262,12 @@ to break Floyd–Steinberg's lattice.
   `three` is a new dependency, loaded only on this route. Tests: `tests/unit/colour-depth.test.ts`,
   `tests/colour-depth.spec.ts`.
 
+- **Writing: indexes removed** (2026-11-11) — `/writing`, `/texte` and `/escrits` are gone (they
+  now 404 via the global boundary); posts and the per-locale 404 pages stay. Post and 404 back
+  links now go to `/` (`← Guillem Gelabert`), the sitemap and the unused `ContentsNav` dropped the
+  index entries, and `indexPath`/`indexAlternates` plus the index-only UI copy left `lib/locales.ts`.
+  `tests/writing-index.spec.ts` deleted; the build tests that read the indexes now read the posts.
+
 ## Next
 
 - **v1.0 is complete.** The next action is the user's, not an executor's: fill the five values, do

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Locale } from "@/lib/content";
-import { indexPath, UI } from "@/lib/locales";
+import { UI } from "@/lib/locales";
 import { SmearTitle } from "@/components/smear-title";
 
 type NotFoundBodyProps = {
@@ -18,8 +18,12 @@ export function NotFoundBody({ locale }: NotFoundBodyProps) {
         {UI[locale].notFoundHeading}
       </SmearTitle>
       <p className="text-body">{UI[locale].notFoundBody}</p>
-      <Link href={indexPath(locale)} className="text-label link-quiet inline-block py-xs">
-        {UI[locale].backLink}
+      <Link
+        href="/"
+        hrefLang={locale === "en" ? undefined : "en"}
+        className="text-label link-quiet inline-block py-xs"
+      >
+        {UI[locale].homeLink}
       </Link>
     </main>
   );

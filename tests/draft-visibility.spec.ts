@@ -1,7 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-// Covers WRIT-01 (SC5) / D-11: a draft prerenders nowhere and appears in no
-// index in production, but is reachable and marked as a draft in
+// Covers WRIT-01 (SC5) / D-11: a draft prerenders nowhere in production, but is reachable and marked as a draft in
 // development. This file only proves the development half of that claim —
 // every Playwright spec in this repo runs against `npm run dev`
 // (playwright.config.ts's webServer), so `NODE_ENV` is always
@@ -15,18 +14,6 @@ import { expect, test } from "@playwright/test";
 test("/writing/fixture responds 200 in development", async ({ page }) => {
   const response = await page.goto("/writing/fixture");
   expect(response?.status()).toBe(200);
-});
-
-test("/writing lists the fixture in development — a draft is visible, which is what makes it testable at all", async ({
-  page,
-}) => {
-  await page.goto("/writing");
-  await page.evaluate(() => document.fonts.ready);
-
-  const fixtureLink = page.getByRole("link", {
-    name: "A Working Fixture for the Prose Contract",
-  });
-  await expect(fixtureLink).toHaveAttribute("href", "/writing/fixture");
 });
 
 test("the fixture's meta line shows the Draft marker exactly once, in the Label role, not accent-coloured", async ({

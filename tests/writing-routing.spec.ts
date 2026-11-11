@@ -74,13 +74,11 @@ test.describe("filesystem-driven routing", () => {
 // 06 once /texte/[slug] exists to serve content/nur-auf-deutsch.md. This
 // file only proves the English route's allowlist rejects that slug.
 
-// Amendment A3, extended to the post templates: 03-PATTERNS.md's
-// modified-file table omitted these two back links, but the UI-SPEC's A3
-// text names "both ← Writing / ← Texte back links" explicitly
-// (03-05-PLAN.md <scope_note>).
+// Amendment A3, extended to the post templates. There is no writing index,
+// so each post's back link goes to the site root.
 const POST_BACK_LINK_CASES = [
-  { path: "/writing/fixture", text: "← Writing", href: "/writing" },
-  { path: "/texte/musterseite", text: "← Texte", href: "/texte" },
+  { path: "/writing/fixture", text: "← Guillem Gelabert", href: "/" },
+  { path: "/texte/musterseite", text: "← Guillem Gelabert", href: "/" },
 ];
 
 test.describe("post template back links (A3)", () => {

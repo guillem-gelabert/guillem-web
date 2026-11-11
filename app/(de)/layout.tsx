@@ -33,8 +33,8 @@ export const metadata: Metadata = {
   //
   // The correct guarantee is not that this string tracks that constant but
   // that it never actually ships: every (de) route declares its own
-  // description (/texte from UI.de.indexDescription, /texte/[slug] from the
-  // post's front-matter), so this value is a fallback nothing reaches.
+  // description (/texte/[slug] from the post's front-matter), so this value
+  // is a fallback nothing reaches.
   // tests/build/prerender.test.ts asserts exactly that against real build
   // output — if a German route ever loses its own description, the gate
   // fails rather than silently serving this line.

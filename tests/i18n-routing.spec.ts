@@ -14,11 +14,11 @@ import { expect, test } from "@playwright/test";
 // page.emulateMedia({ reducedMotion: 'reduce' }) isn't needed here — this
 // spec measures static markup, not motion — recorded for consistency.
 
-test("/writing and /writing/fixture serve html lang=en; /texte, /texte/musterseite and /texte/nur-auf-deutsch serve html lang=de", async ({
+test("/writing/fixture serves html lang=en; /texte/musterseite and /texte/nur-auf-deutsch serve html lang=de", async ({
   page,
 }) => {
-  const englishPaths = ["/writing", "/writing/fixture"];
-  const germanPaths = ["/texte", "/texte/musterseite", "/texte/nur-auf-deutsch"];
+  const englishPaths = ["/writing/fixture"];
+  const germanPaths = ["/texte/musterseite", "/texte/nur-auf-deutsch"];
 
   for (const path of englishPaths) {
     await page.goto(path);

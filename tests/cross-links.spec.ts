@@ -33,7 +33,7 @@ import { notFoundPath } from "@/lib/locales";
 //   over the network; every alternate below is instead resolved by
 //   PATHNAME against the local dev server this suite actually runs
 //   against.
-// - Fetches are deduplicated across all seven routes and issued
+// - Fetches are deduplicated across all five routes and issued
 //   concurrently (Promise.all), not sequentially, to keep this file's
 //   runtime — the plan's own 60-second budget — well clear of the floor.
 
@@ -41,16 +41,14 @@ const ROUTES = [
   "/",
   "/cv",
   "/type",
-  "/writing",
-  "/texte",
   "/writing/the-chart-therefore-changes",
   "/texte/die-darstellung-aendert-sich",
 ] as const;
 
 // English-only surfaces (03-UI-SPEC.md § Localisation) — asserted to emit
 // ZERO link[rel="alternate"] tags, positively, so this reads as a recorded
-// decision rather than an unnoticed gap. /writing, /texte and both case-study
-// routes are NOT in this set: they carry real alternates and are asserted
+// decision rather than an unnoticed gap. Both case-study routes are NOT in
+// this set: they carry real alternates and are asserted
 // to resolve them below.
 const NO_ALTERNATE_ROUTES = new Set<string>(["/", "/cv", "/type"]);
 
@@ -121,7 +119,7 @@ function classify(href: string): "fragment" | "internal" | "external" | "other" 
   return "other";
 }
 
-test("every internal href across all seven routes, deduplicated, resolves to a non-404 status", async ({
+test("every internal href across all five routes, deduplicated, resolves to a non-404 status", async ({
   request,
 }) => {
   const byHref = new Map<string, string[]>();
@@ -136,7 +134,7 @@ test("every internal href across all seven routes, deduplicated, resolves to a n
   }
 
   const uniqueHrefs = [...byHref.keys()];
-  expect(uniqueHrefs.length, "expected at least one internal href across the seven routes").toBeGreaterThan(0);
+  expect(uniqueHrefs.length, "expected at least one internal href across the five routes").toBeGreaterThan(0);
 
   // Deduplicated AND concurrent (T-06-62) — one fetch per unique href, all
   // in flight together, rather than one fetch per (route, href) pair issued
@@ -189,7 +187,7 @@ test("every external href is absolute https, carries no target attribute, and ne
   }
 
   const externalHrefs = [...byHref.entries()];
-  expect(externalHrefs.length, "expected at least one external href across the seven routes").toBeGreaterThan(0);
+  expect(externalHrefs.length, "expected at least one external href across the five routes").toBeGreaterThan(0);
 
   // Recorded here, unconditionally, so the audit can cite the exact list —
   // never fetched (T-06-62): a spec that depends on third-party uptime is a
@@ -253,23 +251,20 @@ test("every route's link[rel=\"alternate\"] tags resolve non-404 by pathname, wi
   }
 });
 
-test("HOME-03: the five contents-list destinations are reachable from /, in the nav's declared order, with no sixth", async ({
+test("HOME-03: the four contents-list destinations are reachable from /, in the nav's declared order, with no fifth", async ({
   page,
   request,
 }) => {
   await page.goto("/");
   const nav = page.locator('nav[aria-label="Sections"]');
   const links = nav.locator("a");
-  await expect(links).toHaveCount(5);
+  await expect(links).toHaveCount(4);
 
   const hrefs = await links.evaluateAll((els) => els.map((el) => el.getAttribute("href")));
-  // Reader-importance order (03-UI-SPEC.md), not page order — Writing sits
-  // second because it is the only route in the list that already holds
-  // shipped content.
-  expect(hrefs).toEqual(["#work", "/writing", "#backlog", "/cv", "#contact"]);
+  // Reader-importance order (03-UI-SPEC.md), not page order.
+  expect(hrefs).toEqual(["#work", "#backlog", "/cv", "#contact"]);
 
-  const [writingRes, cvRes] = await Promise.all([request.get("/writing"), request.get("/cv")]);
-  expect(writingRes.status(), "HOME-03's /writing destination returned 404").not.toBe(404);
+  const cvRes = await request.get("/cv");
   expect(cvRes.status(), "HOME-03's /cv destination returned 404").not.toBe(404);
 
   for (const id of ["work", "backlog", "contact"]) {
