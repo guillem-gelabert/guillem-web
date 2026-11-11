@@ -61,7 +61,7 @@ body:has(.pp) {
   color: inherit;
 }
 
-/* ---------- Sheet: the story, and the Inside column ---------- */
+/* ---------- Sheet: the story ---------- */
 .pp-sheet {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -165,45 +165,8 @@ body:has(.pp) {
   color: var(--pp-headline);
 }
 
-/* ---------- Inside ---------- */
-.pp-inside-title {
-  margin: 0 0 10px;
-  font: 700 26px/1.1 var(--pp-display);
-  color: var(--pp-red);
-}
-.pp-inside {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.pp-inside li {
-  padding: 8px 0;
-  border-top: 1px solid var(--pp-rule-light);
-  font: 400 17px/1.35 var(--pp-serif);
-}
-.pp-inside li::before {
-  content: "• ";
-}
-.pp-inside a {
-  color: var(--color-ink);
-  text-decoration: none;
-}
-.pp-inside a:hover,
-.pp-inside a:focus-visible {
-  text-decoration: underline;
-}
-
 /* ---------- Desktop: the front page ---------- */
 @media (min-width: 1024px) {
-  /* Only when there is an Inside column: a locale with no other posts
-     gets the story across the whole sheet. */
-  .pp-sheet:has(.pp-side) {
-    grid-template-columns: minmax(0, 1fr) 16rem;
-  }
-  .pp-side {
-    padding-left: 28px;
-    border-left: 1px solid var(--pp-rule);
-  }
   /* The text takes the larger share, so each of its two columns stays
      around 45 characters and the pair stays short. */
   .pp-lede {

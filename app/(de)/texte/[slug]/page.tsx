@@ -99,11 +99,6 @@ export default async function WritingPost({
             : undefined
         }
         pullQuote={entry.frontmatter.pullQuote}
-        inside={(await publishedFor("de"))
-          .filter((post) => post.frontmatter.translationKey !== entry.frontmatter.translationKey)
-          .sort((a, b) => b.frontmatter.date.localeCompare(a.frontmatter.date))
-          .slice(0, 4)
-          .map((post) => ({ title: post.frontmatter.title, href: postPath("de", post.slug) }))}
         title={entry.frontmatter.title}
         standfirst={entry.frontmatter.hideStandfirst ? undefined : entry.frontmatter.standfirst}
         meta={

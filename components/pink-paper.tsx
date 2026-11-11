@@ -11,14 +11,11 @@ import "./pink-paper.css";
 // Theme: pink-paper. A post set as a newspaper front page: salmon paper, a
 // small-caps top bar closed by a double rule, a bold display-serif headline,
 // the text in two justified columns beside a lead photo with a pull quote
-// under it, and an "Inside" column of the site's other posts behind a
-// vertical rule. It borrows the conventions only: no masthead, no
+// under it, and a bold byline opening the first paragraph. It borrows the
+// conventions only: no masthead, no
 // publication name, and every word on the page is the post's own.
 // Colours and type live in pink-paper.css, scoped to .pp.
 
-const INSIDE: Record<Locale, string> = { en: "Inside", de: "Außerdem", ca: "També" };
-
-export type InsideLink = { title: string; href: string };
 
 /**
  * MDX overrides that open the post's first paragraph with the byline in
@@ -57,7 +54,6 @@ export function PinkPaperArticle({
   meta,
   lead,
   pullQuote,
-  inside,
   date,
   post: Post,
 }: {
@@ -72,7 +68,6 @@ export function PinkPaperArticle({
   meta: ReactNode;
   lead?: { src: string; alt: string; caption?: string };
   pullQuote?: string;
-  inside: InsideLink[];
   /** The post's ISO date, for the byline. */
   date: string;
   /** The compiled post; rendered here so its first paragraph gets the byline. */
@@ -117,20 +112,6 @@ export function PinkPaperArticle({
           </div>
         </article>
 
-        {inside.length > 0 ? (
-          <aside className="pp-side" aria-labelledby="pp-inside">
-            <h2 id="pp-inside" className="pp-inside-title">
-              {INSIDE[locale]}
-            </h2>
-            <ul className="pp-inside">
-              {inside.map((link) => (
-                <li key={link.href}>
-                  <Link href={link.href}>{link.title}</Link>
-                </li>
-              ))}
-            </ul>
-          </aside>
-        ) : null}
       </div>
     </main>
   );

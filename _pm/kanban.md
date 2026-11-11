@@ -325,9 +325,9 @@ to break Floyd–Steinberg's lattice.
   Then reworked into a newspaper front page (no masthead, no invented content): small-caps top
   bar + double rules, bold display headline, text in two justified hyphenated columns beside the
   DeepDream portrait as lead photo (new `leadImage`/`leadImageAlt`/`leadCaption`) and a pull
-  quote from the post's own text (`pullQuote`), an "Inside" column linking the locale's other
-  posts, a bold "Guillem Gelabert, <date> —" byline opening the first paragraph (MDX `p`
-  override), and A.I. for AI in the English post and its grid entry.
+  quote from the post's own text (`pullQuote`), a bold "Guillem Gelabert, <date> —" byline opening the first paragraph (MDX `p`
+  override), and A.I. for AI in the English post and its grid entry. (An "Inside" column of
+  other posts was tried and removed the same day.)
 
 ## Next
 
