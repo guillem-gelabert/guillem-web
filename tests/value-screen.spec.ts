@@ -24,6 +24,7 @@ for (const url of POSTS) {
         bodyFont: getComputedStyle(p).fontFamily,
         bodyBg: getComputedStyle(document.body).backgroundColor,
         languageLinks: document.querySelectorAll(".vx-meta a[hreflang]").length,
+        dream: getComputedStyle(document.querySelector(".vx-bg .vx-dream")!).backgroundImage,
       };
     });
     expect(facts.h1s).toBe(1);
@@ -31,6 +32,8 @@ for (const url of POSTS) {
     expect(facts.bodyFont).toMatch(/Source Serif 4/);
     expect(facts.bodyBg).toBe("rgb(16, 24, 56)");
     expect(facts.languageLinks).toBe(2);
+    // The seamless DeepDream tile under the stripes.
+    expect(facts.dream).toContain("/backgrounds/hempton-dream.webp");
   });
 }
 

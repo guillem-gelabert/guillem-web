@@ -6,6 +6,10 @@ import { useEffect, useRef, type CSSProperties } from "react";
 // value-mazzucato/src/components/ParallaxBackground.tsx: a fixed layer of the
 // cover's staggered dashed stripes plus a few faint shapes, each translated
 // by scrollY * its data-parallax factor. Gated behind prefers-reduced-motion.
+//
+// Under them, a still layer: a seamless DeepDream tile grown from the same
+// stripes (scripts/deepdream-tile.py, public/backgrounds/hempton-dream.webp),
+// repeated across the page and dimmed so the text stays on navy.
 
 const DASH_W = 1700;
 const DASH_H = 1500;
@@ -92,6 +96,7 @@ export function ValueBackground() {
 
   return (
     <div className="vx-bg" ref={ref} aria-hidden="true">
+      <div className="vx-dream" />
       <div className="vx-dash" data-parallax="-0.05">
         <DashField />
       </div>

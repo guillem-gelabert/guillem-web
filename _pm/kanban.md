@@ -276,6 +276,11 @@ to break Floyd–Steinberg's lattice.
   Then made physical: shadow is ambient + Lambert (`AMBIENT` 0.3) under an exposure of 1.3, and
   the highlight is Blinn–Phong (N·H)^12 at peak 0.6 instead of the fitted ellipse. Hover colour
   fade slowed from 220 ms to 500 ms (grid and hero disc).
+- **Hempton post: DeepDream background** (2026-11-11) — seamless 1024px DeepDream tile (TF
+  tutorial: InceptionV3 mixed3+mixed5, octaves) grown from the mazzucato stripes, made tileable
+  by wrap-padding inside the gradient tape (`scripts/deepdream-tile.py` →
+  `public/backgrounds/hempton-dream.webp`, 447 KB). Repeated under the stripes at 22% opacity;
+  body text contrast stays ≥ 8.3:1.
 
 ## Next
 
