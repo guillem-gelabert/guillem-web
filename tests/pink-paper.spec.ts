@@ -100,6 +100,33 @@ test("the pink-paper theme does not scroll sideways at 375px", async ({ page }) 
   }
 });
 
+for (const { url } of POSTS) {
+  test(`${url} carries the boxed aside: eight steps and the cost formula`, async ({ page }) => {
+    await page.goto(url);
+    const box = page.locator("aside.pp-box");
+    await expect(box).toHaveCount(1);
+    await expect(box.locator("ol > li")).toHaveCount(8);
+    await expect(box.locator(".pp-formula-term")).toHaveCount(3);
+    await expect(box.locator(".pp-formula-sign")).toHaveText(["=", "+"]);
+    // Every term explained, and the two placements called out.
+    await expect(box.locator(".pp-terms dt")).toHaveCount(3);
+    await expect(box.locator(".pp-terms strong")).toHaveCount(2);
+    await expect(box.locator(".pp-terms strong").first()).toContainText(/capex/i);
+    await expect(box.locator(".pp-terms strong").last()).toContainText(/marginal|Grenzkosten/i);
+  });
+}
+
+test("on desktop the aside's steps and formula sit side by side", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(POSTS[0].url);
+  const [steps, costs] = await Promise.all([
+    page.locator(".pp-box-steps").boundingBox(),
+    page.locator(".pp-box-costs").boundingBox(),
+  ]);
+  expect(costs!.x).toBeGreaterThan(steps!.x + steps!.width - 1);
+  expect(Math.abs(costs!.y - steps!.y)).toBeLessThan(2);
+});
+
 test("the English post writes A.I. with points, never bare AI", async ({ page }) => {
   await page.goto(POSTS[0].url);
   const text = (await page.locator(".pp-main").textContent()) ?? "";

@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ComponentType, ReactNode } from "react";
 import { sourceSerif4 } from "@/app/fonts/source-serif-4";
 import { Prose } from "@/components/prose";
+import type { CostAside } from "@/lib/asides";
 import type { Locale } from "@/lib/content";
 import { formatPostDate } from "@/lib/locales";
 import { SITE_NAME } from "@/lib/site";
@@ -55,6 +56,7 @@ export function PinkPaperArticle({
   lead,
   pullQuote,
   date,
+  aside,
   post: Post,
 }: {
   locale: Locale;
@@ -70,6 +72,8 @@ export function PinkPaperArticle({
   pullQuote?: string;
   /** The post's ISO date, for the byline. */
   date: string;
+  /** The boxed aside under the story (front-matter `aside`). */
+  aside?: CostAside;
   /** The compiled post; rendered here so its first paragraph gets the byline. */
   post: ComponentType<{ components?: MDXComponents }>;
 }) {
@@ -110,9 +114,59 @@ export function PinkPaperArticle({
               </div>
             ) : null}
           </div>
+          {aside ? <CostBox aside={aside} /> : null}
         </article>
 
       </div>
     </main>
+  );
+}
+
+// The boxed aside: the numbered steps on one side, the cost formula and its
+// terms on the other. The formula's three terms sit over a rule as in a
+// textbook, the signs between them.
+function CostBox({ aside }: { aside: CostAside }) {
+  return (
+    <aside className="pp-box" aria-labelledby="pp-box-steps">
+      <section className="pp-box-steps">
+        <h2 id="pp-box-steps" className="pp-box-title">
+          {aside.stepsTitle}
+        </h2>
+        <ol>
+          {aside.steps.map((step) => (
+            <li key={step}>{step}</li>
+          ))}
+        </ol>
+      </section>
+      <section className="pp-box-costs" aria-labelledby="pp-box-costs">
+        <h2 id="pp-box-costs" className="pp-box-title">
+          {aside.costsTitle}
+        </h2>
+        <p className="pp-formula">
+          <span className="pp-formula-term">{aside.formula.total}</span>
+          <span className="pp-formula-sign">=</span>
+          <span className="pp-formula-term">{aside.formula.fixed}</span>
+          <span className="pp-formula-sign">+</span>
+          <span className="pp-formula-term">{aside.formula.variable}</span>
+        </p>
+        <dl className="pp-terms">
+          {aside.terms.map(({ term, text, lands }) => (
+            <div key={term}>
+              <dt>{term}</dt>
+              <dd>
+                {text}
+                {lands ? (
+                  <>
+                    {" "}
+                    <strong>{lands}</strong>
+                  </>
+                ) : null}
+              </dd>
+            </div>
+          ))}
+        </dl>
+        <p className="pp-box-note">{aside.note}</p>
+      </section>
+    </aside>
   );
 }

@@ -34,6 +34,8 @@ export type PostFrontmatter = {
   leadCaption?: string;
   /** Theme pink-paper's pull quote: a phrase from the post's own text. */
   pullQuote?: string;
+  /** Theme pink-paper's boxed aside, by key in lib/asides.ts. */
+  aside?: string;
   /** Keep the standfirst out of the page. It still feeds the meta
    *  description and link previews. */
   hideStandfirst?: boolean;
@@ -125,6 +127,14 @@ export function assertFrontmatter(fm: unknown, file: string): asserts fm is Post
       if (f[key] !== undefined && (typeof f[key] !== "string" || !f[key])) {
         problems.push(`${key} must be a non-empty string`);
       }
+    }
+    // Shape only: lib/asides.ts is not imported here, because the unit tests
+    // load this module straight into Node, which resolves no extensionless
+    // relative import. The page resolves the key with isAsideKey and
+    // renders nothing for an unknown one; tests/pink-paper.spec.ts holds
+    // that the Hempton key resolves.
+    if (f.aside !== undefined && (typeof f.aside !== "string" || !/^[a-z0-9-]+$/.test(f.aside))) {
+      problems.push("aside must be a lowercase key of ASIDES in lib/asides.ts");
     }
     if (f.leadImage !== undefined) {
       if (typeof f.leadImage !== "string" || !/^\/[\w/.-]+\.(webp|png|jpg)$/.test(f.leadImage)) {

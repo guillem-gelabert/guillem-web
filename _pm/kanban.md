@@ -13,7 +13,10 @@ duplicate `.planning/`'s detail. Update the three lists below when a phase or pl
   bar, floodlit stadium, the two avatars either side, cards with position, number, height, age,
   flag and foot, a hexagon radar, mirrored pink/blue bars, and Back / Player details switching
   between the 6 and 29 attributes. Runs wider than the prose column on desktop; on phones the
-  avatars stand in a strip above the cards. Not deployed (local only, as asked).
+  avatars stand in a strip above the cards. The players turn slowly on the spot and cycle
+  sway → an extra (hand gesture, overhead warm-up, side stretch, quick footwork) → sway, with a
+  crossfade at every clip change; the backdrop is a blurred night stadium
+  (`public/figures/what-are-embeddings/stadium.jpg`). Not deployed (local only, as asked).
 
 - **Embeddings article, screen switch** (2026-11-11) — the Game Boy post changes screen as the
   reader goes: `<ScreenSwitch to="crt" />` before "A map in 3 dimensions" (NES colour TV:

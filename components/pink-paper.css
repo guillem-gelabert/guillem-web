@@ -165,6 +165,75 @@ body:has(.pp) {
   color: var(--pp-headline);
 }
 
+/* ---------- The boxed aside ---------- */
+.pp-box {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 28px;
+  margin-top: 32px;
+  padding: 20px 22px 24px;
+  background: #f2dfce;
+  border-top: 4px solid var(--pp-headline);
+  font: 400 16px/1.45 var(--pp-serif);
+}
+.pp-box-title {
+  margin: 0 0 12px;
+  font: 700 22px/1.15 var(--pp-display);
+  color: var(--pp-headline);
+}
+.pp-box ol {
+  margin: 0;
+  padding-left: 1.6em;
+}
+.pp-box li {
+  padding: 4px 0;
+}
+.pp-box li::marker {
+  font-weight: 700;
+  color: var(--pp-red);
+}
+
+/* The formula: three terms with the signs between them, as the user's
+   table set it, wrapping onto lines on a phone. */
+.pp-formula {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin: 0 0 16px;
+  padding: 12px 0;
+  border-top: 1px solid var(--pp-rule);
+  border-bottom: 1px solid var(--pp-rule);
+  font: 600 17px/1.2 var(--pp-display);
+  color: var(--pp-headline);
+}
+.pp-formula-sign {
+  font-size: 22px;
+  color: var(--pp-red);
+}
+.pp-terms {
+  margin: 0;
+}
+.pp-terms > div {
+  padding: 6px 0;
+}
+.pp-terms dt {
+  font-weight: 700;
+  color: var(--pp-headline);
+}
+.pp-terms dd {
+  margin: 2px 0 0;
+}
+.pp-terms strong {
+  color: var(--pp-red);
+}
+.pp-box-note {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--pp-rule-light);
+  font-style: italic;
+}
+
 /* ---------- Desktop: the front page ---------- */
 @media (min-width: 1024px) {
   /* The text takes the larger share, so each of its two columns stays
@@ -180,6 +249,14 @@ body:has(.pp) {
   }
   .pp-aside {
     padding-left: 24px;
+    border-left: 1px solid var(--pp-rule);
+  }
+  .pp-box {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 36px;
+  }
+  .pp-box-costs {
+    padding-left: 36px;
     border-left: 1px solid var(--pp-rule);
   }
 }

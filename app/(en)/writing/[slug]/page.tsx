@@ -9,6 +9,7 @@ import { PostMeta } from "@/components/post-meta";
 import { PostPalette } from "@/components/post-palette";
 import { GameboyScreen } from "@/components/gameboy-screen";
 import { PinkPaperArticle } from "@/components/pink-paper";
+import { ASIDES, isAsideKey } from "@/lib/asides";
 import { postOpenGraph } from "@/lib/metadata";
 
 // This route carries no client directive. Phase 1 marked whole pages as
@@ -109,6 +110,7 @@ export default async function WritingPost({
           />
         }
         date={entry.frontmatter.date}
+        aside={isAsideKey(entry.frontmatter.aside) ? ASIDES[entry.frontmatter.aside].en : undefined}
         post={Post}
       />
     );
