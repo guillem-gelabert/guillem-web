@@ -116,15 +116,23 @@ for (const { url } of POSTS) {
   });
 }
 
-test("on desktop the aside's steps and formula sit side by side", async ({ page }) => {
+test("on desktop the aside is a sidebar at the right, steps over the formula", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(POSTS[0].url);
-  const [steps, costs] = await Promise.all([
+  const [main, box, steps, costs] = await Promise.all([
+    page.locator(".pp-main").boundingBox(),
+    page.locator(".pp-box").boundingBox(),
     page.locator(".pp-box-steps").boundingBox(),
     page.locator(".pp-box-costs").boundingBox(),
   ]);
-  expect(costs!.x).toBeGreaterThan(steps!.x + steps!.width - 1);
-  expect(Math.abs(costs!.y - steps!.y)).toBeLessThan(2);
+  expect(box!.x).toBeGreaterThan(main!.x + main!.width - 1);
+  expect(Math.abs(box!.y - main!.y)).toBeLessThan(2);
+  expect(costs!.y).toBeGreaterThan(steps!.y + steps!.height - 1);
+});
+
+test("the aside's steps keep their numbers", async ({ page }) => {
+  await page.goto(POSTS[0].url);
+  await expect(page.locator(".pp-box ol")).toHaveCSS("list-style-type", "decimal");
 });
 
 test("the English post writes A.I. with points, never bare AI", async ({ page }) => {

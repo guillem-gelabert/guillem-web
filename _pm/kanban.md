@@ -340,8 +340,10 @@ to break Floyd–Steinberg's lattice.
   other posts was tried and removed the same day.)
   Then a boxed aside under the story (front-matter `aside: "worst-business"`, copy in
   `lib/asides.ts`, EN/DE/CA): the eight steps of the spiral (the owner's Catalan list,
-  spellchecked and translated) beside ATC = AFC + AVC with every term explained, capex placed
-  in average fixed cost and marginal cost in average variable cost.
+  spellchecked and translated) beside ATC = AFC + AVC with every term defined, capex placed
+  in average fixed cost and marginal cost in average variable cost. No headings, notes or
+  examples beyond what was asked (an over-written first version was cut back). Moved the same day into a
+  22rem right-hand sidebar (steps over formula), with the list's numbers restored (preflight).
 
 ## Next
 

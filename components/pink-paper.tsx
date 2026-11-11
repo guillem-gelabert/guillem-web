@@ -12,7 +12,8 @@ import "./pink-paper.css";
 // Theme: pink-paper. A post set as a newspaper front page: salmon paper, a
 // small-caps top bar closed by a double rule, a bold display-serif headline,
 // the text in two justified columns beside a lead photo with a pull quote
-// under it, and a bold byline opening the first paragraph. It borrows the
+// under it, a bold byline opening the first paragraph, and a sidebar box on
+// the right. It borrows the
 // conventions only: no masthead, no
 // publication name, and every word on the page is the post's own.
 // Colours and type live in pink-paper.css, scoped to .pp.
@@ -114,34 +115,28 @@ export function PinkPaperArticle({
               </div>
             ) : null}
           </div>
-          {aside ? <CostBox aside={aside} /> : null}
         </article>
+        {aside ? <CostBox aside={aside} /> : null}
 
       </div>
     </main>
   );
 }
 
-// The boxed aside: the numbered steps on one side, the cost formula and its
-// terms on the other. The formula's three terms sit over a rule as in a
+// The boxed aside, in the sidebar at the right of the story: the numbered
+// steps, then the cost formula and its terms. The formula's three terms sit over a rule as in a
 // textbook, the signs between them.
 function CostBox({ aside }: { aside: CostAside }) {
   return (
-    <aside className="pp-box" aria-labelledby="pp-box-steps">
+    <aside className="pp-box">
       <section className="pp-box-steps">
-        <h2 id="pp-box-steps" className="pp-box-title">
-          {aside.stepsTitle}
-        </h2>
         <ol>
           {aside.steps.map((step) => (
             <li key={step}>{step}</li>
           ))}
         </ol>
       </section>
-      <section className="pp-box-costs" aria-labelledby="pp-box-costs">
-        <h2 id="pp-box-costs" className="pp-box-title">
-          {aside.costsTitle}
-        </h2>
+      <section className="pp-box-costs">
         <p className="pp-formula">
           <span className="pp-formula-term">{aside.formula.total}</span>
           <span className="pp-formula-sign">=</span>
@@ -165,7 +160,6 @@ function CostBox({ aside }: { aside: CostAside }) {
             </div>
           ))}
         </dl>
-        <p className="pp-box-note">{aside.note}</p>
       </section>
     </aside>
   );
