@@ -9,14 +9,14 @@ duplicate `.planning/`'s detail. Update the three lists below when a phase or pl
 ## Done
 
 - **Embeddings article, interactive 5 as a PES 6 comparison screen** (2026-11-11) — the player
-  radar now compares exactly two players in the style of PES 6's Player Comparison: blue title
-  bar, floodlit stadium, the two avatars either side, cards with position, number, height, age,
-  flag and foot, a hexagon radar, mirrored pink/blue bars, and Back / Player details switching
-  between the 6 and 29 attributes. Runs wider than the prose column on desktop; on phones the
-  avatars stand in a strip above the cards. The players turn slowly on the spot and cycle
-  sway → an extra (hand gesture, overhead warm-up, side stretch, quick footwork) → sway, with a
-  crossfade at every clip change; the backdrop is a blurred night stadium
-  (`public/figures/what-are-embeddings/stadium.jpg`). Not deployed (local only, as asked).
+  radar compares exactly two players in the style of PES 6's Player Comparison, built from the
+  PES-style sprites in `public/figures/what-are-embeddings/pes-ui/`: blue title bar, floodlit
+  stadium (`stadium.jpg`), a large hexagon radar in the middle, the two avatars at the edges and a
+  small card under the radar for each (position, number, name picker, flag, country). Exact
+  numbers in axis tooltips and a screen-reader table. The players turn slowly and cycle sway → an
+  extra (hand gesture, overhead warm-up, side stretch, quick footwork) → sway, crossfaded; each
+  has a three.js contact shadow, and a depth-only pitch plane 4.5 cm above the stud tips sinks
+  the studs into the grass. On phones the screen gets taller and stacks. Live.
 
 - **Embeddings article, screen switch** (2026-11-11) — the Game Boy post changes screen as the
   reader goes: `<ScreenSwitch to="crt" />` before "A map in 3 dimensions" (NES colour TV:

@@ -35,6 +35,9 @@ const SHADOW_DEPTH = 1.6;
 const SHADOW_HEIGHT = 0.9;
 const SHADOW_DARKNESS = 2.2;
 const SHADOW_BLUR = 1;
+// The pitch sits this far above the studs' tips (metres): the soles are
+// 4.3 cm up, so the studs sink into the grass and the boots stand on it.
+const SINK = 0.045;
 // One full turn on the spot every SPIN seconds.
 const SPIN = 30;
 
@@ -92,7 +95,7 @@ export async function createStage(host: HTMLElement, canvas: HTMLCanvasElement):
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 20);
   let viewH = 2;
   let framed = false;
-  let ground = 0; // the boots' height in the bind pose
+  let ground = 0; // where the pitch is: the studs' tips, plus SINK
   const frameOn = (model: Three.Object3D) => {
     const box = new THREE.Box3().setFromObject(model);
     const h = box.max.y - box.min.y;
@@ -101,7 +104,7 @@ export async function createStage(host: HTMLElement, canvas: HTMLCanvasElement):
     // looking down a little, so the pitch, and the shadow on it, shows
     camera.position.set(0, y + Math.tan(TILT) * 8, 8);
     camera.lookAt(0, y, 0);
-    ground = box.min.y;
+    ground = box.min.y + SINK;
     shadows.position.y = ground;
     framed = true;
   };
@@ -124,6 +127,14 @@ export async function createStage(host: HTMLElement, canvas: HTMLCanvasElement):
   shadowPlane.renderOrder = -1;
   shadowPlane.scale.y = -1; // the shadow camera looks up, so its picture is mirrored
   shadows.add(shadowPlane);
+  // The pitch itself: drawn first, into depth only, so whatever of a boot
+  // dips below it is hidden and the stadium photo shows through. Set a
+  // millimetre under the shadow so the two never fight over depth.
+  const pitchMaterial = new THREE.MeshBasicMaterial({ colorWrite: false, side: THREE.DoubleSide });
+  const pitch = new THREE.Mesh(shadowPlaneGeometry, pitchMaterial);
+  pitch.renderOrder = -2;
+  pitch.position.y = -0.001;
+  shadows.add(pitch);
   // The blurs run on a quad of their own: a plane drawn with the shadow
   // camera, as the three.js example does, sits on that camera's near plane
   // and can be clipped away whole.
@@ -152,6 +163,7 @@ export async function createStage(host: HTMLElement, canvas: HTMLCanvasElement):
   // the pitch strip spans the whole stage, whatever its width
   const sizeShadows = (width: number) => {
     shadowPlane.scale.set(width, -1, SHADOW_DEPTH);
+    pitch.scale.set(width, 1, SHADOW_DEPTH);
     shadowCamera.left = -width / 2;
     shadowCamera.right = width / 2;
     shadowCamera.updateProjectionMatrix();
@@ -178,6 +190,7 @@ export async function createStage(host: HTMLElement, canvas: HTMLCanvasElement):
 
   const drawShadows = () => {
     shadowPlane.visible = false;
+    pitch.visible = false;
     world.overrideMaterial = depthMaterial;
     renderer.setRenderTarget(shadowTarget);
     renderer.clear();
@@ -187,6 +200,7 @@ export async function createStage(host: HTMLElement, canvas: HTMLCanvasElement):
     blurShadow(SHADOW_BLUR * 0.4);
     renderer.setRenderTarget(null);
     shadowPlane.visible = true;
+    pitch.visible = true;
   };
 
   const gltfLoader = new GLTFLoader();
@@ -450,6 +464,7 @@ export async function createStage(host: HTMLElement, canvas: HTMLCanvasElement):
       blurQuadGeometry.dispose();
       (shadowPlane.material as Three.Material).dispose();
       depthMaterial.dispose();
+      pitchMaterial.dispose();
       horizontalBlur.dispose();
       verticalBlur.dispose();
       renderer.dispose();
