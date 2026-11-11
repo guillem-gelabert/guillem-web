@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Locale } from "@/lib/content";
 import { UI } from "@/lib/locales";
+import { Flag } from "@/components/flag";
 
 type LanguageSwitchProps = {
   /** The locale the link leads to; its label is written in that locale. */
@@ -24,8 +25,19 @@ export function LanguageSwitch({ to, href }: LanguageSwitchProps) {
     // padding it to a block box would change the shipped meta-line height
     // on /writing, /texte and every post — a visual regression on shipped
     // surfaces for no accessibility gain.
-    <Link href={href} className="text-label link-quiet" hrefLang={to} lang={to}>
-      {UI[to].readIn}
+    //
+    // A flag, not the words: the words stay as the link's accessible name
+    // ("Auf Deutsch lesen"), in the target language as before, and as its
+    // tooltip.
+    <Link
+      href={href}
+      className="text-label link-quiet"
+      hrefLang={to}
+      lang={to}
+      aria-label={UI[to].readIn}
+      title={UI[to].readIn}
+    >
+      <Flag locale={to} />
     </Link>
   );
 }

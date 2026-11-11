@@ -492,3 +492,15 @@ body:has(.seam-scene) {
     }
   }
 }
+
+/* The language switch's flags (components/flag.tsx): one height, each at
+   its own proportions, sitting on the label line's baseline. The hairline
+   keeps a white-edged flag from dissolving into white paper; it is the
+   text colour at low strength, so it follows any per-post ink. */
+.lang-flag {
+  display: inline-block;
+  height: 0.9em;
+  width: auto;
+  vertical-align: -0.1em;
+  box-shadow: 0 0 0 1px color-mix(in srgb, currentColor 22%, transparent);
+}

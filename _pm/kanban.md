@@ -342,8 +342,12 @@ to break Floyd–Steinberg's lattice.
   `lib/asides.ts`, EN/DE/CA): the eight steps of the spiral (the owner's Catalan list,
   spellchecked and translated) beside ATC = AFC + AVC with every term defined, capex placed
   in average fixed cost and marginal cost in average variable cost. No headings, notes or
-  examples beyond what was asked (an over-written first version was cut back). Moved the same day into a
-  22rem right-hand sidebar (steps over formula), with the list's numbers restored (preflight).
+  examples beyond what was asked (an over-written first version was cut back). Moved the same
+  day into a 22rem right-hand sidebar (steps over formula), with the list's numbers restored
+  (preflight).
+- **Language switch: flags** (2026-11-11) — `components/language-switch.tsx` shows an inline
+  SVG flag (`components/flag.tsx`: Union Jack, German tricolour, senyera) instead of the words;
+  the words stay as aria-label and title. Tests: `tests/language-flags.spec.ts`.
 
 ## Next
 
