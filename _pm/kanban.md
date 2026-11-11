@@ -8,6 +8,13 @@ duplicate `.planning/`'s detail. Update the three lists below when a phase or pl
 
 ## Done
 
+- **Embeddings article, interactive 5 as a PES 6 comparison screen** (2026-11-11) — the player
+  radar now compares exactly two players in the style of PES 6's Player Comparison: blue title
+  bar, floodlit stadium, the two avatars either side, cards with position, number, height, age,
+  flag and foot, a hexagon radar, mirrored pink/blue bars, and Back / Player details switching
+  between the 6 and 29 attributes. Runs wider than the prose column on desktop; on phones the
+  avatars stand in a strip above the cards. Not deployed (local only, as asked).
+
 - **Embeddings article, screen switch** (2026-11-11) — the Game Boy post changes screen as the
   reader goes: `<ScreenSwitch to="crt" />` before "A map in 3 dimensions" (NES colour TV:
   crt-perfect's scanlines and aperture grille, peach paper, Georgia body, Game Boy pixel
@@ -328,6 +335,10 @@ to break Floyd–Steinberg's lattice.
   quote from the post's own text (`pullQuote`), a bold "Guillem Gelabert, <date> —" byline opening the first paragraph (MDX `p`
   override), and A.I. for AI in the English post and its grid entry. (An "Inside" column of
   other posts was tried and removed the same day.)
+  Then a boxed aside under the story (front-matter `aside: "worst-business"`, copy in
+  `lib/asides.ts`, EN/DE/CA): the eight steps of the spiral (the owner's Catalan list,
+  spellchecked and translated) beside ATC = AFC + AVC with every term explained, capex placed
+  in average fixed cost and marginal cost in average variable cost.
 
 ## Next
 

@@ -1,56 +1,32 @@
-/* Interactive 5 on the Game Boy page. The root escapes the page's
-   per-block filter (gameboy-screen.css) because the avatar canvas animates
-   and re-running an SVG filter every frame is what made phones unusable;
-   the canvas is quantised by its own shader instead. The static parts opt
-   back into the filter one by one, so they get the same dot shadow as the
-   prose. Every length is a whole number of dots. */
+/* Interactive 5, set as a PES 6 comparison screen: a blue title bar, the
+   two players standing either side over a floodlit stadium, slate panels
+   with light rims, pink for the left player and blue for the right. It
+   keeps its own look whatever screen the page is on (gameboy-screen.css
+   exempts it from the Game Boy filter), and runs wider than the prose
+   column on desktop so the avatars have room beside the cards. */
 .root {
-  --d: var(--gb-dot, 1.5px);
-  --shade-0: var(--gb-shade-0, #adc44f);
-  --shade-1: var(--gb-shade-1, #8ba238);
-  --shade-2: var(--gb-shade-2, #3d5b35);
-  --shade-3: var(--gb-shade-3, #162d16);
-  --series-1: var(--shade-3);
-  --series-2: var(--shade-3);
-  --series-3: var(--shade-2);
-  --series-4: var(--shade-3);
-  --series-5: var(--shade-2);
+  --left: #e97fb6;
+  --right: #6f9ef2;
+  --rim: #b9c2d3;
+  --panel: rgb(22 28 42 / 0.88);
+  --text: #f2f4f8;
+  --dim: #a9b2c4;
+  /* the Game Boy page sets every element's family from this variable */
+  --gb-body-font: "Arial Narrow", "Roboto Condensed", "Helvetica Neue", Arial, sans-serif;
 
-  display: grid;
-  gap: calc(var(--d) * 12);
-  margin: 0 0 calc(var(--d) * 16);
-  color: var(--shade-3);
-  font-size: calc(var(--d) * 13);
-  line-height: calc(var(--d) * 20);
+  container-type: inline-size;
+  position: relative;
+  width: min(880px, calc(100vw - 32px));
+  margin: 0 0 32px calc(50% - min(440px, 50vw - 16px));
+  overflow: clip;
+  color: var(--text);
+  background: #0d121c;
+  font-family: var(--gb-body-font);
+  font-stretch: condensed;
+  font-size: 16px;
+  line-height: 1.25;
   font-variant-numeric: tabular-nums;
-  /* the outermost avatar names may run past the column on a phone */
-  overflow-x: clip;
-}
-
-.controls,
-.names,
-.body,
-.note {
-  filter: url(#gb-screen);
-}
-
-/* On the TFT panel (gameboy-screen.css) the radar is in full colour: the
-   panel's own greys for the chrome, five hues for the players. The dashes
-   and markers stay, so colour is never the only key. */
-:global(html[data-screen="tft"]) .root {
-  --shade-0: #d9ddd6;
-  --shade-1: #b8bdb6;
-  --shade-2: #5b6168;
-  --shade-3: #1c2024;
-  --series-1: #c8102e;
-  --series-2: #1f5fbf;
-  --series-3: #2a8a3e;
-  --series-4: #d97a00;
-  --series-5: #7a3fa0;
-}
-
-:global(html[data-screen="tft"]) .root :is(.controls, .names, .body, .note) {
-  filter: none;
+  text-shadow: none;
 }
 
 .srOnly {
@@ -62,230 +38,470 @@
   white-space: nowrap;
 }
 
-/* --- controls --------------------------------------------------------- */
+/* --- title bar --------------------------------------------------------- */
 
-.controls {
-  display: grid;
-  gap: calc(var(--d) * 8);
-}
-
-.root .roster {
+.titleBar {
   display: flex;
-  flex-wrap: wrap;
-  gap: calc(var(--d) * 6) calc(var(--d) * 12);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-/* .root .x outranks the prose layer's ".prose-site li + li" spacing */
-.root .slot {
-  display: flex;
+  justify-content: flex-end;
   align-items: center;
-  gap: calc(var(--d) * 4);
-  margin: 0;
+  height: 52px;
+  padding: 0 24px;
+  background:
+    linear-gradient(100deg, transparent 20%, rgb(255 255 255 / 0.28) 32%, transparent 46%),
+    linear-gradient(180deg, #3a6fe0 0%, #163f9e 55%, #0a2466 100%);
+  border-bottom: 2px solid #9fb6ff;
+  box-shadow: 0 2px 0 #050a16;
 }
 
-.key {
-  display: inline-block;
-  flex: none;
-  width: calc(var(--d) * 18);
-  height: calc(var(--d) * 8);
+.titleBar span {
+  font-size: 26px;
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: 0.04em;
+  text-shadow: 2px 2px 0 rgb(0 0 0 / 0.5);
 }
 
-.root select,
-.root button {
-  font: inherit;
-  color: var(--shade-3);
-  background: var(--shade-0);
-  border: var(--d) solid var(--shade-3);
-  border-radius: 0;
-  padding: 0 calc(var(--d) * 4);
-  height: calc(var(--d) * 18);
-  cursor: pointer;
-}
+/* --- stadium ----------------------------------------------------------- */
 
-.root select {
-  appearance: none;
-  padding-right: calc(var(--d) * 12);
-  background-image:
-    linear-gradient(45deg, transparent 50%, var(--shade-3) 50%),
-    linear-gradient(135deg, var(--shade-3) 50%, transparent 50%);
-  background-position:
-    calc(100% - var(--d) * 7) 50%,
-    calc(100% - var(--d) * 4) 50%;
-  background-size: calc(var(--d) * 3) calc(var(--d) * 3);
-  background-repeat: no-repeat;
-}
-
-.root button:disabled {
-  color: var(--shade-1);
-  border-color: var(--shade-1);
-  cursor: default;
-}
-
-.root select:focus-visible,
-.root button:focus-visible {
-  outline: calc(var(--d) * 2) solid var(--shade-2);
-  outline-offset: var(--d);
-}
-
-.root .remove {
-  width: calc(var(--d) * 18);
-  padding: 0;
-}
-
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: calc(var(--d) * 8);
-}
-
-.toggle {
-  display: flex;
-}
-
-.toggle button + button {
-  margin-left: calc(var(--d) * -1);
-}
-
-/* The selected view is dark text on shade 1: light text on a dark fill
-   loses its strokes to the filter's dot shadow. */
-.root .toggle button[aria-checked="true"] {
-  background: var(--shade-1);
-}
-
-/* --- avatars ---------------------------------------------------------- */
-
-.strip {
+.pitch {
   position: relative;
-  height: calc(var(--d) * 160);
-  margin-bottom: calc(var(--d) * 24);
+  padding: 24px 0 28px;
+  background:
+    /* floodlights */
+    radial-gradient(ellipse 9% 5% at 22% 5%, rgb(255 255 255 / 0.95), transparent 70%),
+    radial-gradient(ellipse 9% 5% at 78% 7%, rgb(255 255 255 / 0.95), transparent 70%),
+    radial-gradient(ellipse 70% 35% at 50% 0%, rgb(140 160 210 / 0.35), transparent 70%),
+    /* advertising boards along the touchline */
+    linear-gradient(180deg, transparent 63%, #2c3a58 63%, #1b2640 66%, transparent 66%),
+    /* the pitch, mown in stripes */
+    repeating-linear-gradient(180deg, #3f7c2f 0 22px, #498b37 22px 44px) left bottom / 100% 34% no-repeat,
+    /* the stands */
+    linear-gradient(180deg, #0b1120 0%, #19233a 45%, #2a3550 66%);
+}
+
+.stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 470px;
+  pointer-events: none;
+  --slot-0: 0.085;
+  --slot-1: 0.915;
 }
 
 .canvas {
   display: block;
   width: 100%;
   height: 100%;
-  image-rendering: pixelated;
-  background: var(--shade-0);
 }
 
-.root .names {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  height: calc(var(--d) * 20);
-  margin: calc(var(--d) * 2) 0 0;
-  padding: 0;
-  list-style: none;
+.layout {
+  position: relative;
+  display: grid;
+  grid-template-columns: 16% minmax(0, 1fr) 180px minmax(0, 1fr) 16%;
+  grid-template-areas:
+    ". left radar right ."
+    ". bars bars bars .";
+  gap: 18px 10px;
+  align-items: center;
 }
 
-.root .names li {
-  position: absolute;
+/* --- cards ------------------------------------------------------------- */
+
+.card {
+  background: var(--panel);
+  border: 2px solid var(--rim);
+  box-shadow: inset 0 0 0 1px #0b0f18;
+}
+
+.card[data-side="0"] {
+  grid-area: left;
+}
+
+.card[data-side="1"] {
+  grid-area: right;
+}
+
+.cardHead {
   display: flex;
   align-items: center;
-  gap: calc(var(--d) * 3);
+  gap: 6px;
+  padding: 6px 6px 6px 6px;
+  border-bottom: 1px solid #5d6679;
+}
+
+.badge {
+  flex: none;
+  min-width: 40px;
+  padding: 1px 4px;
+  font-weight: 700;
+  text-align: center;
+  background: #0c111c;
+  border: 1px solid #6d7790;
+  box-shadow: inset 0 -3px 0 var(--left);
+}
+
+.card[data-side="1"] .badge {
+  box-shadow: inset 0 -3px 0 var(--right);
+}
+
+.shirt {
+  flex: none;
+  font-size: 18px;
+}
+
+.root select {
+  min-width: 0;
+  flex: 1;
+  appearance: none;
+  padding: 0 14px 0 0;
+  font: inherit;
+  font-size: 18px;
+  color: var(--text);
+  text-overflow: ellipsis;
+  background:
+    linear-gradient(45deg, transparent 50%, var(--dim) 50%) right 5px center / 5px 5px no-repeat,
+    linear-gradient(135deg, var(--dim) 50%, transparent 50%) right 0 center / 5px 5px no-repeat;
+  border: 0;
+  cursor: pointer;
+}
+
+.root select option {
+  color: #000;
+}
+
+.root select:focus-visible,
+.root button:focus-visible {
+  outline: 2px solid #ffd54a;
+  outline-offset: 2px;
+}
+
+.facts {
   margin: 0;
-  transform: translateX(-50%);
-  white-space: nowrap;
 }
 
-.strip[data-count="4"] .names .key,
-.strip[data-count="5"] .names .key {
-  display: none;
+.facts div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-bottom: 1px solid #3a4356;
 }
 
-/* --- radar and table -------------------------------------------------- */
-
-.body {
-  display: grid;
-  gap: calc(var(--d) * 12);
-  justify-items: center;
+.facts div:last-child {
+  border-bottom: 0;
 }
+
+.facts dt {
+  color: var(--text);
+}
+
+.facts dd {
+  margin: 0;
+}
+
+.flag {
+  display: block;
+  width: 33px;
+  height: 22px;
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.5);
+}
+
+/* --- radar ------------------------------------------------------------- */
 
 .radar {
+  grid-area: radar;
   display: block;
   width: 100%;
-  max-width: calc(var(--d) * 280);
   overflow: visible;
 }
 
-.axisLabel {
-  font-size: 17px;
+.radarPlate {
+  fill: #2a3346;
+  stroke: var(--rim);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+.radarRing,
+.radarSpoke {
+  fill: none;
+  stroke: rgb(255 255 255 / 0.18);
+  stroke-width: 1;
+}
+
+.radarSpoke[data-hovered] {
+  stroke: #fff;
+}
+
+.radarShape {
+  fill-opacity: 0.45;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.radarLabel {
+  fill: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+  font-style: italic;
   cursor: default;
 }
 
-.body[data-detailed] .axisLabel {
-  font-size: 11px;
+.root[data-detailed] .radarLabel {
+  font-size: 8px;
+  font-style: normal;
 }
 
-.ringLabel {
-  font-size: 11px;
+.radarLabel[data-hovered] {
+  fill: #ffd54a;
 }
 
-.tableWrap {
-  width: 100%;
-  overflow-x: auto;
+/* --- bars ---------------------------------------------------------------- */
+
+.barsPanel {
+  grid-area: bars;
+  padding: 12px 14px;
+  background: var(--panel);
+  border: 2px solid var(--rim);
+  box-shadow: inset 0 0 0 1px #0b0f18;
 }
 
-.root .table {
+.root .bars {
   width: 100%;
   margin: 0;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0 6px;
+  font-size: inherit;
 }
 
-/* The article's own table style (globals.css .prose-site th/td), tightened
-   so five players fit beside the attribute names. */
-.root .table th,
-.root .table td {
-  padding: calc(var(--d) * 2) calc(var(--d) * 4);
-  font-size: 14px;
-  line-height: calc(var(--d) * 14);
+/* .root .x outranks the prose layer's .prose-site th/td */
+.root .bars th,
+.root .bars td {
+  padding: 0;
+  font-family: inherit;
+  font-size: inherit;
   font-weight: 400;
-  text-align: right;
-  text-transform: none;
+  line-height: 1.2;
   letter-spacing: 0;
-  white-space: nowrap;
-  border-bottom: var(--d) solid var(--shade-1);
+  text-transform: none;
+  border: 0;
 }
 
-.root .table thead th {
-  text-transform: uppercase;
-  border-bottom-color: var(--shade-3);
+.root .bars .value {
+  width: 3ch;
+  padding: 0 8px;
+  font-size: 22px;
+  font-weight: 700;
+  text-align: right;
 }
 
-.root .table th:first-child,
-.root .table td:first-child {
-  padding-left: 0;
-}
-
-.root .table th:last-child,
-.root .table td:last-child {
-  padding-right: 0;
-}
-
-.root .table th[scope="row"],
-.root .table thead th:first-child {
+.root .bars td.value:last-child {
   text-align: left;
 }
 
-.table thead th span {
-  vertical-align: middle;
-  margin-left: calc(var(--d) * 2);
+.root .bars .label {
+  width: 9.5em;
+  padding: 0 6px;
+  text-align: center;
+  white-space: nowrap;
+  background: #10151f;
+  border-block: 1px solid #5d6679;
 }
 
-.table thead th .key {
+.root .bars .track {
+  height: 24px;
+  padding: 3px 4px;
+  background: #10151f;
+  border: 1px solid #5d6679;
+  border-right: 0;
+}
+
+/* left bars grow from the label outwards, right bars likewise */
+.root .bars .trackLeft {
+  text-align: right;
+}
+
+.root .bars .trackRight {
+  border-left: 0;
+  border-right: 1px solid #5d6679;
+}
+
+.bar {
+  display: inline-block;
+  height: 16px;
   vertical-align: middle;
 }
 
-.table tbody tr[data-hovered] {
-  background: var(--shade-1);
+.trackLeft .bar {
+  background: linear-gradient(180deg, #f5b3d4, var(--left) 45%, #c95a92);
+}
+
+.trackRight .bar {
+  background: linear-gradient(180deg, #b3cdff, var(--right) 45%, #4472d6);
+}
+
+.root .bars tr[data-hovered] .label {
+  color: #ffd54a;
+}
+
+.root[data-detailed] .bars {
+  border-spacing: 0 3px;
+}
+
+.root[data-detailed] .bars .value {
+  font-size: 17px;
+}
+
+.root[data-detailed] .bars .track {
+  height: 18px;
+}
+
+.root[data-detailed] .bar {
+  height: 11px;
+}
+
+/* --- footer ------------------------------------------------------------ */
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 32px;
+  padding: 10px 24px;
+  background: linear-gradient(180deg, #1d2536, #0c111b);
+  border-top: 2px solid #6c7a99;
+}
+
+.root .footer button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  font: inherit;
+  font-size: 20px;
+  color: var(--text);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.root .footer button:disabled {
+  color: var(--dim);
+  cursor: default;
+}
+
+.circle,
+.cross {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+}
+
+.circle {
+  border: 3px solid #e2483c;
+}
+
+.cross {
+  background: rgb(120 140 220 / 0.25);
+}
+
+.cross::before,
+.cross::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  right: 3px;
+  height: 3px;
+  margin-top: -1.5px;
+  background: #8aa2ff;
+  transform: rotate(45deg);
+}
+
+.cross::after {
+  transform: rotate(-45deg);
 }
 
 .note {
-  margin: 0;
-  color: var(--shade-2);
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--dim);
+}
+
+/* --- phones -------------------------------------------------------------- */
+
+/* No room beside the cards: the players stand in a strip above them, the
+   cards share a row, the radar and the bars run full width. */
+@container (max-width: 680px) {
+  .pitch {
+    padding-top: 0;
+  }
+
+  .stage {
+    position: relative;
+    height: 240px;
+    --slot-0: 0.25;
+    --slot-1: 0.75;
+  }
+
+  .layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "left right"
+      "radar radar"
+      "bars bars";
+    gap: 12px 8px;
+    padding: 0 8px;
+  }
+
+  .radar {
+    width: min(240px, 70%);
+    justify-self: center;
+  }
+
+  .root select,
+  .shirt {
+    font-size: 15px;
+  }
+
+  .facts div {
+    min-height: 26px;
+    padding: 0 6px;
+    font-size: 14px;
+  }
+
+  .flag {
+    width: 27px;
+    height: 18px;
+  }
+
+  .barsPanel {
+    padding: 8px;
+  }
+
+  .root .bars .value {
+    padding: 0 4px;
+    font-size: 17px;
+  }
+
+  .root .bars .label {
+    width: 7.5em;
+    font-size: 14px;
+  }
+
+  .titleBar span {
+    font-size: 21px;
+  }
+
+  .root .footer button {
+    font-size: 16px;
+  }
+
+  .note {
+    margin-left: 0;
+  }
 }

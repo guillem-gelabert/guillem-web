@@ -1,8 +1,9 @@
 import { expect, test } from "@playwright/test";
 
-// Interactive 5 in "What Are Embeddings": the radar starts on Wirtz and van
-// Dijk, toggles between 6 and 29 axes, takes up to five players, and draws
-// the PES avatars into a WebGL canvas quantised to the page's four shades.
+// Interactive 5 in "What Are Embeddings", set as a PES 6 comparison screen:
+// it starts on Wirtz and van Dijk, toggles between 6 and 29 axes, compares
+// exactly two players, and draws their PES avatars in full colour on the
+// TFT screen the page has switched to by the time it is in view.
 
 const ROUTE = "/writing/what-are-embeddings";
 
@@ -14,24 +15,29 @@ test.describe("player radar", () => {
     expect(await radar.evaluate((el) => getComputedStyle(el).filter)).toBe("none");
     await expect(page.getByTestId("player-0")).toHaveValue("deu-wirtz");
     await expect(page.getByTestId("player-1")).toHaveValue("nld-dijk");
-    const table = page.getByTestId("ratings");
-    await expect(table.locator("tbody tr")).toHaveCount(6);
+    const rows = page.getByTestId("ratings").locator("tbody tr");
+    await expect(rows).toHaveCount(6);
     // Wirtz: PAC 80, DEF 54; van Dijk: PAC 73, DEF 90 (ea_fc26_players.csv)
-    await expect(table.locator("tbody tr").nth(0).locator("td")).toHaveText(["80", "73"]);
-    await expect(table.locator("tbody tr").nth(4).locator("td")).toHaveText(["54", "90"]);
+    for (const [i, a, b] of [[0, "80", "73"], [4, "54", "90"]] as const) {
+      await expect(rows.nth(i).locator("td").first()).toHaveText(a);
+      await expect(rows.nth(i).locator("td").last()).toHaveText(b);
+    }
+    // the cards: van Dijk is a 193 cm centre-back
+    await expect(radar.getByLabel("Right player", { exact: true }).locator("dd").first()).toHaveText("193 cm");
   });
 
-  test("switches to 29 axes and takes up to five players", async ({ page }) => {
+  test("compares exactly two players, in 6 or 29 attributes", async ({ page }) => {
     await page.goto(ROUTE);
     await page.getByTestId("player-radar").scrollIntoViewIfNeeded();
+    await expect(page.getByTestId("series")).toHaveCount(2);
+    // a player cannot be compared with himself
+    await expect(page.getByTestId("player-1").locator('option[value="deu-wirtz"]')).toBeDisabled();
+    await page.getByTestId("player-1").selectOption("fra-kante");
+    await expect(page.getByTestId("series")).toHaveCount(2);
     await page.getByTestId("view-29").click();
     await expect(page.getByTestId("ratings").locator("tbody tr")).toHaveCount(29);
-    const add = page.getByTestId("add-player");
-    for (let i = 0; i < 3; i++) await add.click();
-    await expect(page.getByTestId("series")).toHaveCount(5);
-    await expect(add).toBeDisabled();
-    await page.getByTestId("player-1").selectOption("fra-kante");
-    await expect(page.getByTestId("series")).toHaveCount(5);
+    await page.getByTestId("view-6").click();
+    await expect(page.getByTestId("ratings").locator("tbody tr")).toHaveCount(6);
   });
 
   test("draws the avatars in full colour on the TFT screen", async ({ page }) => {

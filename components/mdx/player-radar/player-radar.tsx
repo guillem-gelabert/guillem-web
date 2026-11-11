@@ -3,17 +3,18 @@
 import { useEffect, useRef, useState } from "react";
 import data from "./players.json";
 import type { Stage } from "./avatar-stage";
+import { Flag } from "./flag";
 import styles from "./player-radar.module.css";
 
 type Player = (typeof data.players)[number];
 
 const HEADLINE = [
-  { short: "Pace", name: "Pace" },
-  { short: "Shooting", name: "Shooting" },
-  { short: "Passing", name: "Passing" },
-  { short: "Dribbling", name: "Dribbling" },
-  { short: "Defending", name: "Defending" },
-  { short: "Physical", name: "Physical" },
+  { short: "PAC", name: "Pace" },
+  { short: "SHO", name: "Shooting" },
+  { short: "PAS", name: "Passing" },
+  { short: "DRI", name: "Dribbling" },
+  { short: "DEF", name: "Defending" },
+  { short: "PHY", name: "Physical" },
 ];
 
 // The 29 search attributes in the CSV's order, which already runs pace,
@@ -51,83 +52,117 @@ const DETAILED: Record<string, { short: string; name: string }> = {
 };
 const DETAILED_AXES = data.detailed.map((key) => DETAILED[key]);
 
-// Up to five players. Four shades cannot carry five series by colour, so
-// each one gets its own line and its own vertex marker; the legend and the
-// table header repeat both.
-// The colours are CSS variables: shades on the Game Boy, hues on the TFT.
-const SERIES = [
-  { stroke: "var(--series-1)", dash: undefined, width: 2, marker: "circle" },
-  { stroke: "var(--series-2)", dash: "6 3", width: 2, marker: "square" },
-  { stroke: "var(--series-3)", dash: undefined, width: 2, marker: "triangle" },
-  { stroke: "var(--series-4)", dash: "1.5 3", width: 2, marker: "diamond" },
-  { stroke: "var(--series-5)", dash: "6 3", width: 2, marker: "cross" },
+// Left player pink, right player blue, as on the game's comparison screen.
+const SIDES = [
+  { colour: "var(--left)", label: "Left player" },
+  { colour: "var(--right)", label: "Right player" },
 ] as const;
-const MAX = SERIES.length;
 
-const DEFAULTS = ["deu-wirtz", "nld-dijk"];
-const ADD_ORDER = ["eng-saka", "esp-olmo", "nor-haaland", "fra-kante", "fra-mbappe"];
-
-const SIZE = 360;
-const C = SIZE / 2;
-const R = 128;
-const RINGS = [20, 40, 60, 80];
+const DEFAULTS: [string, string] = ["deu-wirtz", "nld-dijk"];
 const SCALE = 99;
+const SIZE = 200;
+const C = SIZE / 2;
+const R = 70;
+const RINGS = [20, 40, 60, 80];
 
 const bySlug = new Map(data.players.map((p) => [p.slug, p]));
 const sorted = [...data.players].sort((a, b) => a.name.localeCompare(b.name));
-const surname = (p: Player) => (p.name.split(" ").length > 1 ? p.name.split(" ").slice(1).join(" ") : p.name);
+// "F. Wirtz", as the game abbreviates its names; one-word names stay whole
+const short = (name: string) => {
+  const [first, ...rest] = name.split(" ");
+  return rest.length ? `${first[0]}. ${rest.join(" ")}` : first;
+};
 
 function at(i: number, n: number, value: number): [number, number] {
   const a = (Math.PI * 2 * i) / n - Math.PI / 2;
   const r = (value / SCALE) * R;
   return [C + Math.cos(a) * r, C + Math.sin(a) * r];
 }
+const ring = (n: number, value: number) =>
+  Array.from({ length: n }, (_, i) => at(i, n, value).join(",")).join(" ");
 
-function Marker({ kind, x, y, fill, stroke }: { kind: string; x: number; y: number; fill: string; stroke: string }) {
-  const s = 3.5;
-  if (kind === "circle") return <circle cx={x} cy={y} r={s} fill={fill} stroke={stroke} strokeWidth={1.5} />;
-  if (kind === "square") return <rect x={x - s} y={y - s} width={s * 2} height={s * 2} fill={fill} stroke={stroke} strokeWidth={1.5} />;
-  if (kind === "triangle")
-    return <polygon points={`${x},${y - s - 1} ${x + s + 1},${y + s} ${x - s - 1},${y + s}`} fill={fill} stroke={stroke} strokeWidth={1.5} />;
-  if (kind === "diamond")
-    return <polygon points={`${x},${y - s - 1} ${x + s + 1},${y} ${x},${y + s + 1} ${x - s - 1},${y}`} fill={fill} stroke={stroke} strokeWidth={1.5} />;
-  return <path d={`M${x - s} ${y - s}L${x + s} ${y + s}M${x + s} ${y - s}L${x - s} ${y + s}`} stroke={stroke} strokeWidth={2} />;
-}
-
-function Key({ index }: { index: number }) {
-  const s = SERIES[index];
+function Card({
+  side,
+  player,
+  other,
+  onPick,
+}: {
+  side: 0 | 1;
+  player: Player;
+  other: Player;
+  onPick: (slug: string) => void;
+}) {
   return (
-    <svg className={styles.key} viewBox="0 0 28 12" aria-hidden="true">
-      <line x1={1} y1={6} x2={27} y2={6} stroke={s.stroke} strokeWidth={s.width} strokeDasharray={s.dash} />
-      <Marker kind={s.marker} x={14} y={6} fill="var(--shade-0)" stroke={s.stroke} />
-    </svg>
+    <section className={styles.card} data-side={side} aria-label={SIDES[side].label}>
+      <div className={styles.cardHead}>
+        <span className={styles.badge} title={`Position: ${player.position}`}>
+          {player.position}
+        </span>
+        <span className={styles.shirt} aria-hidden="true">
+          {player.shirt}
+        </span>
+        <select
+          aria-label={SIDES[side].label}
+          value={player.slug}
+          onChange={(e) => onPick(e.target.value)}
+          data-testid={`player-${side}`}
+        >
+          {sorted.map((o) => (
+            <option key={o.slug} value={o.slug} disabled={o.slug === other.slug}>
+              {short(o.name)}
+            </option>
+          ))}
+        </select>
+      </div>
+      <dl className={styles.facts}>
+        <div>
+          <dt>Height</dt>
+          <dd>{player.height} cm</dd>
+        </div>
+        <div>
+          <dt>Age</dt>
+          <dd>{player.age}</dd>
+        </div>
+        <div>
+          <dt>Nationality</dt>
+          <dd>
+            <Flag nation={player.nation} className={styles.flag} />
+          </dd>
+        </div>
+        <div>
+          <dt>Foot</dt>
+          <dd>{player.foot}</dd>
+        </div>
+      </dl>
+    </section>
   );
 }
 
 /**
- * Interactive 5: the shape of a footballer. A radar of EA FC26 ratings on
- * a common 0–99 scale, six headline numbers or all 29 search attributes,
- * with each player standing above it as their PES 6 avatar. The table
- * carries every number, so the polygon never has to be read as a score.
+ * Interactive 5: the shape of a footballer, set as a PES 6 comparison
+ * screen. Two players, their EA FC26 ratings on a common 0–99 scale, six
+ * headline numbers or all 29 search attributes, with each player standing
+ * beside their card as their PES 6 avatar. The bars carry every number, so
+ * the polygon never has to be read as a score.
  */
 export function PlayerRadar() {
-  const [slugs, setSlugs] = useState<string[]>(DEFAULTS);
+  const [slugs, setSlugs] = useState<[string, string]>(DEFAULTS);
   const [detailed, setDetailed] = useState(false);
   const [hovered, setHovered] = useState<number | null>(null);
   const strip = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const stage = useRef<Stage | null>(null);
 
-  const players = slugs.map((s) => bySlug.get(s)!);
+  const players = slugs.map((s) => bySlug.get(s)!) as [Player, Player];
   const axes = detailed ? DETAILED_AXES : HEADLINE;
   const n = axes.length;
   const values = (p: Player) => (detailed ? p.detailed : p.headline);
 
+  const roster = (list: Player[]) => list.map((p) => ({ key: p.slug, assets: p.assets }));
   const latest = useRef(players);
   useEffect(() => {
     latest.current = players;
   });
-  const roster = (list: Player[]) => list.map((p) => ({ key: p.slug, assets: p.assets }));
 
   useEffect(() => {
     let cancelled = false;
@@ -139,14 +174,9 @@ export function PlayerRadar() {
       if (cancelled) return built.dispose();
       stage.current = built;
       built.setPlayers(roster(latest.current));
-      built.setScreen(document.documentElement.dataset.screen ?? "gb");
     })();
-    // the page switches screens as the reader scrolls (GameboyScreen)
-    const watch = new MutationObserver(() => stage.current?.setScreen(document.documentElement.dataset.screen ?? "gb"));
-    watch.observe(document.documentElement, { attributes: true, attributeFilter: ["data-screen"] });
     return () => {
       cancelled = true;
-      watch.disconnect();
       built?.dispose();
       stage.current = null;
     };
@@ -157,186 +187,134 @@ export function PlayerRadar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slugs.join()]);
 
-  const replace = (i: number, slug: string) => setSlugs((s) => s.map((x, j) => (j === i ? slug : x)));
-  const remove = (i: number) => setSlugs((s) => s.filter((_, j) => j !== i));
-  const add = () =>
-    setSlugs((s) => {
-      const next = ADD_ORDER.find((x) => !s.includes(x)) ?? sorted.find((p) => !s.includes(p.slug))!.slug;
-      return [...s, next];
-    });
+  const pick = (side: 0 | 1, slug: string) =>
+    setSlugs((s) => (side === 0 ? [slug, s[1]] : [s[0], slug]));
 
-  const title = `${detailed ? "29 detailed attributes" : "Six headline ratings"} for ${players.map((p) => p.name).join(", ")}, on a 0 to 99 scale`;
+  const title = `${detailed ? "29 detailed attributes" : "Six headline ratings"} for ${players[0].name} and ${players[1].name}, on a 0 to 99 scale`;
 
   return (
-    <div className={`player-radar not-prose ${styles.root}`} role="group" aria-label="Player radar" data-testid="player-radar">
-      <div className={styles.controls}>
-        <ol className={styles.roster}>
-          {players.map((p, i) => (
-            <li key={i} className={styles.slot}>
-              <Key index={i} />
-              <label className={styles.srOnly} htmlFor={`player-radar-${i}`}>
-                Player {i + 1}
-              </label>
-              <select
-                id={`player-radar-${i}`}
-                value={p.slug}
-                onChange={(e) => replace(i, e.target.value)}
-                data-testid={`player-${i}`}
-              >
-                {sorted.map((o) => (
-                  <option key={o.slug} value={o.slug} disabled={o.slug !== p.slug && slugs.includes(o.slug)}>
-                    {o.name}
-                  </option>
-                ))}
-              </select>
-              {players.length > 1 ? (
-                <button type="button" onClick={() => remove(i)} aria-label={`Remove ${p.name}`} className={styles.remove}>
-                  ×
-                </button>
-              ) : null}
-            </li>
-          ))}
-        </ol>
-        <div className={styles.actions}>
-          <button type="button" onClick={add} disabled={players.length >= MAX} data-testid="add-player">
-            + Add player
-          </button>
-          <div className={styles.toggle} role="radiogroup" aria-label="Attributes">
-            <button type="button" role="radio" aria-checked={!detailed} onClick={() => setDetailed(false)} data-testid="view-6">
-              6 headline
-            </button>
-            <button type="button" role="radio" aria-checked={detailed} onClick={() => setDetailed(true)} data-testid="view-29">
-              29 detailed
-            </button>
+    <div
+      className={`player-radar not-prose ${styles.root}`}
+      role="group"
+      aria-label="Player comparison"
+      data-testid="player-radar"
+      data-detailed={detailed ? "" : undefined}
+    >
+      <div className={styles.titleBar} aria-hidden="true">
+        <span>Player Comparison</span>
+      </div>
+
+      <div className={styles.pitch}>
+        <div ref={strip} className={styles.stage} aria-hidden="true">
+          <canvas ref={canvas} className={styles.canvas} data-testid="avatar-canvas" />
+        </div>
+
+        <div className={styles.layout}>
+          <Card side={0} player={players[0]} other={players[1]} onPick={(s) => pick(0, s)} />
+
+          <svg className={styles.radar} viewBox={`0 0 ${SIZE} ${SIZE}`} role="img" aria-label={title} data-testid="radar">
+            <polygon points={ring(n, SCALE)} className={styles.radarPlate} />
+            {RINGS.map((r) => (
+              <polygon key={r} points={ring(n, r)} className={styles.radarRing} />
+            ))}
+            {axes.map((axis, i) => {
+              const [x, y] = at(i, n, SCALE);
+              return (
+                <line
+                  key={axis.name}
+                  x1={C}
+                  y1={C}
+                  x2={x}
+                  y2={y}
+                  className={styles.radarSpoke}
+                  data-hovered={hovered === i ? "" : undefined}
+                />
+              );
+            })}
+            {players.map((p, k) => (
+              <polygon
+                key={p.slug}
+                points={values(p).map((v, i) => at(i, n, v).join(",")).join(" ")}
+                className={styles.radarShape}
+                style={{ fill: SIDES[k].colour, stroke: SIDES[k].colour }}
+                data-testid="series"
+              />
+            ))}
+            {axes.map((axis, i) => {
+              const [x, y] = at(i, n, detailed ? 112 : 118);
+              return (
+                <text
+                  key={axis.name}
+                  x={x}
+                  y={y}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  className={styles.radarLabel}
+                  data-hovered={hovered === i ? "" : undefined}
+                  onMouseEnter={() => setHovered(i)}
+                  onMouseLeave={() => setHovered(null)}
+                >
+                  {axis.short}
+                </text>
+              );
+            })}
+          </svg>
+
+          <Card side={1} player={players[1]} other={players[0]} onPick={(s) => pick(1, s)} />
+
+          <div className={styles.barsPanel}>
+            <table className={styles.bars} data-testid="ratings">
+              <caption className={styles.srOnly}>EA FC26 ratings, 0 to 99</caption>
+              <thead className={styles.srOnly}>
+                <tr>
+                  <th scope="col">{players[0].name}</th>
+                  <td />
+                  <th scope="col">Rating</th>
+                  <td />
+                  <th scope="col">{players[1].name}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {axes.map((axis, i) => {
+                  const [a, b] = players.map((p) => values(p)[i]);
+                  return (
+                    <tr
+                      key={axis.name}
+                      onMouseEnter={() => setHovered(i)}
+                      onMouseLeave={() => setHovered(null)}
+                      data-hovered={hovered === i ? "" : undefined}
+                    >
+                      <td className={styles.value}>{a}</td>
+                      <td className={`${styles.track} ${styles.trackLeft}`} aria-hidden="true">
+                        <span className={styles.bar} style={{ width: `${(a / SCALE) * 100}%` }} />
+                      </td>
+                      <th scope="row" className={styles.label}>
+                        {axis.name}
+                      </th>
+                      <td className={`${styles.track} ${styles.trackRight}`} aria-hidden="true">
+                        <span className={styles.bar} style={{ width: `${(b / SCALE) * 100}%` }} />
+                      </td>
+                      <td className={styles.value}>{b}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
 
-      <div ref={strip} className={styles.strip} data-count={players.length} aria-hidden="true">
-        <canvas ref={canvas} className={styles.canvas} data-testid="avatar-canvas" />
-        <ol className={styles.names}>
-          {players.map((p, i) => (
-            <li key={p.slug} style={{ left: `${((i + 0.5) / players.length) * 100}%` }}>
-              <Key index={i} />
-              <span>{surname(p)}</span>
-            </li>
-          ))}
-        </ol>
+      <div className={styles.footer}>
+        <button type="button" onClick={() => setDetailed(false)} disabled={!detailed} data-testid="view-6">
+          <span className={styles.circle} aria-hidden="true" />
+          Back
+        </button>
+        <button type="button" onClick={() => setDetailed(true)} aria-pressed={detailed} data-testid="view-29">
+          <span className={styles.cross} aria-hidden="true" />
+          Player details
+        </button>
+        <span className={styles.note}>EA FC26 ratings · ages on 19 Sep 2025 · PES 6 avatars</span>
       </div>
-
-      <div className={styles.body} data-detailed={detailed ? "" : undefined}>
-        <svg className={styles.radar} viewBox={`0 0 ${SIZE} ${SIZE}`} role="img" aria-label={title} data-testid="radar">
-          {RINGS.map((ring) => (
-            <polygon
-              key={ring}
-              points={axes.map((_, i) => at(i, n, ring).join(",")).join(" ")}
-              fill="none"
-              stroke="var(--shade-1)"
-              strokeWidth={1}
-            />
-          ))}
-          <polygon
-            points={axes.map((_, i) => at(i, n, SCALE).join(",")).join(" ")}
-            fill="none"
-            stroke="var(--shade-2)"
-            strokeWidth={1}
-          />
-          {axes.map((axis, i) => {
-            const [x, y] = at(i, n, SCALE);
-            return (
-              <line
-                key={axis.name}
-                x1={C}
-                y1={C}
-                x2={x}
-                y2={y}
-                stroke={hovered === i ? "var(--shade-3)" : "var(--shade-1)"}
-                strokeWidth={1}
-              />
-            );
-          })}
-          {players.map((p, k) => {
-            const s = SERIES[k];
-            const v = values(p);
-            return (
-              <g key={p.slug} data-testid="series">
-                <polygon
-                  points={v.map((x, i) => at(i, n, x).join(",")).join(" ")}
-                  fill="none"
-                  stroke={s.stroke}
-                  strokeWidth={s.width}
-                  strokeDasharray={s.dash}
-                  strokeLinejoin="round"
-                />
-                {v.map((x, i) => {
-                  const [px, py] = at(i, n, x);
-                  return <Marker key={i} kind={s.marker} x={px} y={py} fill="var(--shade-0)" stroke={s.stroke} />;
-                })}
-              </g>
-            );
-          })}
-          {axes.map((axis, i) => {
-            const [x, y] = at(i, n, detailed ? 116 : 122);
-            const anchor = Math.abs(x - C) < 4 ? "middle" : x > C ? "start" : "end";
-            return (
-              <text
-                key={axis.name}
-                x={x}
-                y={y}
-                textAnchor={detailed ? "middle" : anchor}
-                dominantBaseline="middle"
-                className={styles.axisLabel}
-                fill={hovered === i ? "var(--shade-3)" : "var(--shade-2)"}
-                onMouseEnter={() => setHovered(i)}
-                onMouseLeave={() => setHovered(null)}
-              >
-                {axis.short}
-              </text>
-            );
-          })}
-          <text x={C + 3} y={at(0, n, 80)[1] - 1} className={styles.ringLabel} fill="var(--shade-2)">
-            80
-          </text>
-          <text x={C + 3} y={at(0, n, 40)[1] - 1} className={styles.ringLabel} fill="var(--shade-2)">
-            40
-          </text>
-        </svg>
-
-        <div className={styles.tableWrap}>
-          <table className={styles.table} data-testid="ratings">
-            <caption className={styles.srOnly}>EA FC26 ratings, 0 to 99</caption>
-            <thead>
-              <tr>
-                <th scope="col">Rating</th>
-                {players.map((p, k) => (
-                  <th scope="col" key={p.slug} title={p.name}>
-                    <Key index={k} />
-                    <span>{surname(p)}</span>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {axes.map((axis, i) => (
-                <tr
-                  key={axis.name}
-                  onMouseEnter={() => setHovered(i)}
-                  onMouseLeave={() => setHovered(null)}
-                  data-hovered={hovered === i ? "" : undefined}
-                >
-                  <th scope="row">{axis.name}</th>
-                  {players.map((p) => (
-                    <td key={p.slug}>{values(p)[i]}</td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <p className={styles.note}>
-        EA FC26 ratings · Avatars: PES 6 faces, kits and idle motion
-      </p>
     </div>
   );
 }

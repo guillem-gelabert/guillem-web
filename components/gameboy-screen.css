@@ -28,8 +28,7 @@
   filter: none;
 }
 
-/* The player radar's avatars animate, so the radar filters its static
-   parts itself and quantises the canvas in a shader (player-radar.module.css). */
+/* The player comparison keeps its own look (player-radar.module.css). */
 .gb-screen .prose-site > .player-radar {
   filter: none;
 }
@@ -375,7 +374,7 @@ html[data-screen="tft"] .gb-screen .prose-site :not(pre) > code {
   background: rgb(0 0 0 / 0.07);
 }
 
-html[data-screen="tft"] .gb-screen .prose-site th,
-html[data-screen="tft"] .gb-screen .prose-site td {
+html[data-screen="tft"] .gb-screen .prose-site .prose-table th,
+html[data-screen="tft"] .gb-screen .prose-site .prose-table td {
   font-size: 15px;
 }

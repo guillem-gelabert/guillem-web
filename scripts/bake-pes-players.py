@@ -15,6 +15,7 @@ curated because each avatar costs ~300 KB: the full 706 would be ~200 MB.
 
 import csv
 import json
+from datetime import date, datetime
 import shutil
 from pathlib import Path
 
@@ -37,6 +38,9 @@ POOL = [
 # Squad rows the pes-avatars matcher left without an FC26 id, checked by hand.
 FC_OVERRIDES = {"bra-junior": "238794"}
 
+# Ages are given on the day of the FC26 value snapshot the search uses.
+AGE_ON = date(2025, 9, 19)
+
 HEADLINE = ["pac", "sho", "pas", "dri", "def", "phy"]
 
 
@@ -45,6 +49,11 @@ def detailed_columns(header: list[str]) -> list[str]:
     cols = header[header.index("acceleration") : header.index("strength") + 1]
     assert len(cols) == 29, cols
     return cols
+
+
+def age(birthdate: str) -> int:
+    born = datetime.strptime(birthdate.split()[0], "%m/%d/%Y").date()
+    return AGE_ON.year - born.year - ((AGE_ON.month, AGE_ON.day) < (born.month, born.day))
 
 
 def main() -> None:
@@ -95,6 +104,11 @@ def main() -> None:
             "team": team["name"],
             "club": row["team"],
             "position": row["position"],
+            "shirt": p["shirtNumber"],
+            "nation": p["iso3"],
+            "height": int(row["height"]),
+            "age": age(row["birthdate"]),
+            "foot": "R" if row["preferredFoot"] == "1" else "L",
             "overall": int(row["overallRating"]),
             "headline": [int(row[c]) for c in HEADLINE],
             "detailed": [int(row[c]) for c in detailed],
