@@ -141,14 +141,14 @@
 /* The full-colour capture occupies precisely the same clipped circle, and
    fades in over BOTH the grey capture and the shading when either half of
    the linked pair is hovered (or its title receives keyboard focus). It is
-   opaque, so bringing it up is what makes the dither go away — the shading
-   itself never animates.
+   opaque, so bringing it up is what makes the dither go away — the shading's
+   opacity never animates.
 
-   That is deliberate and it is the whole reason this layer sits on top. The
-   shading carries mix-blend-mode, and a blended layer cannot be composited
-   on the GPU: animating ITS opacity made the browser re-composite the
-   stacking context on the CPU every frame, which is what made the fade
-   choppy. One unblended layer moving instead is a plain compositor job. */
+   That is deliberate, and it is why this layer sits on top. The shading
+   used to carry mix-blend-mode, and animating a blended layer's opacity made
+   the browser re-composite the stacking context on the CPU every frame,
+   which made the fade choppy. One opaque layer moving is a plain compositor
+   job. */
 .reveal {
   opacity: 0;
   transition: opacity 220ms ease-out;
@@ -331,11 +331,11 @@
    and the rim light outside the mask, which is exactly the registration the
    shading exists to provide.
 
-   Blended, not faded: the maps are strict two-colour dithers with no alpha,
-   so darken keeps the shadow map's black and discards its white, and
-   lighten does the reverse for the highlight. Opacity instead would haze
-   the whole disc with the map's other colour. They sit above .reveal, so
-   the lighting holds in both the grey and the full-colour state. */
+   Plain layers, not blended and not faded: the maps are black or white
+   dots on transparent, so they ink only the terminator and the lit cap.
+   The light follows the mouse, so they are redrawn every frame while it
+   moves, and a blend mode would put that on the CPU. They sit under
+   .reveal, which covers them on hover. */
 .shade {
   position: absolute;
   inset: 0;
@@ -353,12 +353,4 @@
      conversion existed to destroy. Without this the two maps moire against
      each other and against the globe. */
   image-rendering: pixelated;
-}
-
-.shadow {
-  mix-blend-mode: darken;
-}
-
-.highlight {
-  mix-blend-mode: lighten;
 }

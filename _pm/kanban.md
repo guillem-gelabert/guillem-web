@@ -267,6 +267,12 @@ to break Floyd–Steinberg's lattice.
   links now go to `/` (`← Guillem Gelabert`), the sitemap and the unused `ContentsNav` dropped the
   index entries, and `indexPath`/`indexAlternates` plus the index-only UI copy left `lib/locales.ts`.
   `tests/writing-index.spec.ts` deleted; the build tests that read the indexes now read the posts.
+- **Sphere shading lit from the mouse** (2026-11-11) — every shaded circle (grid and hero disc)
+  takes a point light at the pointer, 3 radii above the page, eased over ~50 ms; rest light (no
+  pointer, touch, reduced motion) is the old upper-left one. Floyd–Steinberg replaced by a 64×64
+  void-and-cluster blue-noise threshold tile (`scripts/make-blue-noise.mjs` →
+  `components/landing/blue-noise.ts`) so the grain holds still while the light moves. Maps are
+  now black/white on transparent, so the darken/lighten blend modes are gone.
 
 ## Next
 

@@ -1282,11 +1282,12 @@
    OVER the shading. Hidden at rest; see the hover rule below.
 
    It is opaque, so raising it is what makes the dither go away — the two
-   shading maps never animate. That is the point of the order: they carry
-   mix-blend-mode, and a blended layer cannot be composited on the GPU, so
-   animating their opacity forced a CPU re-composite of the whole stacking
-   context every frame and the fade came out choppy. This is one unblended
-   layer, which the compositor can move on its own. */
+   shading maps' opacity never animates. That is the point of the order:
+   they used to carry mix-blend-mode, and animating a blended layer's
+   opacity forced a CPU re-composite of the whole stacking context every
+   frame, so the fade came out choppy. This is one opaque layer, which the
+   compositor can move on its own. (The maps are plain transparent layers
+   now; their light follows the mouse — components/landing/sphere-shading.tsx.) */
 .boxCaseStudy :global(.seam-shot-reveal) {
   position: absolute;
   top: var(--disc-center-y);
@@ -1350,14 +1351,6 @@
   /* Load-bearing, exactly as on .grainField above: one dot per image pixel,
      and a smooth resample averages them back into grey. */
   image-rendering: pixelated;
-}
-
-.boxCaseStudy :global(.seam-shot-shadow) {
-  mix-blend-mode: darken;
-}
-
-.boxCaseStudy :global(.seam-shot-highlight) {
-  mix-blend-mode: lighten;
 }
 
 /* The "More work" box in the mirrored scene: the whole scene inside the

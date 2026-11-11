@@ -1,10 +1,11 @@
 "use client";
 
 import { useLayoutEffect, useRef } from "react";
+import { BLUE_NOISE_SIZE, blueNoise } from "./blue-noise";
 
-// The sphere shading over a circle: two 1-bit maps, a shadow (white where
-// lit, black where not) and a highlight (white blob on black), which the
-// stylesheet blends with darken and lighten.
+// The sphere shading over a circle: two 1-bit maps, a shadow (black dots on
+// transparent) and a highlight (white dots on transparent), stacked over the
+// circle's picture or fill.
 //
 // Drawn here rather than shipped as PNGs. The PNGs were 150px and 280px
 // dithers stretched over circles 300-400px wide, so a dot came out 1.4-2.6
@@ -15,100 +16,349 @@ import { useLayoutEffect, useRef } from "react";
 // ratio with image-rendering: pixelated — no uneven dots on any 1x/2x/3x
 // screen.
 //
-// The lighting is fitted to the PNGs it replaces, so the look holds: a
-// Lambert sphere lit from the upper left, and an elliptical highlight
-// blob at the upper left.
+// The light follows the mouse. Each sphere is lit by a point light at the
+// pointer, raised LIGHT_HEIGHT radii above the page, so every circle on the
+// page turns towards the same cursor. At rest — no pointer yet, the pointer
+// out of the window, a touch screen, or reduced motion — the light is the
+// fixed upper-left one the original PNGs were fitted to.
+//
+// That rules out error diffusion. Floyd-Steinberg carries every pixel's
+// error to its neighbours, so the smallest change of light reshuffles every
+// dot on the disc and the shading boils while the mouse moves. These maps
+// are thresholded against a fixed blue-noise tile instead (blue-noise.ts):
+// a dot only flips when the tone under it crosses its own threshold, so the
+// grain holds still and the terminator slides across it. It is also one
+// independent test per pixel, cheap enough to redraw every frame.
+//
+// The maps are transparent where they have no dot rather than white or
+// black under a blend mode. That is pixel-for-pixel what darken and lighten
+// gave, but a blended layer cannot be composited on the GPU, and these
+// layers now change every frame.
 
 const DOT = 1; // CSS px per dither dot
 
-// Shadow: Lambert term, light at azimuth 230deg (image coords, y down)
-// and 65deg elevation, gained by 1.3 into white.
+// Resting light: azimuth 230deg (image coords, y down), elevation 65deg.
 const AZ = (230 * Math.PI) / 180;
 const EL = (65 * Math.PI) / 180;
-const LIGHT = [Math.cos(EL) * Math.cos(AZ), Math.cos(EL) * Math.sin(AZ), Math.sin(EL)];
+const REST: Vec = [Math.cos(EL) * Math.cos(AZ), Math.cos(EL) * Math.sin(AZ), Math.sin(EL)];
+// Shadow: Lambert term, gained by 1.3 into white.
 const SHADOW_GAIN = 1.3;
 
-// Highlight: a super-Gaussian ellipse, centred up and left, its long axis
-// at 140deg, peaking at 0.6 — so even its core is a dither, not a fill.
+// The pointer light, in units of the sphere's radius. At this height a
+// pointer just outside the circle's upper-left rim gives the resting light.
+// MIN_ELEVATION keeps circles far from the pointer from going dark.
+const LIGHT_HEIGHT = 3;
+const MIN_ELEVATION = (35 * Math.PI) / 180;
+// How fast the light catches up with the pointer, as a time constant.
+const EASE_MS = 50;
+
+// Highlight: a super-Gaussian ellipse peaking at 0.6, so even its core is a
+// dither, not a fill. At rest it sits up and left with its long axis at
+// 140deg. It moves with the light: its distance from the centre grows with
+// the light's tilt, and it stays across the light's direction. It rounds off
+// as it reaches the centre, where a highlight on a sphere is a disc.
 const HL_X = -0.404;
 const HL_Y = -0.471;
 const HL_ANGLE = (139.7 * Math.PI) / 180;
 const HL_MAJOR = 0.303;
 const HL_MINOR = 0.173;
 const HL_PEAK = 0.6;
+const HL_REST_RADIUS = Math.hypot(HL_X, HL_Y);
+const HL_REST_AZ = Math.atan2(HL_Y, HL_X);
+const HL_REACH = HL_REST_RADIUS / Math.cos(EL);
+const HL_MAX_RADIUS = 0.75;
+const HL_MIN_MINOR = 0.12;
+// Past this many major radii the blob is below one threshold step.
+const HL_EXTENT = 1.9 * HL_MAJOR;
 
-function tone(kind: "shadow" | "highlight", nx: number, ny: number) {
-  const r2 = nx * nx + ny * ny;
-  if (r2 > 1) return kind === "shadow" ? 1 : 0; // outside: pass-through under the blend
-  if (kind === "shadow") {
-    const nz = Math.sqrt(1 - r2);
-    const lambert = Math.max(0, nx * LIGHT[0] + ny * LIGHT[1] + nz * LIGHT[2]);
-    return Math.min(1, SHADOW_GAIN * lambert);
-  }
-  const dx = nx - HL_X;
-  const dy = ny - HL_Y;
-  const u = (dx * Math.cos(HL_ANGLE) + dy * Math.sin(HL_ANGLE)) / HL_MAJOR;
-  const v = (-dx * Math.sin(HL_ANGLE) + dy * Math.cos(HL_ANGLE)) / HL_MINOR;
-  const d2 = u * u + v * v;
-  return HL_PEAK * Math.exp(-0.5 * d2 * d2);
-}
+const BLACK = 0xff000000; // RGBA bytes 0,0,0,255 on a little-endian Uint32Array
+const WHITE = 0xffffffff;
 
-// Floyd-Steinberg, serpentine, into opaque black and white.
-function draw(canvas: HTMLCanvasElement, kind: "shadow" | "highlight") {
-  const size = Math.max(1, Math.round(canvas.clientWidth / DOT));
-  if (canvas.width === size && canvas.height === size) return;
-  canvas.width = size;
-  canvas.height = size;
-  const context = canvas.getContext("2d");
-  if (!context) return;
+type Vec = [number, number, number];
 
-  const values = new Float32Array(size * size);
+type Sphere = {
+  shadow: HTMLCanvasElement;
+  highlight: HTMLCanvasElement;
+  light: Vec;
+  drawn: Vec | null;
+  size: number;
+  shadowImage: ImageData | null;
+  highlightImage: ImageData | null;
+  offset: number;
+  visible: boolean;
+};
+
+// Per-size geometry: the sphere's z at each pixel (-1 outside the disc) and
+// x, y per column and row, shared by every sphere of that size.
+type Geometry = { nx: Float32Array; ny: Float32Array; nz: Float32Array };
+const geometries = new Map<number, Geometry>();
+
+function geometry(size: number): Geometry {
+  let cached = geometries.get(size);
+  if (cached) return cached;
+  const axis = Float32Array.from({ length: size }, (_, i) => ((i + 0.5) / size) * 2 - 1);
+  const nz = new Float32Array(size * size);
   for (let y = 0; y < size; y += 1) {
     for (let x = 0; x < size; x += 1) {
-      values[y * size + x] = tone(kind, ((x + 0.5) / size) * 2 - 1, ((y + 0.5) / size) * 2 - 1);
+      const r2 = axis[x] * axis[x] + axis[y] * axis[y];
+      nz[y * size + x] = r2 > 1 ? -1 : Math.sqrt(1 - r2);
     }
   }
-
-  const image = context.createImageData(size, size);
-  const random = mulberry32(kind === "shadow" ? 0x5ad0 : 0x419);
-  for (let y = 0; y < size; y += 1) {
-    const forward = y % 2 === 0;
-    for (let i = 0; i < size; i += 1) {
-      const x = forward ? i : size - 1 - i;
-      const index = y * size + x;
-      const old = values[index];
-      const next = old >= 0.5 + (random() - 0.5) * JITTER ? 1 : 0;
-      const error = old - next;
-      const step = forward ? 1 : -1;
-      if (x + step >= 0 && x + step < size) values[index + step] += (error * 7) / 16;
-      if (y + 1 < size) {
-        if (x - step >= 0 && x - step < size) values[index + size - step] += (error * 3) / 16;
-        values[index + size] += (error * 5) / 16;
-        if (x + step >= 0 && x + step < size) values[index + size + step] += (error * 1) / 16;
-      }
-      const out = index * 4;
-      const value = next * 255;
-      image.data[out] = value;
-      image.data[out + 1] = value;
-      image.data[out + 2] = value;
-      image.data[out + 3] = 255;
-    }
-  }
-  context.putImageData(image, 0, 0);
+  cached = { nx: axis, ny: axis, nz };
+  geometries.set(size, cached);
+  return cached;
 }
 
-// Plain Floyd-Steinberg settles into a regular lattice in very light and very
-// dark areas. A small jitter on the threshold breaks it up; seeded, so the
-// pattern is the same on every load.
-const JITTER = 0.18;
+let thresholds: Float32Array | null = null;
 
-function mulberry32(seed: number) {
-  return () => {
-    seed = (seed + 0x6d2b79f5) | 0;
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+function threshold(): Float32Array {
+  thresholds ??= Float32Array.from(blueNoise(), (value) => (value + 0.5) / 256);
+  return thresholds;
+}
+
+function resize(sphere: Sphere) {
+  const size = Math.max(1, Math.round(sphere.shadow.clientWidth / DOT));
+  if (size === sphere.size) return;
+  for (const canvas of [sphere.shadow, sphere.highlight]) {
+    canvas.width = size;
+    canvas.height = size;
+  }
+  sphere.size = size;
+  sphere.drawn = null;
+  sphere.shadowImage = new ImageData(size, size);
+  sphere.highlightImage = new ImageData(size, size);
+}
+
+function draw(sphere: Sphere) {
+  resize(sphere);
+  const { size, light, drawn } = sphere;
+  if (drawn && drawn[0] === light[0] && drawn[1] === light[1] && drawn[2] === light[2]) return;
+  const shadowImage = sphere.shadowImage!;
+  const highlightImage = sphere.highlightImage!;
+  const { nx, ny, nz } = geometry(size);
+  const tile = threshold();
+  const mask = BLUE_NOISE_SIZE - 1;
+  const [lx, ly, lz] = light;
+
+  // Shadow: black wherever the lit tone falls under the threshold.
+  const shadow = new Uint32Array(shadowImage.data.buffer);
+  const sx = sphere.offset & mask;
+  const sy = (sphere.offset >> 6) & mask;
+  for (let y = 0; y < size; y += 1) {
+    const row = y * size;
+    const tileRow = ((y + sy) & mask) * BLUE_NOISE_SIZE;
+    const yTerm = ny[y] * ly;
+    for (let x = 0; x < size; x += 1) {
+      const z = nz[row + x];
+      if (z < 0) {
+        shadow[row + x] = 0;
+        continue;
+      }
+      const lambert = nx[x] * lx + yTerm + z * lz;
+      const tone = lambert > 0 ? SHADOW_GAIN * lambert : 0;
+      shadow[row + x] = tone < tile[tileRow + ((x + sx) & mask)] ? BLACK : 0;
+    }
+  }
+
+  // Highlight: white wherever the blob rises over the threshold, computed
+  // only inside the blob's bounding box.
+  const tilt = Math.hypot(lx, ly);
+  const radius = Math.min(HL_REACH * tilt, HL_MAX_RADIUS);
+  const az = Math.atan2(ly, lx) + (HL_REST_AZ - AZ);
+  const angle = az + (HL_ANGLE - HL_REST_AZ);
+  const cx = radius * Math.cos(az);
+  const cy = radius * Math.sin(az);
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  const minor = Math.min(
+    HL_MAJOR,
+    Math.max(HL_MIN_MINOR, HL_MAJOR - (HL_MAJOR - HL_MINOR) * (radius / HL_REST_RADIUS)),
+  );
+  const highlight = new Uint32Array(highlightImage.data.buffer);
+  highlight.fill(0);
+  const toPixel = (n: number) => ((n + 1) / 2) * size;
+  const x0 = Math.max(0, Math.floor(toPixel(cx - HL_EXTENT)));
+  const x1 = Math.min(size, Math.ceil(toPixel(cx + HL_EXTENT)));
+  const y0 = Math.max(0, Math.floor(toPixel(cy - HL_EXTENT)));
+  const y1 = Math.min(size, Math.ceil(toPixel(cy + HL_EXTENT)));
+  const hx = (sx + BLUE_NOISE_SIZE / 2) & mask;
+  const hy = (sy + BLUE_NOISE_SIZE / 2) & mask;
+  for (let y = y0; y < y1; y += 1) {
+    const row = y * size;
+    const tileRow = ((y + hy) & mask) * BLUE_NOISE_SIZE;
+    const dy = ny[y] - cy;
+    for (let x = x0; x < x1; x += 1) {
+      if (nz[row + x] < 0) continue;
+      const dx = nx[x] - cx;
+      const u = (dx * cos + dy * sin) / HL_MAJOR;
+      const v = (-dx * sin + dy * cos) / minor;
+      const d2 = u * u + v * v;
+      const tone = HL_PEAK * Math.exp(-0.5 * d2 * d2);
+      if (tone > tile[tileRow + ((x + hx) & mask)]) highlight[row + x] = WHITE;
+    }
+  }
+
+  sphere.shadow.getContext("2d")?.putImageData(shadowImage, 0, 0);
+  sphere.highlight.getContext("2d")?.putImageData(highlightImage, 0, 0);
+  sphere.drawn = [lx, ly, lz];
+}
+
+// --- One pointer, one animation loop, for every sphere on the page. ---
+
+const spheres = new Set<Sphere>();
+const byCanvas = new WeakMap<Element, Sphere>();
+let mounted = 0;
+let pointer: { x: number; y: number } | null = null;
+let tracking = false;
+let frame = 0;
+let last = 0;
+
+function target(sphere: Sphere): Vec {
+  if (!tracking || !pointer) return REST;
+  const rect = sphere.shadow.getBoundingClientRect();
+  const r = rect.width / 2;
+  if (r <= 0) return REST;
+  let dx = (pointer.x - (rect.left + r)) / r;
+  let dy = (pointer.y - (rect.top + r)) / r;
+  const reach = LIGHT_HEIGHT / Math.tan(MIN_ELEVATION);
+  const distance = Math.hypot(dx, dy);
+  if (distance > reach) {
+    dx *= reach / distance;
+    dy *= reach / distance;
+  }
+  const length = Math.hypot(dx, dy, LIGHT_HEIGHT);
+  return [dx / length, dy / length, LIGHT_HEIGHT / length];
+}
+
+function tick(now: number) {
+  frame = 0;
+  const dt = last ? Math.min(now - last, 100) : 16;
+  last = now;
+  const k = 1 - Math.exp(-dt / EASE_MS);
+  let moving = false;
+  for (const sphere of spheres) {
+    if (!sphere.visible) continue;
+    const goal = target(sphere);
+    const light = sphere.light;
+    const next: Vec = [
+      light[0] + (goal[0] - light[0]) * k,
+      light[1] + (goal[1] - light[1]) * k,
+      light[2] + (goal[2] - light[2]) * k,
+    ];
+    const length = Math.hypot(...next) || 1;
+    const settled =
+      Math.hypot(goal[0] - next[0] / length, goal[1] - next[1] / length, goal[2] - next[2] / length) < 1e-3;
+    sphere.light = settled ? [...goal] : [next[0] / length, next[1] / length, next[2] / length];
+    if (!settled) moving = true;
+    draw(sphere);
+  }
+  if (moving) schedule();
+  else last = 0;
+}
+
+function schedule() {
+  if (!frame) frame = requestAnimationFrame(tick);
+}
+
+function listen() {
+  const fine = window.matchMedia("(hover: hover) and (pointer: fine)");
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const update = () => {
+    tracking = fine.matches && !reduced.matches;
+    schedule();
   };
+  const move = (event: PointerEvent) => {
+    if (event.pointerType === "touch") return;
+    pointer = { x: event.clientX, y: event.clientY };
+    if (tracking) schedule();
+  };
+  const leave = () => {
+    pointer = null;
+    schedule();
+  };
+  const scroll = () => {
+    if (tracking && pointer) schedule();
+  };
+  const visibility = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      const sphere = byCanvas.get(entry.target);
+      if (sphere) sphere.visible = entry.isIntersecting;
+    }
+    schedule();
+  });
+  const sizes = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+      const sphere = byCanvas.get(entry.target);
+      if (sphere) draw(sphere);
+    }
+  });
+
+  update();
+  fine.addEventListener("change", update);
+  reduced.addEventListener("change", update);
+  window.addEventListener("pointermove", move, { passive: true });
+  document.documentElement.addEventListener("mouseleave", leave);
+  window.addEventListener("blur", leave);
+  document.addEventListener("scroll", scroll, { passive: true, capture: true });
+
+  return {
+    observe(canvas: HTMLCanvasElement) {
+      visibility.observe(canvas);
+      sizes.observe(canvas);
+    },
+    unobserve(canvas: HTMLCanvasElement) {
+      visibility.unobserve(canvas);
+      sizes.unobserve(canvas);
+    },
+    stop() {
+      fine.removeEventListener("change", update);
+      reduced.removeEventListener("change", update);
+      window.removeEventListener("pointermove", move);
+      document.documentElement.removeEventListener("mouseleave", leave);
+      window.removeEventListener("blur", leave);
+      document.removeEventListener("scroll", scroll, { capture: true });
+      visibility.disconnect();
+      sizes.disconnect();
+      if (frame) cancelAnimationFrame(frame);
+      frame = 0;
+      last = 0;
+    },
+  };
+}
+
+let observers: ReturnType<typeof listen> | null = null;
+
+function register(shadow: HTMLCanvasElement, highlight: HTMLCanvasElement): Sphere {
+  // Each sphere reads the tile from its own offset, so neighbouring circles
+  // don't share a grain.
+  const sphere: Sphere = {
+    shadow,
+    highlight,
+    light: [...REST],
+    drawn: null,
+    size: 0,
+    shadowImage: null,
+    highlightImage: null,
+    offset: (mounted * 1637) & 0xfff,
+    visible: true,
+  };
+  mounted += 1;
+  spheres.add(sphere);
+  byCanvas.set(shadow, sphere);
+  draw(sphere);
+  observers ??= listen();
+  observers.observe(shadow);
+  schedule();
+  return sphere;
+}
+
+function unregister(sphere: Sphere) {
+  spheres.delete(sphere);
+  observers?.unobserve(sphere.shadow);
+  if (spheres.size === 0) {
+    observers?.stop();
+    observers = null;
+  }
 }
 
 type SphereShadingProps = {
@@ -124,14 +374,8 @@ export function SphereShading({ shadowClassName, highlightClassName }: SphereSha
     const shadow = shadowRef.current;
     const highlight = highlightRef.current;
     if (!shadow || !highlight) return;
-    const redraw = () => {
-      draw(shadow, "shadow");
-      draw(highlight, "highlight");
-    };
-    redraw();
-    const observer = new ResizeObserver(redraw);
-    observer.observe(shadow);
-    return () => observer.disconnect();
+    const sphere = register(shadow, highlight);
+    return () => unregister(sphere);
   }, []);
 
   return (

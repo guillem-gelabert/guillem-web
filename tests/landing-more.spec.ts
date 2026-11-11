@@ -762,3 +762,53 @@ test("a landscape phone lays two columns for two pieces and one for one", async 
   expect(one.side).toBeLessThanOrEqual(boxHeight + 1);
   await context.close();
 });
+
+test("the circles' shading is lit from the mouse, and stays put under reduced motion", async ({
+  page,
+}) => {
+  await waitForInk(page);
+  const circle = page.locator(".seam-more-list .seam-pair-circle").first();
+  await circle.scrollIntoViewIfNeeded();
+  const box = await circle.boundingBox();
+  if (!box) throw new Error("the circle has no box");
+
+  // Where each map's dots sit across the circle, 0 at its left edge and 1
+  // at its right.
+  const centroids = () =>
+    circle.evaluate((root) => {
+      const measure = (canvas: HTMLCanvasElement) => {
+        const { width, height } = canvas;
+        const data = canvas.getContext("2d")!.getImageData(0, 0, width, height).data;
+        let sum = 0;
+        let count = 0;
+        for (let i = 3; i < data.length; i += 4) {
+          if (data[i] === 0) continue;
+          sum += ((i - 3) / 4) % width;
+          count += 1;
+        }
+        return count ? sum / count / width : 0.5;
+      };
+      const [shadow, highlight] = root.querySelectorAll("canvas");
+      return { shadow: measure(shadow), highlight: measure(highlight) };
+    });
+
+  const y = box.y + box.height / 2;
+  await page.mouse.move(box.x + box.width * 0.1, y);
+  await expect.poll(async () => (await centroids()).highlight).toBeLessThan(0.4);
+  const left = await centroids();
+
+  await page.mouse.move(box.x + box.width * 0.9, y, { steps: 5 });
+  await expect.poll(async () => (await centroids()).highlight).toBeGreaterThan(0.6);
+  const right = await centroids();
+  // The shadow falls on the side away from the light.
+  expect(left.shadow).toBeGreaterThan(0.5);
+  expect(right.shadow).toBeLessThan(0.5);
+
+  // Reduced motion: the light eases back to the fixed upper-left one and no
+  // longer follows the pointer.
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect.poll(async () => (await centroids()).highlight).toBeLessThan(0.4);
+  await page.mouse.move(box.x + box.width * 0.95, y + 5, { steps: 5 });
+  await page.waitForTimeout(300);
+  expect((await centroids()).highlight).toBeLessThan(0.4);
+});

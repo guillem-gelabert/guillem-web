@@ -93,9 +93,8 @@ function PairCover({ href }: { href: string }) {
 // Every circle carries the sphere shading, a picture or not: a shadow map
 // and a highlight map, 1-bit, dithered at the circle's own size
 // (sphere-shading.tsx), over the grey capture and under the colour one.
-// darken drops the shadow map's black in and lets its white pass through;
-// lighten does the same for the highlight's white. Over an empty circle it
-// shades the pair's own fill.
+// Their light follows the mouse. Over an empty circle they shade the pair's
+// own fill.
 function PairCircle({ shot }: { shot: WorkShot | null }) {
   return (
     <div
@@ -114,8 +113,8 @@ function PairCircle({ shot }: { shot: WorkShot | null }) {
         />
       )}
       <SphereShading
-        shadowClassName={`seam-pair-shade ${styles.shade} ${styles.shadow}`}
-        highlightClassName={`seam-pair-shade ${styles.shade} ${styles.highlight}`}
+        shadowClassName={`seam-pair-shade ${styles.shade}`}
+        highlightClassName={`seam-pair-shade ${styles.shade}`}
       />
       {shot === null ? (
         // No picture, so no colour capture to fade in: the hover colour
