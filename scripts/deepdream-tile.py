@@ -24,7 +24,8 @@ then upscaled to 640. Dreaming small and on the deeper layers is what makes
 the dog faces and eyes big against the head.
 
 Needs tensorflow, pillow and numpy (Python 3.12). The committed tile,
-public/backgrounds/hempton-dream.webp, is the first (stripes) run saved as WebP
+public/backgrounds/hempton-dream.webp (the Hempton post's backdrop until it took
+theme: pink-paper; removed, in git history) was the first (stripes) run saved as WebP
 at quality 78.
 """
 import argparse

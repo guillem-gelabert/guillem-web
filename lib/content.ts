@@ -21,12 +21,12 @@ export type PostFrontmatter = {
   /** Four #rrggbb shades, lightest first, space-separated. */
   shades?: string;
   /** "gameboy": the post renders through components/gameboy-screen.tsx —
-   *  four shades, dot matrix, dot shadow, ghosting. Needs shades. */
-  theme?: "gameboy";
-  /** A seamless tile under public/backgrounds/, repeated behind the post at
-   *  full strength, with the header and text on white panels over it
-   *  (components/post-backdrop.tsx). */
-  backdrop?: string;
+   *  four shades, dot matrix, dot shadow, ghosting. Needs shades.
+   *  "pink-paper": components/pink-paper.tsx — set like a business paper's
+   *  article: salmon paper, kicker, display-serif headline, Georgia body. */
+  theme?: "gameboy" | "pink-paper";
+  /** The topic line over the headline (theme pink-paper). */
+  kicker?: string;
   /** Keep the standfirst out of the page. It still feeds the meta
    *  description and link previews. */
   hideStandfirst?: boolean;
@@ -108,17 +108,14 @@ export function assertFrontmatter(fm: unknown, file: string): asserts fm is Post
       }
     }
     if (f.theme !== undefined) {
-      if (f.theme !== "gameboy") {
-        problems.push("theme must be 'gameboy'");
+      if (f.theme !== "gameboy" && f.theme !== "pink-paper") {
+        problems.push("theme must be 'gameboy' or 'pink-paper'");
       } else if (f.theme === "gameboy" && f.shades === undefined) {
         problems.push("theme gameboy needs shades");
       }
     }
-    if (
-      f.backdrop !== undefined &&
-      (typeof f.backdrop !== "string" || !/^\/backgrounds\/[\w.-]+\.(webp|png|jpg)$/.test(f.backdrop))
-    ) {
-      problems.push("backdrop must be a /backgrounds/file.webp|png|jpg under public/");
+    if (f.kicker !== undefined && (typeof f.kicker !== "string" || !f.kicker)) {
+      problems.push("kicker must be a non-empty string");
     }
     if (f.hideStandfirst !== undefined && typeof f.hideStandfirst !== "boolean") {
       problems.push("hideStandfirst must be true or false");

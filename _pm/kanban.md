@@ -307,6 +307,12 @@ to break Floyd–Steinberg's lattice.
   with the same script in photo mode (`--start`, `--edges reflect`; strengthened the same day to
   `mixed4,mixed5`, 100 steps × 4 octaves at 448px, for bigger dogs and eyes), saved as 640px WebP colour + linear-light greyscale (`public/work/hempton-dream*.webp`).
   The grid has no empty circle now.
+- **Hempton post: pink-paper theme** (2026-11-11) — set like a business paper's article
+  (`theme: pink-paper`, components/pink-paper.tsx + .css): salmon paper, centred 44rem column,
+  blue kicker (new `kicker` front-matter, localised), Source Serif 4 display headline, thin
+  rule, Georgia 20px body with teal links, grey sans meta. No masthead/logo/name. Replaces the
+  DeepDream backdrop: `backdrop` field, post-backdrop component/CSS/spec and the tile removed
+  (the dream stays as the grid thumbnail). Tests: `tests/pink-paper.spec.ts`.
 
 ## Next
 

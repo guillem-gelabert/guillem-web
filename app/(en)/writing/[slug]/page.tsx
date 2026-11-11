@@ -8,7 +8,7 @@ import { PostTitle } from "@/components/post-title";
 import { PostMeta } from "@/components/post-meta";
 import { PostPalette } from "@/components/post-palette";
 import { GameboyScreen } from "@/components/gameboy-screen";
-import { PostBackdrop } from "@/components/post-backdrop";
+import { PinkPaperArticle } from "@/components/pink-paper";
 import { postOpenGraph } from "@/lib/metadata";
 
 // This route carries no client directive. Phase 1 marked whole pages as
@@ -82,17 +82,36 @@ export default async function WritingPost({
   const { default: Post } = await loadPostModule(slug);
   const twins = await translationsOf(entry);
 
+  if (entry.frontmatter.theme === "pink-paper") {
+    return (
+      <PinkPaperArticle
+        backLabel={UI.en.homeLink}
+        kicker={entry.frontmatter.kicker}
+        title={entry.frontmatter.title}
+        standfirst={entry.frontmatter.hideStandfirst ? undefined : entry.frontmatter.standfirst}
+        meta={
+          <PostMeta
+            locale="en"
+            date={entry.frontmatter.date}
+            translations={translationLinks(twins)}
+            draft={entry.frontmatter.draft}
+          />
+        }
+      >
+        <Post />
+      </PinkPaperArticle>
+    );
+  }
+
   const gameboy = entry.frontmatter.theme === "gameboy" ? shadesOf(entry.frontmatter) : null;
-  const backdrop = entry.frontmatter.backdrop;
 
   return (
     <main
       className={`mx-auto flex w-full max-w-page flex-col gap-3xl px-lg py-3xl${gameboy ? " gb-screen" : ""}`}
     >
       <PostPalette frontmatter={entry.frontmatter} />
-      <PostBackdrop src={backdrop} />
       <Screen shades={gameboy}>
-      <header className={`flex flex-col gap-2xl${backdrop ? " backdrop-panel" : ""}`}>
+      <header className="flex flex-col gap-2xl">
         {/* Amendment A3: conformance with Phase 2's own Color section,
             which already reserves the accent for link focus on any
             link. inline-block py-xs is not decoration — this Label-role
@@ -116,17 +135,9 @@ export default async function WritingPost({
           </div>
         </div>
       </header>
-      {backdrop ? (
-        <div className="backdrop-text">
-          <Prose>
-            <Post />
-          </Prose>
-        </div>
-      ) : (
-        <Prose>
-          <Post />
-        </Prose>
-      )}
+      <Prose>
+        <Post />
+      </Prose>
       </Screen>
     </main>
   );

@@ -6,7 +6,8 @@ lang: en
 translationKey: ai-worst-business
 draft: false
 type: post
-backdrop: "/backgrounds/hempton-dream.webp"
+theme: pink-paper
+kicker: "Artificial intelligence"
 hideStandfirst: true
 ---
 

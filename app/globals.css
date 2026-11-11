@@ -492,18 +492,3 @@ body:has(.seam-scene) {
     }
   }
 }
-
-/* A post with a backdrop (components/post-backdrop.tsx): the dream runs at
-   full strength behind the page, and the text sits on white. The header and
-   the body are each one white panel, one reading measure wide (65ch of the
-   body face, as .prose-site, plus the padding), so on a wide screen the
-   dream fills the rest of the row. The panels set the body face only so
-   that their ch is the prose's ch; every line inside keeps its own role. */
-.backdrop-panel,
-.backdrop-text {
-  background: var(--color-paper);
-  padding: var(--spacing-lg);
-  font-family: var(--font-body);
-  font-size: 18px;
-  max-width: calc(65ch + 2 * var(--spacing-lg));
-}
