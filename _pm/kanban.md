@@ -282,7 +282,7 @@ to break Floyd–Steinberg's lattice.
   `components/landing/blue-noise.ts`) so the grain holds still while the light moves. Maps are
   now black/white on transparent, so the darken/lighten blend modes are gone.
   Then made physical: shadow is hemisphere ambient + Lambert (`AMBIENT` 0.3, falling to 0 opposite the light, so the dark side keeps a gradient) under an exposure of 1.3, and
-  the highlight is Blinn–Phong (N·H)^12 at peak 0.6 instead of the fitted ellipse. Hover colour
+  the highlight is Blinn–Phong (N·H)^12 at peak 0.22 (toned down from 0.6) instead of the fitted ellipse. Hover colour
   fade slowed from 220 ms to 500 ms (grid and hero disc).
 - **Hempton post: DeepDream background** (2026-11-11) — seamless 1024px DeepDream tile (TF
   tutorial: InceptionV3 mixed3+mixed5, octaves) grown from the mazzucato stripes, made tileable

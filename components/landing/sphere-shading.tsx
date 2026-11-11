@@ -67,7 +67,7 @@ const EXPOSURE = 1.3;
 // out only towards the rim, as the sphere's own foreshortening dictates.
 // SHININESS sets its size; HL_PEAK keeps even its core a dither, not a fill.
 const SHININESS = 12;
-const HL_PEAK = 0.6;
+const HL_PEAK = 0.22;
 // The highlight is drawn only where it rises above one threshold step.
 const HL_FLOOR = 1 / 512;
 
