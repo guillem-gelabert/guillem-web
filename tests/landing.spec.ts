@@ -229,8 +229,10 @@ test("the chart is the disc — wider than the copy column, inside the box", asy
 test("all links are keyboard focusable and meet the 24px target floor", async ({ page }) => {
   // One link per piece: the hero's arc headline in the first scene and a
   // pair's title in the mirrored one. The mailto link this used to count is not on the seam
-  // landing at all — /cv and the contact block own it.
-  const links = page.locator("main a");
+  // landing at all — /cv and the contact block own it. The pair covers
+  // (more-work.tsx, PairCover) are pointer-only and out of the tab order, so
+  // they are not counted here.
+  const links = page.locator('main a:not([tabindex="-1"])');
   const count = WORK.length + NOTES.length;
   await expect(links).toHaveCount(count);
 

@@ -1453,6 +1453,8 @@
   --pair-direction: row-reverse;
   --pair-direction-flipped: row;
   --pair-per-row: 2;
+  /* 1 side by side, 0 stacked: sizes the pair's click cover (more-work.module.css). */
+  --pair-row: 1;
 
   /* In flow, not absolute: the scene's height follows this box (see
      .sceneMirrored), which an absolutely positioned box cannot give it.
@@ -1531,6 +1533,7 @@
     --pair-direction: column-reverse;
     --pair-direction-flipped: column;
     --pair-per-row: 1;
+    --pair-row: 0;
   }
 }
 
@@ -1822,6 +1825,7 @@
     --pair-direction: column-reverse;
     --pair-direction-flipped: column;
     --pair-per-row: 1;
+    --pair-row: 0;
   }
 }
 

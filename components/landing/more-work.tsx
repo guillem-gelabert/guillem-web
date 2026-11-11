@@ -73,6 +73,18 @@ function hoverStyle(index: number): CSSProperties {
   return { "--pair-hover": `#${hex}`, "--pair-hover-type": type } as CSSProperties;
 }
 
+// The whole pair is a click target: this link sits behind the circle and
+// the square, sized to the two of them (more-work.module.css, .cover), and
+// both shapes let the pointer through to it. It is a pointer convenience
+// only, so it is hidden from assistive technology and the tab order: the
+// arrow in the square stays the pair's one announced, focusable link, and
+// keyboard and screen-reader use are unchanged.
+function PairCover({ href }: { href: string }) {
+  return (
+    <a className={`seam-pair-cover ${styles.cover}`} href={href} aria-hidden="true" tabIndex={-1} />
+  );
+}
+
 // The circle, the same for a project and a note. Its border-radius is the
 // mask, and the fill behind the picture is what shows while shot is null.
 // aria-hidden only when it is that fill — an empty box says nothing a screen
@@ -130,16 +142,13 @@ export function MoreWork() {
       <ol role="list" className={`seam-more-list ${styles.list}`} style={listStyle}>
         {more.map((entry, index) => (
           <li key={entry.href} className={`seam-pair ${styles.pair}`} style={hoverStyle(index)}>
+            <PairCover href={entry.href} />
             <PairCircle shot={entry.shot} />
 
             <div className={`seam-pair-square ${styles.square}`}>
-              {/* The title is NOT a link, and the pair is not one either. The
-                  anchor's ::after used to stretch over the whole <li>, which
-                  made the entire box a click target with nothing on screen
-                  saying so — and the title itself carried .link-quiet, whose
-                  whole job is to look like ordinary type. Between them the
-                  pair had no visible affordance at all. The host line at the
-                  foot is the link now, and it is styled as one.
+              {/* The title is not a link itself: the arrow at the foot is the
+                  pair's one announced link, and the cover behind the pair
+                  (PairCover) takes a click anywhere on the circle or square.
 
                   No role classes (.text-standfirst, .text-body, .text-label)
                   on the copy in here: their sizes are fixed pixels, and this
@@ -166,10 +175,10 @@ export function MoreWork() {
                     </span>
                   ))}
                 </p>
-                {/* The one link in the pair, and the only thing in it that
-                    is clickable: the arrow in the square's corner. The
-                    title is not a link and the box is not a click target
-                    (see the test of that name).
+                {/* The one announced link in the pair: the arrow in the
+                    square's corner. The rest of the pair reaches the same
+                    href through PairCover, which is hidden from assistive
+                    technology.
 
                     U+2192, the mirror of the U+2190 every back link sets
                     (lib/locales.ts); the two arrows are the whole of the
@@ -201,6 +210,7 @@ export function MoreWork() {
             className={`seam-pair seam-pair-note ${styles.pair}`}
             style={hoverStyle(more.length + index)}
           >
+            <PairCover href={note.href} />
             <PairCircle shot={note.shot} />
             <div className={`seam-pair-square ${styles.square}`}>
               <h3 className={`seam-pair-title ${styles.title}`}>{note.title}</h3>

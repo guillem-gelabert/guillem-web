@@ -44,9 +44,10 @@ test("the mirrored scene is the 'More work' landmark and holds every piece after
 
   for (const [index, entry] of more.entries()) {
     const item = items.nth(index);
-    // One link, the host line, same tab. The title is plain type and the
-    // pair is not a click target: see the box-is-not-clickable test below.
-    const links = item.locator("a");
+    // One announced link, the arrow, same tab. The cover behind the pair
+    // goes to the same href but is hidden from assistive technology, so the
+    // role query does not see it: see the whole-pair test below.
+    const links = item.getByRole("link");
     await expect(links).toHaveCount(1);
     await expect(links).toHaveAttribute("href", entry.href);
     await expect(links).toHaveText("→");
@@ -56,6 +57,10 @@ test("the mirrored scene is the 'More work' landmark and holds every piece after
     await expect(links).not.toHaveAttribute("target", "_blank");
     // The title is still printed — as a heading, not a link.
     await expect(item.locator(".seam-pair-title")).toHaveText(entry.title);
+    const cover = item.locator("a.seam-pair-cover");
+    await expect(cover).toHaveAttribute("href", entry.href);
+    await expect(cover).toHaveAttribute("aria-hidden", "true");
+    await expect(cover).toHaveAttribute("tabindex", "-1");
     await expect(item.locator(".seam-pair-title a")).toHaveCount(0);
     // The short description and tags render; the longer body stays out.
     for (const paragraph of entry.body) await expect(item).not.toContainText(paragraph);
@@ -165,34 +170,61 @@ test("every pair hovers its own hue, at the featured badge's saturation and ligh
   expect(new Set(fills).size, fills.join(" | ")).toBe(count);
 });
 
-test("the pair's box is not a click target — only the link is", async ({ page }) => {
-  const item = page.locator(".seam-more-list").getByRole("listitem").first();
-  // elementFromPoint reads VIEWPORT coordinates, so the pair has to be on
-  // screen first. Without this every probe returns null and the whole test
-  // passes for the wrong reason.
-  await item.scrollIntoViewIfNeeded();
+test("the whole pair is a click target — circle, copy and arrow — and nothing beside it", async ({ page }) => {
+  const items = page.locator(".seam-more-list").getByRole("listitem");
+  const count = await items.count();
 
-  // What actually sits under the pointer at each of these points. The
-  // anchor used to stretch a ::after over the whole <li>, so the circle and
-  // the copy were both clickable with nothing on screen saying so.
-  const probe = async (target: ReturnType<typeof item.locator>) => {
-    const box = await target.boundingBox();
-    if (!box) throw new Error("no box to probe");
-    return page.evaluate(
-      ([x, y]) => {
-        const el = document.elementFromPoint(x, y);
-        // null would mean the point is off screen — the caller must not read
-        // that as "no link here".
-        return el === null ? "OFFSCREEN" : el.closest("a") ? "LINK" : "NOT-A-LINK";
-      },
-      [box.x + box.width / 2, box.y + box.height / 2],
+  for (let index = 0; index < count; index += 1) {
+    const item = items.nth(index);
+    // elementFromPoint reads VIEWPORT coordinates, so the pair has to be on
+    // screen first. Without this every probe returns null and the test
+    // passes for the wrong reason.
+    await item.scrollIntoViewIfNeeded();
+    const href = await item.getByRole("link").getAttribute("href");
+
+    // What actually sits under the pointer, and where it goes.
+    const probe = (x: number, y: number) =>
+      page.evaluate(
+        ([px, py]) => {
+          const el = document.elementFromPoint(px, py);
+          if (el === null) return "OFFSCREEN";
+          return el.closest("a")?.getAttribute("href") ?? "NOT-A-LINK";
+        },
+        [x, y],
+      );
+    const centre = async (selector: string) => {
+      const box = (await item.locator(selector).boundingBox())!;
+      return probe(box.x + box.width / 2, box.y + box.height / 2);
+    };
+    const corner = async (selector: string) => {
+      const box = (await item.locator(selector).boundingBox())!;
+      return probe(box.x + box.width - 3, box.y + box.height - 3);
+    };
+
+    expect(await centre(".seam-pair-circle")).toBe(href);
+    expect(await centre(".seam-pair-title")).toBe(href);
+    expect(await centre(".seam-pair-body")).toBe(href);
+    expect(await corner(".seam-pair-square")).toBe(href);
+    expect(await centre(".seam-pair-link")).toBe(href);
+    // The arrow is still the element under the pointer at its own spot, so
+    // its hover and focus styles keep working.
+    const arrow = (await item.locator(".seam-pair-link").boundingBox())!;
+    const onArrow = await page.evaluate(
+      ([x, y]) => document.elementFromPoint(x, y)?.classList.contains("seam-pair-link") ?? false,
+      [arrow.x + arrow.width / 2, arrow.y + arrow.height / 2],
     );
-  };
+    expect(onArrow).toBe(true);
 
-  expect(await probe(item.locator(".seam-pair-circle"))).toBe("NOT-A-LINK");
-  expect(await probe(item.locator(".seam-pair-title"))).toBe("NOT-A-LINK");
-  // And the link itself still takes the pointer at its own coordinates.
-  expect(await probe(item.locator(".seam-pair-link"))).toBe("LINK");
+    // The cover is the shapes' size, not the cell's: a pair narrower than
+    // its column leaves the rest of the column unlinked.
+    const cell = (await item.boundingBox())!;
+    const square = (await item.locator(".seam-pair-square").boundingBox())!;
+    const circle = (await item.locator(".seam-pair-circle").boundingBox())!;
+    const right = Math.max(square.x + square.width, circle.x + circle.width);
+    if (cell.x + cell.width - right > 8) {
+      expect(await probe(right + 4, cell.y + 4)).not.toBe(href);
+    }
+  }
 });
 
 test("the globe fills its borderless circle and reveals its colour image from either half of the pair", async ({
@@ -240,7 +272,10 @@ test("the globe fills its borderless circle and reveals its colour image from ei
   // reveal rather than the pointer's route to it.
   await circle.hover({ force: true });
   await expect(colour).toHaveCSS("opacity", "1");
-  await square.hover();
+  // The square passes the pointer through to the pair's cover link, so
+  // force: this asserts the reveal under the square's position, not which
+  // element takes the event there.
+  await square.hover({ force: true });
   await expect(colour).toHaveCSS("opacity", "1");
   await expect(dither).toHaveCSS("opacity", "1");
   // Hovering resolves to the bare colour capture. The dither does not fade:

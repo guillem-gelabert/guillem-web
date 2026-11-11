@@ -46,6 +46,24 @@
      column, and a row-reverse row otherwise packs its shapes to the right. */
   justify-content: flex-end;
   gap: var(--pair-shape-gap);
+  position: relative;
+}
+
+/* The pair's click target (PairCover in more-work.tsx). It sits behind the
+   two shapes, and they pass the pointer through to it (pointer-events below),
+   so a click anywhere on the circle or the square follows the link while the
+   arrow keeps its own hover and focus. Sized to the shapes rather than the
+   <li>: the side is capped, so the cell can be wider than the pair, and the
+   empty part of the cell is not a link. The shapes always start at the
+   cell's top-left corner (see justify-content above and on [data-flipped]);
+   --pair-row is 1 when they sit side by side and 0 when they stack
+   (landing-seam.module.css). */
+.cover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(var(--pair-side) * (1 + var(--pair-row, 1)) + var(--pair-shape-gap) * var(--pair-row, 1));
+  height: calc(var(--pair-side) * (2 - var(--pair-row, 1)) + var(--pair-shape-gap) * (1 - var(--pair-row, 1)));
 }
 
 /* The grid is a checkerboard twice over. Even rows lay each pair square
@@ -98,6 +116,7 @@
   border: 0;
   overflow: hidden;
   background: var(--pair-fill);
+  pointer-events: none;
 }
 
 .shot {
@@ -170,6 +189,9 @@
    as one piece, and the copy that fits one size fits them all. The price is
    small type in small squares — ~8px chips at two columns. */
 .square {
+  /* Positioned so it paints above .cover, which comes first in the DOM;
+     .circle already is. */
+  position: relative;
   flex: 0 0 auto;
   box-sizing: border-box;
   width: var(--pair-side);
@@ -192,6 +214,8 @@
   background: var(--pair-fill);
   color: var(--pair-type);
   font-family: var(--font-body);
+  /* Clicks pass through to .cover; the arrow takes them back below. */
+  pointer-events: none;
 }
 
 /* The title: the site's second weight, sized against the square. 7.7cqw
@@ -261,6 +285,7 @@
    screen moves — tests/landing.spec.ts measures every link on the page.
    Colour and the accent focus outline come from .link-quiet (globals.css). */
 .projectLink {
+  pointer-events: auto;
   display: block;
   flex: 0 0 auto;
   --link-reach: max(0px, (25px - 1em) / 2);
