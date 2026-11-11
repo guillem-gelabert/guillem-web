@@ -56,7 +56,7 @@ const EASE_MS = 50;
 // much of its tone instead of going solid black. EXPOSURE sets the white
 // point: everything within about 40deg of the light clips to no dots at
 // all, as the picture underneath is already the lit surface.
-const AMBIENT = 0.3;
+const AMBIENT = 0.12;
 const EXPOSURE = 1.3;
 
 // Highlight: Blinn-Phong specular for a viewer straight above the page,

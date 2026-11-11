@@ -273,7 +273,7 @@ to break Floyd–Steinberg's lattice.
   void-and-cluster blue-noise threshold tile (`scripts/make-blue-noise.mjs` →
   `components/landing/blue-noise.ts`) so the grain holds still while the light moves. Maps are
   now black/white on transparent, so the darken/lighten blend modes are gone.
-  Then made physical: shadow is ambient + Lambert (`AMBIENT` 0.3) under an exposure of 1.3, and
+  Then made physical: shadow is ambient + Lambert (`AMBIENT` 0.12, darkened from 0.3) under an exposure of 1.3, and
   the highlight is Blinn–Phong (N·H)^12 at peak 0.6 instead of the fitted ellipse. Hover colour
   fade slowed from 220 ms to 500 ms (grid and hero disc).
 - **Hempton post: DeepDream background** (2026-11-11) — seamless 1024px DeepDream tile (TF
