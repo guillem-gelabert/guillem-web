@@ -10,6 +10,11 @@
   --shade-1: var(--gb-shade-1, #8ba238);
   --shade-2: var(--gb-shade-2, #3d5b35);
   --shade-3: var(--gb-shade-3, #162d16);
+  --series-1: var(--shade-3);
+  --series-2: var(--shade-3);
+  --series-3: var(--shade-2);
+  --series-4: var(--shade-3);
+  --series-5: var(--shade-2);
 
   display: grid;
   gap: calc(var(--d) * 12);
@@ -27,6 +32,25 @@
 .body,
 .note {
   filter: url(#gb-screen);
+}
+
+/* On the TFT panel (gameboy-screen.css) the radar is in full colour: the
+   panel's own greys for the chrome, five hues for the players. The dashes
+   and markers stay, so colour is never the only key. */
+:global(html[data-screen="tft"]) .root {
+  --shade-0: #d9ddd6;
+  --shade-1: #b8bdb6;
+  --shade-2: #5b6168;
+  --shade-3: #1c2024;
+  --series-1: #c8102e;
+  --series-2: #1f5fbf;
+  --series-3: #2a8a3e;
+  --series-4: #d97a00;
+  --series-5: #7a3fa0;
+}
+
+:global(html[data-screen="tft"]) .root :is(.controls, .names, .body, .note) {
+  filter: none;
 }
 
 .srOnly {

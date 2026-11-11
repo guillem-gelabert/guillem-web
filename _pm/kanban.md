@@ -8,6 +8,15 @@ duplicate `.planning/`'s detail. Update the three lists below when a phase or pl
 
 ## Done
 
+- **Embeddings article, screen switch** (2026-11-11) — the Game Boy post changes screen as the
+  reader goes: `<ScreenSwitch to="crt" />` before "A map in 3 dimensions" (NES colour TV:
+  crt-perfect's scanlines and aperture grille, peach paper, Georgia body, Game Boy pixel
+  headings) and `to="tft"` before "A map in all dimensions" (lcd-perfect's mesh and subpixels,
+  tft-demo's panel, Georgia). Hard cut on the pattern and faces, 600ms fade on paper and ink
+  (registered with `@property`); back again on the way up. Patterns ported from sinedied's
+  perfect-retroshaders (MIT) in `components/screen-masks.ts`. The radar's avatars go full colour
+  on the TFT.
+
 - **Embeddings article, interactive 5: player radar** (2026-11-11) — `<PlayerRadar />` replaces
   placeholder 5. EA FC26 ratings on a 0–99 radar (6 headline or 29 search attributes, up to five
   overlays, full table), with each player standing above it as a PES 6 avatar from

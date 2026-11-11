@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { coralPixels } from "@/app/fonts/coral-pixels";
 import { geistPixel } from "@/app/fonts/geist-pixel";
+import { crtTile, tftTile, type Tile } from "./screen-masks";
 import "./gameboy-screen.css";
 
 // dmg-perfect v11 (sinedied, MIT), the shader behind the Game Boy look,
@@ -49,6 +50,29 @@ const FONTS = [
   "PixelOperator-Bold.ttf",
 ];
 
+/**
+ * The screens a Game Boy post can switch to further down. A post opts in by
+ * placing <ScreenSwitch to="crt" /> markers in its MDX; the last marker
+ * above the middle of the viewport picks the screen, and `html[data-screen]`
+ * carries it to the stylesheet (gameboy-screen.css) and to components that
+ * draw their own pixels. "gb" is the default above the first marker.
+ */
+export type ScreenKind = "gb" | "crt" | "tft";
+const SCREENS: Record<Exclude<ScreenKind, "gb">, { paper: string; ink: string; tile: () => Tile }> = {
+  // an NES on a colour TV: palette entries 0x37 (palest peach) and 0x0F (black)
+  crt: { paper: "#fce0a8", ink: "#000000", tile: () => crtTile() },
+  // design/tft-demo.html's panel and ink
+  tft: { paper: "#d9ddd6", ink: "#1c2024", tile: () => tftTile() },
+};
+
+function screenAt(): ScreenKind {
+  let kind: ScreenKind = "gb";
+  for (const marker of document.querySelectorAll<HTMLElement>("[data-screen-switch]")) {
+    if (marker.getBoundingClientRect().top < innerHeight / 2) kind = marker.dataset.screenSwitch as ScreenKind;
+  }
+  return kind;
+}
+
 const hex = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
 const luma = (c: number[]) => c[0] * LUMA[0] + c[1] * LUMA[1] + c[2] * LUMA[2];
 const smoothstep = (a: number, b: number, x: number) => {
@@ -88,6 +112,7 @@ export function GameboyScreen({
   useEffect(() => {
     cfgRef.current = cfg;
   }, [cfg]);
+  const [screen, setScreen] = useState<ScreenKind>("gb");
   const [tune, setTune] = useState(false);
   const [dev, setDev] = useState(false);
 
@@ -101,14 +126,15 @@ export function GameboyScreen({
     return () => cancelAnimationFrame(id);
   }, []);
 
-  // a preset swap re-points the page's paper and ink too
+  // a preset swap re-points the page's paper and ink too, and so does a screen
   useEffect(() => {
     const root = document.documentElement.style;
-    root.setProperty("--color-paper", cfg.shades[0]);
-    root.setProperty("--color-ink", cfg.shades[3]);
+    const other = screen === "gb" ? null : SCREENS[screen];
+    root.setProperty("--color-paper", other?.paper ?? cfg.shades[0]);
+    root.setProperty("--color-ink", other?.ink ?? cfg.shades[3]);
     // the four shades by name, for components that draw in them directly
     cfg.shades.forEach((shade, i) => root.setProperty(`--gb-shade-${i}`, shade));
-  }, [cfg.shades]);
+  }, [cfg.shades, screen]);
 
   const rgb = cfg.shades.map(hex);
   const paperLum = Math.max(luma(rgb[0]), 0.35);
@@ -141,6 +167,43 @@ export function GameboyScreen({
       document.documentElement.style.setProperty("--gb-dot", `${S}px`);
       el.width = Math.round(innerWidth * d.dpr);
       el.height = Math.round(innerHeight * d.dpr);
+      ctx.clearRect(0, 0, el.width, el.height);
+      ctx.imageSmoothingEnabled = false;
+
+      // CRT and TFT: the shader's pattern multiplied over the page (the
+      // canvas blends with multiply on those screens, see the stylesheet)
+      if (screen !== "gb") {
+        const t = SCREENS[screen].tile();
+        const tile = document.createElement("canvas");
+        tile.width = t.w;
+        tile.height = t.h;
+        tile.getContext("2d")?.putImageData(new ImageData(t.data, t.w, t.h), 0, 0);
+        const pattern = ctx.createPattern(tile, "repeat");
+        if (!pattern) return;
+        ctx.fillStyle = pattern;
+        ctx.fillRect(0, 0, el.width, el.height);
+        // the tube's darker corners; the panel's backlight, brighter at the edges
+        const w = el.width;
+        const h = el.height;
+        const g =
+          screen === "crt"
+            ? ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.35, w / 2, h / 2, Math.hypot(w, h) / 2)
+            : ctx.createLinearGradient(0, 0, 0, h);
+        if (screen === "crt") {
+          g.addColorStop(0, "#fff");
+          g.addColorStop(1, "#9a9a9a");
+        } else {
+          g.addColorStop(0, "#fff");
+          g.addColorStop(0.2, "#f3f3f3");
+          g.addColorStop(0.8, "#f3f3f3");
+          g.addColorStop(1, "#fff");
+        }
+        ctx.globalCompositeOperation = "multiply";
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+        ctx.globalCompositeOperation = "source-over";
+        return;
+      }
 
       // the shader's coverage: a dot lights [0, lit) of its cell per axis,
       // measured over one output pixel; below ~3 px per cell the grid folds
@@ -161,8 +224,6 @@ export function GameboyScreen({
           img.data[o + 3] = Math.round(k * 255);
         }
       tctx.putImageData(img, 0, 0);
-      ctx.clearRect(0, 0, el.width, el.height);
-      ctx.imageSmoothingEnabled = false;
       const pattern = ctx.createPattern(tile, "repeat");
       if (!pattern) return;
       ctx.fillStyle = pattern;
@@ -171,7 +232,30 @@ export function GameboyScreen({
     draw();
     addEventListener("resize", draw);
     return () => removeEventListener("resize", draw);
-  }, [grid, gap, dot]);
+  }, [grid, gap, dot, screen]);
+
+  // Which screen the reader is on, from the markers' positions: a hard cut
+  // when a marker crosses the middle of the viewport, either way.
+  useEffect(() => {
+    const html = document.documentElement;
+    let current: ScreenKind | null = null;
+    const check = () => {
+      const next = screenAt();
+      if (next === current) return;
+      current = next;
+      html.dataset.screen = next;
+      setScreen(next);
+    };
+    check();
+    addEventListener("scroll", check, { passive: true });
+    addEventListener("resize", check);
+    return () => {
+      removeEventListener("scroll", check);
+      removeEventListener("resize", check);
+      delete html.dataset.screen;
+    };
+  }, []);
+
 
   useEffect(() => {
     // Whole-dot scrolling only. The old ghosting mutated feOffset dy on

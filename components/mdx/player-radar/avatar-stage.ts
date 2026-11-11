@@ -6,6 +6,8 @@ export type AvatarAssets = { head: string; hair?: string; skin?: string; boot?: 
 export type Stage = {
   /** Avatars left to right, one per player. Unknown ones load; dropped ones go. */
   setPlayers: (players: { key: string; assets: AvatarAssets }[]) => void;
+  /** "gb" dithers into the four shades at one texel per dot; any other screen shows full colour at device resolution. */
+  setScreen: (screen: string) => void;
   dispose: () => void;
 };
 
@@ -29,6 +31,8 @@ const QUANTISE = /* glsl */ `
   uniform vec3 shade3;
   uniform vec3 cuts;
   uniform float spread;
+  uniform float fullColour;
+  uniform vec3 paper;
   varying vec2 vUv;
 
   float bayer(vec2 p) {
@@ -41,6 +45,10 @@ const QUANTISE = /* glsl */ `
 
   void main() {
     vec4 c = texture2D(tScene, vUv);
+    if (fullColour > 0.5) {
+      gl_FragColor = vec4(mix(paper, c.rgb, c.a), 1.0);
+      return;
+    }
     // transparent background reads as paper
     vec3 rgb = mix(vec3(1.0), c.rgb, c.a);
     float l = dot(rgb, vec3(0.299, 0.587, 0.114));
@@ -71,15 +79,23 @@ export async function createStage(host: HTMLElement, canvas: HTMLCanvasElement):
     import("three/addons/utils/SkeletonUtils.js"),
   ]);
 
-  const css = getComputedStyle(host);
-  const shades = [0, 1, 2, 3].map((i) => css.getPropertyValue(`--shade-${i}`).trim());
-  const rgb = shades.map(hex);
+  const shadesOf = () => {
+    const css = getComputedStyle(host);
+    return [0, 1, 2, 3].map((i) => hex(css.getPropertyValue(`--shade-${i}`).trim()));
+  };
+  const rgb = shadesOf();
   const lums = rgb.map(luma);
-  const dot = parseFloat(css.getPropertyValue("--gb-dot")) || 1.5;
+  const dot = parseFloat(getComputedStyle(host).getPropertyValue("--gb-dot")) || 1.5;
+  // texels per CSS px: one per Game Boy dot, or the display's own pixels
+  let scale = 1 / dot;
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false, preserveDrawingBuffer: true });
-  renderer.setPixelRatio(1 / dot);
-  const target = new THREE.WebGLRenderTarget(1, 1, { magFilter: THREE.NearestFilter, minFilter: THREE.NearestFilter });
+  renderer.setPixelRatio(scale);
+  const target = new THREE.WebGLRenderTarget(1, 1, {
+    magFilter: THREE.NearestFilter,
+    minFilter: THREE.NearestFilter,
+    samples: 4,
+  });
 
   const world = new THREE.Scene();
   world.add(new THREE.HemisphereLight(0xffffff, 0x50505a, 2.2));
@@ -116,6 +132,8 @@ export async function createStage(host: HTMLElement, canvas: HTMLCanvasElement):
       // the page filter's cuts, from its own shades: halfway between neighbours
       cuts: { value: new THREE.Vector3((lums[0] + lums[1]) / 2, (lums[1] + lums[2]) / 2, (lums[2] + lums[3]) / 2) },
       spread: { value: 0.22 },
+      fullColour: { value: 0 },
+      paper: { value: new THREE.Vector3(...rgb[0]) },
     },
     vertexShader: "varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }",
     fragmentShader: QUANTISE,
@@ -210,8 +228,8 @@ export async function createStage(host: HTMLElement, canvas: HTMLCanvasElement):
     width = host.clientWidth;
     height = host.clientHeight;
     renderer.setSize(width, height, false);
-    const w = Math.max(1, Math.round(width / dot));
-    const h = Math.max(1, Math.round(height / dot));
+    const w = Math.max(1, Math.round(width * scale));
+    const h = Math.max(1, Math.round(height * scale));
     target.setSize(w, h);
     // Zoom out when the slots get narrower than a pair of shoulders, so
     // five players on a phone stand side by side instead of overlapping.
@@ -275,7 +293,7 @@ export async function createStage(host: HTMLElement, canvas: HTMLCanvasElement):
 
   const draw = () => {
     renderer.setRenderTarget(target);
-    renderer.setClearColor(0xffffff, 1);
+    renderer.setClearColor(0xffffff, 0);
     renderer.clear();
     renderer.render(world, camera);
     renderer.setRenderTarget(null);
@@ -323,8 +341,19 @@ export async function createStage(host: HTMLElement, canvas: HTMLCanvasElement):
   sizer.observe(host);
   resize();
 
+  const setScreen: Stage["setScreen"] = (screen) => {
+    const full = screen !== "gb";
+    scale = full ? Math.min(2, devicePixelRatio || 1) : 1 / dot;
+    renderer.setPixelRatio(scale);
+    quantise.uniforms.fullColour.value = full ? 1 : 0;
+    quantise.uniforms.paper.value.set(...(shadesOf()[0] as [number, number, number]));
+    resize();
+    frame(0);
+  };
+
   return {
     setPlayers,
+    setScreen,
     dispose: () => {
       disposed = true;
       cancelAnimationFrame(raf);

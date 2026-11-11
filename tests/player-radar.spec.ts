@@ -34,7 +34,7 @@ test.describe("player radar", () => {
     await expect(page.getByTestId("series")).toHaveCount(5);
   });
 
-  test("draws the avatars in the page's four shades", async ({ page }) => {
+  test("draws the avatars in full colour on the TFT screen", async ({ page }) => {
     const errors: string[] = [];
     page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
     await page.goto(ROUTE);
@@ -58,7 +58,8 @@ test.describe("player radar", () => {
         return { shades: seen.size, ink: ink / (d.length / 4) };
       });
     await expect.poll(async () => (await shareOfInk()).ink, { timeout: 20_000 }).toBeGreaterThan(0.01);
-    expect((await shareOfInk()).shades).toBeLessThanOrEqual(4);
+    await expect(page.locator("html")).toHaveAttribute("data-screen", "tft");
+    await expect.poll(async () => (await shareOfInk()).shades).toBeGreaterThan(16);
     expect(errors.filter((e) => /Content Security Policy|glb|GLTF/i.test(e))).toEqual([]);
   });
 });

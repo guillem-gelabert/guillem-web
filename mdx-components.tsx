@@ -5,6 +5,7 @@ import { ColourDepth } from "@/components/mdx/colour-depth/colour-depth";
 import { Figure } from "@/components/mdx/figure";
 import { PixelArrow } from "@/components/mdx/pixel-arrow";
 import { PlayerRadar } from "@/components/mdx/player-radar/player-radar";
+import { ScreenSwitch } from "@/components/mdx/screen-switch";
 
 /**
  * Landmarks sharing a role must have distinct accessible names, or a screen
@@ -23,7 +24,7 @@ function codeSampleLabel(children: React.ReactNode): string {
 }
 
 // Figure and Aside are the prose components; ColourDepth is the embeddings
-// article's colour-depth explorer, PlayerRadar its footballer radar and PixelArrow its pixel-font "→" (D-08's "MDX may import arbitrary React
+// article's colour-depth explorer, PlayerRadar its footballer radar, ScreenSwitch its Game Boy → CRT → TFT markers and PixelArrow its pixel-font "→" (D-08's "MDX may import arbitrary React
 // components" stays true, but the default prose path requires none of them).
 //
 // Shiki emits style="background-color:#ffffff;color:#0e1116" on <pre>.
@@ -35,6 +36,7 @@ const components: MDXComponents = {
   ColourDepth,
   PixelArrow,
   PlayerRadar,
+  ScreenSwitch,
   pre: ({ style: _shikiBackground, children, ...props }: React.ComponentPropsWithoutRef<"pre">) => (
     <pre {...props} role="region" aria-label={codeSampleLabel(children)}>
       {children}

@@ -54,12 +54,13 @@ const DETAILED_AXES = data.detailed.map((key) => DETAILED[key]);
 // Up to five players. Four shades cannot carry five series by colour, so
 // each one gets its own line and its own vertex marker; the legend and the
 // table header repeat both.
+// The colours are CSS variables: shades on the Game Boy, hues on the TFT.
 const SERIES = [
-  { stroke: "var(--shade-3)", dash: undefined, width: 2, marker: "circle" },
-  { stroke: "var(--shade-3)", dash: "6 3", width: 2, marker: "square" },
-  { stroke: "var(--shade-2)", dash: undefined, width: 2, marker: "triangle" },
-  { stroke: "var(--shade-3)", dash: "1.5 3", width: 2, marker: "diamond" },
-  { stroke: "var(--shade-2)", dash: "6 3", width: 2, marker: "cross" },
+  { stroke: "var(--series-1)", dash: undefined, width: 2, marker: "circle" },
+  { stroke: "var(--series-2)", dash: "6 3", width: 2, marker: "square" },
+  { stroke: "var(--series-3)", dash: undefined, width: 2, marker: "triangle" },
+  { stroke: "var(--series-4)", dash: "1.5 3", width: 2, marker: "diamond" },
+  { stroke: "var(--series-5)", dash: "6 3", width: 2, marker: "cross" },
 ] as const;
 const MAX = SERIES.length;
 
@@ -138,9 +139,14 @@ export function PlayerRadar() {
       if (cancelled) return built.dispose();
       stage.current = built;
       built.setPlayers(roster(latest.current));
+      built.setScreen(document.documentElement.dataset.screen ?? "gb");
     })();
+    // the page switches screens as the reader scrolls (GameboyScreen)
+    const watch = new MutationObserver(() => stage.current?.setScreen(document.documentElement.dataset.screen ?? "gb"));
+    watch.observe(document.documentElement, { attributes: true, attributeFilter: ["data-screen"] });
     return () => {
       cancelled = true;
+      watch.disconnect();
       built?.dispose();
       stage.current = null;
     };

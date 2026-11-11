@@ -260,3 +260,122 @@
     overflow-wrap: break-word;
   }
 }
+
+/* ----------
+   Further screens. A post's <ScreenSwitch to="…" /> markers set
+   html[data-screen] as the reader scrolls (gameboy-screen.tsx), and the
+   page moves from the Game Boy to a colour TV and then to a TFT panel. Both
+   drop the four-shade quantiser and show the page in full colour; the dot
+   matrix canvas draws the screen's own pattern instead, multiplied over
+   everything (crt-perfect and lcd-perfect, see components/screen-masks.ts).
+   Every screen is dark ink on a light paper, and the two fade from one
+   screen's to the next: registering them as colours makes them animatable. */
+
+@property --color-paper {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #ffffff;
+}
+
+@property --color-ink {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #000000;
+}
+
+html[data-screen] {
+  transition:
+    --color-paper 600ms ease,
+    --color-ink 600ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-screen] {
+    transition: none;
+  }
+}
+
+.screen-switch {
+  height: 0;
+  margin: 0;
+}
+
+html[data-screen="crt"] .gb-grid,
+html[data-screen="tft"] .gb-grid {
+  mix-blend-mode: multiply;
+}
+
+html[data-screen="crt"] .gb-screen header,
+html[data-screen="crt"] .gb-screen .prose-site > *,
+html[data-screen="tft"] .gb-screen header,
+html[data-screen="tft"] .gb-screen .prose-site > * {
+  filter: none;
+}
+
+/* Faces go through the Game Boy's own variables (see ".gb-screen .gb-page
+   *" above), so components that set them locally, like the colour-depth
+   explorer, keep theirs. */
+
+/* CRT and TFT share their body face: Georgia, drawn for screens. */
+html[data-screen="crt"] .gb-screen,
+html[data-screen="tft"] .gb-screen {
+  --gb-body-font: Georgia, "Times New Roman", serif;
+  --gb-body: 18px;
+  --gb-line: 28px;
+}
+
+/* CRT: an NES on a colour TV. NES black on the palette's palest peach,
+   with a little bleed; the headings keep the Game Boy's pixel face and
+   sizes. */
+
+html[data-screen="crt"] .gb-screen .prose-site {
+  text-shadow: 0 0 calc(var(--gb-dot) * 2) rgb(0 0 0 / 0.25);
+}
+
+/* Inline elements in a heading (an <em>) keep the heading's face: on the
+   Game Boy both faces are the same, here they are not. */
+html[data-screen] .gb-screen .prose-site :is(h2, h3) * {
+  font-family: inherit;
+}
+
+
+html[data-screen="crt"] .gb-screen .text-standfirst,
+html[data-screen="crt"] .gb-screen .prose-site blockquote {
+  color: #503000;
+}
+
+html[data-screen="crt"] .gb-screen .prose-site pre,
+html[data-screen="crt"] .gb-screen .prose-site :not(pre) > code {
+  background: rgb(0 0 0 / 0.08);
+}
+
+html[data-screen="crt"] .gb-screen .prose-site a {
+  color: #a81000;
+}
+
+/* TFT: design/tft-demo.html's panel, Georgia for the headings too. */
+html[data-screen="tft"] .gb-screen {
+  --gb-heading-font: Georgia, "Times New Roman", serif;
+}
+
+html[data-screen="tft"] .gb-screen .prose-site h2,
+html[data-screen="tft"] .gb-screen .prose-site h3 {
+  font-size: 30px;
+  line-height: 36px;
+  letter-spacing: -0.01em;
+}
+
+html[data-screen="tft"] .gb-screen .text-standfirst,
+html[data-screen="tft"] .gb-screen .prose-site blockquote {
+  color: #4a5056;
+}
+
+html[data-screen="tft"] .gb-screen .prose-site pre,
+html[data-screen="tft"] .gb-screen .prose-site :not(pre) > code {
+  background: rgb(0 0 0 / 0.07);
+}
+
+html[data-screen="tft"] .gb-screen .prose-site th,
+html[data-screen="tft"] .gb-screen .prose-site td {
+  font-size: 15px;
+}
