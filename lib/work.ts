@@ -132,14 +132,17 @@ export const WORK: readonly [WorkEntry, WorkEntry] = [
       "From WHO data.",
     ],
     stack: [],
-    // The globe itself, captured from the live piece rather than redrawn for
-    // the landing, with the flashes that define it. It is shown greyscale so
-    // the disc sits cleanly in the landing's black-and-white field, and the
-    // dither is no longer baked into the file: it arrives as the sphere
+    // The globe itself, from the live piece's own textures and shader rather
+    // than redrawn for the landing, with the flashes that define it. It is
+    // re-rendered offline (scripts/render-globe-thumbnail.py, a numpy port of
+    // the piece's globe) from the camera the earlier screen capture used, with
+    // the sun moved so Europe, Africa and Asia are in daylight. It is shown
+    // greyscale so the disc sits cleanly in the landing's black-and-white
+    // field, and the dither is no longer baked into the file: it arrives as the sphere
     // shadow and highlight maps laid over this base
     // (components/landing/more-work.tsx), which is what lets the same
-    // treatment cover the hero disc too. A luminance reduction of the colour
-    // capture below, computed in linear light rather than on the
+    // treatment cover the hero disc too. A luminance reduction of the full
+    // render, computed in linear light rather than on the
     // gamma-encoded channels, so the ocean does not crush against the land.
     //
     // That replaces watch-people-die-earth-dither.png, the pre-dithered
@@ -174,10 +177,9 @@ export const WORK: readonly [WorkEntry, WorkEntry] = [
         height: 467,
       },
       alt:
-        "The piece's globe, most of it in night: Europe and North Africa lit along the " +
-        "left limb under cloud, and the land east of them covered in the orange grain of " +
-        "city lights, with three white flashes over southern Asia, each one a death at the " +
-        "moment it happened.",
+        "The piece's globe in daylight: Europe, Africa and western Asia under " +
+        "scattered cloud, with three white flashes, over Iran, Pakistan and East Africa, " +
+        "each one a death at the moment it happened.",
     },
   },
 ] as const;

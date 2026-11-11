@@ -286,6 +286,10 @@ to break Floyd–Steinberg's lattice.
   field (`components/post-backdrop.tsx`, fixed, 30% over white, ink ≥ 10:1). Deleted
   value-screen/value-background/value-screen.css, the Archivo and Source Serif 4 fonts, and
   `tests/value-screen.spec.ts` (replaced by `tests/post-backdrop.spec.ts`).
+- **watchpeopledie thumbnail: daylight globe** (2026-11-11) — re-rendered offline with a numpy
+  port of the piece's globe shader and textures (`scripts/render-globe-thumbnail.py`): same
+  camera as the old capture (44E 35N, fitted on the static cloud texture), sun moved to 50E 15N
+  so Europe, Africa and Asia are lit; the three flashes kept in place. Alt text updated.
 
 ## Next
 
