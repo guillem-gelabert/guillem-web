@@ -24,4 +24,11 @@ export const NOTES: readonly NoteEntry[] = [
       alt: "Pixel-art sailing ship following coloured waypoints towards an island with a lemon tree.",
     },
   },
+  {
+    title: "John Hempton on the Financials of AI",
+    subtitle: "AI will transform the world and still has the worst investment profile he has ever seen.",
+    href: "/writing/the-worst-business-in-the-world",
+    tag: null,
+    shot: null,
+  },
 ];
