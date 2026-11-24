@@ -5,7 +5,7 @@
 // from this application — it drives a third-party live site with a headless
 // browser and writes three PNGs to public/case-study/, which are then
 // committed to the repository. Nothing under app/ may ever fetch
-// ib-gdp.guillemgelabert.com at request time: the live-site dependency this
+// ib-gdp.guillem.ch at request time: the live-site dependency this
 // case study has is discharged the moment these files are committed, not
 // carried into production.
 //
@@ -27,7 +27,7 @@ import path from "node:path";
 // The canonical story URL, not the site root. The app root is a client-side
 // language redirect; navigating to it races location.replace and aborts with
 // net::ERR_ABORTED.
-const STORY_URL = "https://ib-gdp.guillemgelabert.com/everyone-in-mallorca-agrees-on-one-thing";
+const STORY_URL = "https://ib-gdp.guillem.ch/everyone-in-mallorca-agrees-on-one-thing";
 
 // Act 1 is the first .explainer-root on the page, Act 2 the second.
 const ACT2 = 1;

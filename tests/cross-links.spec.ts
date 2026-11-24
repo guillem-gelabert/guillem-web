@@ -27,7 +27,7 @@ import { notFoundPath } from "@/lib/locales";
 //   asserted, and every destination is recorded in the test output so the
 //   audit can cite the list.
 // - link[rel="alternate"]/canonical hrefs are ABSOLUTE against SITE_URL
-//   (lib/site.ts's metadataBase — https://guillemgelabert.com in this
+//   (lib/site.ts's metadataBase — https://www.guillem.ch in this
 //   environment, not this suite's localhost origin). Fetching the literal
 //   absolute URL would silently reach out to the real production domain
 //   over the network; every alternate below is instead resolved by

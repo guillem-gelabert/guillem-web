@@ -157,7 +157,7 @@ test.describe("English case-study route (CASE-02)", () => {
     page,
   }) => {
     await visitCaseStudy(page, "/writing/the-chart-therefore-changes");
-    const outboundLinks = page.locator('.prose-site a[href^="https://ib-gdp.guillemgelabert.com"]');
+    const outboundLinks = page.locator('.prose-site a[href^="https://ib-gdp.guillem.ch"]');
     await expect(outboundLinks).toHaveCount(1);
     // "the site uses none" — checked unscoped, across the whole page, not
     // just inside the prose body.

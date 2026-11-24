@@ -12,7 +12,7 @@ import { deleteItem } from "@/lib/backlog-store";
  * item is delete-then-add, which is one round trip more and one concept less.
  *
  * Usage:
- *   curl -X DELETE https://guillemgelabert.com/api/backlog/<id> \
+ *   curl -X DELETE https://www.guillem.ch/api/backlog/<id> \
  *     -H "Authorization: Bearer $BACKLOG_API_TOKEN"
  */
 

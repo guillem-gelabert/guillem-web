@@ -66,8 +66,8 @@ export const WORK: readonly [WorkEntry, WorkEntry] = [
     title: "Everyone in Mallorca Knows It",
     annotation:
       "The Balearics stopped gaining on Europe in 1993 — while tourist arrivals went on tripling.",
-    href: "https://ib-gdp.guillemgelabert.com/everyone-in-mallorca-agrees-on-one-thing",
-    host: "ib-gdp.guillemgelabert.com",
+    href: "https://ib-gdp.guillem.ch/everyone-in-mallorca-agrees-on-one-thing",
+    host: "ib-gdp.guillem.ch",
     domains: ["Economy"],
     contentType: "Chart essay",
     body: [
