@@ -28,9 +28,9 @@ import { EMAIL, GITHUB, LINKEDIN } from "../lib/contact";
 // which is a better home for it than a browser spec that could only ever
 // observe one combination at a time.
 
-// Both surfaces render the same shared component from the same data module
-// (D-2.2) — the landing's #contact section, and /cv's foot section, located
-// the same way on both pages since both carry an h2#contact-head.
+// The shared component (D-2.2) renders on /cv's foot section, located by its
+// h2#contact-head. The landing carried it too until the seam composition
+// replaced that page; /cv is now the one contact surface.
 function contactSection(page: import("@playwright/test").Page) {
   return page.locator("section:has(#contact-head)");
 }
@@ -54,10 +54,10 @@ async function tabUntilFocused(
 // values through the placeholder era and out the other side without an edit.
 // A null here is a legitimate state the site can return to, and the guarded
 // tests below skip rather than fail if it does.
-const SURFACES = ["/", "/cv"];
+const SURFACES = ["/cv"];
 
-test.describe("the shared contact block, on both surfaces", () => {
-  test("renders on / and /cv from one component, as a single semantic list", async ({ page }) => {
+test.describe("the shared contact block, on /cv", () => {
+  test("renders as a single semantic list", async ({ page }) => {
     for (const route of SURFACES) {
       await page.goto(route);
       await page.evaluate(() => document.fonts.ready);
@@ -106,7 +106,7 @@ test.describe("the shared contact block, on both surfaces", () => {
     }
   });
 
-  test("every channel link clears the WCAG 2.5.8 24px target floor, on both surfaces", async ({
+  test("every channel link clears the WCAG 2.5.8 24px target floor, on /cv", async ({
     page,
   }) => {
     const expectedRows = [EMAIL, GITHUB, LINKEDIN].filter((value) => value !== null).length;
@@ -197,7 +197,7 @@ test.describe("PROF-03: the email's keyboard, accessible-name and copyable legs"
 test.describe("PROF-05: the LinkedIn row", () => {
   test.skip(LINKEDIN === null, "LINKEDIN is null in lib/contact.ts — the row is absent by design");
 
-  test("resolves to exactly one link at the declared URL, on both surfaces", async ({ page }) => {
+  test("resolves to exactly one link at the declared URL, on /cv", async ({ page }) => {
     for (const route of SURFACES) {
       await page.goto(route);
       await page.evaluate(() => document.fonts.ready);

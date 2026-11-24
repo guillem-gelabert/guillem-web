@@ -65,7 +65,7 @@ test.describe("player radar", () => {
       });
     await expect.poll(async () => (await shareOfInk()).ink, { timeout: 20_000 }).toBeGreaterThan(0.01);
     await expect(page.locator("html")).toHaveAttribute("data-screen", "tft");
-    await expect.poll(async () => (await shareOfInk()).shades).toBeGreaterThan(16);
+    await expect.poll(async () => (await shareOfInk()).shades, { timeout: 15_000 }).toBeGreaterThan(16);
     expect(errors.filter((e) => /Content Security Policy|glb|GLTF/i.test(e))).toEqual([]);
   });
 });

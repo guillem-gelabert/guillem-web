@@ -172,7 +172,10 @@ test("every fragment href on every route has a matching id in that route's own r
       ).toBe(true);
     }
   }
-  expect(checked, "expected at least one fragment href to be checked (e.g. / nav's #work/#backlog/#contact)").toBeGreaterThan(0);
+  // The landing's contents nav (#work/#backlog/#contact) went with the seam
+  // composition, and no route links to a fragment today. Skipped rather
+  // than passed, so the report says there was nothing to check.
+  test.skip(checked === 0, "no fragment hrefs on any crawled route");
 });
 
 test("every external href is absolute https, carries no target attribute, and never references the private ib-gdp-evolution repository", async () => {
@@ -251,29 +254,9 @@ test("every route's link[rel=\"alternate\"] tags resolve non-404 by pathname, wi
   }
 });
 
-test("HOME-03: the four contents-list destinations are reachable from /, in the nav's declared order, with no fifth", async ({
-  page,
-  request,
-}) => {
-  await page.goto("/");
-  const nav = page.locator('nav[aria-label="Sections"]');
-  const links = nav.locator("a");
-  await expect(links).toHaveCount(4);
-
-  const hrefs = await links.evaluateAll((els) => els.map((el) => el.getAttribute("href")));
-  // Reader-importance order (03-UI-SPEC.md), not page order.
-  expect(hrefs).toEqual(["#work", "#backlog", "/cv", "#contact"]);
-
-  const cvRes = await request.get("/cv");
-  expect(cvRes.status(), "HOME-03's /cv destination returned 404").not.toBe(404);
-
-  for (const id of ["work", "backlog", "contact"]) {
-    await expect(
-      page.locator(`#${id}`),
-      `HOME-03's #${id} fragment target is missing from /'s DOM`,
-    ).toHaveCount(1);
-  }
-});
+// HOME-03 (the landing's four-link contents nav) was retired with the seam
+// composition: / renders no nav, and its #work/#backlog/#contact targets
+// are gone. /cv's reachability is covered by the internal-href crawl above.
 
 test("the two reserved 404 routes, excluded from the reachability universe above, are asserted positively 404 by name", async ({
   request,

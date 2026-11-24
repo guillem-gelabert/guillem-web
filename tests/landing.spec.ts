@@ -51,10 +51,11 @@ test("the homepage renders only the requested content, in order", async ({ page 
     // The second scene's own title, uppercased in CSS.
     "PROJECTS",
     // Then the mirrored scene: every piece after the first as a pair —
-    // title, the tags (domain, content type, stack) in caps, and the arrow
-    // that is the pair's one link.
+    // title, its annotation, the tags (domain, content type, stack) in caps,
+    // and the arrow that is the pair's one link.
     ...WORK.slice(1).flatMap((entry) => [
       entry.title,
+      entry.annotation,
       ...entry.domains.map((field) => field.toUpperCase()),
       entry.contentType.toUpperCase(),
       ...entry.stack.map((tool) => tool.toUpperCase()),

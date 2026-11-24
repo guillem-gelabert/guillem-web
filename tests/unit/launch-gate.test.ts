@@ -152,7 +152,13 @@ const FLIP_TARGETS = [EN_LAYOUT_PATH, DE_LAYOUT_PATH, CA_LAYOUT_PATH].sort();
 // 06-07 has landed and given it its own robots: { index: false }
 // declaration, that declaration is allowed to exist but is NEVER one of
 // the two files a FIND-02 flip edits.
-const TYPE_PAGE_PATH = path.join(process.cwd(), "app/(en)/type/page.tsx");
+// /noise-gradient and /style-playground are design studies with the same
+// permanent noindex.
+const PERMANENT_NOINDEX_PATHS = [
+  "app/(en)/type/page.tsx",
+  "app/(en)/noise-gradient/page.tsx",
+  "app/(en)/style-playground/page.tsx",
+].map((file) => path.join(process.cwd(), file));
 
 test("robots: is declared in exactly the three root layouts a FIND-02 flip must edit", () => {
   const flipDeclarations = FILES_DECLARING_ROBOTS.filter((file) => FLIP_TARGETS.includes(file));
@@ -167,10 +173,9 @@ test("robots: is declared in exactly the three root layouts a FIND-02 flip must 
     (file) => !FLIP_TARGETS.includes(file),
   );
   for (const extra of extraDeclarations) {
-    assert.equal(
-      extra,
-      TYPE_PAGE_PATH,
-      `unexpected robots: declaration outside the two root layouts and /type's permanent noindex: ${extra} — ` +
+    assert.ok(
+      PERMANENT_NOINDEX_PATHS.includes(extra),
+      `unexpected robots: declaration outside the root layouts and the permanent-noindex study pages: ${extra} — ` +
         "this is what catches a shared metadata factory accidentally absorbing robots (plan 06-07)",
     );
   }

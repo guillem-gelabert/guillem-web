@@ -4,6 +4,7 @@ import { readFile, readdir } from "node:fs/promises";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { POSITIONING_PLACEHOLDER, WORK } from "../../lib/work.ts";
+import { NOTES } from "../../lib/notes.ts";
 import { notFoundPath, postPath } from "../../lib/locales.ts";
 // EMAIL is imported rather than retyped so raw-HTML assertions cannot drift
 // from the address rendered by the reusable obfuscated link.
@@ -558,7 +559,18 @@ test("/cv's production HTML carries its own title and its own canonical", async 
   assert.equal(new URL(match![1]).pathname, "/cv");
 });
 
-test("/'s production HTML contains only the requested identity, work, and email surface", async () => {
+// The landing is the poster layout (app/(en)/page.tsx): the nameplate h1 and
+// tagline, WORK[0] as the story slot, the rest of WORK plus NOTES as pairs,
+// and the backlog wedge. Contact lives on /cv only.
+function mainText(main: string): string {
+  return main
+    .replace(/<script\b[\s\S]*?<\/script>|<style\b[\s\S]*?<\/style>/g, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+test("/'s production HTML carries the nameplate, tagline, every work piece and every note", async () => {
   const routes = await getRoutes();
   const root = routes.get("")!;
   const mainMatch = root.match(/<main\b[\s\S]*?<\/main>/);
@@ -566,48 +578,45 @@ test("/'s production HTML contains only the requested identity, work, and email 
   const main = mainMatch![0];
 
   assert.equal((main.match(/<main\b/g) ?? []).length, 1, "/ must render exactly one main");
-  assert.equal((main.match(/<h1\b/g) ?? []).length, 1, "/ must render exactly one h1");
-  assert.ok(main.includes(">Guillem Gelabert</h1>"));
-  assert.ok(main.includes(POSITIONING_PLACEHOLDER));
-  assert.equal((main.match(/<li\b/g) ?? []).length, WORK.length);
+  const h1s = [...main.matchAll(/<h1\b[^>]*>([\s\S]*?)<\/h1>/g)];
+  assert.equal(h1s.length, 1, "/ must render exactly one h1");
+  assert.equal(mainText(h1s[0][1]), "Guillem Gelabert");
+  assert.ok(mainText(main).includes(POSITIONING_PLACEHOLDER), "/ must render the tagline verbatim");
 
-  for (const work of WORK) {
-    assert.ok(main.includes('href="' + work.href + '"'), "/ must link to " + work.href);
-    assert.ok(main.includes(work.title), "/ must render " + work.title);
-    assert.ok(main.includes(work.annotation), "/ must render the description for " + work.title);
+  for (const piece of [...WORK, ...NOTES]) {
+    assert.ok(main.includes('href="' + piece.href + '"'), "/ must link to " + piece.href);
+    assert.ok(mainText(main).includes(piece.title), "/ must render " + piece.title);
   }
 
   for (const retired of [
     "The Chart Therefore Changes",
-    "A data portrait of the Swiss commodity trade",
-    "The house names of Zürich",
-    "The Pudding, read as a corpus",
     "https://github.com/guillem-gelabert",
     "linkedin.com",
     'href="/cv"',
     'href="/writing"',
-    'href="#backlog"',
     'href="#contact"',
   ]) {
     assert.equal(main.includes(retired), false, "/ must not render retired homepage content " + retired);
   }
 
-  assert.doesNotMatch(main, /<nav\b|<section\b|<img\b|<svg\b|<button\b/);
+  assert.doesNotMatch(main, /<nav\b|<button\b/);
 });
 
-test("/'s raw HTML has exactly two HTTP links and one correctly entity-obfuscated mail link", async () => {
+test("/'s links are the story first, then only work and note destinations — no mail link, no new tabs", async () => {
   const routes = await getRoutes();
   const root = routes.get("")!;
   const main = root.match(/<main\b[\s\S]*?<\/main>/)![0];
   const hrefs = [...main.matchAll(/<a\b[^>]*href="([^"]+)"[^>]*>/g)].map((match) => match[1]);
 
-  assert.deepEqual(hrefs.slice(0, 2), WORK.map((work) => work.href));
-  assert.equal(hrefs.length, 3, "/ must render only the two work links and one email link");
-  assert.match(hrefs[2], /^mailto:/);
-  assert.ok(root.includes("&#64;"), "/ must carry the entity-encoded @");
-  assert.ok(root.includes("&#46;"), "/ must carry the entity-encoded .");
-  assert.equal(root.includes("&amp;#"), false, "/ must not double-escape email entities");
-  assert.equal(root.includes(EMAIL), false, "/ must not carry the bare email address");
+  assert.equal(hrefs[0], WORK[0].href, "the story slot must be the first link on /");
+  const allowed = new Set([...WORK, ...NOTES].map((piece) => piece.href));
+  assert.deepEqual(
+    hrefs.filter((href) => !allowed.has(href)),
+    [],
+    "/ must link only to WORK and NOTES destinations",
+  );
+  assert.deepEqual(new Set(hrefs), allowed, "every WORK and NOTES destination must be linked from /");
+  assert.equal(root.includes("mailto:"), false, "/ carries no contact block and so no mail link");
   assert.doesNotMatch(main, /target="_blank"/);
 });
 
@@ -1041,9 +1050,10 @@ test("G4 (email): entities never double-escape and mail links stay on the two co
   // The other half is stated against whichever state EMAIL is actually in,
   // rather than against the state it happened to be in when this file was
   // written. With EMAIL null, no route may carry a mailto: at all. With it
-  // filled, exactly the two surfaces that render the contact block — / and
-  // /cv — must carry one, and no other route may pick one up by accident.
-  const CONTACT_SURFACES = ["", "cv"];
+  // filled, exactly the one surface that renders the contact block — /cv,
+  // since the poster landing dropped it from / — must carry one, and no
+  // other route may pick one up by accident.
+  const CONTACT_SURFACES = ["cv"];
   for (const [routeKey, html] of routes) {
     const expectMailto = EMAIL !== null && CONTACT_SURFACES.includes(routeKey);
     assert.equal(
@@ -1056,16 +1066,16 @@ test("G4 (email): entities never double-escape and mail links stay on the two co
   }
 });
 
-test("G4: /'s production HTML carries the real, correctly entity-encoded address, once EMAIL is filled", async (t) => {
+test("G4: /cv's production HTML carries the real, correctly entity-encoded address, once EMAIL is filled", async (t) => {
   if (EMAIL === null) {
     t.skip("blocked by G4 (lib/contact.ts) — EMAIL is still null; unblocks when the user supplies a real address");
     return;
   }
   const routes = await getRoutes();
-  const root = routes.get("")!;
-  assert.ok(root.includes("&#64;"), "/ must carry the entity-encoded @ (Pitfall 3)");
-  assert.ok(root.includes("&#46;"), "/ must carry the entity-encoded . (Pitfall 3)");
-  assert.equal(root.includes(EMAIL), false, "/ must NOT carry the bare address with an unescaped @");
+  const cv = routes.get("cv")!;
+  assert.ok(cv.includes("&#64;"), "/cv must carry the entity-encoded @ (Pitfall 3)");
+  assert.ok(cv.includes("&#46;"), "/cv must carry the entity-encoded . (Pitfall 3)");
+  assert.equal(cv.includes(EMAIL), false, "/cv must NOT carry the bare address with an unescaped @");
 });
 
 test("G3 (experience): /cv's production HTML ships the arm its data selects, with none of the currently-banned marker words", async () => {

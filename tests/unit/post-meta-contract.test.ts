@@ -98,13 +98,7 @@ test("every <PostMeta> call site passes a draft prop (WR-02)", () => {
   }
 });
 
-test("the featured slot passes the entry's own draft flag, not a literal (WR-02)", () => {
-  const file = path.join(process.cwd(), "components", "landing", "featured-slot.tsx");
-  const [element] = postMetaElements(readFileSync(file, "utf8"));
-  assert.ok(element, "components/landing/featured-slot.tsx must render a <PostMeta>");
-  assert.match(
-    element!,
-    /draft=\{entry\.frontmatter\.draft\}/,
-    "the featured slot must pass entry.frontmatter.draft through — a hardcoded draft={false} would restate D-11 instead of feeding the one predicate (Phase 2 WR-07)",
-  );
-});
+// The featured slot's own WR-02 test was retired with the slot: the landing
+// renders components/landing/story-slot.tsx instead and carries no dates, so
+// featured-slot.tsx has no <PostMeta>. If it renders one again, the
+// every-call-site test above still requires its draft prop.

@@ -114,7 +114,13 @@ for (const route of ROUTES) {
     // Weight — the assertion this spec exists for: catches <strong>
     // resolving to 700 (Tailwind preflight, outside .prose-site) and any
     // font-[…] arbitrary value, neither of which app/globals.css contains.
-    const weightOffenders = samples.filter((s) => !VALID_WEIGHTS.has(s.fontWeight));
+    // The one sanctioned third weight: the seam's light caps — the tagline's
+    // words and the story headline set on its arc (landing-seam.module.css).
+    const isSeamLightCaps = (s: { tag: string; classes: string; fontWeight: string }) =>
+      s.fontWeight === "300" && (String(s.classes).includes("seam-tagline-word") || s.tag === "textpath");
+    const weightOffenders = samples.filter(
+      (s) => !VALID_WEIGHTS.has(s.fontWeight) && !isSeamLightCaps(s),
+    );
     expect(
       weightOffenders,
       `third weight found on ${route} — offending elements:\n${JSON.stringify(weightOffenders, null, 2)}`,
@@ -126,6 +132,11 @@ for (const route of ROUTES) {
     // so a future fifth size is a one-line diagnosis.
     const sizeSet = [...new Set(samples.map((s) => s.fontSize))];
     console.log(`design-budget: ${route} distinct rendered font-size set at 1440px: ${sizeSet.join(", ")}`);
+    // The landing is exempt from the count, not from the weights above: the
+    // seam sets its type in container units against each box
+    // (landing-seam.module.css), so its px sizes are continuous by design
+    // and a cardinality cap cannot describe them.
+    if (route === "/") return;
     expect(sizeSet.length, `${route} rendered ${sizeSet.length} distinct font sizes: ${sizeSet.join(", ")}`).toBeLessThanOrEqual(4);
   });
 }
@@ -151,7 +162,11 @@ for (const route of ROUTES) {
           br: s.borderBottomRightRadius,
           bl: s.borderBottomLeftRadius,
         };
-        if (Object.values(corners).some((v) => v !== "0px")) {
+        // A perfect circle is not a rounded corner: the seam's discs (the
+        // story's picture, the pair circles, the badge) are 50% on every
+        // corner, and that shape is the composition, not softened chrome.
+        const isCircle = Object.values(corners).every((v) => v === "50%");
+        if (!isCircle && Object.values(corners).some((v) => v !== "0px")) {
           bad.push({ tag: node.tagName.toLowerCase(), classes: (node as HTMLElement).className || "", ...corners });
         }
       }

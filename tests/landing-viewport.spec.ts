@@ -58,18 +58,23 @@ for (const viewport of VIEWPORTS) {
       expect(pageScrollWidth).toBeLessThanOrEqual(innerWidth);
     });
 
-    test(`the nameplate tracks the Display curve at ${viewport.width}px`, async ({ page }) => {
-      const fontSize = await page.evaluate(() => {
-        const h1 = document.querySelector("h1.text-display");
-        return h1 ? parseFloat(getComputedStyle(h1).fontSize) : null;
+    test(`the nameplate is poster-scale and stays inside the viewport at ${viewport.width}px`, async ({
+      page,
+    }) => {
+      // The nameplate no longer rides the Display curve: the seam sizes it
+      // in container units against its own box (landing-seam.module.css,
+      // .boxNameplate .seam-nameplate-text), so there is no clamp() to
+      // reproduce here. What survives is the contract the curve stood for —
+      // never smaller than the Display floor, never pushing past the page.
+      const metrics = await page.evaluate(() => {
+        const h1 = document.querySelector("h1.seam-nameplate-text");
+        if (!h1) return null;
+        const rect = h1.getBoundingClientRect();
+        return { fontSize: parseFloat(getComputedStyle(h1).fontSize), right: rect.right };
       });
-      expect(fontSize).not.toBeNull();
-
-      // At 375px this is the 56px floor; at 1440px it is 139.2px, not
-      // 180px — the Display curve does not saturate until ~1950px.
-      const expected = clampPx(3.5, 1.5, 8, 11.25, viewport.width);
-      expect(fontSize as number).toBeGreaterThan(expected - TOLERANCE_PX);
-      expect(fontSize as number).toBeLessThan(expected + TOLERANCE_PX);
+      expect(metrics).not.toBeNull();
+      expect(metrics!.fontSize).toBeGreaterThanOrEqual(clampPx(3.5, 1.5, 8, 11.25, 0));
+      expect(metrics!.right).toBeLessThanOrEqual(viewport.width);
     });
 
     test(`the story headline stays under the Heading curve at ${viewport.width}px`, async ({
@@ -104,20 +109,37 @@ for (const viewport of VIEWPORTS) {
       expect(fontSize as number).toBeGreaterThanOrEqual(16);
     });
 
-    test(`the work list is one column at ${viewport.width}px`, async ({ page }) => {
+    test(`the work pairs never overlap, and stack in one column on a phone, at ${viewport.width}px`, async ({
+      page,
+    }) => {
+      // HOME-04's "lists, no card grids" was retired by the seam: below the
+      // fold the pieces after the story and the notes are a grid of pairs
+      // (components/landing/more-work.tsx), two across on a desktop. What
+      // still has to hold is that no pair sits on another, and that a phone
+      // gets one column.
       const rects = await page.evaluate(() =>
-        Array.from(document.querySelectorAll("#work li")).map((li) => {
+        Array.from(document.querySelectorAll(".seam-more-list > li")).map((li) => {
           const r = li.getBoundingClientRect();
-          return { x: r.x, y: r.y, height: r.height };
+          return { x: r.x, y: r.y, width: r.width, height: r.height };
         }),
       );
+      expect(rects.length).toBeGreaterThan(1);
 
-      expect(rects).toHaveLength(2);
-      // Same x within 1px — a vertical list, not a row.
-      expect(Math.abs(rects[0].x - rects[1].x)).toBeLessThanOrEqual(1);
-      // Second row strictly below the first, past its own height — not a
-      // grid and not an overlapping stack.
-      expect(rects[1].y).toBeGreaterThan(rects[0].y + rects[0].height);
+      for (let i = 0; i < rects.length; i++) {
+        for (let j = i + 1; j < rects.length; j++) {
+          const [a, b] = [rects[i], rects[j]];
+          const apart =
+            a.x + a.width <= b.x + 1 ||
+            b.x + b.width <= a.x + 1 ||
+            a.y + a.height <= b.y + 1 ||
+            b.y + b.height <= a.y + 1;
+          expect(apart, `pairs ${i} and ${j} overlap`).toBe(true);
+        }
+      }
+
+      if (viewport.width < 600) {
+        for (const rect of rects) expect(Math.abs(rect.x - rects[0].x)).toBeLessThanOrEqual(1);
+      }
     });
 
     test(`nothing inside <main> scrolls internally at ${viewport.width}px`, async ({ page }) => {
@@ -125,13 +147,18 @@ for (const viewport of VIEWPORTS) {
       // a long absolute URL or a long annotation is the realistic overflow
       // source, and it would be invisible to the page-level check above if
       // the container clipped it instead of the page scrolling.
-      const overflowingCount = await page.evaluate(
-        () =>
-          Array.from(document.querySelectorAll("main *")).filter(
-            (el) => el.scrollWidth > el.clientWidth,
-          ).length,
+      //
+      // Only a box that can actually scroll counts. The seam lets ink spill
+      // on purpose — the Humane nameplate past its box, the backlog wedge,
+      // the grain field clipped by overflow: hidden — and none of that is a
+      // scrollbar; page-level spill is the overflow check above.
+      const scrolling = await page.evaluate(() =>
+        Array.from(document.querySelectorAll("main *"))
+          .filter((el) => /auto|scroll/.test(getComputedStyle(el).overflowX))
+          .filter((el) => el.scrollWidth > el.clientWidth)
+          .map((el) => `${el.tagName.toLowerCase()}.${el.getAttribute("class") ?? ""}`),
       );
-      expect(overflowingCount).toBe(0);
+      expect(scrolling).toEqual([]);
     });
 
     test(`the measure holds at ${viewport.width}px`, async ({ page }) => {
