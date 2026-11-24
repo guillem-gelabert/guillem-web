@@ -353,11 +353,11 @@ test("26. the outbound link to the live piece appears exactly once per body, as 
   for (const { filename } of LOCALES) {
     const text = readContentFile(filename);
     const { body } = splitFrontmatter(text, filename);
-    const occurrences = body.split("https://ib-gdp.guillemgelabert.com").length - 1;
+    const occurrences = body.split("https://ib-gdp.guillem.ch").length - 1;
     assert.equal(occurrences, 1, `${filename}: expected exactly one occurrence of the outbound URL`);
     assert.match(
       body,
-      /\[[^\]]+\]\(https:\/\/ib-gdp\.guillemgelabert\.com[^)]*\)/,
+      /\[[^\]]+\]\(https:\/\/ib-gdp\.guillem\.ch[^)]*\)/,
       `${filename}: the outbound URL must sit inside a Markdown link [label](url)`,
     );
   }
@@ -369,7 +369,7 @@ test("27. the outbound link falls inside 'What shipped'/'Was veröffentlicht wur
     const { body } = splitFrontmatter(text, filename);
     const h2s = extractHeadings(body).filter((h) => h.level === 2);
     assert.equal(h2s.length, 6, `${filename}: expected six h2 headings to bound the link`);
-    const linkIndex = body.indexOf("https://ib-gdp.guillemgelabert.com");
+    const linkIndex = body.indexOf("https://ib-gdp.guillem.ch");
     assert.ok(linkIndex !== -1, `${filename}: outbound URL not found`);
     const fifthHeadingIndex = h2s[4]!.index;
     const sixthHeadingIndex = h2s[5]!.index;

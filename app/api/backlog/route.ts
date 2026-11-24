@@ -20,7 +20,7 @@ import { addItem, listItems, MAX_ITEMS, validateItem } from "@/lib/backlog-store
  * eventually finds a hole in DELETE.
  *
  * Usage:
- *   curl -X POST https://guillemgelabert.com/api/backlog \
+ *   curl -X POST https://www.guillem.ch/api/backlog \
  *     -H "Authorization: Bearer $BACKLOG_API_TOKEN" \
  *     -H "Content-Type: application/json" \
  *     -d '{"name":"...","description":"..."}'

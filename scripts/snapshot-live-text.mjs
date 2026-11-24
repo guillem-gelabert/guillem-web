@@ -28,19 +28,19 @@ const OUTPUT_DIR = path.join(
 // client-side-redirect reason as capture-case-study-figures.mjs.
 const PAGES = [
   {
-    url: "https://ib-gdp.guillemgelabert.com/everyone-in-mallorca-agrees-on-one-thing",
+    url: "https://ib-gdp.guillem.ch/everyone-in-mallorca-agrees-on-one-thing",
     file: "en-story.txt",
   },
   {
-    url: "https://ib-gdp.guillemgelabert.com/auf-mallorca-weiss-es-jeder",
+    url: "https://ib-gdp.guillem.ch/auf-mallorca-weiss-es-jeder",
     file: "de-story.txt",
   },
   {
-    url: "https://ib-gdp.guillemgelabert.com/everyone-in-mallorca-agrees-on-one-thing/methodology",
+    url: "https://ib-gdp.guillem.ch/everyone-in-mallorca-agrees-on-one-thing/methodology",
     file: "en-methodology.txt",
   },
   {
-    url: "https://ib-gdp.guillemgelabert.com/auf-mallorca-weiss-es-jeder/methodik",
+    url: "https://ib-gdp.guillem.ch/auf-mallorca-weiss-es-jeder/methodik",
     file: "de-methodology.txt",
   },
 ];

@@ -24,6 +24,9 @@ import type { Locale } from "./content";
  * The Railway origin the service also still answers on directly:
  * https://web-production-9cedb.up.railway.app
  *
+ * 2026-11-24: canonical moved to https://www.guillem.ch; guillemgelabert.com
+ * now 301s here via Cloudflare redirect rules.
+ *
  * Env-overridable so a future hostname change is a deploy variable, not a
  * code change: set NEXT_PUBLIC_SITE_URL in the hosting environment.
  *
@@ -35,7 +38,7 @@ import type { Locale } from "./content";
  * on purpose there.
  */
 export const SITE_URL = new URL(
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://guillemgelabert.com",
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.guillem.ch",
 );
 
 export const SITE_NAME = "Guillem Gelabert";
