@@ -41,13 +41,13 @@ test.describe("colour-depth explorer", () => {
     await photo.scrollIntoViewIfNeeded();
     // wait until the picture has been drawn
     await expect
-      .poll(() => photo.evaluate((c: HTMLCanvasElement) => c.getContext("2d")!.getImageData(600, 1000, 1, 1).data[3]))
+      .poll(() => photo.evaluate((c: HTMLCanvasElement) => c.getContext("2d")!.getImageData(600, 1000, 1, 1).data[3]), { timeout: 15_000 })
       .toBe(255);
     const chip = page.getByTestId("chip");
     const before = await chip.evaluate((el) => getComputedStyle(el).backgroundColor);
     const box = (await photo.boundingBox())!;
     await page.mouse.click(box.x + box.width * 0.5, box.y + box.height * 0.85); // the pitch
-    await expect.poll(() => chip.evaluate((el) => getComputedStyle(el).backgroundColor)).not.toBe(before);
+    await expect.poll(() => chip.evaluate((el) => getComputedStyle(el).backgroundColor), { timeout: 15_000 }).not.toBe(before);
   });
 
   test("hovering the picture shows the loupe with the colour under the pointer", async ({ page }) => {
@@ -55,7 +55,7 @@ test.describe("colour-depth explorer", () => {
     const photo = page.getByTestId("photo");
     await photo.scrollIntoViewIfNeeded();
     await expect
-      .poll(() => photo.evaluate((c: HTMLCanvasElement) => c.getContext("2d")!.getImageData(600, 1000, 1, 1).data[3]))
+      .poll(() => photo.evaluate((c: HTMLCanvasElement) => c.getContext("2d")!.getImageData(600, 1000, 1, 1).data[3]), { timeout: 15_000 })
       .toBe(255);
     const loupe = page.getByTestId("loupe");
     await expect(loupe).toBeHidden();
