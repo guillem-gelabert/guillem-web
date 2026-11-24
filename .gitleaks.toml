@@ -1,0 +1,14 @@
+# Read by the local secret-scanning hooks (~/.git-hooks/secret-scanning),
+# which require the default gitleaks rules to stay on.
+[extend]
+useDefault = true
+
+# content/fixture.mdx is a prose-layout fixture. Its curl example carries a
+# placeholder bearer token on example.com, sized to test line wrapping.
+# Scoped to that one rule, that one file and that exact placeholder.
+[[allowlists]]
+description = "Placeholder bearer token in the prose fixture's curl example"
+targetRules = ["curl-auth-header"]
+condition = "AND"
+paths = ['''^content/fixture\.mdx$''']
+regexes = ['''replace-with-a-token-value-long-enough-to-not-wrap-onto-a-second-line''']
